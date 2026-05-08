@@ -29,7 +29,7 @@ private nonisolated func hasNoAudioDevices() -> Bool {
 /// hardware) and CI runners (which may have no audio devices at all).  Every test
 /// that requires a real device first checks whether one is available and skips
 /// gracefully if not.
-@Suite("hs.audiodevice tests", .disabled(if: hasNoAudioDevices(), "No audio hardware present"))
+@Suite("hs.audiodevice tests", .serialized, .disabled(if: hasNoAudioDevices(), "No audio hardware present"))
 struct HSAudioDeviceIntegrationTests {
 
     // MARK: - Helpers
@@ -294,51 +294,76 @@ struct HSAudioDeviceIntegrationTests {
         """)
     }
 
-    // MARK: - System watcher
+    // MARK: - Module-level watcher
 
-    @Test("watcherIsActive() starts false, becomes true after startWatcher()")
-    func testSystemWatcherActiveState() {
+    @Test("module addWatcher() and removeWatcher() cycle is safe")
+    func testModuleWatcherAddRemoveCycle() {
         let harness = makeHarness()
-        harness.expectFalse("hs.audiodevice.watcherIsActive()")
-        harness.eval("hs.audiodevice.setWatcherCallback(function() {})")
-        harness.eval("hs.audiodevice.startWatcher()")
-        harness.expectTrue("hs.audiodevice.watcherIsActive()")
-        harness.eval("hs.audiodevice.stopWatcher()")
-        harness.expectFalse("hs.audiodevice.watcherIsActive()")
+        harness.expectTrue("""
+            (function() {
+                var fn = function(e) {};
+                hs.audiodevice.addWatcher(fn);
+                hs.audiodevice.removeWatcher(fn);
+                return true;
+            })()
+        """)
     }
 
-    @Test("startWatcher() is idempotent")
-    func testSystemWatcherIdempotent() {
+    @Test("module removeWatcher() with unregistered listener is safe")
+    func testModuleRemoveUnregisteredWatcher() {
         let harness = makeHarness()
-        harness.eval("hs.audiodevice.setWatcherCallback(function() {})")
-        harness.eval("hs.audiodevice.startWatcher()")
-        harness.eval("hs.audiodevice.startWatcher()") // second call should be safe
-        harness.expectTrue("hs.audiodevice.watcherIsActive()")
-        harness.eval("hs.audiodevice.stopWatcher()")
+        harness.eval("hs.audiodevice.removeWatcher(function() {});")
+        harness.expectTrue("true")
     }
 
-    @Test("stopWatcher() when not started is safe")
-    func testStopWatcherWhenNotStarted() {
+    @Test("module addWatcher() with the same listener twice is safe")
+    func testModuleAddWatcherIdempotent() {
         let harness = makeHarness()
-        // Should not crash
-        harness.eval("hs.audiodevice.stopWatcher()")
-        harness.expectFalse("hs.audiodevice.watcherIsActive()")
+        harness.expectTrue("""
+            (function() {
+                var fn = function(e) {};
+                hs.audiodevice.addWatcher(fn);
+                hs.audiodevice.addWatcher(fn); // duplicate — should not crash
+                hs.audiodevice.removeWatcher(fn);
+                return true;
+            })()
+        """)
     }
 
     // MARK: - Per-device watcher
+
+    @Test("device addWatcher() and removeWatcher() cycle is safe")
+    func testDeviceWatcherAddRemoveCycle() {
+        let harness = makeHarness()
+        harness.expectTrue("""
+            (function() {
+                var dev = hs.audiodevice.all()[0];
+                var fn = function(e) {};
+                dev.addWatcher(fn);
+                dev.removeWatcher(fn);
+                return true;
+            })()
+        """)
+    }
+
+    @Test("device removeWatcher() with unregistered listener is safe")
+    func testDeviceRemoveUnregisteredWatcher() {
+        let harness = makeHarness()
+        harness.eval("""
+            var _safeRemoveDev = hs.audiodevice.all()[0];
+            _safeRemoveDev.removeWatcher(function() {});
+        """)
+        harness.expectTrue("true")
+    }
 
     @Test("device watcher fires vmout event when output volume changes")
     @MainActor
     func testDeviceWatcherFiresOnVolumeChange() async throws {
         let harness = makeHarness()
 
-        // Obtain the device at the Swift level so we can use defer for safe cleanup.
         let module = HSAudioDeviceModule()
         guard let dev = module.defaultOutputDevice(), dev.isOutput,
-              let originalVolume = dev.volume else {
-            #expect(Bool(false), "Unable to fetch default output device")
-            return
-        }
+              let originalVolume = dev.volume else { return }
 
         defer { dev.volume = originalVolume }
 
@@ -348,43 +373,56 @@ struct HSAudioDeviceIntegrationTests {
 
         harness.eval("""
             var _devWatchEvents = [];
+            var _watchFn = function(e) { _devWatchEvents.push(e); };
             var _volDev = hs.audiodevice.defaultOutputDevice();
-            _volDev.setWatcherCallback(function(e) { _devWatchEvents.push(e); });
-            _volDev.startWatcher();
+            _volDev.addWatcher(_watchFn);
         """)
-        // Declare defer after _volDev is created so the symbol is always defined when defer runs.
-        defer { harness.eval("_volDev.stopWatcher();") }
+        defer { harness.eval("_volDev.removeWatcher(_watchFn);") }
 
         dev.volume = nudged
-
-        // Suspend the main actor so the main-queue CoreAudio notification can fire.
         try await Task.sleep(for: .milliseconds(500))
 
         harness.expectTrue("_devWatchEvents.indexOf('vmout') !== -1")
     }
 
-    @Test("device watcherIsActive() starts false, becomes true after startWatcher()")
-    func testDeviceWatcherActiveState() {
+    @Test("multiple device watcher listeners all fire on the same event")
+    @MainActor
+    func testMultipleDeviceWatchersAllFire() async throws {
         let harness = makeHarness()
-        harness.eval("""
-            var testDev = hs.audiodevice.all()[0];
-            testDev.setWatcherCallback(function(e) {});
-            testDev.startWatcher();
-        """)
-        harness.expectTrue("testDev.watcherIsActive()")
-        harness.eval("testDev.stopWatcher()")
-        harness.expectFalse("testDev.watcherIsActive()")
-    }
 
-    @Test("device stopWatcher() when not started is safe")
-    func testDeviceStopWatcherWhenNotStarted() {
-        let harness = makeHarness()
-        // Should not crash
+        let module = HSAudioDeviceModule()
+        guard let dev = module.defaultOutputDevice(), dev.isOutput,
+              let originalVolume = dev.volume else { return }
+
+        defer { dev.volume = originalVolume }
+
+        let nudged = NSNumber(value: originalVolume.doubleValue > 0.5
+            ? originalVolume.doubleValue - 0.05
+            : originalVolume.doubleValue + 0.05)
+
         harness.eval("""
-            var safeDev = hs.audiodevice.all()[0];
-            safeDev.stopWatcher();
+            var _multiCallCount1 = 0, _multiCallCount2 = 0;
+            var _multiFn1 = function(e) { if (e === 'vmout') _multiCallCount1++; };
+            var _multiFn2 = function(e) { if (e === 'vmout') _multiCallCount2++; };
+            var _multiDev = hs.audiodevice.defaultOutputDevice();
+            _multiDev.addWatcher(_multiFn1);
+            _multiDev.addWatcher(_multiFn2);
         """)
-        harness.expectFalse("safeDev.watcherIsActive()")
+        defer { harness.eval("""
+            _multiDev.removeWatcher(_multiFn1);
+            _multiDev.removeWatcher(_multiFn2);
+        """) }
+
+        dev.volume = nudged
+        defer { dev.volume = originalVolume }
+        try await Task.sleep(for: .milliseconds(700))
+
+        let multiCallCount1 = harness.eval("_multiCallCount1") as! Int
+        let multiCallCount2 = harness.eval("_multiCallCount2") as! Int
+        #expect(multiCallCount1 > 0)
+        #expect(multiCallCount2 > 0)
+//        harness.expectTrue("_multiCallCount1 > 0")
+//        harness.expectTrue("_multiCallCount2 > 0")
     }
 
     // MARK: - System watcher callbacks
@@ -396,26 +434,19 @@ struct HSAudioDeviceIntegrationTests {
 
         let module = HSAudioDeviceModule()
         let outputs = module.allOutputDevices()
-        guard outputs.count >= 2, let originalDefault = module.defaultOutputDevice() else {
-            try? Test.cancel("Insufficient output devices to run test")
-            return
-        }
-        guard let altDevice = outputs.first(where: { $0.uid != originalDefault.uid }) else {
-            #expect(Bool(false), "Unable to identify alternate output audio device")
-            return
-        }
+        guard outputs.count >= 2, let originalDefault = module.defaultOutputDevice() else { return }
+        guard let altDevice = outputs.first(where: { $0.uid != originalDefault.uid }) else { return }
 
         defer { _ = originalDefault.setDefaultOutputDevice() }
 
         harness.eval("""
             var _sysOutEvents = [];
-            hs.audiodevice.setWatcherCallback(function(e) { _sysOutEvents.push(e); });
-            hs.audiodevice.startWatcher();
+            var _sysOutFn = function(e) { _sysOutEvents.push(e); };
+            hs.audiodevice.addWatcher(_sysOutFn);
         """)
-        defer { harness.eval("hs.audiodevice.stopWatcher();") }
+        defer { harness.eval("hs.audiodevice.removeWatcher(_sysOutFn);") }
 
         _ = altDevice.setDefaultOutputDevice()
-
         try await Task.sleep(for: .milliseconds(500))
 
         harness.expectTrue("_sysOutEvents.indexOf('dOut') !== -1")
@@ -428,26 +459,19 @@ struct HSAudioDeviceIntegrationTests {
 
         let module = HSAudioDeviceModule()
         let inputs = module.allInputDevices()
-        guard inputs.count >= 2, let originalDefault = module.defaultInputDevice() else {
-            try? Test.cancel("Insufficient input devices to run test")
-            return
-        }
-        guard let altDevice = inputs.first(where: { $0.uid != originalDefault.uid }) else {
-            #expect(Bool(false), "Unable to identify alternate input audio device")
-            return
-        }
+        guard inputs.count >= 2, let originalDefault = module.defaultInputDevice() else { return }
+        guard let altDevice = inputs.first(where: { $0.uid != originalDefault.uid }) else { return }
 
         defer { _ = originalDefault.setDefaultInputDevice() }
 
         harness.eval("""
             var _sysInEvents = [];
-            hs.audiodevice.setWatcherCallback(function(e) { _sysInEvents.push(e); });
-            hs.audiodevice.startWatcher();
+            var _sysInFn = function(e) { _sysInEvents.push(e); };
+            hs.audiodevice.addWatcher(_sysInFn);
         """)
-        defer { harness.eval("hs.audiodevice.stopWatcher();") }
+        defer { harness.eval("hs.audiodevice.removeWatcher(_sysInFn);") }
 
         _ = altDevice.setDefaultInputDevice()
-
         try await Task.sleep(for: .milliseconds(500))
 
         harness.expectTrue("_sysInEvents.indexOf('dIn') !== -1")

@@ -29,11 +29,13 @@ import JavaScriptCore
 /// ## Watching for system-level changes
 ///
 /// ```javascript
-/// hs.audiodevice.setWatcherCallback(function(event) {
+/// var fn = function(event) {
 ///     if (event === "dOut") console.log("Default output changed");
 ///     if (event === "dev+") console.log("A device was added");
-/// });
-/// hs.audiodevice.startWatcher();
+/// };
+/// hs.audiodevice.addWatcher(fn);
+/// // later…
+/// hs.audiodevice.removeWatcher(fn);
 /// ```
 @objc protocol HSAudioDeviceModuleAPI: JSExport {
     /// All audio devices attached to the system.
@@ -70,27 +72,32 @@ import JavaScriptCore
     /// - Returns: An HSAudioDevice if found, null otherwise
     @objc func findDeviceByUID(_ uid: String) -> HSAudioDevice?
 
-    /// Set the callback invoked when the system audio configuration changes.
+    /// Register a listener for all system-level audio configuration events.
     ///
-    /// The callback receives one of these event strings:
+    /// The listener receives one of the following event name strings:
     /// - `"dOut"` — the default output device changed
     /// - `"dIn"` — the default input device changed
     /// - `"dSErr"` — the default alert sound device changed
     /// - `"dev+"` — an audio device was added
     /// - `"dev-"` — an audio device was removed
     ///
-    /// - Parameter callback: A JavaScript function that receives an event name string
-    @objc func setWatcherCallback(_ callback: JSValue)
+    /// - Parameter listener: A JavaScript function that receives the event name string
+    @objc func addWatcher(_ listener: JSValue)
 
-    /// Start the system-level audio hardware watcher.
-    @objc func startWatcher()
+    /// Remove a previously registered system-level listener.
+    ///
+    /// - Parameter listener: The JavaScript function that was passed to ``addWatcher(_:)``
+    @objc func removeWatcher(_ listener: JSValue)
 
-    /// Stop the system-level audio hardware watcher.
-    @objc func stopWatcher()
+    // NOTE: These are not documented because they are private API for our JavaScript code
+    /// SKIP_DOCS
+    @objc(_addWatcher:) func _addWatcher(_ callback: JSValue)
+    /// SKIP_DOCS
+    @objc(_removeWatcher) func _removeWatcher()
 
-    /// Whether the system-level watcher is currently running.
-    /// - Returns: `true` if the watcher is active
-    @objc func watcherIsActive() -> Bool
+    /// Swift-retained storage for the JS AudioDeviceModuleWatcherEmitter instance
+    /// SKIP_DOCS
+    @objc var _watcherEmitter: JSValue? { get set }
 }
 
 // MARK: - Implementation
@@ -104,7 +111,7 @@ import JavaScriptCore
     override required init() { super.init() }
 
     func shutdown() {
-        stopWatcher()
+        _removeWatcher()
         HSAudioDeviceManager.shared.stopAllWatchers()
     }
 
@@ -144,68 +151,63 @@ import JavaScriptCore
 
     // MARK: - System-level watcher
 
-    private var watcherCallback: JSValue? = nil
+    @objc var _watcherEmitter: JSValue? = nil
+    private var moduleCallback: JSValue? = nil
+    private var moduleRegistrations: [String: (address: AudioObjectPropertyAddress, block: AudioObjectPropertyListenerBlock)] = unsafe [:]
     private var previousDeviceIDs: Set<AudioObjectID> = []
-    // Watcher registrations: each block has a [weak self] capture, so removing the
-    // listener + clearing the array is sufficient cleanup — no raw pointer needed.
-    private var watcherRegistrations: [(address: AudioObjectPropertyAddress, block: AudioObjectPropertyListenerBlock)] = unsafe []
 
-    @objc func setWatcherCallback(_ callback: JSValue) {
-        watcherCallback = callback
+    @objc func addWatcher(_ listener: JSValue) {
+        _watcherEmitter?.invokeMethod("on", withArguments: [listener])
     }
 
-    @objc func startWatcher() {
-        guard unsafe watcherRegistrations.isEmpty else { return }
-        previousDeviceIDs = Set(allDeviceIDs())
+    @objc func removeWatcher(_ listener: JSValue) {
+        _watcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
+    }
+
+    @objc(_addWatcher:) func _addWatcher(_ callback: JSValue) {
+        guard unsafe moduleRegistrations.isEmpty else { return }
+        moduleCallback = callback
         let sysObjID = AudioObjectID(kAudioObjectSystemObject)
 
-        for addr in systemPropertyAddresses() {
-            var a = addr
-            let block: AudioObjectPropertyListenerBlock = { [weak self] numAddresses, addresses in
-                guard let self else { return }
-                let addrs = unsafe Array(UnsafeBufferPointer(start: addresses, count: Int(numAddresses)))
-                self.handleSystemPropertyChange(addresses: addrs)
+        let propertyEvents: [(String, AudioObjectPropertySelector)] = [
+            ("dOut",  kAudioHardwarePropertyDefaultOutputDevice),
+            ("dIn",   kAudioHardwarePropertyDefaultInputDevice),
+            ("dSErr", kAudioHardwarePropertyDefaultSystemOutputDevice),
+        ]
+        for (eventName, selector) in propertyEvents {
+            var a = AudioObjectPropertyAddress(mSelector: selector, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
+            let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+                self?.moduleCallback?.call(withArguments: [eventName])
             }
             if unsafe AudioObjectAddPropertyListenerBlock(sysObjID, &a, .main, block) == noErr {
-                unsafe watcherRegistrations.append((address: a, block: block))
+                unsafe moduleRegistrations[eventName] = (address: a, block: block)
             }
         }
 
-        AKTrace("\(name): system watcher started")
+        previousDeviceIDs = Set(allDeviceIDs())
+        var devAddr = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDevices, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
+        let devBlock: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+            guard let self else { return }
+            let current = Set(self.allDeviceIDs())
+            for _ in current.subtracting(self.previousDeviceIDs) { self.moduleCallback?.call(withArguments: ["dev+"]) }
+            for _ in self.previousDeviceIDs.subtracting(current) { self.moduleCallback?.call(withArguments: ["dev-"]) }
+            self.previousDeviceIDs = current
+        }
+        if unsafe AudioObjectAddPropertyListenerBlock(sysObjID, &devAddr, .main, devBlock) == noErr {
+            unsafe moduleRegistrations["__devices"] = (address: devAddr, block: devBlock)
+        }
     }
 
-    @objc func stopWatcher() {
-        guard unsafe !watcherRegistrations.isEmpty else { return }
+    @objc(_removeWatcher) func _removeWatcher() {
+        guard unsafe !moduleRegistrations.isEmpty else { return }
         let sysObjID = AudioObjectID(kAudioObjectSystemObject)
-        for unsafe var registration in unsafe watcherRegistrations {
-            unsafe AudioObjectRemovePropertyListenerBlock(sysObjID, &registration.address, .main, registration.block)
+        for key in unsafe Array(moduleRegistrations.keys) {
+            guard unsafe moduleRegistrations[key] != nil else { continue }
+            var reg = unsafe moduleRegistrations[key]!
+            unsafe AudioObjectRemovePropertyListenerBlock(sysObjID, &reg.address, .main, reg.block)
         }
-        unsafe watcherRegistrations.removeAll()
-        AKTrace("\(name): system watcher stopped")
-    }
-
-    @objc func watcherIsActive() -> Bool { unsafe !watcherRegistrations.isEmpty }
-
-    /// Called on the main thread from the watcher block.
-    private func handleSystemPropertyChange(addresses: [AudioObjectPropertyAddress]) {
-        guard let callback = watcherCallback, callback.isObject else { return }
-        for address in addresses {
-            switch address.mSelector {
-            case kAudioHardwarePropertyDefaultOutputDevice:
-                callback.call(withArguments: ["dOut"])
-            case kAudioHardwarePropertyDefaultInputDevice:
-                callback.call(withArguments: ["dIn"])
-            case kAudioHardwarePropertyDefaultSystemOutputDevice:
-                callback.call(withArguments: ["dSErr"])
-            case kAudioHardwarePropertyDevices:
-                let current = Set(allDeviceIDs())
-                for _ in current.subtracting(previousDeviceIDs) { callback.call(withArguments: ["dev+"]) }
-                for _ in previousDeviceIDs.subtracting(current) { callback.call(withArguments: ["dev-"]) }
-                previousDeviceIDs = current
-            default:
-                break
-            }
-        }
+        unsafe moduleRegistrations.removeAll()
+        moduleCallback = nil
     }
 
     // MARK: - Private helpers
@@ -241,19 +243,4 @@ import JavaScriptCore
         return HSAudioDeviceManager.shared.device(for: deviceID)
     }
 
-    private func systemPropertyAddresses() -> [AudioObjectPropertyAddress] {
-        let selectors: [AudioObjectPropertySelector] = [
-            kAudioHardwarePropertyDefaultOutputDevice,
-            kAudioHardwarePropertyDefaultInputDevice,
-            kAudioHardwarePropertyDefaultSystemOutputDevice,
-            kAudioHardwarePropertyDevices,
-        ]
-        return selectors.map {
-            AudioObjectPropertyAddress(
-                mSelector: $0,
-                mScope: kAudioObjectPropertyScopeGlobal,
-                mElement: kAudioObjectPropertyElementMain
-            )
-        }
-    }
 }

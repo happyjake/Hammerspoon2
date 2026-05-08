@@ -41,7 +41,7 @@ class HSAudioDeviceManager {
     /// Stop all active per-device watchers. Called during module shutdown.
     func stopAllWatchers() {
         for ref in cache.values {
-            ref.value?.stopWatcher()
+            ref.value?.stopAllRegisteredWatchers()
         }
         prune()
     }

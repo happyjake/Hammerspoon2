@@ -191,10 +191,10 @@ private func caDataSourceName(_ objectID: AudioObjectID,
 /// ```javascript
 /// const dev = hs.audiodevice.defaultOutputDevice();
 /// if (dev) {
-///     dev.setWatcherCallback(function(event) {
-///         console.log("Device event:", event);
-///     });
-///     dev.startWatcher();
+///     var fn = function(event) { console.log("Device event:", event); };
+///     dev.addWatcher(fn);
+///     // later…
+///     dev.removeWatcher(fn);
 /// }
 /// ```
 @objc protocol HSAudioDeviceAPI: HSTypeAPI, JSExport {
@@ -306,7 +306,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
 
     // MARK: Per-device watcher
 
-    /// Set the callback invoked when a property of this device changes.
+    /// Register a listener for a per-device property-change event.
     ///
     /// The callback receives one of these event strings:
     /// - `"vmout"` — output volume changed
@@ -317,18 +317,23 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// - `"dsout"` — output data source changed
     /// - `"dsin"` — input data source changed
     ///
-    /// - Parameter callback: A JavaScript function that receives an event name string
-    @objc func setWatcherCallback(_ callback: JSValue)
+    /// - Parameter listener: A JavaScript function that receives an event name string
+    @objc func addWatcher(_ listener: JSValue)
 
-    /// Start watching this device for property changes.
-    @objc func startWatcher()
+    /// Remove a previously registered per-device listener.
+    ///
+    /// - Parameter listener: The JavaScript function that was passed to ``addWatcher(_:)``
+    @objc func removeWatcher(_ listener: JSValue)
 
-    /// Stop watching this device for property changes.
-    @objc func stopWatcher()
+    // NOTE: These are not documented because they are private API for our JavaScript code
+    /// SKIP_DOCS
+    @objc(_addWatcher:) func _addWatcher(_ callback: JSValue)
+    /// SKIP_DOCS
+    @objc(_removeWatcher) func _removeWatcher()
 
-    /// Whether the per-device watcher is currently active.
-    /// - Returns: `true` if the watcher is running
-    @objc func watcherIsActive() -> Bool
+    /// Swift-retained storage for the JS AudioDeviceWatcherEmitter instance
+    /// SKIP_DOCS
+    @objc var _watcherEmitter: JSValue? { get set }
 }
 
 // MARK: - Implementation
@@ -549,76 +554,72 @@ private func caDataSourceName(_ objectID: AudioObjectID,
 
     // MARK: - Per-device watcher
 
-    private var watcherCallback: JSValue? = nil
-    // Watcher registrations: stored as tuples of (address, block).
-    // The block is a heap-allocated ObjC block; storing the same reference here
-    // guarantees pointer equality when calling AudioObjectRemovePropertyListenerBlock.
-    private var watcherRegistrations: [(address: AudioObjectPropertyAddress, block: AudioObjectPropertyListenerBlock)] = unsafe []
-    // Strong self-reference to keep the device alive while its watcher is running.
+    @objc var _watcherEmitter: JSValue? = nil
+    // Registrations keyed by event name: each value holds the CoreAudio address and
+    // the heap-allocated ObjC block (stored to guarantee pointer equality on removal).
+    private var deviceRegistrations: [String: (address: AudioObjectPropertyAddress, block: AudioObjectPropertyListenerBlock)] = unsafe [:]
+    // Strong self-reference to keep the device alive while any watcher is active.
     private var selfRetain: HSAudioDevice? = nil
 
-    @objc func setWatcherCallback(_ callback: JSValue) {
-        watcherCallback = callback
+    @objc func addWatcher(_ listener: JSValue) {
+        if _watcherEmitter == nil {
+            guard let ctx = JSContext.current() else { return }
+            let audiodevice = ctx.objectForKeyedSubscript("hs")?.objectForKeyedSubscript("audiodevice")
+            _watcherEmitter = audiodevice?.invokeMethod("_makeDeviceEmitter", withArguments: [self])
+        }
+        _watcherEmitter?.invokeMethod("on", withArguments: [listener])
     }
 
-    @objc func startWatcher() {
-        guard unsafe watcherRegistrations.isEmpty else { return }
-        selfRetain = self  // prevent GC while watcher is active
+    @objc func removeWatcher(_ listener: JSValue) {
+        _watcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
+    }
 
-        let candidates: [(AudioObjectPropertySelector, AudioObjectPropertyScope)] = [
-            (kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput),
-            (kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeInput),
-            (kAudioDevicePropertyMute, kAudioDevicePropertyScopeOutput),
-            (kAudioDevicePropertyMute, kAudioDevicePropertyScopeInput),
-            (kAudioDevicePropertyNominalSampleRate, kAudioObjectPropertyScopeGlobal),
-            (kAudioDevicePropertyDataSource, kAudioDevicePropertyScopeOutput),
-            (kAudioDevicePropertyDataSource, kAudioDevicePropertyScopeInput),
+    @objc(_addWatcher:) func _addWatcher(_ callback: JSValue) {
+        guard unsafe deviceRegistrations.isEmpty else { return }
+        selfRetain = self
+
+        let candidates: [(AudioObjectPropertySelector, AudioObjectPropertyScope, String)] = [
+            (kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput, "vmout"),
+            (kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeInput,  "vmin"),
+            (kAudioDevicePropertyMute,         kAudioDevicePropertyScopeOutput, "mout"),
+            (kAudioDevicePropertyMute,         kAudioDevicePropertyScopeInput,  "min"),
+            (kAudioDevicePropertyNominalSampleRate, kAudioObjectPropertyScopeGlobal, "rate"),
+            (kAudioDevicePropertyDataSource,   kAudioDevicePropertyScopeOutput, "dsout"),
+            (kAudioDevicePropertyDataSource,   kAudioDevicePropertyScopeInput,  "dsin"),
         ]
 
-        for (selector, scope) in candidates {
-            var a = caAddr(selector, scope)
+        for (selector, scope, eventName) in candidates {
             guard caHasProperty(objectID, selector, scope) else { continue }
-            let block: AudioObjectPropertyListenerBlock = { [weak self] numAddresses, addresses in
-                guard let self else { return }
-                let addrs = unsafe Array(UnsafeBufferPointer(start: addresses, count: Int(numAddresses)))
-                self.handleDevicePropertyChange(addresses: addrs)
+            var a = caAddr(selector, scope)
+            let block: AudioObjectPropertyListenerBlock = { _, _ in
+                callback.call(withArguments: [eventName])
             }
             if unsafe AudioObjectAddPropertyListenerBlock(objectID, &a, .main, block) == noErr {
-                unsafe watcherRegistrations.append((address: a, block: block))
+                unsafe deviceRegistrations[eventName] = (address: a, block: block)
             }
         }
 
-        AKTrace(unsafe "HSAudioDevice id=\(objectID): watcher started (\(watcherRegistrations.count) listeners)")
+        AKTrace(unsafe "HSAudioDevice id=\(objectID): watcher started (\(deviceRegistrations.count) listeners)")
     }
 
-    @objc func stopWatcher() {
-        guard unsafe !watcherRegistrations.isEmpty else { return }
-        for unsafe var registration in unsafe watcherRegistrations {
+    @objc(_removeWatcher) func _removeWatcher() {
+        // Clear the emitter first so the next addWatcher() creates a fresh one
+        // in the caller's JSVirtualMachine. Leaving a stale emitter here causes
+        // cross-VM JSValue passing when subsequent harnesses reuse this device.
+        _watcherEmitter = nil
+        guard unsafe !deviceRegistrations.isEmpty else { return }
+        for eventName in unsafe Array(deviceRegistrations.keys) {
+            guard unsafe deviceRegistrations[eventName] != nil else { continue }
+            var registration = unsafe deviceRegistrations[eventName]!
             unsafe AudioObjectRemovePropertyListenerBlock(objectID, &registration.address, .main, registration.block)
         }
-        unsafe watcherRegistrations.removeAll()
-        selfRetain = nil  // allow GC if no other strong refs
+        unsafe deviceRegistrations.removeAll()
+        selfRetain = nil
         AKTrace("HSAudioDevice id=\(objectID): watcher stopped")
     }
 
-    @objc func watcherIsActive() -> Bool { unsafe !watcherRegistrations.isEmpty }
-
-    /// Called on the main thread from the watcher block.
-    private func handleDevicePropertyChange(addresses: [AudioObjectPropertyAddress]) {
-        guard let callback = watcherCallback, callback.isObject else { return }
-        for address in addresses {
-            let event: String
-            switch (address.mSelector, address.mScope) {
-            case (kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput): event = "vmout"
-            case (kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeInput):  event = "vmin"
-            case (kAudioDevicePropertyMute, kAudioDevicePropertyScopeOutput):          event = "mout"
-            case (kAudioDevicePropertyMute, kAudioDevicePropertyScopeInput):           event = "min"
-            case (kAudioDevicePropertyNominalSampleRate, _):                           event = "rate"
-            case (kAudioDevicePropertyDataSource, kAudioDevicePropertyScopeOutput):    event = "dsout"
-            case (kAudioDevicePropertyDataSource, kAudioDevicePropertyScopeInput):     event = "dsin"
-            default: continue
-            }
-            callback.call(withArguments: [event])
-        }
+    /// Stop all CoreAudio listeners registered on this device. Called during module shutdown.
+    func stopAllRegisteredWatchers() {
+        _removeWatcher()
     }
 }
