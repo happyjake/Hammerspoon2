@@ -8,27 +8,31 @@ import JavaScriptCore
 import CoreAudio
 @testable import Hammerspoon_2
 
+private nonisolated func hasNoAudioDevices() -> Bool {
+    let sysObjID = AudioObjectID(kAudioObjectSystemObject)
+    var a = AudioObjectPropertyAddress(
+        mSelector: kAudioHardwarePropertyDevices,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
+    var size: UInt32 = 0
+    guard unsafe AudioObjectGetPropertyDataSize(sysObjID, &a, 0, nil, &size) == noErr, size > 0 else {
+        return true
+    }
+    let count = Int(size) / MemoryLayout<AudioObjectID>.size
+    return count == 0
+}
+
 /// Integration tests for the hs.audiodevice module.
 ///
 /// These tests are designed to run on both development machines (which have audio
 /// hardware) and CI runners (which may have no audio devices at all).  Every test
 /// that requires a real device first checks whether one is available and skips
 /// gracefully if not.
+@Suite("hs.audiodevice tests", .disabled(if: hasNoAudioDevices(), "No audio hardware present"))
 struct HSAudioDeviceIntegrationTests {
 
     // MARK: - Helpers
-
-    /// Returns `true` when the system has at least one audio device.
-    private func hasAudioDevices(_ harness: JSTestHarness) -> Bool {
-        let count = harness.eval("hs.audiodevice.all().length") as? Int ?? 0
-        return count > 0
-    }
-
-    /// Returns `true` when the system has a default output device.
-    private func hasDefaultOutput(_ harness: JSTestHarness) -> Bool {
-        let result = harness.evalValue("hs.audiodevice.defaultOutputDevice()")
-        return result?.isNull == false && result?.isUndefined == false
-    }
 
     private func makeHarness() -> JSTestHarness {
         let harness = JSTestHarness()
@@ -59,7 +63,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("allOutputDevices() is a subset of all()")
     func testOutputDevicesIsSubset() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             hs.audiodevice.allOutputDevices().every(function(d) {
                 return hs.audiodevice.all().some(function(a) { return a.uid === d.uid; });
@@ -70,7 +73,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("allInputDevices() is a subset of all()")
     func testInputDevicesIsSubset() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             hs.audiodevice.allInputDevices().every(function(d) {
                 return hs.audiodevice.all().some(function(a) { return a.uid === d.uid; });
@@ -120,7 +122,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("findDeviceByName() can round-trip through all()")
     func testFindDeviceByNameRoundTrip() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var devices = hs.audiodevice.all();
@@ -135,7 +136,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("findDeviceByUID() can round-trip through all()")
     func testFindDeviceByUIDRoundTrip() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var devices = hs.audiodevice.all();
@@ -152,28 +152,24 @@ struct HSAudioDeviceIntegrationTests {
     @Test("HSAudioDevice has a non-empty name")
     func testDeviceName() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("hs.audiodevice.all()[0].name.length > 0")
     }
 
     @Test("HSAudioDevice has a non-empty uid")
     func testDeviceUID() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("hs.audiodevice.all()[0].uid.length > 0")
     }
 
     @Test("HSAudioDevice id is a positive integer")
     func testDeviceID() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("hs.audiodevice.all()[0].id > 0")
     }
 
     @Test("HSAudioDevice isInput and isOutput are booleans")
     func testDeviceCapabilities() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var d = hs.audiodevice.all()[0];
@@ -185,7 +181,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("HSAudioDevice transportType is a string")
     func testTransportType() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("typeof hs.audiodevice.all()[0].transportType === 'string'")
     }
 
@@ -210,7 +205,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("outputChannels is a non-negative integer")
     func testOutputChannels() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var d = hs.audiodevice.all()[0];
@@ -222,7 +216,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("inputChannels is a non-negative integer")
     func testInputChannels() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var d = hs.audiodevice.all()[0];
@@ -236,7 +229,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("output device volume is a number or null")
     func testOutputVolume() {
         let harness = makeHarness()
-        guard hasDefaultOutput(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var d = hs.audiodevice.defaultOutputDevice();
@@ -250,7 +242,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("output device muted is a boolean")
     func testOutputMuted() {
         let harness = makeHarness()
-        guard hasDefaultOutput(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var d = hs.audiodevice.defaultOutputDevice();
@@ -262,7 +253,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("availableSampleRates is an array")
     func testAvailableSampleRates() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             Array.isArray(hs.audiodevice.all()[0].availableSampleRates)
         """)
@@ -271,7 +261,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("sampleRate is a number or null")
     func testSampleRate() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var d = hs.audiodevice.all()[0];
@@ -286,7 +275,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("outputDataSources() returns an array")
     func testOutputDataSources() {
         let harness = makeHarness()
-        guard hasDefaultOutput(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var d = hs.audiodevice.defaultOutputDevice();
@@ -342,7 +330,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("device watcherIsActive() starts false, becomes true after startWatcher()")
     func testDeviceWatcherActiveState() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.eval("""
             var testDev = hs.audiodevice.all()[0];
             testDev.setWatcherCallback(function(e) {});
@@ -356,7 +343,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("device stopWatcher() when not started is safe")
     func testDeviceStopWatcherWhenNotStarted() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         // Should not crash
         harness.eval("""
             var safeDev = hs.audiodevice.all()[0];
@@ -370,7 +356,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("setDefaultOutputDevice/InputDevice/EffectDevice methods exist")
     func testDefaultDeviceSetterMethodsExist() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         harness.expectTrue("""
             (function() {
                 var d = hs.audiodevice.all()[0];
@@ -386,7 +371,6 @@ struct HSAudioDeviceIntegrationTests {
     @Test("HSAudioDeviceManager returns the same instance for the same device")
     func testManagerReuse() {
         let harness = makeHarness()
-        guard hasAudioDevices(harness) else { return }
         // The manager should return the same Swift object for the same AudioObjectID.
         // We can't directly verify object identity from JS, but we can verify that
         // the returned objects have identical properties.
