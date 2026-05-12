@@ -75,21 +75,19 @@ import UniformTypeIdentifiers
 
     /// Create a watcher for application events
     /// - Parameters:
-    ///    - event: The event type to listen for
-    ///    - listener: A javascript function/lambda to call when the event is received. The function will be called with two parameters: the name of the event, and the associated HSApplication object
-    @objc func addWatcher(_ event: String, _ listener: JSValue)
+    ///    - listener: A javascript function/lambda to call when any application event is received. The function will be called with two parameters: the name of the event, and the associated HSApplication object
+    @objc func addWatcher(_ listener: JSValue)
 
     /// Remove a watcher for application events
     /// - Parameters:
-    ///   - event: The event type to stop listening for
-    ///   - listener: The javascript function/lambda that was previously being used to handle the event
-    @objc func removeWatcher(_ event: String, _ listener: JSValue)
+    ///   - listener: The javascript function/lambda that was previously being used to handle events
+    @objc func removeWatcher(_ listener: JSValue)
 
     // NOTE: These are not documented because they are private API for our JavaScript code
     /// SKIP_DOCS
-    @objc(_addWatcher::) func _addWatcher(eventName: String, callback: JSValue)
+    @objc(_addWatcher:) func _addWatcher(callback: JSValue)
     /// SKIP_DOCS
-    @objc(_removeWatcher:) func _removeWatcher(eventName: String)
+    @objc func _removeWatcher()
 
     /// Swift-retained storage for the JS ApplicationModuleWatcherEmitter instance
     /// SKIP_DOCS
@@ -99,15 +97,27 @@ import UniformTypeIdentifiers
 // MARK: - Implementations
 
 class HSApplicationWatcherObject {
-    let eventName: String
     let callback: JSValue
 
-    init(eventName: String, callback: JSValue) {
-        self.eventName = eventName
+    static let notificationToEventName: [NSNotification.Name: String] = [
+        NSWorkspace.willLaunchApplicationNotification: "willLaunch",
+        NSWorkspace.didLaunchApplicationNotification: "didLaunch",
+        NSWorkspace.didTerminateApplicationNotification: "didTerminate",
+        NSWorkspace.didHideApplicationNotification: "didHide",
+        NSWorkspace.didUnhideApplicationNotification: "didUnhide",
+        NSWorkspace.didActivateApplicationNotification: "didActivate",
+        NSWorkspace.didDeactivateApplicationNotification: "didDeactivate",
+    ]
+
+    init(callback: JSValue) {
         self.callback = callback
     }
 
     @objc func handleEvent(notification: NSNotification) {
+        guard let eventName = Self.notificationToEventName[notification.name] else {
+            AKError("hs.application: received unknown notification: \(notification.name)")
+            return
+        }
         let eventApp = (notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.asHSApplication()
         callback.call(withArguments: [eventName, eventApp as Any])
     }
@@ -117,7 +127,7 @@ class HSApplicationWatcherObject {
 @MainActor
 @objc class HSApplicationModule: NSObject, HSModuleAPI, HSApplicationModuleAPI {
     var name = "hs.application"
-    private var watchers: [NSNotification.Name:HSApplicationWatcherObject] = [:]
+    private var watcher: HSApplicationWatcherObject? = nil
 
     // Swift-retained storage for the JS-defined ApplicationModuleWatcherEmitter instance
     @objc var _watcherEmitter: JSValue? = nil
@@ -126,11 +136,7 @@ class HSApplicationWatcherObject {
     override required init() { super.init() }
 
     func shutdown() {
-        for eventName in watchers.keys {
-            if let watcherObject = watchers[eventName] {
-                _removeWatcher(eventName: watcherObject.eventName)
-            }
-        }
+        _removeWatcher()
     }
 
     isolated deinit {
@@ -164,73 +170,45 @@ class HSApplicationWatcherObject {
         return NSWorkspace.shared.menuBarOwningApplication?.asHSApplication()
     }
 
-    func eventNameToEvent(eventName: String) -> NSNotification.Name? {
-        var event: NSNotification.Name? = nil
-
-        switch eventName {
-        case "willLaunch":
-            event = NSWorkspace.willLaunchApplicationNotification
-        case "didLaunch":
-            event = NSWorkspace.didLaunchApplicationNotification
-        case "didTerminate":
-            event = NSWorkspace.didTerminateApplicationNotification
-        case "didHide":
-            event = NSWorkspace.didHideApplicationNotification
-        case "didUnhide":
-            event = NSWorkspace.didUnhideApplicationNotification
-        case "didActivate":
-            event = NSWorkspace.didActivateApplicationNotification
-        case "didDeactivate":
-            event = NSWorkspace.didDeactivateApplicationNotification
-        default:
-            AKError("hs.application: unknown watcher event: \(eventName)")
-        }
-
-        return event
+    @objc func addWatcher(_ listener: JSValue) {
+        _watcherEmitter?.invokeMethod("on", withArguments: [listener])
     }
 
-    @objc func addWatcher(_ event: String, _ listener: JSValue) {
-        _watcherEmitter?.invokeMethod("on", withArguments: [event, listener])
+    @objc func removeWatcher(_ listener: JSValue) {
+        _watcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
     }
 
-    @objc func removeWatcher(_ event: String, _ listener: JSValue) {
-        _watcherEmitter?.invokeMethod("removeListener", withArguments: [event, listener])
-    }
-
-    @objc(_addWatcher::) func _addWatcher(eventName: String, callback: JSValue) {
-        guard let event = eventNameToEvent(eventName: eventName) else {
-            AKError("hs.application.addWatcher(): Unknown event name: \(eventName)")
+    @objc(_addWatcher:) func _addWatcher(callback: JSValue) {
+        if watcher != nil {
+            AKWarning("hs.application._addWatcher(): Already watching. Refusing to create a second.")
             return
         }
 
-        if watchers.keys.contains(event) {
-            // No action required, we are already watching for this event
-            AKWarning("hs.application.addWatcher(): There is already a watcher for \(eventName). Refusing to create a second.")
-            return
-        }
-
-        let watcherObject = HSApplicationWatcherObject(eventName: eventName, callback: callback)
-
-        AKTrace("hs.application.addWatcher(): Adding watcher for \(event)")
+        let watcherObject = HSApplicationWatcherObject(callback: callback)
         let selector = #selector(HSApplicationWatcherObject.handleEvent(notification:))
-        NSWorkspace.shared.notificationCenter.addObserver(watcherObject,
-                                                          selector: selector,
-                                                          name: event, object: nil)
 
-        watchers[event] = watcherObject
+        for notificationName in HSApplicationWatcherObject.notificationToEventName.keys {
+            AKTrace("hs.application._addWatcher(): Registering for \(notificationName.rawValue)")
+            NSWorkspace.shared.notificationCenter.addObserver(watcherObject,
+                                                              selector: selector,
+                                                              name: notificationName,
+                                                              object: nil)
+        }
+
+        watcher = watcherObject
     }
 
-    @objc(_removeWatcher:) func _removeWatcher(eventName: String) {
-        guard let event = eventNameToEvent(eventName: eventName) else {
-            AKError("hs.application.removeWatcher(): Unknown event name: \(eventName)")
-            return
+    @objc func _removeWatcher() {
+        guard let watcherObject = watcher else { return }
+
+        for notificationName in HSApplicationWatcherObject.notificationToEventName.keys {
+            NSWorkspace.shared.notificationCenter.removeObserver(watcherObject as Any,
+                                                                 name: notificationName,
+                                                                 object: nil)
         }
 
-        if let watcherObject = watchers[event] {
-            AKTrace("hs.application.removeWatcher: Removing watcher for \(event)")
-            NSWorkspace.shared.notificationCenter.removeObserver(watcherObject as Any, name: event, object: nil)
-            watchers.removeValue(forKey: event)
-        }
+        watcher = nil
+        AKTrace("hs.application._removeWatcher(): Removed all application event watchers")
     }
 
     // MARK: - API for application information

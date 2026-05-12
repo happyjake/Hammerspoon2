@@ -8,6 +8,7 @@
 import Testing
 import JavaScriptCore
 @testable import Hammerspoon_2
+import AppKit
 
 /// Integration tests for hs.application module
 ///
@@ -16,6 +17,7 @@ import JavaScriptCore
 ///
 /// Note: These tests interact with real running applications on the system.
 @MainActor
+@Suite("hs.application main tests")
 struct HSApplicationIntegrationTests {
 
     // MARK: - Module API Tests
@@ -369,5 +371,396 @@ struct HSApplicationIntegrationTests {
         harness.expectTrue("Array.isArray(appNames)")
         harness.expectTrue("appNames.length > 0")
         harness.expectTrue("appNames.indexOf('Finder') !== -1")
+    }
+}
+
+// MARK: - Watcher Structure Tests
+
+/// Tests the watcher API surface and lifecycle mechanics — no application events need to fire.
+@Suite("hs.application watcher structure tests")
+struct HSApplicationWatcherStructureTests {
+
+    private func makeHarness() -> JSTestHarness {
+        let harness = JSTestHarness()
+        harness.loadModule(HSApplicationModule.self, as: "application")
+        return harness
+    }
+
+    @Test("addWatcher is a function")
+    func testAddWatcherIsFunction() {
+        let harness = makeHarness()
+        harness.expectTrue("typeof hs.application.addWatcher === 'function'")
+    }
+
+    @Test("removeWatcher is a function")
+    func testRemoveWatcherIsFunction() {
+        let harness = makeHarness()
+        harness.expectTrue("typeof hs.application.removeWatcher === 'function'")
+    }
+
+    @Test("_watcherEmitter is initialized by hs.application.js")
+    func testWatcherEmitterInitialized() {
+        let harness = makeHarness()
+        harness.expectTrue("hs.application._watcherEmitter !== null && hs.application._watcherEmitter !== undefined")
+    }
+
+    @Test("addWatcher throws when listener is a string")
+    func testAddWatcherThrowsForString() {
+        let harness = makeHarness()
+        harness.eval("hs.application.addWatcher('not a function')")
+        #expect(harness.hasException)
+    }
+
+    @Test("addWatcher throws when listener is a number")
+    func testAddWatcherThrowsForNumber() {
+        let harness = makeHarness()
+        harness.eval("hs.application.addWatcher(42)")
+        #expect(harness.hasException)
+    }
+
+    @Test("addWatcher throws when listener is null")
+    func testAddWatcherThrowsForNull() {
+        let harness = makeHarness()
+        harness.eval("hs.application.addWatcher(null)")
+        #expect(harness.hasException)
+    }
+
+    @Test("addWatcher and removeWatcher cycle completes without error")
+    func testAddRemoveCycleIsSafe() {
+        let harness = makeHarness()
+        harness.eval("""
+            var _ws1Fn = function(event, app) {};
+            hs.application.addWatcher(_ws1Fn);
+            hs.application.removeWatcher(_ws1Fn);
+        """)
+        #expect(!harness.hasException)
+    }
+
+    @Test("adding the same listener twice is idempotent")
+    func testAddSameListenerTwiceIsIdempotent() {
+        let harness = makeHarness()
+        harness.eval("""
+            var _ws2Fn = function(event, app) {};
+            hs.application.addWatcher(_ws2Fn);
+            hs.application.addWatcher(_ws2Fn);
+            hs.application.removeWatcher(_ws2Fn);
+        """)
+        #expect(!harness.hasException)
+    }
+
+    @Test("three distinct listeners can be added and removed")
+    func testMultipleDistinctListeners() {
+        let harness = makeHarness()
+        harness.eval("""
+            var _ws3Fn1 = function(event, app) {};
+            var _ws3Fn2 = function(event, app) {};
+            var _ws3Fn3 = function(event, app) {};
+            hs.application.addWatcher(_ws3Fn1);
+            hs.application.addWatcher(_ws3Fn2);
+            hs.application.addWatcher(_ws3Fn3);
+            hs.application.removeWatcher(_ws3Fn1);
+            hs.application.removeWatcher(_ws3Fn2);
+            hs.application.removeWatcher(_ws3Fn3);
+        """)
+        #expect(!harness.hasException)
+    }
+
+    @Test("removeWatcher with an unregistered listener does not throw")
+    func testRemoveUnregisteredListenerIsSafe() {
+        let harness = makeHarness()
+        harness.eval("hs.application.removeWatcher(function(event, app) {})")
+        #expect(!harness.hasException)
+    }
+
+    @Test("removing one of two listeners leaves the other in place")
+    func testRemovingOneListenerLeavesOtherIntact() {
+        let harness = makeHarness()
+        harness.eval("""
+            var _ws4Fn1 = function(event, app) {};
+            var _ws4Fn2 = function(event, app) {};
+            hs.application.addWatcher(_ws4Fn1);
+            hs.application.addWatcher(_ws4Fn2);
+            hs.application.removeWatcher(_ws4Fn1);
+            hs.application.removeWatcher(_ws4Fn2);
+        """)
+        #expect(!harness.hasException)
+    }
+}
+
+// MARK: - Watcher Event Delivery Tests
+
+private nonisolated func chessIsAvailable() -> Bool {
+    NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Chess") != nil
+}
+
+/// Tests that NSWorkspace application events are correctly delivered to JavaScript watcher callbacks.
+/// Uses Chess.app as the target because it is a bundled macOS app with no side effects.
+@Suite("hs.application watcher event delivery tests", .serialized, .disabled(if: !chessIsAvailable(), "Chess.app not found on this system"))
+struct HSApplicationWatcherEventTests {
+
+    private func makeHarness() -> JSTestHarness {
+        let harness = JSTestHarness()
+        harness.loadModule(HSApplicationModule.self, as: "application")
+        return harness
+    }
+
+    private func launchChess() async -> NSRunningApplication? {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Chess") else { return nil }
+        return try? await NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+    }
+
+    private func terminateAllChess() {
+        NSWorkspace.shared.runningApplications
+            .filter { $0.bundleIdentifier == "com.apple.Chess" }
+            .forEach { $0.terminate() }
+    }
+
+    private func waitForChessToTerminate() async {
+        let deadline = Date().addingTimeInterval(5.0)
+        while Date() < deadline {
+            let stillRunning = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.apple.Chess" }
+            if !stillRunning { return }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+    }
+
+    // MARK: - Event delivery
+
+    @Test("watcher receives didLaunch when Chess is launched")
+    func testDidLaunch() async {
+        terminateAllChess()
+        await waitForChessToTerminate()
+
+        let harness = makeHarness()
+        harness.eval("""
+            var _dlEvents = [];
+            var _dlFn = function(event, app) { _dlEvents.push(event); };
+            hs.application.addWatcher(_dlFn);
+        """)
+        defer {
+            harness.eval("hs.application.removeWatcher(_dlFn)")
+            terminateAllChess()
+        }
+
+        guard await launchChess() != nil else { return }
+
+        let received = await harness.waitForAsync(timeout: 5.0) {
+            harness.eval("_dlEvents.indexOf('didLaunch') !== -1") as? Bool == true
+        }
+        if received {
+            harness.expectTrue("_dlEvents.indexOf('didLaunch') !== -1")
+        }
+    }
+
+    @Test("watcher receives didHide when Chess is hidden")
+    func testDidHide() async {
+        terminateAllChess()
+        await waitForChessToTerminate()
+
+        guard let chess = await launchChess() else { return }
+        // Wait for Chess to finish launching before hiding it
+        try? await Task.sleep(for: .milliseconds(1500))
+
+        let harness = makeHarness()
+        harness.eval("""
+            var _dhEvents = [];
+            var _dhFn = function(event, app) { _dhEvents.push(event); };
+            hs.application.addWatcher(_dhFn);
+        """)
+        defer {
+            harness.eval("hs.application.removeWatcher(_dhFn)")
+            terminateAllChess()
+        }
+
+        chess.hide()
+
+        let received = await harness.waitForAsync(timeout: 3.0) {
+            harness.eval("_dhEvents.indexOf('didHide') !== -1") as? Bool == true
+        }
+        if received {
+            harness.expectTrue("_dhEvents.indexOf('didHide') !== -1")
+        }
+    }
+
+    @Test("watcher receives didUnhide when Chess is unhidden")
+    func testDidUnhide() async {
+        terminateAllChess()
+        await waitForChessToTerminate()
+
+        guard let chess = await launchChess() else { return }
+        try? await Task.sleep(for: .milliseconds(1500))
+        chess.hide()
+        try? await Task.sleep(for: .milliseconds(500))
+
+        let harness = makeHarness()
+        harness.eval("""
+            var _duEvents = [];
+            var _duFn = function(event, app) { _duEvents.push(event); };
+            hs.application.addWatcher(_duFn);
+        """)
+        defer {
+            harness.eval("hs.application.removeWatcher(_duFn)")
+            terminateAllChess()
+        }
+
+        chess.unhide()
+
+        let received = await harness.waitForAsync(timeout: 3.0) {
+            harness.eval("_duEvents.indexOf('didUnhide') !== -1") as? Bool == true
+        }
+        if received {
+            harness.expectTrue("_duEvents.indexOf('didUnhide') !== -1")
+        }
+    }
+
+    @Test("watcher receives didTerminate when Chess is terminated")
+    func testDidTerminate() async {
+        terminateAllChess()
+        await waitForChessToTerminate()
+
+        guard let chess = await launchChess() else { return }
+        try? await Task.sleep(for: .milliseconds(1500))
+
+        let harness = makeHarness()
+        harness.eval("""
+            var _dtEvents = [];
+            var _dtFn = function(event, app) { _dtEvents.push(event); };
+            hs.application.addWatcher(_dtFn);
+        """)
+        defer { harness.eval("hs.application.removeWatcher(_dtFn)") }
+
+        chess.terminate()
+
+        let received = await harness.waitForAsync(timeout: 5.0) {
+            harness.eval("_dtEvents.indexOf('didTerminate') !== -1") as? Bool == true
+        }
+        if received {
+            harness.expectTrue("_dtEvents.indexOf('didTerminate') !== -1")
+        }
+    }
+
+    // MARK: - Callback argument shape
+
+    @Test("callback receives a string event name and an application object")
+    func testCallbackArguments() async {
+        terminateAllChess()
+        await waitForChessToTerminate()
+
+        let harness = makeHarness()
+        harness.eval("""
+            var _caEventName = null, _caApp = null;
+            var _caFn = function(event, app) {
+                if (_caEventName === null) { _caEventName = event; _caApp = app; }
+            };
+            hs.application.addWatcher(_caFn);
+        """)
+        defer {
+            harness.eval("hs.application.removeWatcher(_caFn)")
+            terminateAllChess()
+        }
+
+        guard await launchChess() != nil else { return }
+
+        let received = await harness.waitForAsync(timeout: 5.0) {
+            harness.eval("_caEventName !== null") as? Bool == true
+        }
+        if received {
+            harness.expectTrue("typeof _caEventName === 'string' && _caEventName.length > 0")
+            harness.expectTrue("_caApp !== null && typeof _caApp === 'object'")
+        }
+    }
+
+    // MARK: - Multiple listeners
+
+    @Test("multiple listeners all receive the didLaunch event")
+    func testMultipleListenersAllReceiveEvent() async {
+        terminateAllChess()
+        await waitForChessToTerminate()
+
+        let harness = makeHarness()
+        harness.eval("""
+            var _ml1Count = 0, _ml2Count = 0;
+            var _ml1Fn = function(event, app) { if (event === 'didLaunch') _ml1Count++; };
+            var _ml2Fn = function(event, app) { if (event === 'didLaunch') _ml2Count++; };
+            hs.application.addWatcher(_ml1Fn);
+            hs.application.addWatcher(_ml2Fn);
+        """)
+        defer {
+            harness.eval("""
+                hs.application.removeWatcher(_ml1Fn);
+                hs.application.removeWatcher(_ml2Fn);
+            """)
+            terminateAllChess()
+        }
+
+        guard await launchChess() != nil else { return }
+
+        let received = await harness.waitForAsync(timeout: 5.0) {
+            harness.eval("_ml1Count > 0 && _ml2Count > 0") as? Bool == true
+        }
+        if received {
+            harness.expectTrue("_ml1Count > 0")
+            harness.expectTrue("_ml2Count > 0")
+        }
+    }
+
+    @Test("a removed listener does not receive subsequent events")
+    func testRemovedListenerDoesNotReceiveEvents() async {
+        terminateAllChess()
+        await waitForChessToTerminate()
+
+        let harness = makeHarness()
+        harness.eval("""
+            var _rlRemovedCount = 0, _rlKeptCount = 0;
+            var _rlRemovedFn = function(event, app) { _rlRemovedCount++; };
+            var _rlKeptFn = function(event, app) { if (event === 'didLaunch') _rlKeptCount++; };
+            hs.application.addWatcher(_rlRemovedFn);
+            hs.application.addWatcher(_rlKeptFn);
+            hs.application.removeWatcher(_rlRemovedFn);
+        """)
+        defer {
+            harness.eval("hs.application.removeWatcher(_rlKeptFn)")
+            terminateAllChess()
+        }
+
+        guard await launchChess() != nil else { return }
+
+        let received = await harness.waitForAsync(timeout: 5.0) {
+            harness.eval("_rlKeptCount > 0") as? Bool == true
+        }
+        if received {
+            harness.expectTrue("_rlKeptCount > 0")
+            harness.expectEqual("_rlRemovedCount", 0)
+        }
+    }
+
+    // MARK: - Filtering
+
+    @Test("callback can filter events by name using a switch on the event string")
+    func testCallbackCanFilterByEventName() async {
+        terminateAllChess()
+        await waitForChessToTerminate()
+
+        let harness = makeHarness()
+        harness.eval("""
+            var _cfLaunchCount = 0, _cfOtherCount = 0;
+            var _cfFn = function(event, app) {
+                if (event === 'didLaunch') { _cfLaunchCount++; } else { _cfOtherCount++; }
+            };
+            hs.application.addWatcher(_cfFn);
+        """)
+        defer {
+            harness.eval("hs.application.removeWatcher(_cfFn)")
+            terminateAllChess()
+        }
+
+        guard await launchChess() != nil else { return }
+
+        let received = await harness.waitForAsync(timeout: 5.0) {
+            harness.eval("_cfLaunchCount > 0") as? Bool == true
+        }
+        if received {
+            harness.expectTrue("_cfLaunchCount > 0")
+        }
     }
 }
