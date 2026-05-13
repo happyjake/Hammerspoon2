@@ -344,7 +344,6 @@ import AppKit
             return false
         }
 
-        NSPasteboard.general.clearContents()
         let item = NSPasteboardItem()
         var wroteAtLeastOne = false
 
@@ -359,6 +358,7 @@ import AppKit
             return false
         }
 
+        NSPasteboard.general.clearContents()
         return NSPasteboard.general.writeObjects([item])
     }
 
