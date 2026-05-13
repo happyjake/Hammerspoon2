@@ -136,6 +136,9 @@ import JavaScriptCore
 
     private var callbacks: [String: JSValue] = [:]
 
+    // Private userInfo key used to carry the category ID through to didReceive for pruning.
+    fileprivate static let categoryIdKey = "_hs.notify.categoryId"
+
     override required init() {
         super.init()
         UNUserNotificationCenter.current().delegate = self
@@ -257,6 +260,10 @@ import JavaScriptCore
                     identifier: categoryId, actions: actions,
                     intentIdentifiers: [], options: []
                 )
+                // Piggyback the category ID in userInfo so didReceive can prune it after use.
+                var userInfo = content.userInfo
+                userInfo[HSNotifyModule.categoryIdKey] = categoryId
+                content.userInfo = userInfo
             }
         }
 
@@ -316,8 +323,13 @@ extension HSNotifyModule: UNUserNotificationCenterDelegate {
             case UNNotificationDismissActionIdentifier: actionId = "DISMISS"
             default: actionId = response.actionIdentifier
             }
-            let userInfo = response.notification.request.content.userInfo
+            let rawUserInfo = response.notification.request.content.userInfo
             let userText = (response as? UNTextInputNotificationResponse)?.userText
+
+            // Strip the internal category key before exposing userInfo to JS.
+            let categoryId = rawUserInfo[HSNotifyModule.categoryIdKey] as? String
+            var userInfo = rawUserInfo
+            userInfo.removeValue(forKey: HSNotifyModule.categoryIdKey)
 
             if let cb = callbacks.removeValue(forKey: notifId) {
                 var responseObj: [AnyHashable: Any] = [
@@ -327,6 +339,14 @@ extension HSNotifyModule: UNUserNotificationCenterDelegate {
                 ]
                 if let text = userText { responseObj["userText"] = text }
                 cb.call(withArguments: [responseObj])
+            }
+
+            // Prune the per-notification category now that it has served its purpose.
+            if let categoryId {
+                UNUserNotificationCenter.current().getNotificationCategories { existing in
+                    let pruned = existing.filter { $0.identifier != categoryId }
+                    UNUserNotificationCenter.current().setNotificationCategories(pruned)
+                }
             }
         }
         completionHandler()
