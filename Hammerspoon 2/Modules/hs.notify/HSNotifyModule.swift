@@ -9,8 +9,6 @@ import Foundation
 import JavaScriptCore
 @unsafe @preconcurrency import UserNotifications
 
-
-
 // MARK: - Module API protocol
 
 /// Module for creating and displaying macOS system notifications.
@@ -224,9 +222,12 @@ import JavaScriptCore
             }
         }
 
-        // Build action buttons and register a per-notification category.
+        // Build action buttons into a UNNotificationCategory.
+        // The category is NOT registered here — HSNotification.send() registers it atomically
+        // with the notification request to eliminate the race between registration and delivery.
         let actionsNS = dict["actions"] as? NSArray
         let actionsRaw = actionsNS?.compactMap { $0 as? [AnyHashable: Any] } ?? []
+        var pendingCategory: UNNotificationCategory?
         if !actionsRaw.isEmpty {
             var actions: [UNNotificationAction] = []
             for actionDict in actionsRaw {
@@ -252,15 +253,10 @@ import JavaScriptCore
             if !actions.isEmpty {
                 let categoryId = "hs.notify.\(UUID().uuidString)"
                 content.categoryIdentifier = categoryId
-                let category = UNNotificationCategory(
+                pendingCategory = UNNotificationCategory(
                     identifier: categoryId, actions: actions,
                     intentIdentifiers: [], options: []
                 )
-                UNUserNotificationCenter.current().getNotificationCategories { existing in
-                    var updated = existing
-                    updated.insert(category)
-                    UNUserNotificationCenter.current().setNotificationCategories(updated)
-                }
             }
         }
 
@@ -270,7 +266,7 @@ import JavaScriptCore
         let callback: JSValue? = (callbackVal?.isObject == true) ? callbackVal : nil
 
         let id = UUID().uuidString
-        return HSNotification(
+        let notification = HSNotification(
             identifier: id,
             content: content,
             callback: callback,
@@ -278,6 +274,8 @@ import JavaScriptCore
                 self?.storeCallback(identifier: notifId, callback: cb)
             }
         )
+        notification.pendingCategory = pendingCategory
+        return notification
     }
 
     @objc func removeAllDelivered() {

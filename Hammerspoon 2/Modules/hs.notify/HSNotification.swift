@@ -50,6 +50,11 @@ import JavaScriptCore
     // Injected by HSNotifyModule so send() can register the callback without importing the module.
     fileprivate var registerCallback: (@MainActor (String, JSValue) -> Void)?
 
+    // Set by HSNotifyModule.new() when actions are present. send() registers the category
+    // atomically with the notification request so there is no race between registration
+    // and delivery (trigger: nil fires almost immediately).
+    var pendingCategory: UNNotificationCategory?
+
     init(identifier: String,
          content: UNMutableNotificationContent,
          callback: JSValue?,
@@ -64,14 +69,36 @@ import JavaScriptCore
         if let cb = callback {
             registerCallback?(identifier, cb)
         }
+
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error {
-                Task { @MainActor in
-                    AKError("hs.notify: Failed to deliver notification \(self.identifier): \(error.localizedDescription)")
+        let center = UNUserNotificationCenter.current()
+        let notifId = identifier
+
+        if let category = pendingCategory {
+            // Register the category first, then add the request inside the completion handler
+            // so the category is guaranteed to be registered before macOS renders the banner.
+            center.getNotificationCategories { existing in
+                var updated = existing
+                updated.insert(category)
+                center.setNotificationCategories(updated)
+                center.add(request) { error in
+                    if let error {
+                        Task { @MainActor in
+                            AKError("hs.notify: Failed to deliver notification \(notifId): \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        } else {
+            center.add(request) { error in
+                if let error {
+                    Task { @MainActor in
+                        AKError("hs.notify: Failed to deliver notification \(notifId): \(error.localizedDescription)")
+                    }
                 }
             }
         }
+
         return self
     }
 
