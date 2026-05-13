@@ -7,54 +7,47 @@
 
 "use strict";
 
-// one-to-many event emitter for hs.application events that Swift can only map 1:1.
+// one-to-many event emitter for hs.application events
 class ApplicationModuleWatcherEmitter {
-    #events = {}
+    #listeners = []
 
     constructor() {}
 
     #handleEvent(event, appObject) {
-        if (Array.isArray(this.#events[event] )) {
-            var listeners = this.#events[event].slice();
-            const length = listeners.length;
+        var listeners = this.#listeners.slice();
+        const length = listeners.length;
 
-            for (var i = 0; i < length; i++) {
-                listeners[i].apply(null, [event, appObject]);
-            }
+        for (var i = 0; i < length; i++) {
+            listeners[i].apply(null, [event, appObject]);
         }
     }
 
-    on(event, listener) {
+    on(listener) {
         if (typeof listener !== 'function') {
             throw new Error("hs.application.addWatcher(): The provided handler must be a function")
         }
 
-        if (!Array.isArray(this.#events[event])) {
-            this.#events[event] = [];
-            hs.application._addWatcher(event, (event, appObject) => { this.#handleEvent(event, appObject) });
-        }
-
-        if (this.#events[event].includes(listener)) {
-            console.error("hs.application.addWatcher(): The provided handler for '" + event + "' is already registered.")
+        if (this.#listeners.includes(listener)) {
+            console.error("hs.application.addWatcher(): The provided handler is already registered.")
             return;
         }
 
-        this.#events[event].push(listener);
+        if (this.#listeners.length === 0) {
+            hs.application._addWatcher((event, appObject) => { this.#handleEvent(event, appObject) });
+        }
+
+        this.#listeners.push(listener);
     }
 
-    removeListener(event, listener) {
-        var idx;
+    removeListener(listener) {
+        const idx = this.#listeners.indexOf(listener);
 
-        if (Array.isArray(this.#events[event])) {
-            idx = this.#events[event].indexOf(listener);
+        if (idx > -1) {
+            this.#listeners.splice(idx, 1);
+        }
 
-            if (idx > -1) {
-                this.#events[event].splice(idx, 1);
-            }
-
-            if (this.#events[event].length == 0) {
-                hs.application._removeWatcher(event);
-            }
+        if (this.#listeners.length === 0) {
+            hs.application._removeWatcher();
         }
     }
 }
