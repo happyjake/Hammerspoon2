@@ -319,7 +319,7 @@ extension HSNotifyModule: UNUserNotificationCenterDelegate {
             let userInfo = response.notification.request.content.userInfo
             let userText = (response as? UNTextInputNotificationResponse)?.userText
 
-            if let cb = callbacks[notifId] {
+            if let cb = callbacks.removeValue(forKey: notifId) {
                 var responseObj: [AnyHashable: Any] = [
                     "actionIdentifier": actionId,
                     "userInfo":         userInfo,
