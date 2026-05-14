@@ -123,28 +123,52 @@ import AppKit
 
     /// Read plain text from the pasteboard
     /// - Returns: The plain text string, or null if not available
+    /// - Example:
+    /// ```js
+    /// const text = hs.pasteboard.readString()
+    /// ```
     @objc func readString() -> String?
 
     /// Read HTML from the pasteboard
     /// - Returns: The HTML string, or null if not available
+    /// - Example:
+    /// ```js
+    /// const html = hs.pasteboard.readHTML()
+    /// ```
     @objc func readHTML() -> String?
 
     /// Read RTF from the pasteboard
     /// - Returns: The RTF string, or null if not available
+    /// - Example:
+    /// ```js
+    /// const rtf = hs.pasteboard.readRTF()
+    /// ```
     @objc func readRTF() -> String?
 
     /// Read a URL from the pasteboard
     /// - Returns: The URL as a string, or null if not available
+    /// - Example:
+    /// ```js
+    /// const url = hs.pasteboard.readURL()
+    /// ```
     @objc func readURL() -> String?
 
     /// Read an image from the pasteboard
     /// - Returns: An HSImage, or null if not available
+    /// - Example:
+    /// ```js
+    /// const img = hs.pasteboard.readImage()
+    /// ```
     @objc func readImage() -> HSImage?
 
     /// Read raw data for a specific UTI type, returned as a base64-encoded string.
     /// Use this for types not covered by the convenience read methods.
     /// - Parameter uti: A UTI type string (e.g. "com.adobe.pdf")
     /// - Returns: A base64-encoded string, or null if the type is not available
+    /// - Example:
+    /// ```js
+    /// const b64 = hs.pasteboard.readData("com.adobe.pdf")
+    /// ```
     @objc(readData:) func readData(_ uti: String) -> String?
 
     // MARK: Writing
@@ -152,26 +176,47 @@ import AppKit
     /// Write plain text to the pasteboard, replacing all current contents
     /// - Parameter str: The text string to write
     /// - Returns: true if the write succeeded
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.writeString("Hello, world!")
+    /// ```
     @objc func writeString(_ str: String) -> Bool
 
     /// Write HTML to the pasteboard, replacing all current contents
     /// - Parameter html: The HTML string to write
     /// - Returns: true if the write succeeded
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.writeHTML("<b>Hello</b>")
+    /// ```
     @objc func writeHTML(_ html: String) -> Bool
 
     /// Write RTF to the pasteboard, replacing all current contents
     /// - Parameter rtf: The RTF string to write
     /// - Returns: true if the write succeeded
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.writeRTF(rtfString)
+    /// ```
     @objc func writeRTF(_ rtf: String) -> Bool
 
     /// Write a URL to the pasteboard, replacing all current contents
     /// - Parameter url: The URL string to write
     /// - Returns: true if the write succeeded
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.writeURL("https://www.example.com")
+    /// ```
     @objc func writeURL(_ url: String) -> Bool
 
     /// Write an image to the pasteboard, replacing all current contents
     /// - Parameter image: An HSImage to write
     /// - Returns: true if the write succeeded
+    /// - Example:
+    /// ```js
+    /// const img = hs.pasteboard.readImage()
+    /// hs.pasteboard.writeImage(img)
+    /// ```
     @objc func writeImage(_ image: HSImage) -> Bool
 
     /// Write raw base64-encoded data for a specific UTI type, replacing all current contents.
@@ -180,6 +225,10 @@ import AppKit
     ///   - base64: The data encoded as a base64 string
     ///   - uti: A UTI type string (e.g. "com.adobe.pdf")
     /// - Returns: true if the write succeeded
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.writeData(b64Encoded, "com.adobe.pdf")
+    /// ```
     @objc(writeData::) func writeData(_ base64: String, _ uti: String) -> Bool
 
     /// Write multiple type representations to the pasteboard atomically, replacing all current contents.
@@ -201,26 +250,46 @@ import AppKit
 
     /// Get all UTI type strings currently on the pasteboard, across all items
     /// - Returns: An array of UTI strings (e.g. ["public.utf8-plain-text", "public.html"])
+    /// - Example:
+    /// ```js
+    /// const types = hs.pasteboard.types()
+    /// ```
     @objc func types() -> [String]
 
     /// Check whether a specific UTI type is currently available on the pasteboard
     /// - Parameter uti: A UTI type string to check for
     /// - Returns: true if the type is available
+    /// - Example:
+    /// ```js
+    /// if (hs.pasteboard.hasType("public.html")) console.log("HTML available")
+    /// ```
     @objc func hasType(_ uti: String) -> Bool
 
     /// The pasteboard change count. Increments each time any application writes to the pasteboard.
     /// Comparing a saved value to the current value is the standard way to detect external changes.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.pasteboard.changeCount)
+    /// ```
     @objc var changeCount: Int { get }
 
     // MARK: Management
 
     /// Clear all contents from the pasteboard
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.clear()
+    /// ```
     @objc func clear()
 
     // MARK: Watcher
 
     /// The polling interval for the pasteboard watcher, in seconds. Defaults to 0.5.
     /// Changes take effect the next time a watcher is started (i.e. after removing and re-adding).
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.watcherInterval = 1.0
+    /// ```
     @objc var watcherInterval: Double { get set }
 
     /// Add a watcher that is called whenever the pasteboard contents change.
@@ -228,10 +297,20 @@ import AppKit
     /// Because macOS provides no pasteboard change notification API, this is implemented
     /// by polling `changeCount` at the interval specified by `watcherInterval`.
     /// - Parameter listener: A function called with one argument: the new `changeCount` integer
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.addWatcher((count) => {
+    ///     console.log("Pasteboard changed:", count)
+    /// })
+    /// ```
     @objc func addWatcher(_ listener: JSValue)
 
     /// Remove a previously registered pasteboard watcher
     /// - Parameter listener: The function previously passed to `addWatcher`
+    /// - Example:
+    /// ```js
+    /// hs.pasteboard.removeWatcher(myHandler)
+    /// ```
     @objc func removeWatcher(_ listener: JSValue)
 
     // NOTE: Private API consumed only by hs.pasteboard.js

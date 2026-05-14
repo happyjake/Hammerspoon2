@@ -40,36 +40,70 @@ import JavaScriptCore
 @objc protocol HSAudioDeviceModuleAPI: JSExport {
     /// All audio devices attached to the system.
     /// - Returns: An array of HSAudioDevice objects
+    /// - Example:
+    /// ```js
+    /// const devs = hs.audiodevice.all()
+    /// devs.forEach(d => console.log(d.name))
+    /// ```
     @objc func all() -> [HSAudioDevice]
 
     /// All audio devices that have at least one output stream.
     /// - Returns: An array of HSAudioDevice objects
+    /// - Example:
+    /// ```js
+    /// const outputs = hs.audiodevice.allOutputDevices()
+    /// ```
     @objc func allOutputDevices() -> [HSAudioDevice]
 
     /// All audio devices that have at least one input stream.
     /// - Returns: An array of HSAudioDevice objects
+    /// - Example:
+    /// ```js
+    /// const inputs = hs.audiodevice.allInputDevices()
+    /// ```
     @objc func allInputDevices() -> [HSAudioDevice]
 
     /// The current system default output device.
     /// - Returns: An HSAudioDevice, or null if none is set
+    /// - Example:
+    /// ```js
+    /// const out = hs.audiodevice.defaultOutputDevice()
+    /// console.log(out && out.name)
+    /// ```
     @objc func defaultOutputDevice() -> HSAudioDevice?
 
     /// The current system default input device.
     /// - Returns: An HSAudioDevice, or null if none is set
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.defaultInputDevice()
+    /// ```
     @objc func defaultInputDevice() -> HSAudioDevice?
 
     /// The current system alert sound device.
     /// - Returns: An HSAudioDevice, or null if none is set
+    /// - Example:
+    /// ```js
+    /// const effect = hs.audiodevice.defaultEffectDevice()
+    /// ```
     @objc func defaultEffectDevice() -> HSAudioDevice?
 
     /// Find the first audio device whose name matches the given string.
     /// - Parameter name: The device name to search for
     /// - Returns: An HSAudioDevice if found, null otherwise
+    /// - Example:
+    /// ```js
+    /// const usb = hs.audiodevice.findDeviceByName("USB Audio CODEC")
+    /// ```
     @objc func findDeviceByName(_ name: String) -> HSAudioDevice?
 
     /// Find the audio device with the given unique identifier.
     /// - Parameter uid: The device UID to search for
     /// - Returns: An HSAudioDevice if found, null otherwise
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.findDeviceByUID("BuiltInSpeakerDevice")
+    /// ```
     @objc func findDeviceByUID(_ uid: String) -> HSAudioDevice?
 
     /// Register a listener for all system-level audio configuration events.
@@ -82,11 +116,21 @@ import JavaScriptCore
     /// - `"dev-"` — an audio device was removed
     ///
     /// - Parameter listener: A JavaScript function that receives the event name string
+    /// - Example:
+    /// ```js
+    /// hs.audiodevice.addWatcher((event) => {
+    ///     if (event === "dOut") console.log("Default output changed")
+    /// })
+    /// ```
     @objc func addWatcher(_ listener: JSValue)
 
     /// Remove a previously registered system-level listener.
     ///
     /// - Parameter listener: The JavaScript function that was passed to ``addWatcher(_:)``
+    /// - Example:
+    /// ```js
+    /// hs.audiodevice.removeWatcher(myHandler)
+    /// ```
     @objc func removeWatcher(_ listener: JSValue)
 
     // NOTE: These are not documented because they are private API for our JavaScript code

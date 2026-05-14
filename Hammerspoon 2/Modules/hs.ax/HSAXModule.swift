@@ -37,26 +37,48 @@ import AXSwift
 @objc protocol HSAXModuleAPI: JSExport {
     /// Get the system-wide accessibility element
     /// - Returns: The system-wide AXElement, or nil if accessibility is not available
+    /// - Example:
+    /// ```js
+    /// const sys = hs.ax.systemWideElement()
+    /// ```
     @objc func systemWideElement() -> HSAXElement?
 
     /// Get the accessibility element for an application
     /// - Parameters:
     ///   - element: An HSApplication object
     /// - Returns: The AXElement for the application, or nil if accessibility is not available
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const ax = hs.ax.applicationElement(app)
+    /// ```
     @objc func applicationElement(_ element: HSApplication) -> HSAXElement?
 
     /// Get the accessibility element for a window
     /// - Parameters:
     ///   - window: An HSWindow  object
     /// - Returns: The AXElement for the window, or nil if accessibility is not available
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// const ax = hs.ax.windowElement(win)
+    /// ```
     @objc func windowElement(_ window: HSWindow) -> HSAXElement?
 
     /// Get the accessibility element at the specific screen position
     /// - Parameter point: An HSPoint object containing screen coordinates
     /// - Returns: The AXElement at that position, or nil if none found
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.elementAtPoint({x: 100, y: 200})
+    /// ```
     @objc func elementAtPoint(_ point: HSPoint) -> HSAXElement?
 
     /// A dictionary containing all of the notification types that can be used with hs.ax.addWatcher()
+    /// - Example:
+    /// ```js
+    /// console.log(Object.keys(hs.ax.notificationTypes))
+    /// ```
     @objc var notificationTypes: [String: String] { get }
 
     /// Add a watcher for application AX events
@@ -64,6 +86,13 @@ import AXSwift
     ///   - application: An HSApplication object
     ///   - notification: An event name
     ///   - listener: A function/lambda to be called when the event is fired. The function/lambda will be called with two arguments: the name of the event, and the element it applies to
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// hs.ax.addWatcher(app, "AXWindowCreated", (notification, element) => {
+    ///     console.log("New window:", element.title)
+    /// })
+    /// ```
     @objc func addWatcher(_ application: HSApplication, _ notification: String, _ listener: JSValue)
 
     /// Remove a watcher for application AX events
@@ -71,6 +100,11 @@ import AXSwift
     ///   - application: An HSApplication object
     ///   - notification: The event name to stop watching
     ///   - listener: The function/lambda provided when adding the watcher
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// hs.ax.removeWatcher(app, "AXWindowCreated", myHandler)
+    /// ```
     @objc func removeWatcher(_ application: HSApplication, _ notification: String, _ listener: JSValue)
 
     // NOTE: These are private API for JavaScript code to use
@@ -84,15 +118,35 @@ import AXSwift
     @objc var _watcherEmitter: JSValue? { get set }
 
     /// Fetch the focused UI element. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.role, el.title)
+    /// ```
     @objc var focusedElement: JSValue? { get set }
 
     /// Find AX elements by role. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const buttons = hs.ax.findByRole(app, "AXButton")
+    /// ```
     @objc var findByRole: JSValue? { get set }
 
     /// Find AX elements by title. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const matches = hs.ax.findByTitle(app, "OK")
+    /// ```
     @objc var findByTitle: JSValue? { get set }
 
     /// Print the element hierarchy. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// hs.ax.printHierarchy(app)
+    /// ```
     @objc var printHierarchy: JSValue? { get set }
 }
 

@@ -36,23 +36,53 @@ import ScreenCaptureKit
     // MARK: - Identity
 
     /// Unique display identifier (matches `CGDirectDisplayID`).
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s.id)
+    /// ```
     @objc var id: Int { get }
 
     /// The manufacturer-assigned localized display name.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s.name)
+    /// ```
     @objc var name: String { get }
 
     /// The display's UUID string.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s.uuid)
+    /// ```
     @objc var uuid: String { get }
 
     // MARK: - Geometry
 
     /// The usable screen area in Hammerspoon coordinates, excluding the menu bar and Dock.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s.frame.w, s.frame.h)
+    /// ```
     @objc var frame: HSRect { get }
 
     /// The full screen area in Hammerspoon coordinates, including menu bar and Dock regions.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s.fullFrame)
+    /// ```
     @objc var fullFrame: HSRect { get }
 
     /// The screen's top-left corner in global Hammerspoon coordinates.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s.position)
+    /// ```
     @objc var position: HSPoint { get }
 
     // MARK: - Display Modes
@@ -60,11 +90,21 @@ import ScreenCaptureKit
     /// The currently active display mode.
     ///
     /// An object with keys: `width`, `height`, `scale`, `frequency`.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s.mode)
+    /// ```
     @objc var mode: NSDictionary { get }
 
     /// All display modes supported by this screen.
     ///
     /// Each element has keys: `width`, `height`, `scale`, `frequency`.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s.availableModes.length)
+    /// ```
     @objc var availableModes: [NSDictionary] { get }
 
     /// Switch to the given display mode.
@@ -77,6 +117,11 @@ import ScreenCaptureKit
     ///   - scale: Backing scale factor (e.g. `2` for HiDPI, `1` for non-HiDPI). Pass `0` to ignore.
     ///   - frequency: Refresh rate in Hz. Pass `0` to ignore.
     /// - Returns: `true` on success.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// s.setMode(1920, 1080, 1, 60)
+    /// ```
     @objc func setMode(_ width: Int, _ height: Int, _ scale: Double, _ frequency: Double) -> Bool
 
     // MARK: - Rotation
@@ -84,6 +129,11 @@ import ScreenCaptureKit
     /// The current screen rotation in degrees (0, 90, 180, or 270).
     ///
     /// Assign one of `0`, `90`, `180`, or `270` to rotate the display.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// s.rotation = 90
+    /// ```
     @objc var rotation: Double { get set }
 
     // MARK: - Screenshot
@@ -93,32 +143,60 @@ import ScreenCaptureKit
     /// Requires **Screen Recording** permission.
     ///
     /// - Returns: {Promise<HSImage>} Resolves with the captured image, or rejects if the capture fails (e.g. permission denied).
+    /// - Example:
+    /// ```js
+    /// hs.screen.main().snapshot().then(img => img.saveToFile("/tmp/screen.png"))
+    /// ```
     @objc func snapshot() -> JSPromise?
 
     // MARK: - Navigation
 
     /// The next screen in `hs.screen.all()` order, wrapping around.
     /// - Returns: An HSScreen object
+    /// - Example:
+    /// ```js
+    /// const next = hs.screen.main().next()
+    /// ```
     @objc func next() -> HSScreen
 
     /// The previous screen in `hs.screen.all()` order, wrapping around.
     /// - Returns: An HSScreen object
+    /// - Example:
+    /// ```js
+    /// const prev = hs.screen.main().previous()
+    /// ```
     @objc func previous() -> HSScreen
 
     /// The nearest screen whose left edge is at or beyond this screen's right edge, or `null`.
     /// - Returns: An HSScreen object
+    /// - Example:
+    /// ```js
+    /// const right = hs.screen.main().toEast()
+    /// ```
     @objc func toEast() -> HSScreen?
 
     /// The nearest screen whose right edge is at or before this screen's left edge, or `null`.
     /// - Returns: An HSScreen object
+    /// - Example:
+    /// ```js
+    /// const left = hs.screen.main().toWest()
+    /// ```
     @objc func toWest() -> HSScreen?
 
     /// The nearest screen that is physically above this screen, or `null`.
     /// - Returns: An HSScreen object
+    /// - Example:
+    /// ```js
+    /// const above = hs.screen.main().toNorth()
+    /// ```
     @objc func toNorth() -> HSScreen?
 
     /// The nearest screen that is physically below this screen, or `null`.
     /// - Returns: An HSScreen object
+    /// - Example:
+    /// ```js
+    /// const below = hs.screen.main().toSouth()
+    /// ```
     @objc func toSouth() -> HSScreen?
 
     // MARK: - Configuration
@@ -129,22 +207,40 @@ import ScreenCaptureKit
     ///   - x: The X coordinate to move to
     ///   - y: The Y coordinate to move to
     /// - Returns: `true` on success.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// s.setOrigin(0, 0)
+    /// ```
     @objc func setOrigin(_ x: Double, _ y: Double) -> Bool
 
     /// Designate this screen as the primary display (moves the menu bar here).
     ///
     /// - Returns: `true` on success.
+    /// - Example:
+    /// ```js
+    /// hs.screen.all()[1].setPrimary()
+    /// ```
     @objc func setPrimary() -> Bool
 
     /// Configure this screen to mirror another screen.
     ///
     /// - Parameter screen: The screen to mirror.
     /// - Returns: `true` on success.
+    /// - Example:
+    /// ```js
+    /// const all = hs.screen.all()
+    /// all[1].mirrorOf(all[0])
+    /// ```
     @objc func mirrorOf(_ screen: HSScreen) -> Bool
 
     /// Stop mirroring, restoring this screen to an independent display.
     ///
     /// - Returns: `true` on success.
+    /// - Example:
+    /// ```js
+    /// hs.screen.all()[1].mirrorStop()
+    /// ```
     @objc func mirrorStop() -> Bool
 
     // MARK: - Coordinate Conversion
@@ -155,12 +251,22 @@ import ScreenCaptureKit
     ///
     /// - Parameter rect: An `HSRect` in global Hammerspoon coordinates.
     /// - Returns: The rect offset to be relative to this screen's top-left, or `null` if the input is invalid.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.main()
+    /// const local = s.absoluteToLocal({x: 1000, y: 500, w: 200, h: 100})
+    /// ```
     @objc func absoluteToLocal(_ rect: JSValue) -> HSRect?
 
     /// Convert a rect in local screen coordinates to global Hammerspoon coordinates.
     ///
     /// - Parameter rect: An `HSRect` relative to this screen's top-left corner.
     /// - Returns: The rect in global Hammerspoon coordinates, or `null` if the input is invalid.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.main()
+    /// const abs = s.localToAbsolute({x: 10, y: 10, w: 100, h: 100})
+    /// ```
     @objc func localToAbsolute(_ rect: JSValue) -> HSRect?
 
     // MARK: - Desktop
@@ -168,6 +274,11 @@ import ScreenCaptureKit
     /// The URL string of the current desktop background image for this screen, or `null`.
     ///
     /// Assign a new absolute file path or `file://` URL string to change the wallpaper.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// s.desktopImage = "/Users/me/wallpaper.jpg"
+    /// ```
     @objc var desktopImage: String? { get set }
 }
 

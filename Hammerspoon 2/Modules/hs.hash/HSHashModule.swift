@@ -17,32 +17,56 @@ import CryptoKit
     /// Encode a string to base64
     /// - Parameter data: The string to encode
     /// - Returns: Base64 encoded string
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.base64Encode("Hello"))
+    /// ```
     @objc func base64Encode(_ data: String) -> String
 
     /// Decode a base64 string
     /// - Parameter data: The base64 string to decode
     /// - Returns: Decoded string, or nil if the input is invalid
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.base64Decode("SGVsbG8="))
+    /// ```
     @objc func base64Decode(_ data: String) -> String?
 
     // Hash functions
     /// Generate MD5 hash of a string
     /// - Parameter data: The string to hash
     /// - Returns: Hexadecimal MD5 hash
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.md5("hello"))
+    /// ```
     @objc func md5(_ data: String) -> String
 
     /// Generate SHA1 hash of a string
     /// - Parameter data: The string to hash
     /// - Returns: Hexadecimal SHA1 hash
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.sha1("hello"))
+    /// ```
     @objc func sha1(_ data: String) -> String
 
     /// Generate SHA256 hash of a string
     /// - Parameter data: The string to hash
     /// - Returns: Hexadecimal SHA256 hash
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.sha256("hello"))
+    /// ```
     @objc func sha256(_ data: String) -> String
 
     /// Generate SHA512 hash of a string
     /// - Parameter data: The string to hash
     /// - Returns: Hexadecimal SHA512 hash
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.sha512("hello"))
+    /// ```
     @objc func sha512(_ data: String) -> String
 
     // HMAC functions
@@ -51,6 +75,10 @@ import CryptoKit
     ///   - key: The secret key
     ///   - data: The data to authenticate
     /// - Returns: Hexadecimal HMAC-MD5
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.hmacMD5("secret", "hello"))
+    /// ```
     @objc func hmacMD5(_ key: String, _ data: String) -> String
 
     /// Generate HMAC-SHA1 of a string with a key
@@ -58,6 +86,10 @@ import CryptoKit
     ///   - key: The secret key
     ///   - data: The data to authenticate
     /// - Returns: Hexadecimal HMAC-SHA1
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.hmacSHA1("secret", "hello"))
+    /// ```
     @objc func hmacSHA1(_ key: String, _ data: String) -> String
 
     /// Generate HMAC-SHA256 of a string with a key
@@ -65,6 +97,10 @@ import CryptoKit
     ///   - key: The secret key
     ///   - data: The data to authenticate
     /// - Returns: Hexadecimal HMAC-SHA256
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.hmacSHA256("secret", "hello"))
+    /// ```
     @objc func hmacSHA256(_ key: String, _ data: String) -> String
 
     /// Generate HMAC-SHA512 of a string with a key
@@ -72,6 +108,10 @@ import CryptoKit
     ///   - key: The secret key
     ///   - data: The data to authenticate
     /// - Returns: Hexadecimal HMAC-SHA512
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hash.hmacSHA512("secret", "hello"))
+    /// ```
     @objc func hmacSHA512(_ key: String, _ data: String) -> String
 }
 

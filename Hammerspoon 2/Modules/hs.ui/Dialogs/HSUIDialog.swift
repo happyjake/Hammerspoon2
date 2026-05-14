@@ -36,28 +36,55 @@ import SwiftUI
     /// Set additional informative text below the main message
     /// - Parameter text: The informative text
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.dialog("Save?").informativeText("Unsaved changes").show()
+    /// ```
     @objc func informativeText(_ text: String) -> HSUIDialog
 
     /// Set custom button labels
     /// - Parameter labels: Array of button labels (default: ["OK"])
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.dialog("Save?").buttons(["Save", "Discard", "Cancel"]).show()
+    /// ```
     @objc func buttons(_ labels: [String]) -> HSUIDialog
 
     /// Set the dialog style
     /// - Parameter style: Style name (e.g., "informational", "warning", "critical")
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.dialog("Delete?").style("critical").show()
+    /// ```
     @objc func style(_ style: String) -> HSUIDialog
 
     /// Set the callback for button presses
     /// - Parameter callback: Function receiving button index (0-based)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.dialog("Confirm?")
+    ///     .onButton((i) => console.log("button", i))
+    ///     .show()
+    /// ```
     @objc func onButton(_ callback: JSValue) -> HSUIDialog
 
     /// Show the dialog
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.dialog("Hello").show()
+    /// ```
     @objc func show() -> HSUIDialog
 
     /// Close the dialog programmatically
+    /// - Example:
+    /// ```js
+    /// const d = hs.ui.dialog("Hello").show()
+    /// d.close()
+    /// ```
     @objc func close()
 }
 

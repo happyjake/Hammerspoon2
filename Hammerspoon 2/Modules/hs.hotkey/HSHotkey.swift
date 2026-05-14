@@ -13,22 +13,52 @@ import Carbon
 @objc protocol HSHotkeyAPI: HSTypeAPI, JSExport {
     /// Enable the hotkey
     /// - Returns: True if the hotkey was enabled, otherwise False
+    /// - Example:
+    /// ```js
+    /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
+    /// hk.enable()
+    /// ```
     @objc func enable() -> Bool
 
     /// Disable the hotkey
+    /// - Example:
+    /// ```js
+    /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
+    /// hk.disable()
+    /// ```
     @objc func disable()
 
     /// Check if the hotkey is currently enabled
     /// - Returns: True if the hotkey is enabled, otherwise False
+    /// - Example:
+    /// ```js
+    /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
+    /// console.log(hk.isEnabled())
+    /// ```
     @objc func isEnabled() -> Bool
 
     /// Delete the hotkey (disables and clears callbacks)
+    /// - Example:
+    /// ```js
+    /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
+    /// hk.delete()
+    /// ```
     @objc func delete()
 
     /// The callback function to be called when the hotkey is pressed
+    /// - Example:
+    /// ```js
+    /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
+    /// hk.callbackPressed = () => console.log("new handler")
+    /// ```
     @objc var callbackPressed: JSValue? { get set }
 
     /// The callback function to be called when the hotkey is released
+    /// - Example:
+    /// ```js
+    /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
+    /// hk.callbackReleased = () => console.log("released")
+    /// ```
     @objc var callbackReleased: JSValue? { get set }
 }
 

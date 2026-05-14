@@ -128,6 +128,10 @@ import JavaScriptCore
     ///   - body: The notification body text
     ///   - callback: Optional function called when the user taps the notification.
     ///     Receives a response object (see module docs for shape).
+    /// - Example:
+    /// ```js
+    /// hs.notify.show("Build complete", "Your project compiled successfully.")
+    /// ```
     @objc(show:::) func show(_ title: String, _ body: String, _ callback: JSValue)
 
     // MARK: Rich API
@@ -136,14 +140,27 @@ import JavaScriptCore
     ///
     /// - Parameter options: A JavaScript object — see module documentation for supported keys.
     /// - Returns: An `HSNotification` object. Call `.send()` on it to deliver the notification.
+    /// - Example:
+    /// ```js
+    /// const n = hs.notify.new({ title: "Hello", body: "World" })
+    /// n.send()
+    /// ```
     @objc func new(_ options: JSValue) -> HSNotification?
 
     // MARK: Management
 
     /// Remove all delivered Hammerspoon notifications from Notification Center.
+    /// - Example:
+    /// ```js
+    /// hs.notify.removeAllDelivered()
+    /// ```
     @objc func removeAllDelivered()
 
     /// Cancel all pending (not yet delivered) Hammerspoon notifications.
+    /// - Example:
+    /// ```js
+    /// hs.notify.removeAllPending()
+    /// ```
     @objc func removeAllPending()
 }
 

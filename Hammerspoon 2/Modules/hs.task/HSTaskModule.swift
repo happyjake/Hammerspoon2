@@ -21,25 +21,63 @@ import JavaScriptCoreExtras
     ///   - environment: Optional dictionary of environment variables for the task
     ///   - streamingCallback: Optional callback function called when the task produces output
     /// - Returns: A task object. Call start() to begin execution.
+    /// - Example:
+    /// ```js
+    /// const task = hs.task.new("/usr/bin/env", ["printenv", "PATH"], (code, reason) => {
+    ///     console.log("exited", code)
+    /// })
+    /// task.start()
+    /// ```
     @objc(new:::::)
     func new(_ launchPath: String, _ arguments: [String], _ completionCallback: JSValue?, _ environment: JSValue?, _ streamingCallback: JSValue?) -> HSTask
 
     /// Run a task, returning a Promise. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// hs.task.runAsync("/bin/echo", ["hi"]).then(r => console.log(r.stdout))
+    /// ```
     @objc var runAsync: JSValue? { get set }
 
     /// Run a shell command. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// hs.task.shell("ls -la /tmp").then(r => console.log(r.stdout))
+    /// ```
     @objc var shell: JSValue? { get set }
 
     /// Run multiple tasks in parallel. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// hs.task.parallel([
+    ///     ["/bin/echo", ["one"]],
+    ///     ["/bin/echo", ["two"]]
+    /// ]).then(results => console.log(results))
+    /// ```
     @objc var parallel: JSValue? { get set }
 
     /// Run multiple tasks in sequence. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// hs.task.sequence([
+    ///     ["/bin/echo", ["one"]],
+    ///     ["/bin/echo", ["two"]]
+    /// ]).then(results => console.log(results))
+    /// ```
     @objc var sequence: JSValue? { get set }
 
     /// Create a task builder. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// const b = hs.task.builder().launchPath("/bin/echo").arguments(["hi"])
+    /// b.build().start()
+    /// ```
     @objc var builder: JSValue? { get set }
 
     /// TaskBuilder class. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// const b = new hs.task.TaskBuilder().launchPath("/bin/echo")
+    /// ```
     @objc var TaskBuilder: JSValue? { get set }
 }
 

@@ -28,13 +28,27 @@ import JavaScriptCore
 @objc protocol HSNotificationAPI: HSTypeAPI, JSExport {
     /// The unique identifier assigned to this notification.
     /// Use it to correlate with system notification APIs if needed.
+    /// - Example:
+    /// ```js
+    /// const n = hs.notify.new({ title: "Hi", body: "There" })
+    /// console.log(n.identifier)
+    /// ```
     @objc var identifier: String { get }
 
     /// Deliver this notification immediately to Notification Center.
     /// - Returns: self, for method chaining
+    /// - Example:
+    /// ```js
+    /// hs.notify.new({ title: "Hi", body: "There" }).send()
+    /// ```
     @objc @discardableResult func send() -> HSNotification
 
     /// Remove this notification from Notification Center (if delivered) or cancel it (if pending).
+    /// - Example:
+    /// ```js
+    /// const n = hs.notify.new({ title: "Hi", body: "There" }).send()
+    /// n.withdraw()
+    /// ```
     @objc func withdraw()
 }
 

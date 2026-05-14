@@ -11,30 +11,70 @@ import JavaScriptCore
 /// Object representing a timer. You should not instantiate these yourself, but rather, use the methods in hs.timer to create them for you.
 @objc protocol HSTimerAPI: HSTypeAPI, JSExport {
     /// The timer's interval in seconds
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.doEvery(5, () => {})
+    /// console.log(t.interval)
+    /// ```
     @objc var interval: TimeInterval { get }
 
     /// Whether the timer repeats
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.doEvery(5, () => {})
+    /// console.log(t.repeats)
+    /// ```
     @objc var repeats: Bool { get }
 
     /// Start the timer
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.new(5, () => console.log("tick"), false)
+    /// t.start()
+    /// ```
     @objc func start()
 
     /// Stop the timer
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.doEvery(5, () => {})
+    /// t.stop()
+    /// ```
     @objc func stop()
 
     /// Immediately fire the timer's callback
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.doEvery(5, () => console.log("tick"))
+    /// t.fire()
+    /// ```
     @objc func fire()
 
     /// Check if the timer is currently running
     /// - Returns: true if the timer is running, false otherwise
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.doEvery(5, () => {})
+    /// console.log(t.running())
+    /// ```
     @objc func running() -> Bool
 
     /// Get the number of seconds until the timer next fires
     /// - Returns: Seconds until next trigger, or a negative value if the timer is not running
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.doEvery(5, () => {})
+    /// console.log(t.nextTrigger())
+    /// ```
     @objc func nextTrigger() -> TimeInterval
 
     /// Set when the timer should next fire
     /// - Parameter seconds: Number of seconds from now when the timer should fire
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.doEvery(5, () => {})
+    /// t.setNextTrigger(10)
+    /// ```
     @objc func setNextTrigger(_ seconds: TimeInterval)
 }
 

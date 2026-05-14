@@ -34,24 +34,46 @@ import AppKit
     /// Set additional informative text below the main message
     /// - Parameter text: The informative text
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.textPrompt("Name?").informativeText("Enter your full name").show()
+    /// ```
     @objc func informativeText(_ text: String) -> HSUITextPrompt
 
     /// Set the default text in the input field
     /// - Parameter text: Default text value
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.textPrompt("Name?").defaultText("Anonymous").show()
+    /// ```
     @objc func defaultText(_ text: String) -> HSUITextPrompt
 
     /// Set custom button labels
     /// - Parameter labels: Array of button labels (default: ["OK", "Cancel"])
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.textPrompt("Confirm?").buttons(["Yes", "No"]).show()
+    /// ```
     @objc func buttons(_ labels: [String]) -> HSUITextPrompt
 
     /// Set the callback for button presses
     /// - Parameter callback: Function receiving (buttonIndex, inputText)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.textPrompt("Name?")
+    ///     .onButton((idx, text) => console.log(idx, text))
+    ///     .show()
+    /// ```
     @objc func onButton(_ callback: JSValue) -> HSUITextPrompt
 
     /// Show the prompt dialog
+    /// - Example:
+    /// ```js
+    /// hs.ui.textPrompt("Name?").show()
+    /// ```
     @objc func show()
 }
 

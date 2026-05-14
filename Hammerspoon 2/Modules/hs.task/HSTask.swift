@@ -13,55 +13,135 @@ import JavaScriptCoreExtras
 @objc protocol HSTaskAPI: HSTypeAPI, JSExport {
     /// Start the task
     /// - Returns: The task object for chaining
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/echo", ["hi"])
+    /// t.start()
+    /// ```
     @objc func start() -> HSTask
 
     /// Terminate the task (send SIGTERM)
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/sleep", ["60"]).start()
+    /// t.terminate()
+    /// ```
     @objc func terminate()
 
     /// Terminate the task with extreme prejudice (send SIGKILL)
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/sleep", ["60"]).start()
+    /// t.kill9()
+    /// ```
     @objc func kill9()
 
     /// Interrupt the task (send SIGINT)
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/sleep", ["60"]).start()
+    /// t.interrupt()
+    /// ```
     @objc func interrupt()
 
     /// Pause the task (send SIGSTOP)
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/sleep", ["60"]).start()
+    /// t.pause()
+    /// ```
     @objc func pause()
 
     /// Resume the task (send SIGCONT)
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/sleep", ["60"]).start()
+    /// t.pause(); t.resume()
+    /// ```
     @objc func resume()
 
     /// Wait for the task to complete (blocking)
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/echo", ["hi"]).start()
+    /// t.waitUntilExit()
+    /// ```
     @objc func waitUntilExit()
 
     /// Write data to the task's stdin
     /// - Parameter data: The string data to write
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/usr/bin/cat", []).start()
+    /// t.sendInput("hello\n")
+    /// ```
     @objc func sendInput(_ data: String)
 
     /// Close the task's stdin
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/usr/bin/cat", []).start()
+    /// t.sendInput("hello\n")
+    /// t.closeInput()
+    /// ```
     @objc func closeInput()
 
     /// Check if the task is currently running
     /// - Note: true if the task is running, false otherwise
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/sleep", ["10"]).start()
+    /// console.log(t.isRunning)
+    /// ```
     @objc var isRunning: Bool { get }
 
     /// The process ID of the running task
     /// - Note: The value will be -1 if the task is not running
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/sleep", ["10"]).start()
+    /// console.log(t.pid)
+    /// ```
     @objc var pid: Int32 { get }
 
     /// The environment variables for the task
     /// - Note: Can only be modified before calling start()
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/usr/bin/env", [])
+    /// t.environment = { FOO: "bar" }
+    /// t.start()
+    /// ```
     @objc var environment: [String: String] { get set }
 
     /// The working directory for the task
     /// - Note: Can only be modified before calling start()
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/pwd", [])
+    /// t.workingDirectory = "/tmp"
+    /// t.start()
+    /// ```
     @objc var workingDirectory: String? { get set }
 
     /// The termination status of the task
     /// - Note: Returns the exit code, or nil if the task hasn't terminated
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/echo", ["hi"], () => {
+    ///     console.log(t.terminationStatus)
+    /// }).start()
+    /// ```
     @objc var terminationStatus: NSNumber? { get }
 
     /// The termination reason
     /// - Note: Returns a string describing why the task terminated, or nil if still running
+    /// - Example:
+    /// ```js
+    /// const t = hs.task.new("/bin/echo", ["hi"], () => {
+    ///     console.log(t.terminationReason)
+    /// }).start()
+    /// ```
     @objc var terminationReason: String? { get }
 
     /// SKIP_DOCS

@@ -52,36 +52,64 @@ import UniformTypeIdentifiers
     /// Set the message displayed in the picker
     /// - Parameter text: The message text
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker().message("Pick a file").show()
+    /// ```
     @objc func message(_ text: String) -> HSUIFilePicker
 
     /// Set the starting directory
     /// - Parameter path: Path to directory (supports `~` for home)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker().defaultPath("~/Documents").show()
+    /// ```
     @objc func defaultPath(_ path: String) -> HSUIFilePicker
 
     /// Set whether files can be selected
     /// - Parameter value: true to allow file selection (default: true)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker().canChooseFiles(true).show()
+    /// ```
     @objc func canChooseFiles(_ value: Bool) -> HSUIFilePicker
 
     /// Set whether directories can be selected
     /// - Parameter value: true to allow directory selection (default: false)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker().canChooseDirectories(true).show()
+    /// ```
     @objc func canChooseDirectories(_ value: Bool) -> HSUIFilePicker
 
     /// Set whether multiple items can be selected
     /// - Parameter value: true to allow multiple selection (default: false)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker().allowsMultipleSelection(true).show()
+    /// ```
     @objc func allowsMultipleSelection(_ value: Bool) -> HSUIFilePicker
 
     /// Restrict to specific file types
     /// - Parameter types: Array of file extensions (e.g., ["txt", "md"])
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker().allowedFileTypes(["txt", "md"]).show()
+    /// ```
     @objc func allowedFileTypes(_ types: [String]) -> HSUIFilePicker
 
     /// Set whether to resolve symbolic links
     /// - Parameter value: true to resolve aliases (default: true)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker().resolvesAliases(false).show()
+    /// ```
     @objc func resolvesAliases(_ value: Bool) -> HSUIFilePicker
 
     /// Set the callback for file selection
@@ -89,9 +117,19 @@ import UniformTypeIdentifiers
     ///   - Single selection: receives a string path or null
     ///   - Multiple selection: receives an array of paths or null
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker()
+    ///     .onSelection((path) => console.log("picked:", path))
+    ///     .show()
+    /// ```
     @objc func onSelection(_ callback: JSValue) -> HSUIFilePicker
 
     /// Show the file picker dialog
+    /// - Example:
+    /// ```js
+    /// hs.ui.filePicker().show()
+    /// ```
     @objc func show()
 }
 

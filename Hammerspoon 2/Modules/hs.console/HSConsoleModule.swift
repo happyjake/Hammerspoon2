@@ -16,32 +16,64 @@ import AppKit
 /// Module for controlling the Hammerspoon console
 @objc protocol HSConsoleModuleAPI: JSExport {
     /// Open the console window
+    /// - Example:
+    /// ```js
+    /// hs.console.open()
+    /// ```
     @objc func open()
 
     /// Close the console window
+    /// - Example:
+    /// ```js
+    /// hs.console.close()
+    /// ```
     @objc func close()
 
     /// Clear all console output
+    /// - Example:
+    /// ```js
+    /// hs.console.clear()
+    /// ```
     @objc func clear()
 
     /// Print a message to the console
     /// - Parameter message: The message to print
+    /// - Example:
+    /// ```js
+    /// hs.console.print("Hello, world!")
+    /// ```
     @objc func print(_ message: String)
 
     /// Print a debug message to the console
     /// - Parameter message: The message to print
+    /// - Example:
+    /// ```js
+    /// hs.console.debug("debug info")
+    /// ```
     @objc func debug(_ message: String)
 
     /// Print an info message to the console
     /// - Parameter message: The message to print
+    /// - Example:
+    /// ```js
+    /// hs.console.info("Service started")
+    /// ```
     @objc func info(_ message: String)
 
     /// Print a warning message to the console
     /// - Parameter message: The message to print
+    /// - Example:
+    /// ```js
+    /// hs.console.warning("Something looks off")
+    /// ```
     @objc func warning(_ message: String)
 
     /// Print an error message to the console
     /// - Parameter message: The message to print
+    /// - Example:
+    /// ```js
+    /// hs.console.error("Something went wrong")
+    /// ```
     @objc func error(_ message: String)
 }
 

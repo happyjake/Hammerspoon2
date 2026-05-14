@@ -16,34 +16,65 @@ import AXSwift
 @objc protocol HSWindowModuleAPI: JSExport {
     /// Get the currently focused window
     /// - Returns: The focused window, or nil if none
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// console.log(win && win.title)
+    /// ```
     @objc func focusedWindow() -> HSWindow?
 
     /// Get all windows from all applications
     /// - Returns: An array of all windows
+    /// - Example:
+    /// ```js
+    /// const wins = hs.window.allWindows()
+    /// console.log(wins.length)
+    /// ```
     @objc func allWindows() -> [HSWindow]
 
     /// Get all visible (not minimized) windows
     /// - Returns: An array of visible windows
+    /// - Example:
+    /// ```js
+    /// const vis = hs.window.visibleWindows()
+    /// ```
     @objc func visibleWindows() -> [HSWindow]
 
     /// Get windows for a specific application
     /// - Parameter app: An HSApplication object
     /// - Returns: An array of windows for that application
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const wins = hs.window.windowsForApp(app)
+    /// ```
     @objc func windowsForApp(_ app: HSApplication) -> [HSWindow]
 
     /// Get all windows on a specific screen
     /// - Parameter screenIndex: The screen index (0 for main screen)
     /// - Returns: An array of windows on that screen
+    /// - Example:
+    /// ```js
+    /// const wins = hs.window.windowsOnScreen(0)
+    /// ```
     @objc func windowsOnScreen(_ screenIndex: Int) -> [HSWindow]
 
     /// Get the window at a specific screen position
     /// - Parameters:
     ///   - point: An HSPoint containing the coordinates
     /// - Returns: The topmost window at that position, or nil if none
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.windowAtPoint({x: 500, y: 300})
+    /// ```
     @objc func windowAtPoint(_ point: HSPoint) -> HSWindow?
 
     /// Get ordered windows (front to back)
     /// - Returns: An array of windows in z-order
+    /// - Example:
+    /// ```js
+    /// const wins = hs.window.orderedWindows()
+    /// ```
     @objc func orderedWindows() -> [HSWindow]
 }
 

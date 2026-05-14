@@ -268,42 +268,13 @@ import AppKit
     ///
     /// - Parameter dict: Dictionary with keys: `x`, `y`, `w`, `h` (all numbers)
     /// - Returns: An `HSUIWindow` object for chaining
-    ///
-    /// **Basic Example:**
-    /// ```javascript
-    /// // Simple colored window
+    /// - Example:
+    /// ```js
     /// hs.ui.window({x: 100, y: 100, w: 400, h: 300})
     ///     .rectangle()
     ///         .fill("#FF0000")
     ///         .frame({w: "100%", h: "100%"})
-    ///     .show();
-    /// ```
-    ///
-    /// **Advanced Example:**
-    /// ```javascript
-    /// // Notification card with image and text
-    /// hs.ui.window({x: 50, y: 50, w: 350, h: 120})
-    ///     .hstack()
-    ///         .spacing(15)
-    ///         .padding(15)
-    ///         // Icon
-    ///         .image(HSImage.fromName("NSInfo"))
-    ///             .resizable()
-    ///             .aspectRatio("fit")
-    ///             .frame({w: 48, h: 48})
-    ///         // Content
-    ///         .vstack()
-    ///             .spacing(5)
-    ///             .text("New Message")
-    ///                 .font(HSFont.headline())
-    ///                 .foregroundColor("#FFFFFF")
-    ///             .text("You have 3 unread messages")
-    ///                 .font(HSFont.subheadline())
-    ///                 .foregroundColor("#CCCCCC")
-    ///         .end()
-    ///     .end()
-    ///     .backgroundColor("#1E1E1E")
-    ///     .show();
+    ///     .show()
     /// ```
     @objc func window(_ dict: [String: Any]) -> HSUIWindow
 
@@ -314,32 +285,11 @@ import AppKit
     ///
     /// - Parameter message: The message text to display
     /// - Returns: An `HSUIAlert` object for chaining
-    ///
-    /// **Basic Example:**
-    /// ```javascript
+    /// - Example:
+    /// ```js
     /// hs.ui.alert("Task completed successfully!")
     ///     .duration(3)
-    ///     .show();
-    /// ```
-    ///
-    /// **Styled Example:**
-    /// ```javascript
-    /// // Success notification with custom styling
-    /// hs.ui.alert("✓ File saved successfully")
-    ///     .font(HSFont.headline())
-    ///     .duration(5)
-    ///     .padding(30)
-    ///     .backgroundColor("#4CAF50")
-    ///     .foregroundColor("#FFFFFF")
-    ///     .show();
-    ///
-    /// // Warning alert
-    /// hs.ui.alert("⚠ Low battery")
-    ///     .font(HSFont.body())
-    ///     .duration(10)
-    ///     .backgroundColor("#FFC107")
-    ///     .foregroundColor("#000000")
-    ///     .show();
+    ///     .show()
     /// ```
     @objc func alert(_ message: String) -> HSUIAlert
 
@@ -350,36 +300,14 @@ import AppKit
     ///
     /// - Parameter message: The main message text
     /// - Returns: An `HSUIDialog` object for chaining
-    ///
-    /// **Simple Example:**
-    /// ```javascript
+    /// - Example:
+    /// ```js
     /// hs.ui.dialog("Continue with this action?")
     ///     .buttons(["Continue", "Cancel"])
     ///     .onButton((index) => {
-    ///         if (index === 0) {
-    ///             console.log("User chose to continue");
-    ///         }
+    ///         if (index === 0) console.log("User chose to continue")
     ///     })
-    ///     .show();
-    /// ```
-    ///
-    /// **Detailed Example:**
-    /// ```javascript
-    /// // Confirmation dialog with multiple options
-    /// hs.ui.dialog("Save changes?")
-    ///     .informativeText("Your document has unsaved changes. What would you like to do?")
-    ///     .buttons(["Save", "Don't Save", "Cancel"])
-    ///     .onButton((index) => {
-    ///         if (index === 0) {
-    ///             console.log("Saving document...");
-    ///             // Save logic here
-    ///         } else if (index === 1) {
-    ///             console.log("Discarding changes...");
-    ///             // Close without saving
-    ///         }
-    ///         // index === 2 is Cancel - do nothing
-    ///     })
-    ///     .show();
+    ///     .show()
     /// ```
     @objc func dialog(_ message: String) -> HSUIDialog
 
@@ -390,36 +318,13 @@ import AppKit
     ///
     /// - Parameter message: The prompt message
     /// - Returns: An `HSUITextPrompt` object for chaining
-    ///
-    /// **Simple Example:**
-    /// ```javascript
+    /// - Example:
+    /// ```js
     /// hs.ui.textPrompt("Enter your name")
     ///     .onButton((buttonIndex, text) => {
-    ///         if (buttonIndex === 0) {
-    ///             console.log("Hello, " + text + "!");
-    ///         }
+    ///         if (buttonIndex === 0) console.log("Hello, " + text + "!")
     ///     })
-    ///     .show();
-    /// ```
-    ///
-    /// **Detailed Example:**
-    /// ```javascript
-    /// // Git commit message prompt
-    /// hs.ui.textPrompt("Git Commit")
-    ///     .informativeText("Enter your commit message:")
-    ///     .defaultText("Update documentation")
-    ///     .buttons(["Commit", "Cancel"])
-    ///     .onButton((buttonIndex, text) => {
-    ///         if (buttonIndex === 0 && text.length > 0) {
-    ///             // Execute git commit
-    ///             hs.task.new("/usr/bin/git", ["commit", "-m", text])
-    ///                 .start();
-    ///             hs.ui.alert("✓ Committed: " + text)
-    ///                 .duration(3)
-    ///                 .show();
-    ///         }
-    ///     })
-    ///     .show();
+    ///     .show()
     /// ```
     @objc func textPrompt(_ message: String) -> HSUITextPrompt
 
@@ -430,17 +335,15 @@ import AppKit
     ///
     /// - Parameter initialValue: The starting string value
     /// - Returns: An `HSString` object whose value can be updated with `.set()`
-    ///
-    /// **Example:**
-    /// ```javascript
-    /// const label = hs.ui.string("Not hovered");
-    ///
+    /// - Example:
+    /// ```js
+    /// const label = hs.ui.string("Not hovered")
     /// hs.ui.window({x: 100, y: 100, w: 200, h: 100})
     ///     .text(label)
     ///         .onHover((isHovered) => {
-    ///             label.set(isHovered ? "Hovered!" : "Not hovered");
+    ///             label.set(isHovered ? "Hovered!" : "Not hovered")
     ///         })
-    ///     .show();
+    ///     .show()
     /// ```
     @objc func string(_ initialValue: String) -> HSString
 
@@ -450,53 +353,15 @@ import AppKit
     /// directories, or both, with support for file type filtering and multiple selection.
     ///
     /// - Returns: An `HSUIFilePicker` object for chaining
-    ///
-    /// **Simple File Picker:**
-    /// ```javascript
+    /// - Example:
+    /// ```js
     /// hs.ui.filePicker()
     ///     .message("Choose a file to open")
     ///     .allowedFileTypes(["txt", "md", "js"])
     ///     .onSelection((path) => {
-    ///         if (path) {
-    ///             console.log("Selected: " + path);
-    ///         }
+    ///         if (path) console.log("Selected: " + path)
     ///     })
-    ///     .show();
-    /// ```
-    ///
-    /// **Directory Picker:**
-    /// ```javascript
-    /// hs.ui.filePicker()
-    ///     .message("Select backup directory")
-    ///     .canChooseFiles(false)
-    ///     .canChooseDirectories(true)
-    ///     .allowsMultipleSelection(false)
-    ///     .onSelection((path) => {
-    ///         if (path) {
-    ///             console.log("Backing up to: " + path);
-    ///             // Perform backup to selected directory
-    ///         }
-    ///     })
-    ///     .show();
-    /// ```
-    ///
-    /// **Multiple File Selection:**
-    /// ```javascript
-    /// // Select multiple images for processing
-    /// hs.ui.filePicker()
-    ///     .message("Choose images to convert")
-    ///     .allowedFileTypes(["jpg", "png", "gif"])
-    ///     .allowsMultipleSelection(true)
-    ///     .onSelection((paths) => {
-    ///         if (paths && paths.length > 0) {
-    ///             console.log("Converting " + paths.length + " images...");
-    ///             paths.forEach((path, index) => {
-    ///                 console.log("  " + (index + 1) + ": " + path);
-    ///                 // Convert each image
-    ///             });
-    ///         }
-    ///     })
-    ///     .show();
+    ///     .show()
     /// ```
     @objc func filePicker() -> HSUIFilePicker
 }

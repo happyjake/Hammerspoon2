@@ -20,6 +20,12 @@ import Carbon
     ///   - callbackPressed: A JavaScript function to call when the hotkey is pressed
     ///   - callbackReleased: A JavaScript function to call when the hotkey is released
     /// - Returns: A hotkey object, or nil if binding failed
+    /// - Example:
+    /// ```js
+    /// hs.hotkey.bind(["cmd","shift"], "h", () => {
+    ///     console.log("Hello!")
+    /// })
+    /// ```
     @objc func bind(_ mods: JSValue, _ key: String, _ callbackPressed: JSValue, _ callbackReleased: JSValue) -> HSHotkey?
 
     /// Bind a hotkey with a message description
@@ -30,15 +36,29 @@ import Carbon
     ///   - callbackPressed: A JavaScript function to call when the hotkey is pressed
     ///   - callbackReleased: A JavaScript function to call when the hotkey is released
     /// - Returns: A hotkey object, or nil if binding failed
+    /// - Example:
+    /// ```js
+    /// hs.hotkey.bindSpec(["cmd"], "space", "Spotlight-like", () => {
+    ///     console.log("pressed")
+    /// }, null)
+    /// ```
     @objc(bindSpec:::::)
     func bindSpec(_ mods: JSValue, _ key: String, _ message: String?, _ callbackPressed: JSValue, _ callbackReleased: JSValue) -> HSHotkey?
 
     /// Get the system-wide mapping of key names to key codes
     /// - Returns: A dictionary mapping key names to numeric key codes
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hotkey.getKeyCodeMap())
+    /// ```
     @objc func getKeyCodeMap() -> [String: UInt32]
 
     /// Get the mapping of modifier names to modifier flags
     /// - Returns: A dictionary mapping modifier names to their numeric values
+    /// - Example:
+    /// ```js
+    /// console.log(hs.hotkey.getModifierMap())
+    /// ```
     @objc func getModifierMap() -> [String: UInt32]
 }
 

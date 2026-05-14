@@ -202,106 +202,228 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     // MARK: Identity
 
     /// The CoreAudio object ID of this device.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.id)
+    /// ```
     @objc var id: Int { get }
 
     /// The human-readable name of this device (e.g. `"Built-in Output"`).
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.name)
+    /// ```
     @objc var name: String { get }
 
     /// The persistent unique identifier for this device.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.uid)
+    /// ```
     @objc var uid: String { get }
 
     // MARK: Capabilities
 
     /// Whether this device has output streams (can play audio).
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.isOutput)
+    /// ```
     @objc var isOutput: Bool { get }
 
     /// Whether this device has input streams (can record audio).
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultInputDevice()
+    /// console.log(dev.isInput)
+    /// ```
     @objc var isInput: Bool { get }
 
     /// The transport mechanism: `"built-in"`, `"usb"`, `"bluetooth"`, `"bluetooth-le"`,
     /// `"hdmi"`, `"display-port"`, `"firewire"`, `"airplay"`, `"avb"`,
     /// `"thunderbolt"`, `"virtual"`, `"aggregate"`, `"pci"`, or `"unknown"`.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.transportType)
+    /// ```
     @objc var transportType: String { get }
 
     // MARK: Channels
 
     /// Number of output channels, or 0 if the device has no output.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.outputChannels)
+    /// ```
     @objc var outputChannels: Int { get }
 
     /// Number of input channels, or 0 if the device has no input.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultInputDevice()
+    /// console.log(dev.inputChannels)
+    /// ```
     @objc var inputChannels: Int { get }
 
     // MARK: Output volume & mute
 
     /// Output volume scalar in the range `0.0`–`1.0`, or `null` if the device has
     /// no controllable output volume. Setting `null` is a no-op.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// dev.volume = 0.5
+    /// ```
     @objc var volume: NSNumber? { get set }
 
     /// Whether output is muted. Always `false` if the device has no mutable output.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// dev.muted = true
+    /// ```
     @objc var muted: Bool { get set }
 
     /// Output stereo balance in the range `0.0` (full left)–`1.0` (full right),
     /// or `null` if balance control is not available.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// dev.balance = 0.5
+    /// ```
     @objc var balance: NSNumber? { get set }
 
     // MARK: Input volume & mute
 
     /// Input (microphone) volume scalar in the range `0.0`–`1.0`, or `null` if
     /// the device has no controllable input volume.
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.defaultInputDevice()
+    /// mic.inputVolume = 0.8
+    /// ```
     @objc var inputVolume: NSNumber? { get set }
 
     /// Whether input is muted. Always `false` if the device has no mutable input.
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.defaultInputDevice()
+    /// mic.inputMuted = true
+    /// ```
     @objc var inputMuted: Bool { get set }
 
     // MARK: Sample rate
 
     /// The current nominal sample rate in Hz (e.g. `44100`), or `null` if unknown.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.sampleRate)
+    /// ```
     @objc var sampleRate: NSNumber? { get set }
 
     /// All sample rates (in Hz) that this device supports.
     /// For devices that support a range, both the minimum and maximum are included.
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.availableSampleRates)
+    /// ```
     @objc var availableSampleRates: [NSNumber] { get }
 
     // MARK: Data sources
 
     /// The current output data source as `{ id, name }`, or `null` if unavailable.
     /// - Returns: A dictionary containing the id and name of the current output data source
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.currentOutputDataSource())
+    /// ```
     @objc func currentOutputDataSource() -> NSDictionary?
 
     /// The current input data source as `{ id, name }`, or `null` if unavailable.
     /// - Returns: A dictionary containing the id and name of the current input data source
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.defaultInputDevice()
+    /// console.log(mic.currentInputDataSource())
+    /// ```
     @objc func currentInputDataSource() -> NSDictionary?
 
     /// All available output data sources as an array of `{ id, name }` objects.
     /// - Returns: A dictionary containing the ids and names of all available output data sources
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// console.log(dev.outputDataSources())
+    /// ```
     @objc func outputDataSources() -> [NSDictionary]
 
     /// All available input data sources as an array of `{ id, name }` objects.
     /// - Returns: A dictionary containing the ids and names of all available input data sources
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.defaultInputDevice()
+    /// console.log(mic.inputDataSources())
+    /// ```
     @objc func inputDataSources() -> [NSDictionary]
 
     /// Select an output data source by its numeric ID.
     /// - Parameter sourceID: The `id` value from ``outputDataSources()``
     /// - Returns: `true` on success
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// const sources = dev.outputDataSources()
+    /// dev.setCurrentOutputDataSource(sources[0].id)
+    /// ```
     @objc func setCurrentOutputDataSource(_ sourceID: Int) -> Bool
 
     /// Select an input data source by its numeric ID.
     /// - Parameter sourceID: The `id` value from ``inputDataSources()``
     /// - Returns: `true` on success
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.defaultInputDevice()
+    /// const sources = mic.inputDataSources()
+    /// mic.setCurrentInputDataSource(sources[0].id)
+    /// ```
     @objc func setCurrentInputDataSource(_ sourceID: Int) -> Bool
 
     // MARK: Default device control
 
     /// Make this device the system default output device.
     /// - Returns: `true` on success
+    /// - Example:
+    /// ```js
+    /// const usb = hs.audiodevice.findDeviceByName("USB Audio CODEC")
+    /// usb.setDefaultOutputDevice()
+    /// ```
     @objc func setDefaultOutputDevice() -> Bool
 
     /// Make this device the system default input device.
     /// - Returns: `true` on success
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.findDeviceByName("External Mic")
+    /// mic.setDefaultInputDevice()
+    /// ```
     @objc func setDefaultInputDevice() -> Bool
 
     /// Make this device the system alert sound (effect) device.
     /// - Returns: `true` on success
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// dev.setDefaultEffectDevice()
+    /// ```
     @objc func setDefaultEffectDevice() -> Bool
 
     // MARK: Per-device watcher
@@ -318,11 +440,21 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// - `"dsin"` — input data source changed
     ///
     /// - Parameter listener: A JavaScript function that receives an event name string
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// dev.addWatcher((event) => console.log("Event:", event))
+    /// ```
     @objc func addWatcher(_ listener: JSValue)
 
     /// Remove a previously registered per-device listener.
     ///
     /// - Parameter listener: The JavaScript function that was passed to ``addWatcher(_:)``
+    /// - Example:
+    /// ```js
+    /// const dev = hs.audiodevice.defaultOutputDevice()
+    /// dev.removeWatcher(myHandler)
+    /// ```
     @objc func removeWatcher(_ listener: JSValue)
 
     // NOTE: These are not documented because they are private API for our JavaScript code

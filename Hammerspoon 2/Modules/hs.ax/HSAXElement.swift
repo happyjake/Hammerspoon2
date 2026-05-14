@@ -14,60 +14,135 @@ import AXSwift
     // MARK: - Basic Properties
 
     /// The element's role (e.g., "AXWindow", "AXButton")
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.role)
+    /// ```
     @objc var role: String? { get }
 
     /// The element's subrole
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.subrole)
+    /// ```
     @objc var subrole: String? { get }
 
     /// The element's title
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.title)
+    /// ```
     @objc var title: String? { get }
 
     /// The element's value
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.value)
+    /// ```
     @objc var value: Any? { get }
 
     /// The element's description
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.elementDescription)
+    /// ```
     @objc var elementDescription: String? { get }
 
     /// Whether the element is enabled
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.isEnabled)
+    /// ```
     @objc var isEnabled: Bool { get }
 
     /// Whether the element is focused
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// el.isFocused = true
+    /// ```
     @objc var isFocused: Bool { get set }
 
     // MARK: - Geometry
 
     /// The element's position on screen
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.position)
+    /// ```
     @objc var position: HSPoint? { get set }
 
     /// The element's size
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.size)
+    /// ```
     @objc var size: HSSize? { get set }
 
     /// The element's frame (position and size combined)
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.frame)
+    /// ```
     @objc var frame: HSRect? { get set }
 
     // MARK: - Hierarchy
 
     /// The element's parent
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.parent && el.parent.role)
+    /// ```
     @objc var parent: HSAXElement? { get }
 
     /// The element's children
     /// - Returns: An array of HSAXElement objects
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.children().length)
+    /// ```
     @objc func children() -> [HSAXElement]
 
     /// Get a specific child by index
     /// - Parameter index: The index to fetch
     /// - Returns: An HSAXElement object, if a child exists at the given index
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// const child = el.childAtIndex(0)
+    /// ```
     @objc func childAtIndex(_ index: Int) -> HSAXElement?
 
     // MARK: - Attributes
 
     /// Get all available attribute names
     /// - Returns: An array of attribute names
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.attributeNames())
+    /// ```
     @objc func attributeNames() -> [String]
 
     /// Get the value of a specific attribute
     /// - Parameter attribute: The attribute name to fetch the value for
     /// - Returns: The requested value, or nil if none was found
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.attributeValue("AXTitle"))
+    /// ```
     @objc func attributeValue(_ attribute: String) -> Any?
 
     /// Set the value of a specific attribute
@@ -75,27 +150,52 @@ import AXSwift
     ///   - attribute: The attribute name to set
     ///   - value: The value to set
     /// - Returns: True if the operation succeeded, otherwise False
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// el.setAttributeValue("AXValue", "Hello")
+    /// ```
     @objc func setAttributeValue(_ attribute: String, value: Any) -> Bool
 
     /// Check if an attribute is settable
     /// - Parameter attribute: An attribute name
     /// - Returns: True if the attribute is settable, otherwise False
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.isAttributeSettable("AXValue"))
+    /// ```
     @objc func isAttributeSettable(_ attribute: String) -> Bool
 
     // MARK: - Actions
 
     /// Get all available action names
     /// - Returns: An array of available action names
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.actionNames())
+    /// ```
     @objc func actionNames() -> [String]
 
     /// Perform a specific action
     /// - Parameter action: The action to perform
     /// - Returns: True if the action succeeded, otherwise False
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// el.performAction("AXPress")
+    /// ```
     @objc func performAction(_ action: String) -> Bool
 
     // MARK: - Utility
 
     /// Get the process ID of the application that owns this element
+    /// - Example:
+    /// ```js
+    /// const el = hs.ax.focusedElement()
+    /// console.log(el.pid)
+    /// ```
     @objc var pid: Int { get }
 }
 

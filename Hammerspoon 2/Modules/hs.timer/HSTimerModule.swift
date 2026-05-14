@@ -18,6 +18,11 @@ import JavaScriptCore
     ///   - callback: A JavaScript function to call when the timer fires
     ///   - continueOnError: If true, the timer will continue running even if the callback throws an error
     /// - Returns: A timer object. Call start() to begin the timer.
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.create(5, () => console.log("tick"), false)
+    /// t.start()
+    /// ```
     @objc func create(_ interval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool) -> HSTimer
 
     /// Create a new timer (alias for create())
@@ -26,6 +31,11 @@ import JavaScriptCore
     ///   - callback: A JavaScript function to call when the timer fires
     ///   - continueOnError: If true, the timer will continue running even if the callback throws an error
     /// - Returns: A timer object. Call start() to begin the timer.
+    /// - Example:
+    /// ```js
+    /// const t = hs.timer.new(5, () => console.log("tick"), false)
+    /// t.start()
+    /// ```
     @objc(new:::)
     func new(_ interval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool) -> HSTimer
 
@@ -34,6 +44,10 @@ import JavaScriptCore
     ///   - seconds: Number of seconds to wait before firing
     ///   - callback: A JavaScript function to call when the timer fires
     /// - Returns: A timer object (already started)
+    /// - Example:
+    /// ```js
+    /// hs.timer.doAfter(5, () => console.log("fired"))
+    /// ```
     @objc func doAfter(_ seconds: TimeInterval, _ callback: JSValue) -> HSTimer
 
     /// Create and start a repeating timer
@@ -41,6 +55,10 @@ import JavaScriptCore
     ///   - interval: The interval in seconds at which the timer should fire
     ///   - callback: A JavaScript function to call when the timer fires
     /// - Returns: A timer object (already started)
+    /// - Example:
+    /// ```js
+    /// hs.timer.doEvery(60, () => console.log("every minute"))
+    /// ```
     @objc func doEvery(_ interval: TimeInterval, _ callback: JSValue) -> HSTimer
 
     /// Create and start a timer that fires at a specific time
@@ -50,56 +68,111 @@ import JavaScriptCore
     ///   - callback: A JavaScript function to call when the timer fires
     ///   - continueOnError: If true, the timer will continue running even if the callback throws an error
     /// - Returns: A timer object (already started)
+    /// - Example:
+    /// ```js
+    /// // Fire at 9am every day
+    /// hs.timer.doAt(9 * 3600, 86400, () => console.log("morning"), false)
+    /// ```
     @objc(doAt::::)
     func doAt(_ time: TimeInterval, _ repeatInterval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool) -> HSTimer
 
     /// Block execution for a specified number of microseconds (strongly discouraged)
     /// - Parameter microseconds: Number of microseconds to sleep
     /// - Note: This blocks the entire application and should be avoided. Use timers instead.
+    /// - Example:
+    /// ```js
+    /// hs.timer.usleep(100000)  // 100ms
+    /// ```
     @objc func usleep(_ microseconds: UInt32)
 
     /// Get the current time as seconds since the UNIX epoch with sub-second precision
     /// - Returns: Fractional seconds since midnight, January 1, 1970 UTC
+    /// - Example:
+    /// ```js
+    /// console.log(hs.timer.secondsSinceEpoch())
+    /// ```
     @objc func secondsSinceEpoch() -> TimeInterval
 
     /// Get the number of nanoseconds since the system was booted (excluding sleep time)
     /// - Returns: Nanoseconds since boot
+    /// - Example:
+    /// ```js
+    /// console.log(hs.timer.absoluteTime())
+    /// ```
     @objc func absoluteTime() -> UInt64
 
     /// Get the number of seconds since local midnight
     /// - Returns: Seconds since midnight in the local timezone
+    /// - Example:
+    /// ```js
+    /// console.log(hs.timer.localTime())
+    /// ```
     @objc func localTime() -> TimeInterval
 
     /// Converts minutes to seconds
     /// - Parameter n: A number of minutes
     /// - Returns: The equivalent number of seconds
+    /// - Example:
+    /// ```js
+    /// console.log(hs.timer.minutes(5))  // 300
+    /// ```
     @objc func minutes(_ n: Double) -> Double
 
     /// Converts hours to seconds
     /// - Parameter n: A number of hours
     /// - Returns: The equivalent number of seconds
+    /// - Example:
+    /// ```js
+    /// console.log(hs.timer.hours(2))  // 7200
+    /// ```
     @objc func hours(_ n: Double) -> Double
 
     /// Converts days to seconds
     /// - Parameter n: A number of days
     /// - Returns: The equivalent number of seconds
+    /// - Example:
+    /// ```js
+    /// console.log(hs.timer.days(1))  // 86400
+    /// ```
     @objc func days(_ n: Double) -> Double
 
     /// Converts weeks to seconds
     /// - Parameter n: A number of weeks
     /// - Returns: The equivalent number of seconds
+    /// - Example:
+    /// ```js
+    /// console.log(hs.timer.weeks(1))  // 604800
+    /// ```
     @objc func weeks(_ n: Double) -> Double
 
     /// Repeat a function until a predicate returns true. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// let count = 0
+    /// hs.timer.doUntil(() => count >= 3, () => { count++; console.log(count) }, 1)
+    /// ```
     @objc var doUntil: JSValue? { get set }
 
     /// Repeat a function while a predicate returns true. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// let count = 0
+    /// hs.timer.doWhile(() => count < 3, () => { count++; console.log(count) }, 1)
+    /// ```
     @objc var doWhile: JSValue? { get set }
 
     /// Wait to call a function until a predicate returns true. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// hs.timer.waitUntil(() => someCondition, () => console.log("ready"), 0.5)
+    /// ```
     @objc var waitUntil: JSValue? { get set }
 
     /// Wait to call a function until a predicate returns false. Swift-retained storage for the JS implementation.
+    /// - Example:
+    /// ```js
+    /// hs.timer.waitWhile(() => stillLoading, () => console.log("done"), 0.5)
+    /// ```
     @objc var waitWhile: JSValue? { get set }
 }
 

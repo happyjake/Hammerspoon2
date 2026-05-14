@@ -81,6 +81,10 @@ import JavaScriptCore
     ///
     /// - Parameter source: The AppleScript source code to compile and execute.
     /// - Returns: A `Promise` resolving to `{ success, result, raw }`.
+    /// - Example:
+    /// ```js
+    /// hs.osascript.applescript('return "hello"').then(r => console.log(r.result))
+    /// ```
     @objc func applescript(_ source: String) -> JSPromise?
 
     /// Run an OSA JavaScript source string.
@@ -91,6 +95,10 @@ import JavaScriptCore
     ///
     /// - Parameter source: The OSA JavaScript source code to compile and execute.
     /// - Returns: A `Promise` resolving to `{ success, result, raw }`.
+    /// - Example:
+    /// ```js
+    /// hs.osascript.javascript('Application("Finder").name()').then(r => console.log(r.result))
+    /// ```
     @objc func javascript(_ source: String) -> JSPromise?
 
     /// Read a file from disk and execute its contents as AppleScript.
@@ -101,6 +109,11 @@ import JavaScriptCore
     ///
     /// - Parameter path: Absolute path to the AppleScript source file.
     /// - Returns: A `Promise` resolving to `{ success, result, raw }`.
+    /// - Example:
+    /// ```js
+    /// hs.osascript.applescriptFromFile("/Users/me/scripts/notify.applescript")
+    ///     .then(r => console.log(r.success))
+    /// ```
     @objc func applescriptFromFile(_ path: String) -> JSPromise?
 
     /// Read a file from disk and execute its contents as OSA JavaScript.
@@ -111,6 +124,11 @@ import JavaScriptCore
     ///
     /// - Parameter path: Absolute path to the OSA JavaScript source file.
     /// - Returns: A `Promise` resolving to `{ success, result, raw }`.
+    /// - Example:
+    /// ```js
+    /// hs.osascript.javascriptFromFile("/Users/me/scripts/foo.jxa")
+    ///     .then(r => console.log(r.result))
+    /// ```
     @objc func javascriptFromFile(_ path: String) -> JSPromise?
 
     /// Low-level execution entry point used by the higher-level helpers.
@@ -121,6 +139,10 @@ import JavaScriptCore
     ///   - source: The script source code.
     ///   - language: The OSA language name — must be `"AppleScript"` or `"JavaScript"`.
     /// - Returns: A `Promise` resolving to `{ success, result, raw }`.
+    /// - Example:
+    /// ```js
+    /// hs.osascript._execute('return 1', "AppleScript").then(r => console.log(r.result))
+    /// ```
     @objc func _execute(_ source: String, _ language: String) -> JSPromise?
 
     // MARK: - Synchronous API
@@ -131,6 +153,11 @@ import JavaScriptCore
     ///
     /// - Parameter source: The AppleScript source code to compile and execute.
     /// - Returns: An object `{ success, result, raw }`, or `null` on XPC failure.
+    /// - Example:
+    /// ```js
+    /// const r = hs.osascript.applescriptSync('return "hello"')
+    /// console.log(r.result)
+    /// ```
     @objc func applescriptSync(_ source: String) -> [String: Any]?
 
     /// Run an OSA JavaScript source string synchronously.
@@ -139,18 +166,31 @@ import JavaScriptCore
     ///
     /// - Parameter source: The OSA JavaScript source code to compile and execute.
     /// - Returns: An object `{ success, result, raw }`, or `null` on XPC failure.
+    /// - Example:
+    /// ```js
+    /// const r = hs.osascript.javascriptSync('Application("Finder").name()')
+    /// console.log(r.result)
+    /// ```
     @objc func javascriptSync(_ source: String) -> [String: Any]?
 
     /// Read a file from disk and execute its contents as AppleScript synchronously.
     ///
     /// - Parameter path: Absolute path to the AppleScript source file.
     /// - Returns: An object `{ success, result, raw }`, or `null` on XPC failure.
+    /// - Example:
+    /// ```js
+    /// const r = hs.osascript.applescriptSyncFromFile("/Users/me/foo.applescript")
+    /// ```
     @objc func applescriptSyncFromFile(_ path: String) -> [String: Any]?
 
     /// Read a file from disk and execute its contents as OSA JavaScript synchronously.
     ///
     /// - Parameter path: Absolute path to the OSA JavaScript source file.
     /// - Returns: An object `{ success, result, raw }`, or `null` on XPC failure.
+    /// - Example:
+    /// ```js
+    /// const r = hs.osascript.javascriptSyncFromFile("/Users/me/foo.jxa")
+    /// ```
     @objc func javascriptSyncFromFile(_ path: String) -> [String: Any]?
 
     /// Low-level synchronous execution entry point.
@@ -161,6 +201,10 @@ import JavaScriptCore
     ///   - source: The script source code.
     ///   - language: The OSA language name — must be `"AppleScript"` or `"JavaScript"`.
     /// - Returns: An object `{ success, result, raw }`, or `null` on XPC failure.
+    /// - Example:
+    /// ```js
+    /// const r = hs.osascript._executeSync('return 1', "AppleScript")
+    /// ```
     @objc func _executeSync(_ source: String, _ language: String) -> [String: Any]?
 }
 

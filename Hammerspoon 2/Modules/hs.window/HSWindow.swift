@@ -15,79 +15,179 @@ import AXSwift
     // MARK: - Basic Properties
 
     /// The window's title
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// console.log(win.title)
+    /// ```
     @objc var title: String? { get }
 
     /// The application that owns this window
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// console.log(win.application.title)
+    /// ```
     @objc var application: HSApplication? { get }
 
     /// The process ID of the application that owns this window
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// console.log(win.pid)
+    /// ```
     @objc var pid: Int { get }
 
     // MARK: - Window State
 
     /// Whether the window is minimized
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.isMinimized = true
+    /// ```
     @objc var isMinimized: Bool { get set }
 
     /// Whether the window is visible (not minimized or hidden)
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// console.log(win.isVisible)
+    /// ```
     @objc var isVisible: Bool { get }
 
     /// Whether the window is focused
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// console.log(win.isFocused)
+    /// ```
     @objc var isFocused: Bool { get }
 
     /// Whether the window is fullscreen
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.isFullscreen = true
+    /// ```
     @objc var isFullscreen: Bool { get set }
 
     /// Whether the window is standard (has a titlebar)
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// console.log(win.isStandard)
+    /// ```
     @objc var isStandard: Bool { get }
 
     // MARK: - Geometry
 
     /// The window's position on screen {x: Int, y: Int}
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.position = {x: 100, y: 100}
+    /// ```
     @objc var position: HSPoint? { get set }
 
     /// The window's size {w: Int, h: Int}
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.size = {w: 800, h: 600}
+    /// ```
     @objc var size: HSSize? { get set }
 
     /// The window's frame {x: Int, y: Int, w: Int, h: Int}
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.frame = {x: 0, y: 0, w: 1024, h: 768}
+    /// ```
     @objc var frame: HSRect? { get set }
 
     /// The screen that contains the largest portion of this window.
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// console.log(win.screen && win.screen.name)
+    /// ```
     @objc var screen: HSScreen? { get }
 
     // MARK: - Actions
 
     /// Focus this window
     /// - Returns: true if successful
+    /// - Example:
+    /// ```js
+    /// const wins = hs.window.allWindows()
+    /// wins[0].focus()
+    /// ```
     @objc func focus() -> Bool
 
     /// Minimize this window
     /// - Returns: true if successful
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.minimize()
+    /// ```
     @objc func minimize() -> Bool
 
     /// Unminimize this window
     /// - Returns: true if successful
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.allWindows()[0]
+    /// win.unminimize()
+    /// ```
     @objc func unminimize() -> Bool
 
     /// Raise this window to the front
     /// - Returns: true if successful
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.allWindows()[0]
+    /// win.raise()
+    /// ```
     @objc func raise() -> Bool
 
     /// Toggle fullscreen mode
     /// - Returns: true if successful
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.toggleFullscreen()
+    /// ```
     @objc func toggleFullscreen() -> Bool
 
     /// Close this window
     /// - Returns: true if successful
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.close()
+    /// ```
     @objc func close() -> Bool
 
     /// Center the window on the screen
     /// - Returns: true if successful
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// win.centerOnScreen()
+    /// ```
     @objc func centerOnScreen()
 
     // MARK: - Advanced
 
     /// Get the underlying AXElement
     /// - Returns: The accessibility element for this window
+    /// - Example:
+    /// ```js
+    /// const win = hs.window.focusedWindow()
+    /// const ax = win.axElement()
+    /// ```
     @objc func axElement() -> HSAXElement
 }
 

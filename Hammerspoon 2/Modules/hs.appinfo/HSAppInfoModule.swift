@@ -13,30 +13,66 @@ import JavaScriptCore
 /// Module for accessing information about the Hammerspoon application itself
 @objc protocol HSAppInfoModuleAPI: JSExport {
     /// The application's internal name (e.g., "Hammerspoon 2")
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.appName)
+    /// ```
     @objc var appName: String { get }
 
     /// The application's display name shown to users
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.displayName)
+    /// ```
     @objc var displayName: String { get }
 
     /// The application's version string (e.g., "2.0.0")
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.version)
+    /// ```
     @objc var version: String { get }
 
     /// The application's build number
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.build)
+    /// ```
     @objc var build: String { get }
 
     /// The minimum macOS version required to run this application
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.minimumOSVersion)
+    /// ```
     @objc var minimumOSVersion: String { get }
 
     /// The copyright notice for this application
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.copyrightNotice)
+    /// ```
     @objc var copyrightNotice: String { get }
 
     /// The application's bundle identifier (e.g., "com.hammerspoon.Hammerspoon-2")
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.bundleIdentifier)
+    /// ```
     @objc var bundleIdentifier: String { get }
 
     /// The filesystem path to the application bundle
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.bundlePath)
+    /// ```
     @objc var bundlePath: String { get }
 
     /// The filesystem path to the application's resource directory
+    /// - Example:
+    /// ```js
+    /// console.log(hs.appinfo.resourcePath)
+    /// ```
     @objc var resourcePath: String { get }
 }
 

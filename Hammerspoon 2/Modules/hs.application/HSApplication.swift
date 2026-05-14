@@ -13,45 +13,110 @@ import AXSwift
 /// Object representing an application. You should not instantiate this directly in JavaScript, but rather, use the methods from hs.application which will return appropriate HSApplication objects.
 @objc protocol HSApplicationAPI: HSTypeAPI, JSExport {
     /// POSIX Process Identifier
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// console.log(app.pid)
+    /// ```
     @objc var pid: Int { get }
 
     /// Bundle Identifier (e.g. com.apple.Safari)
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// console.log(app.bundleID)
+    /// ```
     @objc var bundleID: String? { get }
 
     /// The application's title
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// console.log(app.title)
+    /// ```
     @objc var title: String? { get }
 
     /// Location of the application on disk
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// console.log(app.bundlePath)
+    /// ```
     @objc var bundlePath: String? { get }
 
     /// Is the application hidden
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.matchingName("Safari")
+    /// app.isHidden = true
+    /// ```
     @objc var isHidden: Bool { get set }
 
     /// Is the application focused
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// console.log(app.isActive)
+    /// ```
     @objc var isActive: Bool { get }
 
     /// Terminate the application
     /// - Returns: True if the application was terminated, otherwise false
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.matchingName("Calculator")
+    /// app.kill()
+    /// ```
     @objc func kill() -> Bool
 
     /// Force-terminate the application
     /// - Returns: True if the application was force-terminated, otherwise false
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.matchingName("Calculator")
+    /// app.kill9()
+    /// ```
     @objc func kill9() -> Bool
 
     /// The main window of this application, or nil if there is no main window
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const win = app.mainWindow
+    /// ```
     @objc var mainWindow: HSWindow? { get }
 
     /// The focused window of this application, or nil if there is no focused window
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const win = app.focusedWindow
+    /// ```
     @objc var focusedWindow: HSWindow? { get }
 
     /// All windows of this application
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// app.allWindows.forEach(w => console.log(w.title))
+    /// ```
     @objc var allWindows: [HSWindow] { get }
 
     /// All visible (ie non-hidden) windows of this application
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// console.log(app.visibleWindows.length)
+    /// ```
     @objc var visibleWindows: [HSWindow] { get }
 
     /// The application's HSAXElement object, for use with the hs.ax APIs
     /// - Returns: An HSAXElement object, or nil if it could not be obtained
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const ax = app.axElement()
+    /// ```
     @objc func axElement() -> HSAXElement?
 }
 

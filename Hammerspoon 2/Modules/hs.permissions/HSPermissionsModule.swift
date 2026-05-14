@@ -15,33 +15,65 @@ import AVFoundation
 @objc protocol HSPermissionsModuleAPI: JSExport {
     /// Check if the app has Accessibility permission
     /// - Returns: true if permission is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkAccessibility())
+    /// ```
     @objc func checkAccessibility() -> Bool
 
     /// Request Accessibility permission (shows system dialog if not granted)
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestAccessibility()
+    /// ```
     @objc func requestAccessibility()
 
     /// Check if the app has Screen Recording permission
     /// - Returns: true if permission is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkScreenRecording())
+    /// ```
     @objc func checkScreenRecording() -> Bool
 
     /// Request Screen Recording permission
     /// - Note: This will trigger a screen capture which prompts the system dialog
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestScreenRecording()
+    /// ```
     @objc func requestScreenRecording()
 
     /// Check if the app has Camera permission
     /// - Returns: true if permission is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkCamera())
+    /// ```
     @objc func checkCamera() -> Bool
 
     /// Request Camera permission (shows system dialog if not granted)
     /// - Returns: {Promise<boolean>} A Promise that resolves to true if granted, false if denied
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestCamera().then(granted => console.log(granted))
+    /// ```
     @objc func requestCamera() -> JSPromise?
 
     /// Check if the app has Microphone permission
     /// - Returns: true if permission is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkMicrophone())
+    /// ```
     @objc func checkMicrophone() -> Bool
 
     /// Request Microphone permission (shows system dialog if not granted)
     /// - Returns: {Promise<boolean>} A Promise that resolves to true if granted, false if denied
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestMicrophone().then(granted => console.log(granted))
+    /// ```
     @objc func requestMicrophone() -> JSPromise?
 
     /// Check if the app has permission to display notifications.
@@ -50,6 +82,10 @@ import AVFoundation
     /// so the very first call in a session may return `false` before the cached value is populated.
     /// Use `requestNotifications()` on first launch to ensure the result is accurate.
     /// - Returns: true if notification permission is granted
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkNotifications())
+    /// ```
     @objc func checkNotifications() -> Bool
 
     /// Request notification permission (shows the system dialog if the user has not yet decided).
@@ -57,6 +93,10 @@ import AVFoundation
     /// It is safe to call this on every launch — the dialog only appears once; subsequent calls
     /// resolve immediately with the previously granted or denied state.
     /// - Returns: {Promise<boolean>} A Promise that resolves to true if granted, false if denied
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestNotifications().then(granted => console.log(granted))
+    /// ```
     @objc func requestNotifications() -> JSPromise?
 }
 

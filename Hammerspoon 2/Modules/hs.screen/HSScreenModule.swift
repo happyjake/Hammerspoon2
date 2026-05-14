@@ -45,17 +45,32 @@ import JavaScriptCore
 @objc protocol HSScreenModuleAPI: JSExport {
     /// All connected screens.
     /// - Returns: An array of HSScreen objects
+    /// - Example:
+    /// ```js
+    /// const screens = hs.screen.all()
+    /// screens.forEach(s => console.log(s.name))
+    /// ```
     @objc func all() -> [HSScreen]
 
     /// The screen that currently contains the focused window, or the screen
     /// with the keyboard focus if no window is focused.
     ///
     /// - Returns: An HSScreen object or `null` if no main screen can be determined.
+    /// - Example:
+    /// ```js
+    /// const main = hs.screen.main()
+    /// console.log(main && main.name)
+    /// ```
     @objc func main() -> HSScreen?
 
     /// The primary display — the one that contains the global menu bar.
     ///
     /// - Returns: An HSScreen object or `null` if no primary screen can be determined.
+    /// - Example:
+    /// ```js
+    /// const s = hs.screen.primary()
+    /// console.log(s && s.frame)
+    /// ```
     @objc func primary() -> HSScreen?
 }
 

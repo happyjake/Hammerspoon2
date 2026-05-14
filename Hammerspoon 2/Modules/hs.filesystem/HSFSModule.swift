@@ -67,34 +67,34 @@ import UniformTypeIdentifiers
 
     /// Read part or all of a file as a UTF-8 string.
     ///
-    /// ```javascript
-    /// const all   = hs.fs.read("/etc/hosts");          // entire file
-    /// const chunk = hs.fs.read("/etc/hosts", 100, 50); // 50 bytes starting at byte 100
-    /// ```
-    ///
     /// - Parameters:
     ///   - path: Path to the file. `~` is expanded.
     ///   - offset: Byte offset to start reading from. Pass `0` (or omit) to read from the beginning.
     ///   - length: Maximum number of bytes to read. Pass `0` (or omit) to read to the end of the file.
     /// - Returns: The file contents as a UTF-8 string, or `null` if the file cannot be read.
+    /// - Example:
+    /// ```js
+    /// const all   = hs.fs.read("/etc/hosts")            // entire file
+    /// const chunk = hs.fs.read("/etc/hosts", 100, 50)   // 50 bytes starting at byte 100
+    /// ```
     @objc func read(_ path: String, _ offset: Int, _ length: Int) -> String?
 
     /// Read a file line-by-line, invoking a callback for each line.
     ///
     /// Lines are delivered with newline characters stripped. Both `\n` and `\r\n` line endings are handled.
     ///
-    /// ```javascript
-    /// hs.fs.readLines("/etc/hosts", function(line) {
-    ///     if (line.startsWith("#")) return true; // skip comment lines, keep going
-    ///     console.log(line);
-    ///     return true; // return false to stop early
-    /// });
-    /// ```
-    ///
     /// - Parameters:
     ///   - path: Path to the file. `~` is expanded.
     ///   - callback: Called once per line with the line text. Return `true` to continue reading, or `false` to stop early.
     /// - Returns: `true` if the file was read successfully (including early stops requested by the callback), or `false` if the file could not be opened.
+    /// - Example:
+    /// ```js
+    /// hs.fs.readLines("/etc/hosts", (line) => {
+    ///     if (line.startsWith("#")) return true
+    ///     console.log(line)
+    ///     return true
+    /// })
+    /// ```
     @objc func readLines(_ path: String, _ callback: JSValue) -> Bool
 
     /// Write a UTF-8 string to a file, creating it or overwriting any existing content.
@@ -106,6 +106,10 @@ import UniformTypeIdentifiers
     ///   - content: String to write.
     ///   - inPlace: Whether to write the file in-place or atomically. Defaults to atomically
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.write("/tmp/hello.txt", "Hello, world!\n")
+    /// ```
     @objc func write(_ path: String, _ content: String, _ inPlace: Bool) -> Bool
 
     /// Append a UTF-8 string to a file, creating it if it does not exist.
@@ -114,15 +118,23 @@ import UniformTypeIdentifiers
     ///   - path: Path to the file. `~` is expanded.
     ///   - content: String to append.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.append("/tmp/log.txt", "another line\n")
+    /// ```
     @objc func append(_ path: String, _ content: String) -> Bool
 
     // MARK: - Existence and Type Checks
 
     /// Determine if a filesystem object exists at the given path
     /// Unlike `isFile` and `isDirectory`, this follows symlinks.
-    /// 
+    ///
     /// - Parameter path: Path to check. `~` is expanded.
     /// - Returns: `true` if any filesystem entry (file, directory, symlink, etc.) exists at the path.
+    /// - Example:
+    /// ```js
+    /// if (hs.fs.exists("/tmp/file.txt")) console.log("exists")
+    /// ```
     @objc func exists(_ path: String) -> Bool
 
     /// Determine if a file exists at the given path
@@ -130,31 +142,51 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to check. `~` is expanded.
     /// - Returns: `true` if a regular file (not a directory or symlink) exists at the path.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.isFile("/etc/hosts"))
+    /// ```
     @objc func isFile(_ path: String) -> Bool
 
     /// Determine if a directory exists at the given path
     /// This does **not** follow symlinks; a symlink pointing at a directory returns `false`.
-    /// 
+    ///
     /// - Parameter path: Path to check. `~` is expanded.
     /// - Returns: `true` if a directory exists at the path.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.isDirectory("/tmp"))
+    /// ```
     @objc func isDirectory(_ path: String) -> Bool
 
     /// Determine if a symlink exists at the given path
     ///
     /// - Parameter path: Path to check. `~` is expanded.
     /// - Returns: `true` if the path is a symbolic link.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.isSymlink("/var"))
+    /// ```
     @objc func isSymlink(_ path: String) -> Bool
 
     /// Determine if a given filesystem path is readable
     ///
     /// - Parameter path: Path to check. `~` is expanded.
     /// - Returns: `true` if the current process can read the file or directory at the path.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.isReadable("/etc/hosts"))
+    /// ```
     @objc func isReadable(_ path: String) -> Bool
 
     /// Determine if a given filesystem path is writable
     ///
     /// - Parameter path: Path to check. `~` is expanded.
     /// - Returns: `true` if the current process can write to the file or directory at the path.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.isWritable("/tmp"))
+    /// ```
     @objc func isWritable(_ path: String) -> Bool
 
     // MARK: - File Operations
@@ -168,6 +200,10 @@ import UniformTypeIdentifiers
     ///   - source: Path to the existing file or directory. `~` is expanded.
     ///   - destination: Path for the copy. `~` is expanded.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.copy("/tmp/a.txt", "/tmp/b.txt")
+    /// ```
     @objc func copy(_ source: String, _ destination: String) -> Bool
 
     /// Move (rename) a file or directory.
@@ -178,6 +214,10 @@ import UniformTypeIdentifiers
     ///   - source: Path to the existing file or directory. `~` is expanded.
     ///   - destination: New path. `~` is expanded.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.move("/tmp/old.txt", "/tmp/new.txt")
+    /// ```
     @objc func move(_ source: String, _ destination: String) -> Bool
 
     /// Delete a file or directory.
@@ -187,6 +227,10 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to delete. `~` is expanded.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.delete("/tmp/old.txt")
+    /// ```
     @objc func delete(_ path: String) -> Bool
 
     // MARK: - Directory Operations
@@ -198,6 +242,10 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to the directory. `~` is expanded.
     /// - Returns: Sorted array of filenames, or `null` if the path cannot be read.
+    /// - Example:
+    /// ```js
+    /// const files = hs.fs.list("~/Documents")
+    /// ```
     @objc func list(_ path: String) -> [String]?
 
     /// Recursively list all entries under a directory.
@@ -206,6 +254,10 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to the root directory. `~` is expanded.
     /// - Returns: Sorted array of relative paths, or `null` if the path cannot be read.
+    /// - Example:
+    /// ```js
+    /// const all = hs.fs.listRecursive("~/Documents")
+    /// ```
     @objc func listRecursive(_ path: String) -> [String]?
 
     /// Create a directory, including all necessary intermediate directories.
@@ -214,6 +266,10 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path of the directory to create. `~` is expanded.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.mkdir("~/Projects/new-thing")
+    /// ```
     @objc func mkdir(_ path: String) -> Bool
 
     /// Remove an empty directory.
@@ -223,6 +279,10 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path of the directory to remove. `~` is expanded.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.rmdir("/tmp/empty-dir")
+    /// ```
     @objc func rmdir(_ path: String) -> Bool
 
     // MARK: - Working Directory
@@ -230,12 +290,20 @@ import UniformTypeIdentifiers
     /// Returns the current working directory of the process.
     ///
     /// - Returns: Current directory path, or `null` on error.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.currentDir())
+    /// ```
     @objc func currentDir() -> String?
 
     /// Change the current working directory of the process.
     ///
     /// - Parameter path: New working directory path. `~` is expanded.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.chdir("~/Projects")
+    /// ```
     @objc func chdir(_ path: String) -> Bool
 
     // MARK: - Path Utilities
@@ -247,6 +315,10 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to resolve.
     /// - Returns: Absolute canonical path, or `null` if it cannot be resolved.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.pathToAbsolute("~/Library"))
+    /// ```
     @objc func pathToAbsolute(_ path: String) -> String?
 
     /// Return the localised display name for a file or directory as shown by Finder.
@@ -256,27 +328,39 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to the file or directory. `~` is expanded.
     /// - Returns: Display name string, or `null` if the path does not exist.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.displayName("/Library"))
+    /// ```
     @objc func displayName(_ path: String) -> String?
 
     /// Returns the temporary directory for the current user.
     ///
     /// - Returns: Temporary directory path (always ends with `/`).
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.temporaryDirectory())
+    /// ```
     @objc func temporaryDirectory() -> String
 
     /// Returns the home directory for the current user.
     ///
     /// - Returns: Home directory path string.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.homeDirectory())
+    /// ```
     @objc func homeDirectory() -> String
 
     /// Returns a `file://` URL string for the given path.
     ///
-    /// ```javascript
-    /// hs.fs.urlFromPath("/tmp/foo.txt")
-    /// // → "file:///tmp/foo.txt"
-    /// ```
-    ///
     /// - Parameter path: Filesystem path. `~` is expanded.
     /// - Returns: URL string
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.urlFromPath("/tmp/foo.txt"))
+    /// // → "file:///tmp/foo.txt"
+    /// ```
     @objc func urlFromPath(_ path: String) -> String
 
     // MARK: - File Attributes
@@ -297,6 +381,11 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to inspect. `~` is expanded.
     /// - Returns: Attributes object, or `null` if the path cannot be accessed.
+    /// - Example:
+    /// ```js
+    /// const info = hs.fs.attributes("/etc/hosts")
+    /// console.log(info.size, info.type)
+    /// ```
     @objc func attributes(_ path: String) -> NSDictionary?
 
     /// Update the modification timestamp of a file to the current time.
@@ -305,6 +394,10 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to the file. `~` is expanded.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.touch("/tmp/marker.txt")
+    /// ```
     @objc func touch(_ path: String) -> Bool
 
     // MARK: - Links
@@ -317,6 +410,10 @@ import UniformTypeIdentifiers
     ///   - source: Path of the existing file.
     ///   - destination: Path for the new hard link.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.link("/tmp/a.txt", "/tmp/b.txt")
+    /// ```
     @objc func link(_ source: String, _ destination: String) -> Bool
 
     /// Create a symbolic link at `destination` pointing at `source`.
@@ -328,12 +425,20 @@ import UniformTypeIdentifiers
     ///   - source: The path the symlink will point to.
     ///   - destination: The path where the symlink will be created.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.symlink("/usr/local/bin", "/tmp/bin-link")
+    /// ```
     @objc func symlink(_ source: String, _ destination: String) -> Bool
 
     /// Read the target of a symbolic link without resolving it.
     ///
     /// - Parameter path: Path to the symbolic link.
     /// - Returns: The raw path the link points to, or `null` if the path is not a symlink.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.readlink("/var"))
+    /// ```
     @objc func readlink(_ path: String) -> String?
 
     // MARK: - Finder Tags
@@ -342,6 +447,10 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to the file or directory. `~` is expanded.
     /// - Returns: Array of tag name strings, or `null` if no tags are set.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.tags("~/Documents/report.pdf"))
+    /// ```
     @objc func tags(_ path: String) -> [String]?
 
     /// Replace all Finder tags on a file or directory.
@@ -351,6 +460,10 @@ import UniformTypeIdentifiers
     ///   - path: Path to the file or directory. `~` is expanded.
     ///   - newTags: Array of tag name strings.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.setTags("~/Documents/report.pdf", ["Important", "Work"])
+    /// ```
     @objc @available(macOS 26.0, *) func setTags(_ path: String, _ newTags: NSArray) -> Bool
 
     /// Add Finder tags to a file or directory (union with existing tags).
@@ -360,6 +473,10 @@ import UniformTypeIdentifiers
     ///   - path: Path to the file or directory. `~` is expanded.
     ///   - newTags: Array of tag name strings to add.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.addTags("~/Documents/report.pdf", ["Reviewed"])
+    /// ```
     @objc @available(macOS 26.0, *) func addTags(_ path: String, _ newTags: NSArray) -> Bool
 
     /// Remove specific Finder tags from a file or directory.
@@ -371,19 +488,23 @@ import UniformTypeIdentifiers
     ///   - path: Path to the file or directory. `~` is expanded.
     ///   - tagsToRemove: Array of tag name strings to remove.
     /// - Returns: `true` on success, `false` on failure.
+    /// - Example:
+    /// ```js
+    /// hs.fs.removeTags("~/Documents/report.pdf", ["Draft"])
+    /// ```
     @objc @available(macOS 26.0, *) func removeTags(_ path: String, _ tagsToRemove: NSArray) -> Bool
 
     // MARK: - Uniform Type Identifiers
 
     /// Return the Uniform Type Identifier for the file at the given path.
     ///
-    /// ```javascript
-    /// hs.fs.fileUTI("/etc/hosts")   // → "public.plain-text"
-    /// hs.fs.fileUTI("/tmp/foo.png") // → "public.png"
-    /// ```
-    ///
     /// - Parameter path: Path to the file.
     /// - Returns: UTI string, or `null` on failure.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.fs.fileUTI("/etc/hosts"))    // → "public.plain-text"
+    /// console.log(hs.fs.fileUTI("/tmp/foo.png"))  // → "public.png"
+    /// ```
     @objc func fileUTI(_ path: String) -> String?
 
     // MARK: - Bookmarks
@@ -395,12 +516,20 @@ import UniformTypeIdentifiers
     ///
     /// - Parameter path: Path to the file or directory. `~` is expanded.
     /// - Returns: Base64-encoded bookmark string, or `null` on failure.
+    /// - Example:
+    /// ```js
+    /// const data = hs.fs.pathToBookmark("/tmp/foo.txt")
+    /// ```
     @objc func pathToBookmark(_ path: String) -> String?
 
     /// Resolve a base64-encoded bookmark back to a file path.
     ///
     /// - Parameter data: Base64-encoded bookmark string produced by `pathToBookmark`.
     /// - Returns: The current file path, or `null` if the bookmark cannot be resolved.
+    /// - Example:
+    /// ```js
+    /// const path = hs.fs.pathFromBookmark(savedData)
+    /// ```
     @objc func pathFromBookmark(_ data: String) -> String?
 }
 

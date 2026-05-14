@@ -30,28 +30,53 @@ import SwiftUI
     /// Set the font for the alert text
     /// - Parameter font: An HSFont object (e.g., `HSFont.headline()`)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.alert("Hello").font(HSFont.headline()).show()
+    /// ```
     @objc func font(_ font: HSFont) -> HSUIAlert
 
     /// Set how long the alert is displayed
     /// - Parameter seconds: Duration in seconds (default: 5.0)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.alert("Hello").duration(3).show()
+    /// ```
     @objc func duration(_ seconds: Double) -> HSUIAlert
 
     /// Set the padding around the alert text
     /// - Parameter points: Padding in points (default: 20)
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.alert("Hello").padding(30).show()
+    /// ```
     @objc func padding(_ points: Double) -> HSUIAlert
 
     /// Set a custom position for the alert
     /// - Parameter dict: Dictionary with `x` and `y` coordinates
     /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.alert("Hello").position({x: 100, y: 100}).show()
+    /// ```
     @objc func position(_ dict: [String: Any]) -> HSUIAlert
 
     /// Show the alert
     /// - Returns: Self for chaining (can store reference to close manually)
+    /// - Example:
+    /// ```js
+    /// hs.ui.alert("Hello").show()
+    /// ```
     @objc func show() -> HSUIAlert
 
     /// Close the alert immediately
+    /// - Example:
+    /// ```js
+    /// const a = hs.ui.alert("Hello").show()
+    /// a.close()
+    /// ```
     @objc func close()
 }
 

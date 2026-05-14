@@ -1243,10 +1243,6 @@ const info = hs.fs.attributes("/etc/hosts");
 declare namespace hs.fs {
     /**
      * Read part or all of a file as a UTF-8 string.
-```javascript
-const all   = hs.fs.read("/etc/hosts");          // entire file
-const chunk = hs.fs.read("/etc/hosts", 100, 50); // 50 bytes starting at byte 100
-```
      * @param path Path to the file. `~` is expanded.
      * @param offset Byte offset to start reading from. Pass `0` (or omit) to read from the beginning.
      * @param length Maximum number of bytes to read. Pass `0` (or omit) to read to the end of the file.
@@ -1257,13 +1253,6 @@ const chunk = hs.fs.read("/etc/hosts", 100, 50); // 50 bytes starting at byte 10
     /**
      * Read a file line-by-line, invoking a callback for each line.
 Lines are delivered with newline characters stripped. Both `\n` and `\r\n` line endings are handled.
-```javascript
-hs.fs.readLines("/etc/hosts", function(line) {
-    if (line.startsWith("#")) return true; // skip comment lines, keep going
-    console.log(line);
-    return true; // return false to stop early
-});
-```
      * @param path Path to the file. `~` is expanded.
      * @param callback Called once per line with the line text. Return `true` to continue reading, or `false` to stop early.
      * @returns `true` if the file was read successfully (including early stops requested by the callback), or `false` if the file could not be opened.
@@ -1440,10 +1429,6 @@ on-disk name is the same.
 
     /**
      * Returns a `file://` URL string for the given path.
-```javascript
-hs.fs.urlFromPath("/tmp/foo.txt")
-// → "file:///tmp/foo.txt"
-```
      * @param path Filesystem path. `~` is expanded.
      * @returns URL string
      */
@@ -1802,15 +1787,6 @@ Receives a response object (see module docs for shape).
  * A notification created by `hs.notify.new()`.
 Call `.send()` to deliver it to macOS Notification Center. You can hold a reference
 to the object and call `.withdraw()` later to remove it.
-```js
-const n = hs.notify.new({
-    title: "Build finished",
-    body: "Your project compiled successfully.",
-    actions: [{ identifier: "OPEN", title: "Open" }],
-    callback: (r) => { if (r.actionIdentifier === "OPEN") openProject() }
-})
-n.send()
-```
  */
 declare class HSNotification {
     /**
@@ -2148,12 +2124,6 @@ Use this for types not covered by the convenience write methods.
      * Write multiple type representations to the pasteboard atomically, replacing all current contents.
 Keys must be UTI type strings; values must be strings. This is how you provide both a plain-text
 fallback and a richer representation (such as HTML) in a single clipboard operation.
-```js
-hs.pasteboard.writeObjects({
-    "public.utf8-plain-text": "Hello",
-    "public.html":            "<b>Hello</b>"
-})
-```
      * @param representations A JavaScript object whose keys are UTI strings and values are strings
      * @returns true if the write succeeded
      */
