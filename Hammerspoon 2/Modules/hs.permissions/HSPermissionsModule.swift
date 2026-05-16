@@ -159,11 +159,10 @@ import AVFoundation
     }
 
     @objc func requestCamera() -> JSPromise? {
-        return JSEngine.shared.createPromise { holder in
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
             PermissionsManager.shared.request(.camera) { result in
-                Task { @MainActor in
-                    holder.resolveWith(result)
-                }
+                Task { @MainActor in holder.resolveWith(result) }
             }
         }
     }
@@ -175,11 +174,10 @@ import AVFoundation
     }
 
     @objc func requestMicrophone() -> JSPromise? {
-        return JSEngine.shared.createPromise { holder in
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
             PermissionsManager.shared.request(.microphone) { result in
-                Task { @MainActor in
-                    holder.resolveWith(result)
-                }
+                Task { @MainActor in holder.resolveWith(result) }
             }
         }
     }
@@ -191,11 +189,10 @@ import AVFoundation
     }
 
     @objc func requestNotifications() -> JSPromise? {
-        return JSEngine.shared.createPromise { holder in
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
             PermissionsManager.shared.request(.notifications) { result in
-                Task { @MainActor in
-                    holder.resolveWith(result)
-                }
+                Task { @MainActor in holder.resolveWith(result) }
             }
         }
     }
@@ -207,11 +204,10 @@ import AVFoundation
     }
 
     @objc func requestLocation() -> JSPromise? {
-        return JSEngine.shared.createPromise { holder in
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
             PermissionsManager.shared.request(.location) { result in
-                Task { @MainActor in
-                    holder.resolveWith(result)
-                }
+                Task { @MainActor in holder.resolveWith(result) }
             }
         }
     }
