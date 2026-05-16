@@ -18,7 +18,7 @@ The Hammerspoon 2 project has strict rules for AI usage:
   distracts from the main point. Humans must do their research and
   trim this down.
 
-These rules apply only to outside contributions to Ghostty. Maintainers
+These rules apply only to outside contributions to Hammerspoon 2. Maintainers
 are exempt from these rules and may use AI tools at their discretion;
 they've proven themselves trustworthy to apply good judgment.
 
