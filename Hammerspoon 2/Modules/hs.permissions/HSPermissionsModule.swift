@@ -98,6 +98,24 @@ import AVFoundation
     /// hs.permissions.requestNotifications().then(granted => console.log(granted))
     /// ```
     @objc func requestNotifications() -> JSPromise?
+
+    /// Check if the app has Location permission.
+    /// - Returns: true if permission is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkLocation())
+    /// ```
+    @objc func checkLocation() -> Bool
+
+    /// Request Location permission (shows the system dialog if the user has not yet decided).
+    /// - Returns: {Promise<boolean>} A Promise that resolves to true if granted, false if denied
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestLocation().then(granted => {
+    ///     if (granted) console.log(hs.location.get())
+    /// })
+    /// ```
+    @objc func requestLocation() -> JSPromise?
 }
 
 // MARK: - Implementation
@@ -175,6 +193,22 @@ import AVFoundation
     @objc func requestNotifications() -> JSPromise? {
         return JSEngine.shared.createPromise { holder in
             PermissionsManager.shared.request(.notifications) { result in
+                Task { @MainActor in
+                    holder.resolveWith(result)
+                }
+            }
+        }
+    }
+
+    // MARK: - Location
+
+    @objc func checkLocation() -> Bool {
+        return PermissionsManager.shared.check(.location)
+    }
+
+    @objc func requestLocation() -> JSPromise? {
+        return JSEngine.shared.createPromise { holder in
+            PermissionsManager.shared.request(.location) { result in
                 Task { @MainActor in
                     holder.resolveWith(result)
                 }

@@ -23,6 +23,7 @@ import JavaScriptCoreExtras
     @objc var fs: HSFSModule { get }
     @objc var hashing: HSHashModule { get }
     @objc var hotkey: HSHotkeyModule { get }
+    @objc var location: HSLocationModule { get }
     @objc var permissions: HSPermissionsModule { get }
     @objc var notify: HSNotifyModule { get }
     @objc var osascript: HSOSAScriptModule { get }
@@ -83,6 +84,7 @@ import JavaScriptCoreExtras
     @objc var fs: HSFSModule { get { getOrCreate(name: "fs", type: HSFSModule.self)}}
     @objc var hashing: HSHashModule { get { getOrCreate(name: "hashing", type: HSHashModule.self)}}
     @objc var hotkey: HSHotkeyModule { get { getOrCreate(name: "hotkey", type: HSHotkeyModule.self)}}
+    @objc var location: HSLocationModule { get { getOrCreate(name: "location", type: HSLocationModule.self)}}
     @objc var notify: HSNotifyModule { get { getOrCreate(name: "notify", type: HSNotifyModule.self)}}
     @objc var permissions: HSPermissionsModule { get { getOrCreate(name: "permissions", type: HSPermissionsModule.self)}}
     @objc var osascript: HSOSAScriptModule { get { getOrCreate(name: "osascript", type: HSOSAScriptModule.self)}}

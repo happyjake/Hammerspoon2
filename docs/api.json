@@ -3848,6 +3848,405 @@
       "rawDocumentation": "Module for creating and managing system-wide hotkeys"
     },
     {
+      "name": "hs.location",
+      "methods": [
+        {
+          "name": "lookupAddress",
+          "signature": "func lookupAddress(_ address: String) -> JSPromise?",
+          "rawDocumentation": "Geocodes an address string into an array of placemarkTables.\n\nReturns a Promise that resolves with an array of placemarkTable objects\n(sorted by relevance) or rejects with an error message.\n- Parameter address: a free-form address string in any locale\n- Returns: {Promise<placemarkTable[]>} a Promise resolving to an array of placemarkTables\n- Example:\n```js\nhs.location.geocoder.lookupAddress(\"Apple Park, Cupertino\")\n    .then(p => console.log(p[0].locality, p[0].countryCode))\n```",
+          "description": "Geocodes an address string into an array of placemarkTables.\nReturns a Promise that resolves with an array of placemarkTable objects\n(sorted by relevance) or rejects with an error message.",
+          "params": [
+            {
+              "name": "address",
+              "type": "String",
+              "description": "a free-form address string in any locale"
+            }
+          ],
+          "returns": {
+            "type": "JSPromise?",
+            "description": "a Promise resolving to an array of placemarkTables",
+            "promiseType": "placemarkTable[]"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.location.geocoder.lookupAddress(\"Apple Park, Cupertino\")\n    .then(p => console.log(p[0].locality, p[0].countryCode))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationGeocoder.swift",
+          "lineNumber": 50
+        },
+        {
+          "name": "lookupLocation",
+          "signature": "func lookupLocation(_ locationTable: JSValue) -> JSPromise?",
+          "rawDocumentation": "Reverse-geocodes a locationTable into an array of placemarkTables.\n\nReturns a Promise that resolves with matching placemarks or rejects with\nan error.\n- Parameter locationTable: an object with at least `latitude` and `longitude`\n- Returns: {Promise<placemarkTable[]>} a Promise resolving to an array of placemarkTables\n- Example:\n```js\nhs.location.geocoder.lookupLocation({ latitude: 37.3349, longitude: -122.0090 })\n    .then(p => console.log(p[0].name))\n```",
+          "description": "Reverse-geocodes a locationTable into an array of placemarkTables.\nReturns a Promise that resolves with matching placemarks or rejects with\nan error.",
+          "params": [
+            {
+              "name": "locationTable",
+              "type": "JSValue",
+              "description": "an object with at least `latitude` and `longitude`"
+            }
+          ],
+          "returns": {
+            "type": "JSPromise?",
+            "description": "a Promise resolving to an array of placemarkTables",
+            "promiseType": "placemarkTable[]"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.location.geocoder.lookupLocation({ latitude: 37.3349, longitude: -122.0090 })\n    .then(p => console.log(p[0].name))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationGeocoder.swift",
+          "lineNumber": 63
+        },
+        {
+          "name": "servicesEnabled",
+          "signature": "func servicesEnabled() -> Bool",
+          "rawDocumentation": "Returns true if Location Services are enabled system-wide.\n- Returns: true if enabled, false otherwise\n- Example:\n```js\nhs.location.servicesEnabled() // → true or false\n```",
+          "description": "Returns true if Location Services are enabled system-wide.",
+          "params": [],
+          "returns": {
+            "type": "Bool",
+            "description": "true if enabled, false otherwise"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.location.servicesEnabled() // → true or false"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
+          "lineNumber": 45
+        },
+        {
+          "name": "authorizationStatus",
+          "signature": "func authorizationStatus() -> String",
+          "rawDocumentation": "Returns the current authorization status as a string:\n`\"authorized\"`, `\"denied\"`, `\"restricted\"`, or `\"notDetermined\"`.\n- Returns: the status string\n- Example:\n```js\nhs.location.authorizationStatus() // → \"authorized\"\n```",
+          "description": "`\"authorized\"`, `\"denied\"`, `\"restricted\"`, or `\"notDetermined\"`.",
+          "params": [],
+          "returns": {
+            "type": "String",
+            "description": "the status string"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.location.authorizationStatus() // → \"authorized\""
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
+          "lineNumber": 54
+        },
+        {
+          "name": "get",
+          "signature": "func get() -> [AnyHashable: Any]?",
+          "rawDocumentation": "Returns the most recently cached location as a locationTable, or null.\n\nActivates Location Services if not already running. The cache is updated\nperiodically while any watcher is running.\n- Returns: a locationTable, or null if no cached location is available\n- Example:\n```js\nconst loc = hs.location.get()\nif (loc) console.log(loc.latitude, loc.longitude)\n```",
+          "description": "Returns the most recently cached location as a locationTable, or null.\nActivates Location Services if not already running. The cache is updated\nperiodically while any watcher is running.",
+          "params": [],
+          "returns": {
+            "type": "[AnyHashable: Any]?",
+            "description": "a locationTable, or null if no cached location is available"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const loc = hs.location.get()\nif (loc) console.log(loc.latitude, loc.longitude)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
+          "lineNumber": 66
+        },
+        {
+          "name": "distance",
+          "signature": "func distance(_ from: JSValue, _ to: JSValue) -> Double",
+          "rawDocumentation": "Calculates the straight-line distance in metres between two locationTables.\n\nDoes not require Location Services.\n- Parameters:\n  - from: locationTable with at least `latitude` and `longitude`\n  - to: locationTable with at least `latitude` and `longitude`\n- Returns: distance in metres, or `-1` if either table is invalid\n- Example:\n```js\nconst d = hs.location.distance(\n    { latitude: 51.5074, longitude: -0.1278 },\n    { latitude: 48.8566, longitude:  2.3522 }\n) // → ~341,000 metres\n```",
+          "description": "Calculates the straight-line distance in metres between two locationTables.\nDoes not require Location Services.",
+          "params": [
+            {
+              "name": "from",
+              "type": "JSValue",
+              "description": "locationTable with at least `latitude` and `longitude`"
+            },
+            {
+              "name": "to",
+              "type": "JSValue",
+              "description": "locationTable with at least `latitude` and `longitude`"
+            }
+          ],
+          "returns": {
+            "type": "Double",
+            "description": "distance in metres, or `-1` if either table is invalid"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const d = hs.location.distance(\n    { latitude: 51.5074, longitude: -0.1278 },\n    { latitude: 48.8566, longitude:  2.3522 }\n) // → ~341,000 metres"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
+          "lineNumber": 82
+        },
+        {
+          "name": "sunrise",
+          "signature": "func sunrise(_ latitude: Double, _ longitude: Double, _ utcOffset: Double, _ date: JSValue) -> NSNumber?",
+          "rawDocumentation": "Returns the time of sunrise for the given coordinates, UTC offset, and date as\nseconds since the Unix epoch, or null if the sun does not rise on that date\n(polar night). Pass a JS `Date` for `date`, or omit/pass null to use today.\n- Parameters:\n  - latitude: degrees north (positive) or south (negative)\n  - longitude: degrees east (positive) or west (negative)\n  - utcOffset: hours offset from UTC (e.g. `-5` for EST, `1` for CET)\n  - date: optional JS `Date`; defaults to today\n- Returns: seconds since epoch of sunrise, or null\n- Example:\n```js\nconst rise = hs.location.sunrise(51.5, -0.1, 0)\nconsole.log(new Date(rise * 1000).toTimeString())\n```",
+          "description": "Returns the time of sunrise for the given coordinates, UTC offset, and date as\nseconds since the Unix epoch, or null if the sun does not rise on that date\n(polar night). Pass a JS `Date` for `date`, or omit/pass null to use today.",
+          "params": [
+            {
+              "name": "latitude",
+              "type": "Double",
+              "description": "degrees north (positive) or south (negative)"
+            },
+            {
+              "name": "longitude",
+              "type": "Double",
+              "description": "degrees east (positive) or west (negative)"
+            },
+            {
+              "name": "utcOffset",
+              "type": "Double",
+              "description": "hours offset from UTC (e.g. `-5` for EST, `1` for CET)"
+            },
+            {
+              "name": "date",
+              "type": "JSValue",
+              "description": "optional JS `Date`; defaults to today"
+            }
+          ],
+          "returns": {
+            "type": "NSNumber?",
+            "description": "seconds since epoch of sunrise, or null"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const rise = hs.location.sunrise(51.5, -0.1, 0)\nconsole.log(new Date(rise * 1000).toTimeString())"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
+          "lineNumber": 98
+        },
+        {
+          "name": "sunset",
+          "signature": "func sunset(_ latitude: Double, _ longitude: Double, _ utcOffset: Double, _ date: JSValue) -> NSNumber?",
+          "rawDocumentation": "Returns the time of sunset for the given coordinates, UTC offset, and date as\nseconds since the Unix epoch, or null if the sun does not set on that date\n(midnight sun). Pass a JS `Date` for `date`, or omit/pass null to use today.\n- Parameters:\n  - latitude: degrees north (positive) or south (negative)\n  - longitude: degrees east (positive) or west (negative)\n  - utcOffset: hours offset from UTC (e.g. `-5` for EST, `1` for CET)\n  - date: optional JS `Date`; defaults to today\n- Returns: seconds since epoch of sunset, or null\n- Example:\n```js\nconst set = hs.location.sunset(51.5, -0.1, 0)\nconsole.log(new Date(set * 1000).toTimeString())\n```",
+          "description": "Returns the time of sunset for the given coordinates, UTC offset, and date as\nseconds since the Unix epoch, or null if the sun does not set on that date\n(midnight sun). Pass a JS `Date` for `date`, or omit/pass null to use today.",
+          "params": [
+            {
+              "name": "latitude",
+              "type": "Double",
+              "description": "degrees north (positive) or south (negative)"
+            },
+            {
+              "name": "longitude",
+              "type": "Double",
+              "description": "degrees east (positive) or west (negative)"
+            },
+            {
+              "name": "utcOffset",
+              "type": "Double",
+              "description": "hours offset from UTC (e.g. `-5` for EST, `1` for CET)"
+            },
+            {
+              "name": "date",
+              "type": "JSValue",
+              "description": "optional JS `Date`; defaults to today"
+            }
+          ],
+          "returns": {
+            "type": "NSNumber?",
+            "description": "seconds since epoch of sunset, or null"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const set = hs.location.sunset(51.5, -0.1, 0)\nconsole.log(new Date(set * 1000).toTimeString())"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
+          "lineNumber": 114
+        },
+        {
+          "name": "new",
+          "signature": "func new() -> HSLocationWatcher",
+          "rawDocumentation": "Creates a new location watcher object. Call `.start()` on it to begin\nreceiving updates.\n- Returns: an HSLocationWatcher\n- Example:\n```js\nconst w = hs.location.new()\nw.setCallback((event, data) => console.log(event, data))\nw.start()\n```",
+          "description": "Creates a new location watcher object. Call `.start()` on it to begin\nreceiving updates.",
+          "params": [],
+          "returns": {
+            "type": "HSLocationWatcher",
+            "description": "an HSLocationWatcher"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const w = hs.location.new()\nw.setCallback((event, data) => console.log(event, data))\nw.start()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
+          "lineNumber": 125
+        }
+      ],
+      "properties": [
+        {
+          "name": "geocoder",
+          "signature": "var geocoder: HSLocationGeocoder { get }",
+          "rawDocumentation": "The geocoder subobject for forward and reverse geocoding.\n- Example:\n```js\nhs.location.geocoder.lookupAddress(\"1 Infinite Loop, Cupertino\").then(places => {\n    console.log(places[0].locality)\n})\n```",
+          "description": "The geocoder subobject for forward and reverse geocoding.",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.location.geocoder.lookupAddress(\"1 Infinite Loop, Cupertino\").then(places => {\n    console.log(places[0].locality)\n})"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
+          "lineNumber": 134
+        }
+      ],
+      "types": [
+        {
+          "name": "HSLocationWatcherAPI",
+          "type": "typedef",
+          "rawDocumentation": "An independent location tracking object.\n\nCreate via `hs.location.new()`. Call `start()` to begin receiving updates,\nand set a callback to handle them.\n\nThe callback receives `(event, data)`:\n\n| Event | Data |\n|-------|------|\n| `\"location\"` | a locationTable |\n| `\"error\"` | an error message string |\n| `\"authorizationChanged\"` | the new status string (`\"authorized\"`, `\"denied\"`, `\"restricted\"`, `\"notDetermined\"`) |\n\nExample:\n```js\nconst w = hs.location.new()\nw.setCallback((event, data) => {\n    if (event === 'location') console.log(data.latitude, data.longitude)\n})\nw.start()\n```",
+          "description": "An independent location tracking object.\nCreate via `hs.location.new()`. Call `start()` to begin receiving updates,\nand set a callback to handle them.\n| Event | Data |\n|-------|------|\n| `\"location\"` | a locationTable |\n| `\"error\"` | an error message string |\n| `\"authorizationChanged\"` | the new status string (`\"authorized\"`, `\"denied\"`, `\"restricted\"`, `\"notDetermined\"`) |",
+          "methods": [
+            {
+              "name": "start",
+              "signature": "func start() -> HSLocationWatcher",
+              "rawDocumentation": "Starts location updates. The callback must be set first.\n- Returns: self, for chaining\n- Example:\n```js\nconst w = hs.location.new()\nw.setCallback((ev, d) => console.log(ev, d)).start()\n```",
+              "description": "Starts location updates. The callback must be set first.",
+              "params": [],
+              "returns": {
+                "type": "HSLocationWatcher",
+                "description": "self, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const w = hs.location.new()\nw.setCallback((ev, d) => console.log(ev, d)).start()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationWatcher.swift",
+              "lineNumber": 51
+            },
+            {
+              "name": "stop",
+              "signature": "func stop() -> HSLocationWatcher",
+              "rawDocumentation": "Stops location updates.\n- Returns: self, for chaining\n- Example:\n```js\nw.stop()\n```",
+              "description": "Stops location updates.",
+              "params": [],
+              "returns": {
+                "type": "HSLocationWatcher",
+                "description": "self, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "w.stop()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationWatcher.swift",
+              "lineNumber": 59
+            },
+            {
+              "name": "setCallback",
+              "signature": "func setCallback(_ fn: JSValue) -> HSLocationWatcher",
+              "rawDocumentation": "Sets the callback function invoked when location events occur.\n- Parameter fn: `function(event, data)` — see type documentation for event names\n- Returns: self, for chaining\n- Example:\n```js\nw.setCallback((event, data) => {\n    if (event === 'location') console.log(data.latitude, data.longitude)\n})\n```",
+              "description": "Sets the callback function invoked when location events occur.",
+              "params": [
+                {
+                  "name": "fn",
+                  "type": "JSValue",
+                  "description": "`function(event, data)` — see type documentation for event names"
+                }
+              ],
+              "returns": {
+                "type": "HSLocationWatcher",
+                "description": "self, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "w.setCallback((event, data) => {\n    if (event === 'location') console.log(data.latitude, data.longitude)\n})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationWatcher.swift",
+              "lineNumber": 70
+            },
+            {
+              "name": "location",
+              "signature": "func location() -> [AnyHashable: Any]?",
+              "rawDocumentation": "Returns the most recently received location, or null if none yet.\n- Returns: a locationTable, or null\n- Example:\n```js\nconst loc = w.location()\nif (loc) console.log(`${loc.latitude}, ${loc.longitude}`)\n```",
+              "description": "Returns the most recently received location, or null if none yet.",
+              "params": [],
+              "returns": {
+                "type": "[AnyHashable: Any]?",
+                "description": "a locationTable, or null"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const loc = w.location()\nif (loc) console.log(`${loc.latitude}, ${loc.longitude}`)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationWatcher.swift",
+              "lineNumber": 79
+            }
+          ],
+          "properties": [
+            {
+              "name": "identifier",
+              "signature": "var identifier: String { get }",
+              "rawDocumentation": "The unique identifier assigned to this watcher.\n- Example:\n```js\nconst w = hs.location.new()\nconsole.log(w.identifier)\n```",
+              "description": "The unique identifier assigned to this watcher.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const w = hs.location.new()\nconsole.log(w.identifier)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationWatcher.swift",
+              "lineNumber": 42
+            },
+            {
+              "name": "distanceFilter",
+              "signature": "var distanceFilter: Double { get set }",
+              "rawDocumentation": "The minimum distance in metres the device must move before a new update\nis delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).\n- Example:\n```js\nw.distanceFilter = 50  // only update after moving 50 m\n```",
+              "description": "The minimum distance in metres the device must move before a new update\nis delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "w.distanceFilter = 50  // only update after moving 50 m"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationWatcher.swift",
+              "lineNumber": 87
+            }
+          ]
+        }
+      ],
+      "description": "Determine the Mac's location via macOS Location Services.\nLocation data is obtained through WiFi network scanning and, where available, GPS\nhardware. User permission is required — call `hs.permissions.requestLocation()`\nbefore using any tracking features.\nThe module exposes a `geocoder` sub-object for forward/reverse geocoding without\nrequiring Location Services.\n## locationTable\n| Key | Type | Description |\n|-----|------|-------------|\n| `latitude` | number | Degrees north (positive) or south (negative) |\n| `longitude` | number | Degrees east (positive) or west (negative) |\n| `altitude` | number | Metres above sea level (`0` if unknown) |\n| `horizontalAccuracy` | number | Uncertainty radius in metres (`-1` if invalid) |\n| `verticalAccuracy` | number | Altitude accuracy in metres (`-1` if invalid) |\n| `course` | number | Direction of travel in degrees (`-1` if invalid) |\n| `speed` | number | Metres per second (`-1` if invalid) |\n| `timestamp` | number | Seconds since the Unix epoch |",
+      "rawDocumentation": "Determine the Mac's location via macOS Location Services.\n\nLocation data is obtained through WiFi network scanning and, where available, GPS\nhardware. User permission is required — call `hs.permissions.requestLocation()`\nbefore using any tracking features.\n\nThe module exposes a `geocoder` sub-object for forward/reverse geocoding without\nrequiring Location Services.\n\n## locationTable\n\nA `locationTable` is a plain JS object with the following keys:\n\n| Key | Type | Description |\n|-----|------|-------------|\n| `latitude` | number | Degrees north (positive) or south (negative) |\n| `longitude` | number | Degrees east (positive) or west (negative) |\n| `altitude` | number | Metres above sea level (`0` if unknown) |\n| `horizontalAccuracy` | number | Uncertainty radius in metres (`-1` if invalid) |\n| `verticalAccuracy` | number | Altitude accuracy in metres (`-1` if invalid) |\n| `course` | number | Direction of travel in degrees (`-1` if invalid) |\n| `speed` | number | Metres per second (`-1` if invalid) |\n| `timestamp` | number | Seconds since the Unix epoch |"
+    },
+    {
       "name": "hs.notify",
       "methods": [
         {
@@ -9618,5 +10017,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-14T10:13:47.427Z"
+  "generatedAt": "2026-05-14T15:17:32.020Z"
 }
