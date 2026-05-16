@@ -34,8 +34,254 @@ The HSFooModuleAPI protocol should observe the following rules:
 
 ## Watchers
 
-A common pattern is to register a callback with macOS that will be called when particular system events occur. Here are some considerations for when you are exposing watchers to JavaScript:
+  Hammerspoon 2 has two established watcher patterns. Choose the right one based on whether
+  the underlying OS API is singleton/global or per-object.
 
- * Any watcher objects created must be weakly tracked by HSFooModule so they can be stopped and destroyed in its shutdown() method
- * If the underlying macOS API only allows for one watcher object to be created, we will addtionally include a file with the module called "hs.foo.js" that contains a multiplexer allowing the user to register multiple JS callbacks for the event:
-  * In HSFooModule, expose a property of the form: @objc var _watcherEmitter: JSValue?
+  ### Pattern A — Module-level watcher (hs.application, hs.audiodevice, hs.pasteboard)
+
+  Use this when there is a single global OS subscription (NSWorkspace notification, CoreAudio
+  listener, a polling timer, etc.) that serves all JS callers.
+
+  The architecture is always two layers: a private Swift subscription that feeds a single
+
+  #### Swift protocol (in the `@objc protocol HSXxxModuleAPI: JSExport` block)
+
+  ```swift
+  /// Register a listener for Xxx events.
+  /// - Parameter listener: A JavaScript function receiving (eventName, ...)
+  /// - Example:
+  /// ```js
+  /// hs.xxx.addWatcher((event, data) => console.log(event, data))
+  /// ```
+  @objc func addWatcher(_ listener: JSValue)
+
+  /// Remove a previously registered listener.
+  /// - Parameter listener: The function originally passed to `addWatcher`
+  /// - Example:
+  /// ```js
+  /// hs.xxx.removeWatcher(myHandler)
+  /// ```
+  @objc func removeWatcher(_ listener: JSValue)
+
+  // Private API consumed only by the companion JS file — not exposed in docs
+  /// SKIP_DOCS
+  @objc(_addWatcher:) func _addWatcher(_ callback: JSValue)
+  /// SKIP_DOCS
+  @objc func _removeWatcher()
+  /// SKIP_DOCS
+  @objc var _watcherEmitter: JSValue? { get set }
+
+  Swift implementation (in the @objc class HSXxxModule body)
+
+  @objc var _watcherEmitter: JSValue? = nil
+  private var watcherCallback: JSValue? = nil   // or whatever state the OS listener needs
+
+  @objc func addWatcher(_ listener: JSValue) {
+      _watcherEmitter?.invokeMethod("on", withArguments: [listener])
+  }
+
+  @objc func removeWatcher(_ listener: JSValue) {
+      _watcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
+  }
+
+  @objc(_addWatcher:) func _addWatcher(_ callback: JSValue) {
+      guard watcherCallback == nil else {
+          AKWarning("hs.xxx._addWatcher(): Already watching. Refusing to create a second.")
+          return
+      }
+      watcherCallback = callback
+      // ... register with the OS API here; call callback(...) when an event fires ...
+      AKTrace("hs.xxx._addWatcher(): Started")
+  }
+
+  @objc func _removeWatcher() {
+      guard watcherCallback != nil else { return }
+      // ... unregister from the OS API ...
+      watcherCallback = nil
+      AKTrace("hs.xxx._removeWatcher(): Stopped")
+  }
+
+  func shutdown() {
+      _removeWatcher()
+  }
+
+  Key rules:
+  - _addWatcher MUST guard against double-registration and warn with AKWarning.
+  - Always use [weak self] in any closure passed to the OS listener to avoid retain cycles.
+  - When the OS callback arrives off-@MainActor, use MainActor.assumeIsolated { } to enter
+  actor isolation (CoreLocation, CoreAudio, etc. guarantee main-thread delivery).
+  - shutdown() MUST call _removeWatcher().
+
+  Companion JS file (hs.xxx.js)
+
+  "use strict";
+
+  class XxxModuleWatcherEmitter {
+      #listeners = []
+
+      #handleEvent(/* ...event args... */) {
+          var listeners = this.#listeners.slice();
+          const length = listeners.length;
+          for (var i = 0; i < length; i++) {
+              listeners[i].apply(null, [/* ...event args... */]);
+          }
+      }
+
+      on(listener) {
+          if (typeof listener !== 'function') {
+              throw new Error("hs.xxx.addWatcher(): The provided handler must be a function");
+          }
+          if (this.#listeners.includes(listener)) {
+              console.error("hs.xxx.addWatcher(): The provided handler is already registered.");
+              return;
+          }
+          if (this.#listeners.length === 0) {
+              hs.xxx._addWatcher((/* ...event args... */) => {
+                  this.#handleEvent(/* ...event args... */);
+              });
+          }
+          this.#listeners.push(listener);
+      }
+
+      removeListener(listener) {
+          const idx = this.#listeners.indexOf(listener);
+          if (idx > -1) {
+              this.#listeners.splice(idx, 1);
+          }
+          if (this.#listeners.length === 0) {
+              hs.xxx._removeWatcher();
+          }
+      }
+  }
+
+  // Store in a Swift-retained property so the emitter is not garbage collected.
+  hs.xxx._watcherEmitter = new XxxModuleWatcherEmitter();
+
+  Key rules:
+  - The emitter class MUST be stored in hs.xxx._watcherEmitter — this is what keeps it alive.
+  - The underlying _addWatcher call MUST be lazy (only on first on() call).
+  - _removeWatcher MUST be called automatically when the last listener is removed.
+  - Duplicate listener registration is silently rejected with console.error (not thrown).
+
+  ---
+  Pattern B — Object-level watcher (hs.ax, hs.location)
+
+  Use this when each watcher is a discrete, independently-configured object with its own
+  OS subscription and callback — for example, per-app AX observers or per-session location
+  updates.
+
+  The watcher class
+
+  // Separate file: HSXxxWatcher.swift
+
+  @objc protocol HSXxxWatcherAPI: HSTypeAPI, JSExport {
+      @objc var identifier: String { get }     // UUID string, set in init
+      @objc @discardableResult func start() -> HSXxxWatcher
+      @objc @discardableResult func stop() -> HSXxxWatcher
+      @objc func setCallback(_ fn: JSValue) -> HSXxxWatcher
+      // ... any additional config properties (e.g. distanceFilter) ...
+  }
+
+  @_documentation(visibility: private)
+  @MainActor
+  @objc class HSXxxWatcher: NSObject, HSXxxWatcherAPI /*, OS delegate if needed */ {
+      @objc var typeName = "HSXxxWatcher"
+      @objc let identifier = UUID().uuidString
+      private var callback: JSValue?
+
+      override init() {
+          super.init()
+          // set self as OS delegate if needed
+      }
+
+      @objc @discardableResult func start() -> HSXxxWatcher {
+          // begin OS updates
+          return self
+      }
+
+      @objc @discardableResult func stop() -> HSXxxWatcher {
+          // end OS updates
+          return self
+      }
+
+      @objc func setCallback(_ fn: JSValue) -> HSXxxWatcher {
+          callback = fn.isObject ? fn : nil
+          return self
+      }
+
+      // OS delegate callbacks use MainActor.assumeIsolated { } and
+      // `_ = callback?.call(withArguments: [...])` to discard the unused JSValue? result.
+  }
+
+  Module additions
+
+  In the module's Swift protocol add:
+
+  /// Creates a new Xxx watcher. Call `.start()` and `.setCallback()` to activate it.
+  /// The watcher is stopped automatically when the module shuts down.
+  /// - Returns: an HSXxxWatcher
+  /// - Example:
+  /// ```js
+  /// const w = hs.xxx.addWatcher()
+  /// w.setCallback((event, data) => console.log(event, data)).start()
+  /// ```
+  @objc func addWatcher() -> HSXxxWatcher
+
+  In the module's Swift implementation:
+
+  private var watchers: [HSXxxWatcher] = []
+
+  func addWatcher() -> HSXxxWatcher {
+      let w = HSXxxWatcher()
+      watchers.append(w)
+      return w
+  }
+
+  func shutdown() {
+      watchers.forEach { $0.stop() }
+      watchers.removeAll()
+      // stop any module-level OS state too
+  }
+
+  Key rules:
+  - The module MUST track all created watcher objects in private var watchers: [HSXxxWatcher] = [].
+  - shutdown() MUST stop all tracked watchers and clear the array.
+  - start()/stop() and setCallback() MUST return self for chaining.
+  - typeName MUST be set to match the Swift class name for JS introspection.
+  - identifier MUST be a UUID().uuidString assigned at init time.
+  }
+
+  Key rules:
+  - The module MUST track all created watcher objects in private var watchers: [HSXxxWatcher] = [].
+  - shutdown() MUST stop all tracked watchers and clear the array.
+  - start()/stop() and setCallback() MUST return self for chaining.
+  - typeName MUST be set to match the Swift class name for JS introspection.
+  - identifier MUST be a UUID().uuidString assigned at init time.
+  - OS delegate callbacks arriving off-@MainActor MUST use MainActor.assumeIsolated { }.
+  - Discard the unused JSValue? result from callback?.call() with _ = callback?.call(...).
+
+  ---
+  Pattern B with multiplexing (hs.ax)
+
+  When Pattern B watcher objects are keyed by a composite identity (e.g. pid:notification),
+  keep an additional dictionary of the underlying OS observers:
+
+  private var observers: [KeyType: OSObserver] = [:]
+  private var watchers: [String: HSXxxWatcher] = [:]   // keyed by "component1:component2"
+
+  And in _removeWatcher, only tear down the OS observer when the last watcher for that
+  key prefix is removed (see HSAXModule._removeWatcher for the reference implementation).
+
+  ---
+  Logging conventions for watchers
+
+  - AKTrace(...) when successfully starting or stopping a watcher
+  - AKWarning(...) when refusing a duplicate registration
+  - AKError(...) when an OS call fails during setup or teardown
+
+  ---
+
+  The section covers both patterns (module-level EventEmitter and object-level watcher), the JS emitter template, the composite-key variant from hs.ax, and all the subtle rules around lazy start, `[weak self]`,
+  `assumeIsolated`, discarding `JSValue?`, and the `_watcherEmitter` GC anchor.
+
+
