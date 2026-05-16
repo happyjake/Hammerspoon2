@@ -41,4 +41,4 @@ docs/json/**
 docs/html/**
 
 # Claude
-.claude/
+.claude/settings.local.json
