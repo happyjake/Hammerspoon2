@@ -98,6 +98,24 @@ import AVFoundation
     /// hs.permissions.requestNotifications().then(granted => console.log(granted))
     /// ```
     @objc func requestNotifications() -> JSPromise?
+
+    /// Check if the app has Location permission.
+    /// - Returns: true if permission is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkLocation())
+    /// ```
+    @objc func checkLocation() -> Bool
+
+    /// Request Location permission (shows the system dialog if the user has not yet decided).
+    /// - Returns: {Promise<boolean>} A Promise that resolves to true if granted, false if denied
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestLocation().then(granted => {
+    ///     if (granted) console.log(hs.location.get())
+    /// })
+    /// ```
+    @objc func requestLocation() -> JSPromise?
 }
 
 // MARK: - Implementation
@@ -141,11 +159,10 @@ import AVFoundation
     }
 
     @objc func requestCamera() -> JSPromise? {
-        return JSEngine.shared.createPromise { holder in
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
             PermissionsManager.shared.request(.camera) { result in
-                Task { @MainActor in
-                    holder.resolveWith(result)
-                }
+                Task { @MainActor in holder.resolveWith(result) }
             }
         }
     }
@@ -157,11 +174,10 @@ import AVFoundation
     }
 
     @objc func requestMicrophone() -> JSPromise? {
-        return JSEngine.shared.createPromise { holder in
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
             PermissionsManager.shared.request(.microphone) { result in
-                Task { @MainActor in
-                    holder.resolveWith(result)
-                }
+                Task { @MainActor in holder.resolveWith(result) }
             }
         }
     }
@@ -173,11 +189,25 @@ import AVFoundation
     }
 
     @objc func requestNotifications() -> JSPromise? {
-        return JSEngine.shared.createPromise { holder in
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
             PermissionsManager.shared.request(.notifications) { result in
-                Task { @MainActor in
-                    holder.resolveWith(result)
-                }
+                Task { @MainActor in holder.resolveWith(result) }
+            }
+        }
+    }
+
+    // MARK: - Location
+
+    @objc func checkLocation() -> Bool {
+        return PermissionsManager.shared.check(.location)
+    }
+
+    @objc func requestLocation() -> JSPromise? {
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
+            PermissionsManager.shared.request(.location) { result in
+                Task { @MainActor in holder.resolveWith(result) }
             }
         }
     }
