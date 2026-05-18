@@ -88,7 +88,7 @@ struct HSBonjourServiceTypesTests {
 
 // MARK: - Suite 3: HSBonjourSearch API structure
 
-@Suite("HSBonjourSearch API structure")
+@Suite("hs.bonjour search API structure")
 struct HSBonjourSearchAPITests {
 
     private func makeHarness() -> JSTestHarness {

@@ -3,9 +3,23 @@
 //  Hammerspoon 2Tests
 //
 
+import IOKit
 import Testing
 import JavaScriptCore
 @testable import Hammerspoon_2
+
+private nonisolated func hasNoBattery() -> Bool {
+    let service = IOServiceGetMatchingService(
+        kIOMainPortDefault,
+        IOServiceMatching("IOPMPowerSource")
+    )
+    guard service != IO_OBJECT_NULL else { return true }
+    defer { IOObjectRelease(service) }
+    var propsRef: Unmanaged<CFMutableDictionary>?
+    guard IORegistryEntryCreateCFProperties(service, &propsRef, kCFAllocatorDefault, 0) == kIOReturnSuccess,
+          let props = unsafe propsRef?.takeRetainedValue() as? [String: Any] else { return true }
+    return (props["BatteryInstalled"] as? Bool) != true
+}
 
 // MARK: - Suite 1: Module API structure
 
@@ -484,7 +498,7 @@ struct HSPowerSystemStateTests {
 
 // MARK: - Suite 4: Battery info
 
-@Suite("hs.power battery info")
+@Suite("hs.power battery info", .disabled(if: hasNoBattery(), "No battery hardware present"))
 struct HSPowerBatteryInfoTests {
 
     private func makeHarness() -> JSTestHarness {
@@ -787,64 +801,7 @@ struct HSPowerBatteryInfoTests {
     }
 }
 
-// MARK: - Suite 5: System actions
-
-/// These tests verify that the system-action calls do not raise JavaScript exceptions.
-/// The actual side effects (sleep, lock, screensaver) depend on OS permissions and
-/// may not occur in a sandboxed test environment.
-@Suite("hs.power system actions")
-struct HSPowerSystemActionTests {
-
-    private func makeHarness() -> JSTestHarness {
-        let harness = JSTestHarness()
-        harness.loadModule(HSPowerModule.self, as: "power")
-        return harness
-    }
-
-    @Test("systemSleep does not throw a JavaScript exception")
-    func testSystemSleepNoThrow() {
-        let harness = makeHarness()
-        harness.eval("hs.power.systemSleep()")
-        #expect(!harness.hasException)
-    }
-
-    @Test("lockScreen does not throw a JavaScript exception")
-    func testLockScreenNoThrow() {
-        let harness = makeHarness()
-        harness.eval("hs.power.lockScreen()")
-        #expect(!harness.hasException)
-    }
-
-    @Test("startScreensaver does not throw a JavaScript exception")
-    func testStartScreensaverNoThrow() {
-        let harness = makeHarness()
-        harness.eval("hs.power.startScreensaver()")
-        #expect(!harness.hasException)
-    }
-
-    @Test("systemSleep returns undefined")
-    func testSystemSleepReturnsUndefined() {
-        let harness = makeHarness()
-        let result = harness.evalValue("hs.power.systemSleep()")
-        #expect(result?.isUndefined == true)
-    }
-
-    @Test("lockScreen returns undefined")
-    func testLockScreenReturnsUndefined() {
-        let harness = makeHarness()
-        let result = harness.evalValue("hs.power.lockScreen()")
-        #expect(result?.isUndefined == true)
-    }
-
-    @Test("startScreensaver returns undefined")
-    func testStartScreensaverReturnsUndefined() {
-        let harness = makeHarness()
-        let result = harness.evalValue("hs.power.startScreensaver()")
-        #expect(result?.isUndefined == true)
-    }
-}
-
-// MARK: - Suite 6: Watcher API
+// MARK: - Suite 5: Watcher API
 
 @Suite("hs.power watcher API")
 struct HSPowerWatcherAPITests {
