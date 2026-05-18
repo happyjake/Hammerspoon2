@@ -1156,16 +1156,31 @@ active on the local network.
 ## Common service type strings
 The `hs.bonjour.serviceTypes` object maps short names to their mDNS strings,
 e.g. `hs.bonjour.serviceTypes.ssh` → `"_ssh._tcp."`.
-## Quick example
+## Searching for a service
 ```js
 // Find all SSH services on the local network and resolve each one
 const search = hs.bonjour.newSearch()
 search.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {
     if (event === 'serviceFound') {
         svc.resolve(5, ev => {
-            if (ev === 'resolved') console.log(svc.hostname, svc.port)
+            if (ev === 'resolved') console.log(svc.hostname + ':' + svc.port)
         })
     }
+})
+```
+## Advertising a service
+```js
+hs.bonjour.advertise('My Web Server', '_http._tcp.', 8080, ev => {
+    if (ev === 'published') console.log('Now advertising!')
+    else if (ev === 'error') console.error('Advertising failed')
+})
+// Later, to stop:
+hs.bonjour.stopAdvertising('My Web Server', '_http._tcp.')
+```
+## Listing all active service types
+```js
+hs.bonjour.networkServices(5).then(types => {
+    console.log('Active service types: ' + types.join(', '))
 })
 ```
  */

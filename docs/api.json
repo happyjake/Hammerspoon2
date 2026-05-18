@@ -2242,7 +2242,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 60
+          "lineNumber": 79
         },
         {
           "name": "removeSearch",
@@ -2265,7 +2265,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 70
+          "lineNumber": 89
         },
         {
           "name": "advertise",
@@ -2308,7 +2308,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 93
+          "lineNumber": 112
         },
         {
           "name": "stopAdvertising",
@@ -2336,7 +2336,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 102
+          "lineNumber": 121
         },
         {
           "name": "networkServices",
@@ -2363,7 +2363,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 118
+          "lineNumber": 137
         }
       ],
       "properties": [
@@ -2380,7 +2380,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 46
+          "lineNumber": 65
         }
       ],
       "types": [
@@ -2775,8 +2775,8 @@
           ]
         }
       ],
-      "description": "Discover and publish Bonjour (mDNS / Zeroconf) network services.\nUse `newSearch()` to search the network for services advertised by other\ndevices, and `advertise()` to advertise your own. The `networkServices()`\nconvenience function returns a snapshot of all service types currently\nactive on the local network.\n## Common service type strings\nThe `hs.bonjour.serviceTypes` object maps short names to their mDNS strings,\ne.g. `hs.bonjour.serviceTypes.ssh` → `\"_ssh._tcp.\"`.\n## Quick example\n```js\n// Find all SSH services on the local network and resolve each one\nconst search = hs.bonjour.newSearch()\nsearch.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {\n    if (event === 'serviceFound') {\n        svc.resolve(5, ev => {\n            if (ev === 'resolved') console.log(svc.hostname, svc.port)\n        })\n    }\n})\n```",
-      "rawDocumentation": "Discover and publish Bonjour (mDNS / Zeroconf) network services.\n\nUse `newSearch()` to search the network for services advertised by other\ndevices, and `advertise()` to advertise your own. The `networkServices()`\nconvenience function returns a snapshot of all service types currently\nactive on the local network.\n\n## Common service type strings\n\nThe `hs.bonjour.serviceTypes` object maps short names to their mDNS strings,\ne.g. `hs.bonjour.serviceTypes.ssh` → `\"_ssh._tcp.\"`.\n\n## Quick example\n\n```js\n// Find all SSH services on the local network and resolve each one\nconst search = hs.bonjour.newSearch()\nsearch.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {\n    if (event === 'serviceFound') {\n        svc.resolve(5, ev => {\n            if (ev === 'resolved') console.log(svc.hostname, svc.port)\n        })\n    }\n})\n```"
+      "description": "Discover and publish Bonjour (mDNS / Zeroconf) network services.\nUse `newSearch()` to search the network for services advertised by other\ndevices, and `advertise()` to advertise your own. The `networkServices()`\nconvenience function returns a snapshot of all service types currently\nactive on the local network.\n## Common service type strings\nThe `hs.bonjour.serviceTypes` object maps short names to their mDNS strings,\ne.g. `hs.bonjour.serviceTypes.ssh` → `\"_ssh._tcp.\"`.\n## Searching for a service\n```js\n// Find all SSH services on the local network and resolve each one\nconst search = hs.bonjour.newSearch()\nsearch.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {\n    if (event === 'serviceFound') {\n        svc.resolve(5, ev => {\n            if (ev === 'resolved') console.log(svc.hostname + ':' + svc.port)\n        })\n    }\n})\n```\n## Advertising a service\n```js\nhs.bonjour.advertise('My Web Server', '_http._tcp.', 8080, ev => {\n    if (ev === 'published') console.log('Now advertising!')\n    else if (ev === 'error') console.error('Advertising failed')\n})\n// Later, to stop:\nhs.bonjour.stopAdvertising('My Web Server', '_http._tcp.')\n```\n## Listing all active service types\n```js\nhs.bonjour.networkServices(5).then(types => {\n    console.log('Active service types: ' + types.join(', '))\n})\n```",
+      "rawDocumentation": "Discover and publish Bonjour (mDNS / Zeroconf) network services.\n\nUse `newSearch()` to search the network for services advertised by other\ndevices, and `advertise()` to advertise your own. The `networkServices()`\nconvenience function returns a snapshot of all service types currently\nactive on the local network.\n\n## Common service type strings\n\nThe `hs.bonjour.serviceTypes` object maps short names to their mDNS strings,\ne.g. `hs.bonjour.serviceTypes.ssh` → `\"_ssh._tcp.\"`.\n\n## Searching for a service\n\n```js\n// Find all SSH services on the local network and resolve each one\nconst search = hs.bonjour.newSearch()\nsearch.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {\n    if (event === 'serviceFound') {\n        svc.resolve(5, ev => {\n            if (ev === 'resolved') console.log(svc.hostname + ':' + svc.port)\n        })\n    }\n})\n```\n\n## Advertising a service\n\n```js\nhs.bonjour.advertise('My Web Server', '_http._tcp.', 8080, ev => {\n    if (ev === 'published') console.log('Now advertising!')\n    else if (ev === 'error') console.error('Advertising failed')\n})\n// Later, to stop:\nhs.bonjour.stopAdvertising('My Web Server', '_http._tcp.')\n```\n\n## Listing all active service types\n\n```js\nhs.bonjour.networkServices(5).then(types => {\n    console.log('Active service types: ' + types.join(', '))\n})\n```"
     },
     {
       "name": "hs.console",
@@ -10628,5 +10628,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-18T14:36:45.754Z"
+  "generatedAt": "2026-05-18T15:04:15.891Z"
 }
