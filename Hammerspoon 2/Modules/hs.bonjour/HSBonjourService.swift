@@ -9,19 +9,17 @@ import Darwin
 
 // MARK: - Service API protocol
 
-/// A Bonjour service record for publishing or resolving on the local network.
+/// A discovered Bonjour service record. Call `resolve()` to look up its
+/// hostname, port, and addresses.
 ///
-/// Obtain a local service via `hs.bonjour.createService()` and call `publish()`.
-/// Remote services are delivered by an `HSBonjourBrowser` search callback; call
-/// `resolve()` on them to discover their hostname, port, and addresses.
+/// Instances are delivered by an `HSBonjourSearch` callback. Call `resolve()`
+/// to discover their hostname, port, and addresses, and optionally `monitor()`
+/// to watch for TXT record changes.
 ///
 /// ## Callback events
 ///
 /// | Method | Event | Extra data |
 /// |--------|-------|------------|
-/// | `publish()` | `"published"` | _(none)_ |
-/// | `publish()` | `"stopped"` | _(none)_ |
-/// | `publish()` | `"error"` | error message string |
 /// | `resolve()` | `"resolved"` | _(none)_ |
 /// | `resolve()` | `"stopped"` | _(none)_ |
 /// | `resolve()` | `"error"` | error message string |
@@ -31,8 +29,7 @@ import Darwin
     /// A unique identifier assigned to this service object.
     /// - Example:
     /// ```js
-    /// const svc = hs.bonjour.createService('My Server', '_http._tcp.', 8080, 'local.')
-    /// console.log(svc.identifier)
+    /// console.log(service.identifier)
     /// ```
     @objc var identifier: String { get }
 
@@ -66,8 +63,7 @@ import Darwin
     /// ```
     @objc var hostname: String? { get }
 
-    /// The service port. For local services this is set immediately; for remote
-    /// services it is `-1` until `resolve()` completes.
+    /// The service port. `-1` until `resolve()` completes.
     /// - Example:
     /// ```js
     /// console.log(service.port)
@@ -83,45 +79,22 @@ import Darwin
     /// ```
     @objc var addresses: [String] { get }
 
-    /// The TXT record as a `{key: value}` object, or `null` if none is set.
-    /// Populated after `resolve()` or `publish()`, or when updated via `monitor()`.
+    /// The TXT record as a `{key: value}` object, or `null` if none is available.
+    /// Populated after `resolve()` completes or when updated via `monitor()`.
     /// - Example:
     /// ```js
     /// console.log(service.txtRecord)
     /// ```
     @objc var txtRecord: [String: String]? { get }
 
-    /// `true` if this is a locally-created service that can be published;
-    /// `false` for services discovered by a browser that can only be resolved.
-    /// - Example:
-    /// ```js
-    /// console.log(service.isLocal)
-    /// ```
-    @objc var isLocal: Bool { get }
-
-    /// Whether peer-to-peer Bluetooth/Wi-Fi is included in publication/resolution.
+    /// Whether peer-to-peer Bluetooth/Wi-Fi is included in resolution.
     /// - Example:
     /// ```js
     /// service.includesPeerToPeer = true
     /// ```
     @objc var includesPeerToPeer: Bool { get set }
 
-    /// Publishes this service on the local network. Only valid for local services.
-    ///
-    /// The callback is called with `(event)` or `(event, errorMessage)`:
-    /// - `"published"` — now advertising
-    /// - `"stopped"` — advertisement stopped
-    /// - `"error"` — publication failed; error message in second argument
-    /// - Parameter callback: `function(event, data?)` called on status changes
-    /// - Returns: self, for chaining
-    /// - Example:
-    /// ```js
-    /// hs.bonjour.createService('My Server', '_http._tcp.', 8080, 'local.')
-    ///     .publish(ev => console.log('Publish event:', ev))
-    /// ```
-    @objc @discardableResult func publish(_ callback: JSValue) -> HSBonjourService
-
-    /// Resolves the hostname, port, addresses, and TXT record of a remote service.
+    /// Resolves the hostname, port, addresses, and TXT record of this service.
     ///
     /// The callback is called with `(event)` or `(event, errorMessage)`:
     /// - `"resolved"` — resolution complete; read `hostname`, `port`, `addresses`, `txtRecord`
@@ -139,8 +112,8 @@ import Darwin
     /// ```
     @objc @discardableResult func resolve(_ timeout: Double, _ callback: JSValue) -> HSBonjourService
 
-    /// Starts monitoring the TXT record for changes. The callback fires with the
-    /// updated TXT record dict whenever it changes.
+    /// Starts monitoring the TXT record for changes. The callback fires whenever
+    /// the TXT record is updated.
     ///
     /// Call `stopMonitoring()` to unsubscribe.
     /// - Parameter callback: `function(txtRecord)` called when TXT data changes
@@ -151,7 +124,7 @@ import Darwin
     /// ```
     @objc @discardableResult func monitor(_ callback: JSValue) -> HSBonjourService
 
-    /// Stops any active publication or resolution.
+    /// Stops any active resolution.
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
@@ -166,17 +139,6 @@ import Darwin
     /// service.stopMonitoring()
     /// ```
     @objc @discardableResult func stopMonitoring() -> HSBonjourService
-
-    /// Updates the TXT record for a published service.
-    ///
-    /// Has no effect before `publish()` is called.
-    /// - Parameter record: a `{key: value}` object of string pairs
-    /// - Returns: `true` if the update succeeded, `false` otherwise
-    /// - Example:
-    /// ```js
-    /// service.setTXTRecord({ version: '2', status: 'online' })
-    /// ```
-    @objc func setTXTRecord(_ record: [String: String]) -> Bool
 }
 
 // MARK: - Service implementation
@@ -186,27 +148,13 @@ import Darwin
 @objc class HSBonjourService: NSObject, HSBonjourServiceAPI, NetServiceDelegate {
     @objc var typeName = "HSBonjourService"
     @objc let identifier = UUID().uuidString
-    @objc let isLocal: Bool
 
-    private let service: NetService
-    private var publishCallback: JSValue?
+    let service: NetService
     private var resolveCallback: JSValue?
     private var monitorCallback: JSValue?
 
-    // MARK: - Init (local service for publishing)
-
-    init(name: String, type: String, port: Int32, domain: String) {
-        self.service = NetService(domain: domain, type: type, name: name, port: port)
-        self.isLocal = true
-        super.init()
-        unsafe service.delegate = self
-    }
-
-    // MARK: - Init (remote service discovered by a browser)
-
     init(netService: NetService) {
         self.service = netService
-        self.isLocal = false
         super.init()
         unsafe service.delegate = self
     }
@@ -237,22 +185,7 @@ import Darwin
 
     // MARK: - HSBonjourServiceAPI methods
 
-    @objc @discardableResult func publish(_ callback: JSValue) -> HSBonjourService {
-        guard isLocal else {
-            AKWarning("hs.bonjour service '\(name)': publish() called on a remote service — ignoring")
-            return self
-        }
-        publishCallback = callback.isObject ? callback : nil
-        service.publish()
-        AKTrace("HSBonjourService(\(identifier)).publish(): Started publishing '\(name)'")
-        return self
-    }
-
     @objc @discardableResult func resolve(_ timeout: Double, _ callback: JSValue) -> HSBonjourService {
-        guard !isLocal else {
-            AKWarning("hs.bonjour service '\(name)': resolve() called on a local service — ignoring")
-            return self
-        }
         resolveCallback = callback.isObject ? callback : nil
         service.resolve(withTimeout: timeout)
         AKTrace("HSBonjourService(\(identifier)).resolve(): Resolving '\(name)' (timeout: \(timeout)s)")
@@ -279,37 +212,15 @@ import Darwin
         return self
     }
 
-    @objc func setTXTRecord(_ record: [String: String]) -> Bool {
-        let data = NetService.data(fromTXTRecord: record.mapValues { Data($0.utf8) })
-        let success = service.setTXTRecord(data)
-        if !success {
-            AKWarning("hs.bonjour service '\(name)': setTXTRecord() failed")
-        }
-        return success
-    }
-
     // MARK: - Internal helpers for module shutdown
 
     func clearCallbacks() {
-        publishCallback = nil
         resolveCallback = nil
         monitorCallback = nil
     }
 
     // MARK: - NetServiceDelegate
-    // Apple guarantees that these callbacks arrive on the main thread, so they
-    // are inferred @MainActor alongside the class — no nonisolated needed.
-
-    func netServiceDidPublish(_ sender: NetService) {
-        AKTrace("HSBonjourService(\(identifier)): Published '\(name)'")
-        _ = publishCallback?.call(withArguments: ["published"])
-    }
-
-    func netService(_ sender: NetService, didNotPublish errorDict: [String: NSNumber]) {
-        let msg = Self.errorMessage(from: errorDict)
-        AKError("HSBonjourService(\(identifier)): Failed to publish '\(name)': \(msg)")
-        _ = publishCallback?.call(withArguments: ["error", msg])
-    }
+    // Apple guarantees main-thread delivery, so these are inferred @MainActor.
 
     func netServiceDidResolveAddress(_ sender: NetService) {
         AKTrace("HSBonjourService(\(identifier)): Resolved '\(name)' → \(sender.hostName ?? "?")")
@@ -324,9 +235,7 @@ import Darwin
 
     func netServiceDidStop(_ sender: NetService) {
         AKTrace("HSBonjourService(\(identifier)): Stopped '\(name)'")
-        _ = publishCallback?.call(withArguments: ["stopped"])
         _ = resolveCallback?.call(withArguments: ["stopped"])
-        publishCallback = nil
         resolveCallback = nil
     }
 
@@ -338,7 +247,7 @@ import Darwin
 
     // MARK: - Static helpers
 
-    private nonisolated static func errorMessage(from dict: [String: NSNumber]) -> String {
+    nonisolated static func errorMessage(from dict: [String: NSNumber]) -> String {
         let code = dict["NSNetServicesErrorCode"]?.intValue ?? -1
         switch code {
         case 0:  return "Unknown Bonjour error"

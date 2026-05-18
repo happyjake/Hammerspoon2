@@ -1,19 +1,19 @@
 //
-//  HSBonjourBrowser.swift
+//  HSBonjourSearch.swift
 //  Hammerspoon 2
 //
 
 import Foundation
 import JavaScriptCore
 
-// MARK: - Browser API protocol
+// MARK: - Search API protocol
 
 /// Discovers Bonjour services and domains advertised on the local network.
 ///
-/// Create via `hs.bonjour.createBrowser()`, then call one of the `searchFor…`
-/// methods. Each search type uses its own underlying `NetServiceBrowser`, so
-/// service and domain searches can run concurrently. Restarting any single
-/// search type stops only that type's browser before beginning the new search.
+/// Create via `hs.bonjour.newSearch()`, then call one of the `find…` methods.
+/// Each search type uses its own underlying `NetServiceBrowser`, so service and
+/// domain searches can run concurrently. Restarting any single search type stops
+/// only that browser before beginning the new one.
 ///
 /// ## Service search callback events
 ///
@@ -33,19 +33,19 @@ import JavaScriptCore
 ///
 /// Example:
 /// ```js
-/// const browser = hs.bonjour.createBrowser()
-/// browser.searchForServices('_ssh._tcp.', 'local.', (event, item, moreComing) => {
+/// const search = hs.bonjour.newSearch()
+/// search.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {
 ///     if (event === 'serviceFound') {
-///         console.log('Found:', item.name, '— more coming:', moreComing)
+///         console.log('Found:', svc.name, '— more coming:', moreComing)
 ///     }
 /// })
 /// ```
-@objc protocol HSBonjourBrowserAPI: HSTypeAPI, JSExport {
+@objc protocol HSBonjourSearchAPI: HSTypeAPI, JSExport {
 
-    /// A unique identifier for this browser object.
+    /// A unique identifier for this search object.
     /// - Example:
     /// ```js
-    /// console.log(hs.bonjour.createBrowser().identifier)
+    /// console.log(hs.bonjour.newSearch().identifier)
     /// ```
     @objc var identifier: String { get }
 
@@ -53,14 +53,14 @@ import JavaScriptCore
     /// standard network interfaces. Defaults to `false`.
     /// - Example:
     /// ```js
-    /// browser.includesPeerToPeer = true
+    /// search.includesPeerToPeer = true
     /// ```
     @objc var includesPeerToPeer: Bool { get set }
 
     /// Searches for services of the given type in the given domain.
     ///
-    /// If a service search is already active it is stopped before starting
-    /// the new one. Domain searches are unaffected. The callback receives
+    /// If a service search is already active it is stopped before starting the
+    /// new one. Domain searches are unaffected. The callback receives
     /// `(event, service, moreComing)` — see the type documentation for the
     /// complete event table.
     /// - Parameter type: service type string, e.g. `"_http._tcp."` or `"_ssh._tcp."`
@@ -69,63 +69,59 @@ import JavaScriptCore
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
-    /// browser.searchForServices('_http._tcp.', 'local.', (ev, svc, more) => {
+    /// search.findServices('_http._tcp.', 'local.', (ev, svc, more) => {
     ///     if (ev === 'serviceFound') console.log('Found:', svc.name)
     /// })
     /// ```
-    @objc @discardableResult func searchForServices(_ type: String, _ domain: String, _ callback: JSValue) -> HSBonjourBrowser
+    @objc @discardableResult func findServices(_ type: String, _ domain: String, _ callback: JSValue) -> HSBonjourSearch
 
     /// Searches for domains visible to this machine (browsable domains).
     ///
     /// If a browsable-domain search is already active it is stopped before
     /// starting the new one. Service and registration-domain searches are
-    /// unaffected. The callback receives `(event, domain, moreComing)` — see
-    /// the type documentation for the complete event table.
+    /// unaffected. The callback receives `(event, domain, moreComing)`.
     /// - Parameter callback: `function(event, domain, moreComing)` called for each result
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
-    /// browser.searchForBrowsableDomains((ev, domain, more) => {
+    /// search.findBrowsableDomains((ev, domain, more) => {
     ///     if (ev === 'domainFound') console.log('Domain:', domain)
     /// })
     /// ```
-    @objc @discardableResult func searchForBrowsableDomains(_ callback: JSValue) -> HSBonjourBrowser
+    @objc @discardableResult func findBrowsableDomains(_ callback: JSValue) -> HSBonjourSearch
 
     /// Searches for domains on which this machine can register services.
     ///
     /// If a registration-domain search is already active it is stopped before
     /// starting the new one. Service and browsable-domain searches are
-    /// unaffected. The callback receives `(event, domain, moreComing)` — see
-    /// the type documentation for the complete event table.
+    /// unaffected. The callback receives `(event, domain, moreComing)`.
     /// - Parameter callback: `function(event, domain, moreComing)` called for each result
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
-    /// browser.searchForRegistrationDomains((ev, domain, more) => {
+    /// search.findRegistrationDomains((ev, domain, more) => {
     ///     if (ev === 'domainFound') console.log('Can register in:', domain)
     /// })
     /// ```
-    @objc @discardableResult func searchForRegistrationDomains(_ callback: JSValue) -> HSBonjourBrowser
+    @objc @discardableResult func findRegistrationDomains(_ callback: JSValue) -> HSBonjourSearch
 
     /// Stops all active searches. Safe to call when no search is active.
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
-    /// browser.stop()
+    /// search.stop()
     /// ```
-    @objc @discardableResult func stop() -> HSBonjourBrowser
+    @objc @discardableResult func stop() -> HSBonjourSearch
 }
 
-// MARK: - Browser implementation
+// MARK: - Search implementation
 
 @_documentation(visibility: private)
 @MainActor
-@objc class HSBonjourBrowser: NSObject, HSBonjourBrowserAPI, NetServiceBrowserDelegate {
-    @objc var typeName = "HSBonjourBrowser"
+@objc class HSBonjourSearch: NSObject, HSBonjourSearchAPI, NetServiceBrowserDelegate {
+    @objc var typeName = "HSBonjourSearch"
     @objc let identifier = UUID().uuidString
 
-    // Each search type gets its own browser so they never interfere with each
-    // other and can even run concurrently without waiting for stop callbacks.
     private let servicesBrowser = NetServiceBrowser()
     private let domainsBrowser = NetServiceBrowser()
     private let registrationBrowser = NetServiceBrowser()
@@ -154,34 +150,34 @@ import JavaScriptCore
         unsafe registrationBrowser.delegate = self
     }
 
-    // MARK: - HSBonjourBrowserAPI
+    // MARK: - HSBonjourSearchAPI
 
-    @objc @discardableResult func searchForServices(_ type: String, _ domain: String, _ callback: JSValue) -> HSBonjourBrowser {
+    @objc @discardableResult func findServices(_ type: String, _ domain: String, _ callback: JSValue) -> HSBonjourSearch {
         servicesBrowser.stop()
         serviceTable.removeAll()
         servicesCallback = callback.isObject ? callback : nil
         servicesBrowser.searchForServices(ofType: type, inDomain: domain)
-        AKTrace("HSBonjourBrowser(\(identifier)): Searching for \(type) in '\(domain)'")
+        AKTrace("HSBonjourSearch(\(identifier)): Searching for \(type) in '\(domain)'")
         return self
     }
 
-    @objc @discardableResult func searchForBrowsableDomains(_ callback: JSValue) -> HSBonjourBrowser {
+    @objc @discardableResult func findBrowsableDomains(_ callback: JSValue) -> HSBonjourSearch {
         domainsBrowser.stop()
         domainsCallback = callback.isObject ? callback : nil
         domainsBrowser.searchForBrowsableDomains()
-        AKTrace("HSBonjourBrowser(\(identifier)): Searching for browsable domains")
+        AKTrace("HSBonjourSearch(\(identifier)): Searching for browsable domains")
         return self
     }
 
-    @objc @discardableResult func searchForRegistrationDomains(_ callback: JSValue) -> HSBonjourBrowser {
+    @objc @discardableResult func findRegistrationDomains(_ callback: JSValue) -> HSBonjourSearch {
         registrationBrowser.stop()
         registrationCallback = callback.isObject ? callback : nil
         registrationBrowser.searchForRegistrationDomains()
-        AKTrace("HSBonjourBrowser(\(identifier)): Searching for registration domains")
+        AKTrace("HSBonjourSearch(\(identifier)): Searching for registration domains")
         return self
     }
 
-    @objc @discardableResult func stop() -> HSBonjourBrowser {
+    @objc @discardableResult func stop() -> HSBonjourSearch {
         servicesBrowser.stop()
         domainsBrowser.stop()
         registrationBrowser.stop()
@@ -189,11 +185,11 @@ import JavaScriptCore
         domainsCallback = nil
         registrationCallback = nil
         serviceTable.removeAll()
-        AKTrace("HSBonjourBrowser(\(identifier)): Stopped all searches")
+        AKTrace("HSBonjourSearch(\(identifier)): Stopped all searches")
         return self
     }
 
-    // MARK: - Internal shutdown helpers
+    // MARK: - Internal shutdown helper
 
     func stopAllDiscoveredServices() {
         serviceTable.values.forEach {
@@ -203,8 +199,7 @@ import JavaScriptCore
     }
 
     // MARK: - NetServiceBrowserDelegate
-    // Apple guarantees that these callbacks arrive on the main thread, so they
-    // are inferred @MainActor alongside the class — no nonisolated needed.
+    // Apple guarantees main-thread delivery, so these are inferred @MainActor.
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didFind service: NetService, moreComing: Bool) {
         let key = ObjectIdentifier(service)
@@ -215,25 +210,25 @@ import JavaScriptCore
             wrapper = HSBonjourService(netService: service)
             serviceTable[key] = wrapper
         }
-        AKTrace("HSBonjourBrowser(\(identifier)): serviceFound '\(service.name)' (moreComing: \(moreComing))")
+        AKTrace("HSBonjourSearch(\(identifier)): serviceFound '\(service.name)' (moreComing: \(moreComing))")
         _ = servicesCallback?.call(withArguments: ["serviceFound", wrapper, moreComing])
     }
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didRemove service: NetService, moreComing: Bool) {
         let key = ObjectIdentifier(service)
         let wrapper = serviceTable.removeValue(forKey: key) ?? HSBonjourService(netService: service)
-        AKTrace("HSBonjourBrowser(\(identifier)): serviceRemoved '\(service.name)' (moreComing: \(moreComing))")
+        AKTrace("HSBonjourSearch(\(identifier)): serviceRemoved '\(service.name)' (moreComing: \(moreComing))")
         _ = servicesCallback?.call(withArguments: ["serviceRemoved", wrapper, moreComing])
     }
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didFindDomain domain: String, moreComing: Bool) {
-        AKTrace("HSBonjourBrowser(\(identifier)): domainFound '\(domain)' (moreComing: \(moreComing))")
+        AKTrace("HSBonjourSearch(\(identifier)): domainFound '\(domain)' (moreComing: \(moreComing))")
         let cb = browser === domainsBrowser ? domainsCallback : registrationCallback
         _ = cb?.call(withArguments: ["domainFound", domain, moreComing])
     }
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didRemoveDomain domain: String, moreComing: Bool) {
-        AKTrace("HSBonjourBrowser(\(identifier)): domainRemoved '\(domain)' (moreComing: \(moreComing))")
+        AKTrace("HSBonjourSearch(\(identifier)): domainRemoved '\(domain)' (moreComing: \(moreComing))")
         let cb = browser === domainsBrowser ? domainsCallback : registrationCallback
         _ = cb?.call(withArguments: ["domainRemoved", domain, moreComing])
     }
@@ -241,7 +236,7 @@ import JavaScriptCore
     func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String: NSNumber]) {
         let code = errorDict["NSNetServicesErrorCode"]?.intValue ?? -1
         let message = "Bonjour search failed (error code \(code))"
-        AKError("HSBonjourBrowser(\(identifier)): \(message)")
+        AKError("HSBonjourSearch(\(identifier)): \(message)")
         let cb: JSValue?
         switch browser {
         case servicesBrowser:     cb = servicesCallback
@@ -253,6 +248,6 @@ import JavaScriptCore
     }
 
     func netServiceBrowserDidStopSearch(_ browser: NetServiceBrowser) {
-        AKTrace("HSBonjourBrowser(\(identifier)): Search stopped")
+        AKTrace("HSBonjourSearch(\(identifier)): Search stopped")
     }
 }

@@ -23,24 +23,24 @@ struct HSBonjourModuleAPITests {
         makeHarness().expectTrue("typeof hs.bonjour === 'object'")
     }
 
-    @Test("createBrowser is a function")
-    func testCreateBrowserIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.createBrowser === 'function'")
+    @Test("newSearch is a function")
+    func testNewSearchIsFunction() {
+        makeHarness().expectTrue("typeof hs.bonjour.newSearch === 'function'")
     }
 
-    @Test("removeBrowser is a function")
-    func testRemoveBrowserIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.removeBrowser === 'function'")
+    @Test("removeSearch is a function")
+    func testRemoveSearchIsFunction() {
+        makeHarness().expectTrue("typeof hs.bonjour.removeSearch === 'function'")
     }
 
-    @Test("createService is a function")
-    func testCreateServiceIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.createService === 'function'")
+    @Test("advertise is a function")
+    func testAdvertiseIsFunction() {
+        makeHarness().expectTrue("typeof hs.bonjour.advertise === 'function'")
     }
 
-    @Test("removeService is a function")
-    func testRemoveServiceIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.removeService === 'function'")
+    @Test("stopAdvertising is a function")
+    func testStopAdvertisingIsFunction() {
+        makeHarness().expectTrue("typeof hs.bonjour.stopAdvertising === 'function'")
     }
 
     @Test("networkServices is a function")
@@ -49,10 +49,10 @@ struct HSBonjourModuleAPITests {
     }
 }
 
-// MARK: - Suite 2: JS enhancement (serviceTypes and default parameters)
+// MARK: - Suite 2: serviceTypes
 
-@Suite("hs.bonjour JS enhancement")
-struct HSBonjourJSEnhancementTests {
+@Suite("hs.bonjour serviceTypes")
+struct HSBonjourServiceTypesTests {
 
     private func makeHarness() -> JSTestHarness {
         let harness = JSTestHarness()
@@ -60,12 +60,9 @@ struct HSBonjourJSEnhancementTests {
         return harness
     }
 
-    @Test("serviceTypes is a frozen object")
-    func testServiceTypesIsFrozenObject() {
-        let harness = makeHarness()
-        harness.expectTrue("typeof hs.bonjour.serviceTypes === 'object'")
-        harness.expectTrue("Object.isFrozen(hs.bonjour.serviceTypes)")
-        #expect(!harness.hasException)
+    @Test("serviceTypes is an object")
+    func testServiceTypesIsObject() {
+        makeHarness().expectTrue("typeof hs.bonjour.serviceTypes === 'object'")
     }
 
     @Test("serviceTypes.http is correct")
@@ -87,36 +84,12 @@ struct HSBonjourJSEnhancementTests {
     func testServiceTypesSMB() {
         makeHarness().expectEqual("hs.bonjour.serviceTypes.smb", "_smb._tcp.")
     }
-
-    @Test("createService domain defaults to local.")
-    func testCreateServiceDefaultDomain() {
-        let harness = makeHarness()
-        harness.eval("var svc = hs.bonjour.createService('Test', '_http._tcp.', 9000)")
-        harness.expectEqual("svc.domain", "local.")
-        #expect(!harness.hasException)
-    }
-
-    @Test("createService accepts explicit domain")
-    func testCreateServiceExplicitDomain() {
-        let harness = makeHarness()
-        harness.eval("var svc = hs.bonjour.createService('Test', '_http._tcp.', 9000, 'local.')")
-        harness.expectEqual("svc.domain", "local.")
-        #expect(!harness.hasException)
-    }
-
-    @Test("networkServices returns a Promise without timeout argument")
-    func testNetworkServicesPromiseNoArg() {
-        let harness = makeHarness()
-        harness.eval("var p = hs.bonjour.networkServices()")
-        harness.expectTrue("p !== null && typeof p.then === 'function'")
-        #expect(!harness.hasException)
-    }
 }
 
-// MARK: - Suite 3: HSBonjourBrowser API structure
+// MARK: - Suite 3: HSBonjourSearch API structure
 
-@Suite("HSBonjourBrowser API structure")
-struct HSBonjourBrowserAPITests {
+@Suite("HSBonjourSearch API structure")
+struct HSBonjourSearchAPITests {
 
     private func makeHarness() -> JSTestHarness {
         let harness = JSTestHarness()
@@ -124,92 +97,92 @@ struct HSBonjourBrowserAPITests {
         return harness
     }
 
-    @Test("createBrowser() returns an object")
-    func testCreateBrowserReturnsObject() {
-        makeHarness().expectTrue("typeof hs.bonjour.createBrowser() === 'object'")
+    @Test("newSearch() returns an object")
+    func testNewSearchReturnsObject() {
+        makeHarness().expectTrue("typeof hs.bonjour.newSearch() === 'object'")
     }
 
-    @Test("browser.typeName is HSBonjourBrowser")
-    func testBrowserTypeName() {
-        makeHarness().expectEqual("hs.bonjour.createBrowser().typeName", "HSBonjourBrowser")
+    @Test("search.typeName is HSBonjourSearch")
+    func testSearchTypeName() {
+        makeHarness().expectEqual("hs.bonjour.newSearch().typeName", "HSBonjourSearch")
     }
 
-    @Test("browser.identifier is a non-empty string")
-    func testBrowserIdentifierIsString() {
+    @Test("search.identifier is a non-empty string")
+    func testSearchIdentifierIsString() {
         let harness = makeHarness()
-        harness.expectTrue("typeof hs.bonjour.createBrowser().identifier === 'string'")
-        harness.expectTrue("hs.bonjour.createBrowser().identifier.length > 0")
+        harness.expectTrue("typeof hs.bonjour.newSearch().identifier === 'string'")
+        harness.expectTrue("hs.bonjour.newSearch().identifier.length > 0")
         #expect(!harness.hasException)
     }
 
-    @Test("two browsers have different identifiers")
-    func testBrowsersHaveUniqueIdentifiers() {
+    @Test("two searches have different identifiers")
+    func testSearchesHaveUniqueIdentifiers() {
         let harness = makeHarness()
         harness.expectTrue("""
             (function() {
-                var a = hs.bonjour.createBrowser();
-                var b = hs.bonjour.createBrowser();
+                var a = hs.bonjour.newSearch();
+                var b = hs.bonjour.newSearch();
                 return a.identifier !== b.identifier;
             })()
         """)
         #expect(!harness.hasException)
     }
 
-    @Test("browser has searchForServices function")
-    func testSearchForServicesIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.createBrowser().searchForServices === 'function'")
+    @Test("search has findServices function")
+    func testFindServicesIsFunction() {
+        makeHarness().expectTrue("typeof hs.bonjour.newSearch().findServices === 'function'")
     }
 
-    @Test("browser has searchForBrowsableDomains function")
-    func testSearchForBrowsableDomainsIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.createBrowser().searchForBrowsableDomains === 'function'")
+    @Test("search has findBrowsableDomains function")
+    func testFindBrowsableDomainsIsFunction() {
+        makeHarness().expectTrue("typeof hs.bonjour.newSearch().findBrowsableDomains === 'function'")
     }
 
-    @Test("browser has searchForRegistrationDomains function")
-    func testSearchForRegistrationDomainsIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.createBrowser().searchForRegistrationDomains === 'function'")
+    @Test("search has findRegistrationDomains function")
+    func testFindRegistrationDomainsIsFunction() {
+        makeHarness().expectTrue("typeof hs.bonjour.newSearch().findRegistrationDomains === 'function'")
     }
 
-    @Test("browser has stop function")
+    @Test("search has stop function")
     func testStopIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.createBrowser().stop === 'function'")
+        makeHarness().expectTrue("typeof hs.bonjour.newSearch().stop === 'function'")
     }
 
-    @Test("browser.stop() returns self for chaining")
-    func testBrowserStopChains() {
+    @Test("search.stop() returns self for chaining")
+    func testSearchStopChains() {
         let harness = makeHarness()
         harness.expectTrue("""
             (function() {
-                var b = hs.bonjour.createBrowser();
-                return b.stop() === b;
+                var s = hs.bonjour.newSearch();
+                return s.stop() === s;
             })()
         """)
         #expect(!harness.hasException)
     }
 
-    @Test("browser.includesPeerToPeer is settable and gettable")
+    @Test("search.includesPeerToPeer is settable and gettable")
     func testIncludesPeerToPeerRoundtrip() {
         let harness = makeHarness()
-        harness.eval("var b = hs.bonjour.createBrowser(); b.includesPeerToPeer = true;")
-        harness.expectTrue("b.includesPeerToPeer === true")
+        harness.eval("var s = hs.bonjour.newSearch(); s.includesPeerToPeer = true;")
+        harness.expectTrue("s.includesPeerToPeer === true")
         #expect(!harness.hasException)
     }
 
-    @Test("removeBrowser stops and removes a browser without error")
-    func testRemoveBrowser() {
+    @Test("removeSearch stops and removes a search without error")
+    func testRemoveSearch() {
         let harness = makeHarness()
         harness.eval("""
-            var b = hs.bonjour.createBrowser();
-            hs.bonjour.removeBrowser(b);
+            var s = hs.bonjour.newSearch();
+            hs.bonjour.removeSearch(s);
         """)
         #expect(!harness.hasException)
     }
 }
 
-// MARK: - Suite 4: HSBonjourService API structure
+// MARK: - Suite 4: advertise / stopAdvertising
 
-@Suite("HSBonjourService API structure")
-struct HSBonjourServiceAPITests {
+@Suite("hs.bonjour advertise API")
+struct HSBonjourAdvertiseAPITests {
 
     private func makeHarness() -> JSTestHarness {
         let harness = JSTestHarness()
@@ -217,149 +190,58 @@ struct HSBonjourServiceAPITests {
         return harness
     }
 
-    private func makeServiceHarness() -> JSTestHarness {
+    @Test("advertise with name/type/port does not throw")
+    func testAdvertiseBasic() {
         let harness = makeHarness()
-        harness.eval("var svc = hs.bonjour.createService('TestSvc', '_http._tcp.', 8888, 'local.');")
-        return harness
-    }
-
-    @Test("createService() returns an object")
-    func testCreateServiceReturnsObject() {
-        makeHarness().expectTrue("""
-            typeof hs.bonjour.createService('T', '_http._tcp.', 80, 'local.') === 'object'
-        """)
-    }
-
-    @Test("service.typeName is HSBonjourService")
-    func testServiceTypeName() {
-        makeServiceHarness().expectEqual("svc.typeName", "HSBonjourService")
-    }
-
-    @Test("service.identifier is a non-empty string")
-    func testServiceIdentifier() {
-        let harness = makeServiceHarness()
-        harness.expectTrue("typeof svc.identifier === 'string' && svc.identifier.length > 0")
+        harness.eval("hs.bonjour.advertise('TestSvc', '_http._tcp.', 9000)")
         #expect(!harness.hasException)
     }
 
-    @Test("service.name matches the creation name")
-    func testServiceName() {
-        makeServiceHarness().expectEqual("svc.name", "TestSvc")
-    }
-
-    @Test("service.type matches the creation type")
-    func testServiceType() {
-        makeServiceHarness().expectEqual("svc.type", "_http._tcp.")
-    }
-
-    @Test("service.port matches the creation port")
-    func testServicePort() {
-        makeServiceHarness().expectEqual("svc.port", 8888)
-    }
-
-    @Test("service.domain is local.")
-    func testServiceDomain() {
-        makeServiceHarness().expectEqual("svc.domain", "local.")
-    }
-
-    @Test("service.isLocal is true for a created service")
-    func testServiceIsLocal() {
-        makeServiceHarness().expectTrue("svc.isLocal === true")
-    }
-
-    @Test("service.hostname is null before publishing")
-    func testServiceHostnameNullBeforePublish() {
-        let harness = makeServiceHarness()
-        harness.expectTrue("svc.hostname === null || svc.hostname === undefined")
-        #expect(!harness.hasException)
-    }
-
-    @Test("service.addresses is an empty array before publishing")
-    func testServiceAddressesEmptyBeforePublish() {
-        let harness = makeServiceHarness()
-        harness.expectTrue("Array.isArray(svc.addresses) && svc.addresses.length === 0")
-        #expect(!harness.hasException)
-    }
-
-    @Test("service.txtRecord is null when none is set")
-    func testServiceTxtRecordNullInitially() {
-        let harness = makeServiceHarness()
-        harness.expectTrue("svc.txtRecord === null || svc.txtRecord === undefined")
-        #expect(!harness.hasException)
-    }
-
-    @Test("publish is a function")
-    func testPublishIsFunction() {
-        makeServiceHarness().expectTrue("typeof svc.publish === 'function'")
-    }
-
-    @Test("resolve is a function")
-    func testResolveIsFunction() {
-        makeServiceHarness().expectTrue("typeof svc.resolve === 'function'")
-    }
-
-    @Test("monitor is a function")
-    func testMonitorIsFunction() {
-        makeServiceHarness().expectTrue("typeof svc.monitor === 'function'")
-    }
-
-    @Test("stop is a function")
-    func testStopIsFunction() {
-        makeServiceHarness().expectTrue("typeof svc.stop === 'function'")
-    }
-
-    @Test("stopMonitoring is a function")
-    func testStopMonitoringIsFunction() {
-        makeServiceHarness().expectTrue("typeof svc.stopMonitoring === 'function'")
-    }
-
-    @Test("setTXTRecord is a function")
-    func testSetTXTRecordIsFunction() {
-        makeServiceHarness().expectTrue("typeof svc.setTXTRecord === 'function'")
-    }
-
-    @Test("stop() returns self for chaining")
-    func testStopChains() {
-        let harness = makeServiceHarness()
-        harness.expectTrue("svc.stop() === svc")
-        #expect(!harness.hasException)
-    }
-
-    @Test("stopMonitoring() returns self for chaining")
-    func testStopMonitoringChains() {
-        let harness = makeServiceHarness()
-        harness.expectTrue("svc.stopMonitoring() === svc")
-        #expect(!harness.hasException)
-    }
-
-    @Test("two services have different identifiers")
-    func testServicesHaveUniqueIdentifiers() {
+    @Test("advertise with explicit domain does not throw")
+    func testAdvertiseWithDomain() {
         let harness = makeHarness()
-        harness.expectTrue("""
-            (function() {
-                var a = hs.bonjour.createService('A', '_http._tcp.', 80, 'local.');
-                var b = hs.bonjour.createService('B', '_http._tcp.', 81, 'local.');
-                return a.identifier !== b.identifier;
-            })()
-        """)
+        harness.eval("hs.bonjour.advertise('TestSvc2', '_http._tcp.', 9001, 'local.')")
         #expect(!harness.hasException)
     }
 
-    @Test("removeService stops and removes a service without error")
-    func testRemoveService() {
+    @Test("advertise with callback does not throw")
+    func testAdvertiseWithCallback() {
+        let harness = makeHarness()
+        harness.eval("hs.bonjour.advertise('TestSvc3', '_http._tcp.', 9002, function(ev) {})")
+        #expect(!harness.hasException)
+    }
+
+    @Test("advertise with domain and callback does not throw")
+    func testAdvertiseWithDomainAndCallback() {
+        let harness = makeHarness()
+        harness.eval("hs.bonjour.advertise('TestSvc4', '_http._tcp.', 9003, 'local.', function(ev) {})")
+        #expect(!harness.hasException)
+    }
+
+    @Test("stopAdvertising for a non-existent service does not throw")
+    func testStopAdvertisingNonExistent() {
+        let harness = makeHarness()
+        harness.eval("hs.bonjour.stopAdvertising('NoSuch', '_http._tcp.')")
+        #expect(!harness.hasException)
+    }
+
+    @Test("advertise then stopAdvertising does not throw")
+    func testAdvertiseThenStop() {
         let harness = makeHarness()
         harness.eval("""
-            var svc = hs.bonjour.createService('X', '_http._tcp.', 9999, 'local.');
-            hs.bonjour.removeService(svc);
+            hs.bonjour.advertise('StopTest', '_http._tcp.', 9004);
+            hs.bonjour.stopAdvertising('StopTest', '_http._tcp.');
         """)
         #expect(!harness.hasException)
     }
 
-    @Test("service.includesPeerToPeer is settable")
-    func testIncludesPeerToPeer() {
-        let harness = makeServiceHarness()
-        harness.eval("svc.includesPeerToPeer = true;")
-        harness.expectTrue("svc.includesPeerToPeer === true")
+    @Test("duplicate advertise does not throw")
+    func testDuplicateAdvertise() {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.bonjour.advertise('Dup', '_http._tcp.', 9005);
+            hs.bonjour.advertise('Dup', '_http._tcp.', 9005);
+        """)
         #expect(!harness.hasException)
     }
 }
@@ -379,6 +261,14 @@ struct HSBonjourNetworkServicesTests {
     func testNetworkServicesReturnsPromise() {
         let harness = makeHarness()
         harness.eval("var p = hs.bonjour.networkServices(0.1)")
+        harness.expectTrue("p !== null && typeof p.then === 'function'")
+        #expect(!harness.hasException)
+    }
+
+    @Test("networkServices() with no argument returns a Promise")
+    func testNetworkServicesNoArgReturnsPromise() {
+        let harness = makeHarness()
+        harness.eval("var p = hs.bonjour.networkServices()")
         harness.expectTrue("p !== null && typeof p.then === 'function'")
         #expect(!harness.hasException)
     }
