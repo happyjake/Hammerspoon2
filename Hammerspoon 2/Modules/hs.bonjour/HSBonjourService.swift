@@ -186,6 +186,7 @@ import Darwin
     // MARK: - HSBonjourServiceAPI methods
 
     @objc @discardableResult func resolve(_ timeout: Double, _ callback: JSValue) -> HSBonjourService {
+        service.stop()
         resolveCallback = callback.isObject ? callback : nil
         service.resolve(withTimeout: timeout)
         AKTrace("HSBonjourService(\(identifier)).resolve(): Resolving '\(name)' (timeout: \(timeout)s)")
