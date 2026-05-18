@@ -2242,7 +2242,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 59
+          "lineNumber": 61
         },
         {
           "name": "removeSearch",
@@ -2265,7 +2265,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 69
+          "lineNumber": 71
         },
         {
           "name": "advertise",
@@ -2308,7 +2308,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 92
+          "lineNumber": 94
         },
         {
           "name": "stopAdvertising",
@@ -2336,7 +2336,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 101
+          "lineNumber": 103
         },
         {
           "name": "networkServices",
@@ -2363,7 +2363,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 117
+          "lineNumber": 119
         }
       ],
       "properties": [
@@ -2380,7 +2380,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.bonjour/HSBonjourModule.swift",
-          "lineNumber": 45
+          "lineNumber": 47
         }
       ],
       "types": [
@@ -10628,5 +10628,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-18T11:28:57.606Z"
+  "generatedAt": "2026-05-18T12:07:37.475Z"
 }

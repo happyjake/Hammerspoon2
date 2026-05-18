@@ -5,6 +5,8 @@
 
 import Foundation
 import JavaScriptCore
+import Synchronization
+import dnssd
 
 // MARK: - Module API protocol
 
@@ -223,21 +225,47 @@ import JavaScriptCore
         let waitSeconds = timeout > 0 ? timeout : 5.0
         return wrapAsyncInJSPromise(in: context) { holder in
             Task { @MainActor in
-                let types = await withCheckedContinuation { (continuation: CheckedContinuation<[String], Never>) in
-                    let collector = NetworkServicesCollector { found in
-                        continuation.resume(returning: found)
-                    }
-                    let browser = NetServiceBrowser()
-                    collector.browser = browser
-                    unsafe browser.delegate = collector
-                    browser.searchForServices(ofType: "_services._dns-sd._udp.", inDomain: "local.")
-
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .seconds(waitSeconds))
-                        collector.complete()
-                    }
+                // Sendable context box passed through the C callback's context pointer.
+                // final class + let Mutex<Set> → automatically Sendable.
+                final class ResultCollector: Sendable {
+                    let found = Mutex<Set<String>>([])
                 }
-                holder.resolveWith(types)
+                let collector = ResultCollector()
+                let ctxPtr = Unmanaged.passRetained(collector).toOpaque()
+
+                // @convention(c) — captures nothing; uses ctxPtr to reach collector.
+                // Strings are built from raw pointers immediately (only valid during callback).
+                let browseReply: DNSServiceBrowseReply = { _, flags, _, error, namePtr, regtypePtr, _, ctx in
+                    let name    = namePtr.flatMap    { String(utf8String: $0) } ?? "(nil)"
+                    let regtype = regtypePtr.flatMap { String(utf8String: $0) } ?? "(nil)"
+                    Task { @MainActor in
+                        AKTrace("hs.bonjour.networkServices: callback — error=\(error) flags=\(flags) name=\(name) regtype=\(regtype)")
+                    }
+                    guard let ctx,
+                          error == kDNSServiceErr_NoError,
+                          (flags & kDNSServiceFlagsAdd) != 0 else { return }
+                    let c = Unmanaged<ResultCollector>.fromOpaque(ctx).takeUnretainedValue()
+                    c.found.withLock { $0.insert(name.hasSuffix(".") ? name : name + ".") }
+                }
+
+                var sdRef: DNSServiceRef?
+                let err = DNSServiceBrowse(&sdRef, 0, 0, "_services._dns-sd._udp", "local.", browseReply, ctxPtr)
+                AKTrace("hs.bonjour.networkServices: DNSServiceBrowse returned \(err), waiting \(waitSeconds)s")
+                guard err == kDNSServiceErr_NoError, let sdRef else {
+                    Unmanaged<ResultCollector>.fromOpaque(ctxPtr).release()
+                    AKError("hs.bonjour.networkServices: DNSServiceBrowse failed (error \(err))")
+                    holder.resolveWith([String]())
+                    return
+                }
+                DNSServiceSetDispatchQueue(sdRef, .main)
+
+                try? await Task.sleep(for: .seconds(waitSeconds))
+
+                DNSServiceRefDeallocate(sdRef)
+                let result = collector.found.withLock { Array($0) }
+                Unmanaged<ResultCollector>.fromOpaque(ctxPtr).release()
+                AKTrace("hs.bonjour.networkServices: done — \(result.count) types: \(result)")
+                holder.resolveWith(result)
             }
         }
     }
@@ -284,39 +312,3 @@ private class AdvertisedService: NSObject, NetServiceDelegate {
     }
 }
 
-// MARK: - NetworkServicesCollector (private helper for networkServices)
-
-@MainActor
-private class NetworkServicesCollector: NSObject {
-    private(set) var found: [String] = []
-    private var hasCompleted = false
-    private var onComplete: (([String]) -> Void)?
-    var browser: NetServiceBrowser?
-
-    init(onComplete: @escaping @MainActor ([String]) -> Void) {
-        self.onComplete = onComplete
-        super.init()
-    }
-
-    func complete() {
-        guard !hasCompleted else { return }
-        hasCompleted = true
-        browser?.stop()
-        browser = nil
-        onComplete?(found)
-        onComplete = nil
-    }
-}
-
-extension NetworkServicesCollector: NetServiceBrowserDelegate {
-    func netServiceBrowser(_ browser: NetServiceBrowser, didFind service: NetService, moreComing: Bool) {
-        var typeName = service.name
-        if !typeName.hasSuffix(".") { typeName += "." }
-        if !found.contains(typeName) { found.append(typeName) }
-        if !moreComing { complete() }
-    }
-
-    func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String: NSNumber]) {
-        complete()
-    }
-}
