@@ -456,7 +456,7 @@ struct HSPowerSystemStateTests {
         #expect(!harness.hasException)
     }
 
-    @Test("powerSource is consistent with batteryInfo source")
+    @Test("powerSource is consistent with batteryInfo source", .disabled(if: hasNoBattery()))
     func testPowerSourceConsistencyWithBatteryInfo() {
         let harness = makeHarness()
         harness.expectTrue("""
@@ -469,7 +469,7 @@ struct HSPowerSystemStateTests {
         #expect(!harness.hasException)
     }
 
-    @Test("isCharging is consistent with batteryInfo isCharging")
+    @Test("isCharging is consistent with batteryInfo isCharging", .disabled(if: hasNoBattery()))
     func testIsChargingConsistencyWithBatteryInfo() {
         let harness = makeHarness()
         harness.expectTrue("""
@@ -482,7 +482,7 @@ struct HSPowerSystemStateTests {
         #expect(!harness.hasException)
     }
 
-    @Test("percentage is consistent with batteryInfo percentage")
+    @Test("percentage is consistent with batteryInfo percentage", .disabled(if: hasNoBattery()))
     func testPercentageConsistencyWithBatteryInfo() {
         let harness = makeHarness()
         harness.expectTrue("""
