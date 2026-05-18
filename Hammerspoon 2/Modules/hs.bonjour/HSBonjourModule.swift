@@ -235,17 +235,20 @@ import dnssd
 
                 // @convention(c) — captures nothing; uses ctxPtr to reach collector.
                 // Strings are built from raw pointers immediately (only valid during callback).
+                // The meta-query splits the type across two parameters:
+                //   namePtr   = "_ssh"        (service name / first label)
+                //   regtypePtr = "_tcp.local." (protocol.domain.)
+                // Full service type = "\(name).\(proto)." e.g. "_ssh._tcp."
                 let browseReply: DNSServiceBrowseReply = { _, flags, _, error, namePtr, regtypePtr, _, ctx in
-                    let name    = namePtr.flatMap    { String(utf8String: $0) } ?? "(nil)"
-                    let regtype = regtypePtr.flatMap { String(utf8String: $0) } ?? "(nil)"
-                    Task { @MainActor in
-                        AKTrace("hs.bonjour.networkServices: callback — error=\(error) flags=\(flags) name=\(name) regtype=\(regtype)")
-                    }
                     guard let ctx,
                           error == kDNSServiceErr_NoError,
-                          (flags & kDNSServiceFlagsAdd) != 0 else { return }
+                          (flags & kDNSServiceFlagsAdd) != 0,
+                          let name    = namePtr.flatMap    { String(utf8String: $0) },
+                          let regtype = regtypePtr.flatMap { String(utf8String: $0) },
+                          let proto   = regtype.components(separatedBy: ".").first,
+                          !proto.isEmpty else { return }
                     let c = Unmanaged<ResultCollector>.fromOpaque(ctx).takeUnretainedValue()
-                    c.found.withLock { $0.insert(name.hasSuffix(".") ? name : name + ".") }
+                    c.found.withLock { $0.insert("\(name).\(proto).") }
                 }
 
                 var sdRef: DNSServiceRef?
