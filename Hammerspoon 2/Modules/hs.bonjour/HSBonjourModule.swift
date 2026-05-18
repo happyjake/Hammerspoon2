@@ -59,6 +59,15 @@ import JavaScriptCore
     /// ```
     @objc func removeBrowser(_ browser: HSBonjourBrowser)
 
+    /// A frozen object mapping short service-type names to their mDNS strings.
+    ///
+    /// Populated by the JavaScript enhancement layer. Read-only in practice.
+    /// - Example:
+    /// ```js
+    /// console.log(hs.bonjour.serviceTypes.ssh)  // "_ssh._tcp."
+    /// ```
+    @objc var serviceTypes: [String:String] { get }
+
     /// Creates a new local Bonjour service for publishing.
     ///
     /// Call `publish()` on the returned object to begin advertising. Remove it
@@ -66,14 +75,14 @@ import JavaScriptCore
     /// - Parameter name: human-readable name shown to browsers (e.g. `"My Web Server"`)
     /// - Parameter type: service type in `"_proto._tcp."` or `"_proto._udp."` form (e.g. `"_http._tcp."`)
     /// - Parameter port: port number the service listens on
-    /// - Parameter domain: mDNS domain; almost always `"local."`
+    /// - Parameter domain: mDNS domain; defaults to `"local."` if omitted
     /// - Returns: a new `HSBonjourService`
     /// - Example:
     /// ```js
-    /// const svc = hs.bonjour.createService('My Server', '_http._tcp.', 8080, 'local.')
+    /// const svc = hs.bonjour.createService('My Server', '_http._tcp.', 8080)
     /// svc.publish(ev => console.log('Publish event:', ev))
     /// ```
-    @objc func createService(_ name: String, _ type: String, _ port: Int32, _ domain: String) -> HSBonjourService
+    @objc func createService(_ name: String, _ type: String, _ port: Int32, _ domain: JSValue) -> HSBonjourService
 
     /// Stops and removes a previously created local service.
     /// - Parameter service: the service returned by `createService()`
@@ -109,6 +118,31 @@ import JavaScriptCore
 @objc class HSBonjourModule: NSObject, HSModuleAPI, HSBonjourModuleAPI {
     var name = "hs.bonjour"
 
+    @objc var serviceTypes: [String:String] = [
+        "airplay":       "_airplay._tcp.",
+        "airport":        "_airport._tcp.",
+        "afp":            "_afpovertcp._tcp.",
+        "daap":           "_daap._tcp.",
+        "ftp":            "_ftp._tcp.",
+        "googleCast":     "_googlecast._tcp.",
+        "homekit":        "_hap._tcp.",
+        "http":           "_http._tcp.",
+        "https":          "_https._tcp.",
+        "ipp":            "_ipp._tcp.",
+        "ipps":           "_ipps._tcp.",
+        "nfs":            "_nfs._tcp.",
+        "printer":        "_printer._tcp.",
+        "raop":           "_raop._tcp.",
+        "rdp":            "_rdp._tcp.",
+        "sftp":           "_sftp-ssh._tcp.",
+        "smb":            "_smb._tcp.",
+        "smtp":           "_smtp._tcp.",
+        "snmp":           "_snmp._udp.",
+        "ssh":            "_ssh._tcp.",
+        "telnet":         "_telnet._tcp.",
+        "vnc":            "_rfb._tcp.",
+        "workstation":    "_workstation._tcp.",
+    ]
     private var browsers: [HSBonjourBrowser] = []
     private var localServices: [HSBonjourService] = []
 
@@ -147,10 +181,11 @@ import JavaScriptCore
         AKTrace("HSBonjourModule: Removed browser \(browser.identifier)")
     }
 
-    @objc func createService(_ name: String, _ type: String, _ port: Int32, _ domain: String) -> HSBonjourService {
-        let service = HSBonjourService(name: name, type: type, port: port, domain: domain)
+    @objc func createService(_ name: String, _ type: String, _ port: Int32, _ domain: JSValue) -> HSBonjourService {
+        let effectiveDomain = (domain.isUndefined || domain.isNull) ? "local." : (domain.toString() ?? "local.")
+        let service = HSBonjourService(name: name, type: type, port: port, domain: effectiveDomain)
         localServices.append(service)
-        AKTrace("HSBonjourModule: Created service '\(name)' (\(type)) port \(port) in \(domain)")
+        AKTrace("HSBonjourModule: Created service '\(name)' (\(type)) port \(port) in \(effectiveDomain)")
         return service
     }
 

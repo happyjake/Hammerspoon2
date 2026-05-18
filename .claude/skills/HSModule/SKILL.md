@@ -42,6 +42,7 @@ For the case of a module that we intend to be accessible in JS as "hs.foo", the 
  * The HSFooModule class should be annotated with: @_documentation(visibility: private)
  * If HSFooModule needs to be marked with @MainActor and it needs a deinit method then the the deinit method should be declared as "isolated deinit"
  * If HSFooModule includes an hs.foo.js file, and that file needs to store any properties/methods/objects/etc in the hs.foo namespace, there must be a declaration in HSFooModuleAPI to hold it. JavaScriptCore cannot modify HSFooModule instances at runtime to add additional properties/methods and they will go silently out of scope in unpredictable ways.
+ * In general we should avoid creating an hs.foo.js file unless absolutely necessary - it is strongly preferred to keep all code together in Swift. Legitimate uses of a .js file would include the watcher patterns mentioned below
 
 ## JavaScript API considerations
 
