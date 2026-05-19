@@ -551,7 +551,8 @@ import UniformTypeIdentifiers
 
     deinit {
         let n = name
-        Task { @MainActor in AKTrace("Deinit of \(n)") }
+        let id = engineID
+        Task { @MainActor in AKTrace("Deinit of \(n): \(id)") }
     }
 
     // MARK: - Private helpers
