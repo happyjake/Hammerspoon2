@@ -213,6 +213,61 @@ import SwiftUI
     /// - Parameter callback: A JavaScript function called with a boolean: true when entering, false when leaving
     /// - Returns: Self for chaining
     @objc func onHover(_ callback: JSValue) -> HSUIWindow
+
+    // MARK: Window Styling Additions
+
+    /// Remove the window's title bar and chrome, making it completely borderless.
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().borderless().show()
+    /// ```
+    @objc func borderless() -> HSUIWindow
+
+    /// Set the window level by name.
+    /// - Parameter name: One of 'normal', 'floating', 'popUpMenu', 'screenSaver'
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().level('floating').show()
+    /// ```
+    @objc func level(_ name: String) -> HSUIWindow
+
+    /// Center the window on the main screen when shown.
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().center().show()
+    /// ```
+    @objc func center() -> HSUIWindow
+
+    /// Control whether the window can become the key window (receive keyboard events).
+    /// - Parameter enabled: true to allow the window to become key
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().canBecomeKey(true).show()
+    /// ```
+    @objc func canBecomeKey(_ enabled: Bool) -> HSUIWindow
+
+    /// Register a callback that fires on local key events while this window is key.
+    /// - Parameter callback: Function called with (key, modifiers) where key is a character string
+    ///   and modifiers is an array of strings like 'shift', 'cmd', etc.
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().onKey((key, mods) => console.log(key, mods)).show()
+    /// ```
+    @objc func onKey(_ callback: JSValue) -> HSUIWindow
+
+    /// Register a callback that fires when the window loses key status (blurs).
+    /// - Parameter callback: Function to invoke when the window resigns key
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().onBlur(() => console.log('blurred')).show()
+    /// ```
+    @objc func onBlur(_ callback: JSValue) -> HSUIWindow
 }
 
 @MainActor
@@ -230,6 +285,16 @@ import SwiftUI
     private var rootElement: (any HSUIElement)?
     private var currentElement: (any HSUIElement)?
     private var containerStack: [any UIContainer] = []
+
+    // Styling state (applied in show())
+    private var isBorderless: Bool = true          // default: borderless (matches existing behaviour)
+    private var windowLevel: NSWindow.Level = .floating  // default: floating (matches existing behaviour)
+    private var shouldCenter: Bool = false
+    private var canBecomeKeyOverride: Bool = false
+    private var keyCallback: JSValue?
+    private var blurCallback: JSValue?
+    private var keyMonitor: Any?
+    private var blurObserver: NSObjectProtocol?
 
     // Initialization
     init(frame: CGRect, module: HSUIModule) {
@@ -260,12 +325,10 @@ import SwiftUI
             return self
         }
 
-        let window = NSWindow(
-            contentRect: windowFrame,
-            styleMask: [.borderless],
-            backing: .buffered,
-            defer: false
-        )
+        let styleMask: NSWindow.StyleMask = isBorderless ? [.borderless] : [.titled, .closable, .miniaturizable, .resizable]
+        let window = canBecomeKeyOverride
+            ? HSKeyAcceptingWindow(contentRect: windowFrame, styleMask: styleMask, backing: .buffered, defer: false)
+            : NSWindow(contentRect: windowFrame, styleMask: styleMask, backing: .buffered, defer: false)
 
         let contentView = UICanvasView(
             element: root,
@@ -275,14 +338,48 @@ import SwiftUI
         window.contentView = NSHostingView(rootView: contentView)
         window.isOpaque = false
         window.backgroundColor = NSColor(windowBackgroundColor)
-        window.level = .floating
+        window.level = windowLevel
         window.isReleasedWhenClosed = false
         window.delegate = self
+
+        if shouldCenter, let screen = NSScreen.main {
+            let w = windowFrame.size.width
+            let h = windowFrame.size.height
+            let x = screen.frame.midX - w / 2
+            let y = screen.frame.midY - h / 2
+            window.setFrame(NSRect(x: x, y: y, width: w, height: h), display: false)
+        }
 
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
 
         self.nsWindow = window
+
+        // Install key event monitor scoped to this window
+        if let cb = keyCallback {
+            keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self, weak window] event in
+                guard let win = window, event.window === win else { return event }
+                let key = event.charactersIgnoringModifiers ?? ""
+                var mods: [String] = []
+                if event.modifierFlags.contains(.shift)   { mods.append("shift") }
+                if event.modifierFlags.contains(.control) { mods.append("ctrl") }
+                if event.modifierFlags.contains(.command) { mods.append("cmd") }
+                if event.modifierFlags.contains(.option)  { mods.append("opt") }
+                _ = cb.call(withArguments: [key, mods])
+                return event
+            }
+        }
+
+        // Install blur (resign key) observer scoped to this window
+        if let cb = blurCallback {
+            blurObserver = NotificationCenter.default.addObserver(
+                forName: NSWindow.didResignKeyNotification,
+                object: window,
+                queue: .main
+            ) { [weak self] _ in
+                _ = cb.call(withArguments: [])
+            }
+        }
 
         // Register with module to prevent premature deallocation
         module?.register(self, id: windowID)
@@ -296,6 +393,18 @@ import SwiftUI
 
     @objc func close() {
         guard nsWindow != nil else { return } // Already closed
+
+        // Remove key monitor
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
+        }
+
+        // Remove blur observer
+        if let observer = blurObserver {
+            NotificationCenter.default.removeObserver(observer)
+            blurObserver = nil
+        }
 
         // Unregister from module
         module?.unregister(window: windowID)
@@ -545,6 +654,44 @@ import SwiftUI
         return self
     }
 
+    // MARK: - Window Styling Additions
+
+    @objc func borderless() -> HSUIWindow {
+        isBorderless = true
+        return self
+    }
+
+    @objc func level(_ name: String) -> HSUIWindow {
+        switch name {
+        case "normal":      windowLevel = .normal
+        case "floating":    windowLevel = .floating
+        case "popUpMenu":   windowLevel = .popUpMenu
+        case "screenSaver": windowLevel = .screenSaver
+        default:            windowLevel = .normal
+        }
+        return self
+    }
+
+    @objc func center() -> HSUIWindow {
+        shouldCenter = true
+        return self
+    }
+
+    @objc func canBecomeKey(_ enabled: Bool) -> HSUIWindow {
+        canBecomeKeyOverride = enabled
+        return self
+    }
+
+    @objc func onKey(_ callback: JSValue) -> HSUIWindow {
+        keyCallback = callback
+        return self
+    }
+
+    @objc func onBlur(_ callback: JSValue) -> HSUIWindow {
+        blurCallback = callback
+        return self
+    }
+
     // MARK: - Helper Methods
 
     private func addToCurrentContainer(_ element: any HSUIElement) {
@@ -554,4 +701,13 @@ import SwiftUI
             container.addChild(element)
         }
     }
+}
+
+// MARK: - HSKeyAcceptingWindow
+
+/// NSWindow subclass that can be configured to accept key window status,
+/// enabling it to receive keyboard events.
+final class HSKeyAcceptingWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
 }
