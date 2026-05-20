@@ -177,8 +177,8 @@ struct RequireInstaller: JSContextInstallable {
 /// Each module is wrapped in a function that receives `exports`, `module`,
 /// `require`, `__filename`, and `__dirname` as arguments, mirroring Node.js.
 /// Modules are cached by absolute path; the cache is JS-accessible via
-/// `require.cache`. Files that never assign `module.exports` fall back to
-/// returning their last evaluated expression (legacy mode).
+/// `require.cache`. Files that never assign `module.exports` return the
+/// initial empty `{}` object.
 private final class CommonJSLoader {
     private let context: JSContext
     /// JS object: { [absPath]: moduleObject }  — shared across all require() calls.
@@ -325,28 +325,10 @@ private final class CommonJSLoader {
         ])
 
         // 9. Read final exports (may have been replaced by `module.exports = ...`).
-        let finalExports = moduleObj.objectForKeyedSubscript("exports")!
-
-        // 10. Legacy detection: if the module never touched module.exports,
-        //     `finalExports` will be the same JS object identity as `initialExports`.
-        //     In that case, re-evaluate the source bare (no wrapper) to capture its
-        //     last expression — this preserves the pre-CJS behaviour for plain scripts.
-        //     We detect "untouched" by comparing JS object identity with ===.
-        let sameRef = context.evaluateScript("(function(a,b){return a===b})")!
-            .call(withArguments: [finalExports, initialExports])
-        let wasUntouched = sameRef?.toBool() ?? false
-
-        if wasUntouched {
-            // Re-evaluate bare to get the last expression value.
-            if let bare = context.evaluateScript(source, withSourceURL: fileURL),
-               !bare.isUndefined {
-                // Update the cache entry so subsequent require() calls return the same value.
-                moduleObj.setObject(bare, forKeyedSubscript: "exports" as NSString)
-                return bare
-            }
-        }
-
-        return finalExports
+        //    Files that never assign module.exports get back the initial empty {}.
+        //    Files run for side effects (e.g. hs.*.js enhancement files) discard
+        //    the return value anyway, so this is safe for all callers.
+        return moduleObj.objectForKeyedSubscript("exports")!
     }
 }
 

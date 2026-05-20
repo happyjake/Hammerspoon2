@@ -106,12 +106,25 @@ struct RequireInstallerTests {
         #expect(eval("require.resolve('\(path)')") as? String == path)
     }
 
-    @Test("file without module.exports returns last expression (legacy mode)")
-    func testLegacyReturn() {
+    @Test("file without module.exports returns an empty object")
+    func testNoModuleExports() {
         let (_, eval) = makeContext()
         let path = tmpJs("legacy.js", "42")
-        let result = eval("require('\(path)')")
-        #expect(result as? Int == 42)
+        // Pre-shim, `require` returned the last expression; the shim's contract is
+        // to return module.exports. Files that don't assign get back the initial {}.
+        #expect(eval("typeof require('\(path)')") as? String == "object")
+        #expect(eval("Object.keys(require('\(path)')).length") as? Int == 0)
+    }
+
+    @Test("require executes the file exactly once (no legacy re-evaluation)")
+    func testRequireExecutesOnce() {
+        let (_, eval) = makeContext()
+        let path = tmpJs("counter.js", """
+            globalThis.__execCount = (globalThis.__execCount || 0) + 1
+        """)
+        _ = eval("globalThis.__execCount = 0")
+        _ = eval("require('\(path)')")
+        #expect(eval("globalThis.__execCount") as? Int == 1)
     }
 
     @Test("evalFromURL resolves symlinks and gives the script a __dirname")
