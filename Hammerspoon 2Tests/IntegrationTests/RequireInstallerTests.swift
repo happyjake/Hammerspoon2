@@ -113,4 +113,34 @@ struct RequireInstallerTests {
         let result = eval("require('\(path)')")
         #expect(result as? Int == 42)
     }
+
+    @Test("evalFromURL resolves symlinks and gives the script a __dirname")
+    func testEvalFromURLViaSymlink() throws {
+        // Set up: a real source file in /tmp/.../real/ and a symlink in /tmp/.../link/
+        let unique = UUID().uuidString
+        let realDir = NSTemporaryDirectory() + "vibecast-eval-real-\(unique)/"
+        let linkDir = NSTemporaryDirectory() + "vibecast-eval-link-\(unique)/"
+        try FileManager.default.createDirectory(atPath: realDir, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(atPath: linkDir, withIntermediateDirectories: true)
+
+        let realFile = realDir + "entry.js"
+        let linkFile = linkDir + "entry.js"
+        // entry.js writes its __dirname into a global so we can inspect it.
+        try "globalThis.__lastDirname = __dirname".write(toFile: realFile, atomically: true, encoding: .utf8)
+        // Symlink entry.js in linkDir → the real file.
+        try FileManager.default.createSymbolicLink(atPath: linkFile, withDestinationPath: realFile)
+
+        // Use a fresh JSEngine context. resetContext() tears down the old one and
+        // installs RequireInstaller + the full engine, giving us a real require().
+        // Restore a clean context afterwards so we don't bleed into other tests.
+        try JSEngine.shared.resetContext()
+        defer { try? JSEngine.shared.resetContext() }
+
+        try JSEngine.shared.evalFromURL(URL(fileURLWithPath: linkFile))
+
+        // After evalFromURL via the symlink, __lastDirname should be the REAL dir.
+        let dir = JSEngine.shared.eval("globalThis.__lastDirname") as? String
+        let expected = (realFile as NSString).deletingLastPathComponent as String
+        #expect(dir == expected, "__dirname should resolve to the symlink target's dir")
+    }
 }

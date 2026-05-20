@@ -92,8 +92,27 @@ extension JSEngine: JSEngineProtocol {
             throw HammerspoonError(.jsEvalURLKind, msg: "Refusing to eval remote URL")
         }
 
-        let script = try String(contentsOf: url, encoding: .utf8)
-        return context?.evaluateScript(script, withSourceURL: url)
+        // Resolve symlinks so __dirname points at the real file's dir, not the
+        // symlink location. This matters for ~/.config/Hammerspoon2/init.js when
+        // it's a symlink into a user's separate source repo.
+        let canonical = url.resolvingSymlinksInPath()
+        let canonicalPath = canonical.path
+        let escapedPath = canonicalPath
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "'", with: "\\'")
+
+        // Verify the canonical file actually exists (resolvingSymlinksInPath can
+        // produce paths that don't, e.g. if the symlink is dangling).
+        guard FileManager.default.fileExists(atPath: canonicalPath) else {
+            throw HammerspoonError(.jsEvalURLKind, msg: "User script not found at \(canonicalPath)")
+        }
+
+        // Load via the CommonJS shim so init.js gets __dirname/__filename and can
+        // require sibling files relatively (e.g. require('./lib/log')).
+        // Flush any cached entry first so a reload re-evaluates the file.
+        _ = context?.evaluateScript("delete require.cache['\(escapedPath)']")
+        let result = context?.evaluateScript("require('\(escapedPath)')")
+        return result?.toObject()
     }
 
     func resetContext() throws {
