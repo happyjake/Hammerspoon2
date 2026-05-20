@@ -91,31 +91,31 @@ func AKLog(_ level: HammerspoonLogType, _ msg: String) {
 
 @_documentation(visibility: private)
 func AKInfo(_ msg: String) {
-    Logger.Hammerspoon.info("\(msg)")
+    Logger.Hammerspoon.info("\(msg, privacy: .public)")
     AKLog(.Info, msg)
 }
 
 @_documentation(visibility: private)
 func AKWarning(_ msg: String) {
-    Logger.Hammerspoon.warning("\(msg)")
+    Logger.Hammerspoon.warning("\(msg, privacy: .public)")
     AKLog(.Warning, msg)
 }
 
 @_documentation(visibility: private)
 func AKError(_ msg: String) {
-    Logger.Hammerspoon.error("\(msg)")
+    Logger.Hammerspoon.error("\(msg, privacy: .public)")
     AKLog(.Error, msg)
 }
 
 @_documentation(visibility: private)
 func AKTrace(_ msg: String) {
-    Logger.Hammerspoon.debug("\(msg)")
+    Logger.Hammerspoon.debug("\(msg, privacy: .public)")
     AKLog(.Trace, msg)
 }
 
 @_documentation(visibility: private)
 func AKConsole(_ msg: String) {
-    Logger.Hammerspoon.info("JS Console: \(msg)")
+    Logger.Hammerspoon.info("JS Console: \(msg, privacy: .public)")
     AKLog(.Console, msg)
 }
 
