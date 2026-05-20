@@ -8,6 +8,7 @@
 import Foundation
 import JavaScriptCore
 import AVFoundation
+import IOKit.hid
 
 // MARK: - Declare our JavaScript API
 
@@ -116,6 +117,24 @@ import AVFoundation
     /// })
     /// ```
     @objc func requestLocation() -> JSPromise?
+
+    /// Check whether the user has granted Input Monitoring access to this app.
+    /// Required for hs.eventtap to receive global key events.
+    /// - Returns: true if granted, false if denied or unknown
+    /// - Example:
+    /// ```js
+    /// if (!hs.permissions.checkInputMonitoring()) {
+    ///   hs.notify.show('VibeCast', 'Grant Input Monitoring in System Settings')
+    /// }
+    /// ```
+    @objc func checkInputMonitoring() -> Bool
+
+    /// Trigger the macOS Input Monitoring permission prompt.
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestInputMonitoring()
+    /// ```
+    @objc func requestInputMonitoring()
 }
 
 // MARK: - Implementation
@@ -216,5 +235,16 @@ import AVFoundation
                 Task { @MainActor in holder.resolveWith(result) }
             }
         }
+    }
+
+    // MARK: - Input Monitoring
+
+    @objc func checkInputMonitoring() -> Bool {
+        let result = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)
+        return result == kIOHIDAccessTypeGranted
+    }
+
+    @objc func requestInputMonitoring() {
+        _ = IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
     }
 }
