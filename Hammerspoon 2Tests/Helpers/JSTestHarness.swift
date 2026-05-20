@@ -406,6 +406,8 @@ extension JSTestHarness {
                 loadModule(HSLocationModule.self, as: name)
             case "audiodevice":
                 loadModule(HSAudioDeviceModule.self, as: name)
+            case "translation":
+                loadModule(HSTranslationModule.self, as: name)
             case "window":
                 loadModule(HSWindowModule.self, as: name)
             default:
