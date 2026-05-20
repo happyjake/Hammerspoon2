@@ -139,26 +139,195 @@ extension JSEngine: JSEngineProtocol {
 
 struct RequireInstaller: JSContextInstallable {
     func install(in context: JSContext) throws {
-        let require: @convention(block) (String) -> (JSValue?) = { path in
-            let expandedPath = NSString(string: path).expandingTildeInPath
+        // Use a class to hold shared mutable state and enable recursive calls
+        // without the Swift recursive-closure-capture limitation.
+        let loader = CommonJSLoader(context: context)
+        let requireFn = loader.makeRequire(parentDirname: nil)
+        context.setObject(requireFn, forKeyedSubscript: "require" as NSString)
+        // Keep the loader alive for the entire lifetime of this JSContext.
+        // Without this the [weak self] captures in makeRequire() would immediately
+        // become nil once install(in:) returns.
+        objc_setAssociatedObject(context, &RequireInstaller.loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
 
-            // Return void or throw an error here.
-            guard FileManager.default.fileExists(atPath: expandedPath) else {
-                AKError("require(): \(expandedPath) could not be found. Current working directory is \(FileManager.default.currentDirectoryPath)")
+    private static var loaderKey: UInt8 = 0
+}
+
+/// Implements Node-style CommonJS module loading for a single JSContext.
+///
+/// Each module is wrapped in a function that receives `exports`, `module`,
+/// `require`, `__filename`, and `__dirname` as arguments, mirroring Node.js.
+/// Modules are cached by absolute path; the cache is JS-accessible via
+/// `require.cache`. Files that never assign `module.exports` fall back to
+/// returning their last evaluated expression (legacy mode).
+private final class CommonJSLoader {
+    private let context: JSContext
+    /// JS object: { [absPath]: moduleObject }  — shared across all require() calls.
+    private let cache: JSValue
+
+    init(context: JSContext) {
+        self.context = context
+        // Create the module cache as a plain JS object so JS code can mutate it
+        // (e.g. `delete require.cache[path]`).
+        cache = context.evaluateScript("({})") ?? JSValue(newObjectIn: context)
+    }
+
+    // MARK: - Path resolution
+
+    /// Resolves a raw require() argument to a candidate absolute path.
+    /// Returns nil and logs if the path cannot be resolved.
+    func resolvePath(_ raw: String, parentDirname: String?) -> String? {
+        if raw.hasPrefix("/") {
+            return raw
+        }
+        if raw.hasPrefix("~") {
+            return NSString(string: raw).expandingTildeInPath as String
+        }
+        if raw.hasPrefix("./") || raw.hasPrefix("../") {
+            guard let parent = parentDirname else {
+                AKError("require(): relative path '\(raw)' used with no parent __dirname")
                 return nil
             }
+            let joined = (parent as NSString).appendingPathComponent(raw)
+            return (joined as NSString).standardizingPath as String
+        }
+        AKError("require(): bare name '\(raw)' is not supported; use ./, ../, ~, or an absolute path")
+        return nil
+    }
 
-            let fileURL = URL(fileURLWithPath: expandedPath)
+    /// Applies extension probing: tries the path as-is, then appends .js, .json,
+    /// and /index.js in order.
+    func resolveWithExtensions(_ candidate: String) -> String? {
+        let fm = FileManager.default
+        if fm.fileExists(atPath: candidate) { return candidate }
+        for ext in [".js", ".json", "/index.js"] {
+            let probe = candidate + ext
+            if fm.fileExists(atPath: probe) { return probe }
+        }
+        return nil
+    }
 
-            guard let fileContent = try? String(contentsOfFile: expandedPath, encoding: .utf8) else {
-                AKError("require(): Unable to read \(expandedPath)")
-                return nil
-            }
+    // MARK: - Require factory
 
-            return context.evaluateScript(fileContent, withSourceURL: fileURL)
+    /// Returns a JS `require` function whose relative-path resolution is
+    /// anchored at `parentDirname`.  Attach `.cache` and `.resolve` to it.
+    func makeRequire(parentDirname: String?) -> JSValue {
+        // Capture `self` (the loader) so the block can call back into loadModule.
+        let block: @convention(block) (String) -> JSValue? = { [weak self] rawPath in
+            guard let self else { return nil }
+            return self.loadModule(rawPath: rawPath, parentDirname: parentDirname)
+        }
+        let jsRequire = JSValue(object: block, in: context)!
+
+        // Attach `.cache` — same object as what every child require sees.
+        jsRequire.setObject(cache, forKeyedSubscript: "cache" as NSString)
+
+        // Attach `.resolve` — returns the resolved absolute path without loading.
+        let resolveBlock: @convention(block) (String) -> String? = { [weak self] rawPath in
+            guard let self else { return nil }
+            guard let candidate = self.resolvePath(rawPath, parentDirname: parentDirname),
+                  let abs = self.resolveWithExtensions(candidate)
+            else { return nil }
+            return abs
+        }
+        jsRequire.setObject(resolveBlock, forKeyedSubscript: "resolve" as NSString)
+
+        return jsRequire
+    }
+
+    // MARK: - Module loading
+
+    /// Core loading logic; shared by all `require` closures regardless of parent.
+    func loadModule(rawPath: String, parentDirname: String?) -> JSValue? {
+        // 1. Resolve path to an absolute filesystem path.
+        guard let candidate = resolvePath(rawPath, parentDirname: parentDirname),
+              let absPath = resolveWithExtensions(candidate)
+        else {
+            AKError("require(): cannot resolve '\(rawPath)'")
+            return nil
         }
 
-        context.setObject(require, forKeyedSubscript: "require" as NSString)
+        // 2. Cache hit — return cached exports without re-executing the file.
+        let cachedModule = cache.objectForKeyedSubscript(absPath)
+        if let cachedModule, !cachedModule.isUndefined, !cachedModule.isNull {
+            return cachedModule.objectForKeyedSubscript("exports")
+        }
+
+        // 3. Read source.
+        guard let source = try? String(contentsOfFile: absPath, encoding: .utf8) else {
+            AKError("require(): cannot read '\(absPath)'")
+            return nil
+        }
+
+        // 4. JSON files: parse and cache directly.
+        if absPath.hasSuffix(".json") {
+            let parsed = context.evaluateScript("(\(source))")
+            let moduleObj = JSValue(newObjectIn: context)!
+            moduleObj.setObject(parsed, forKeyedSubscript: "exports" as NSString)
+            cache.setObject(moduleObj, forKeyedSubscript: absPath as NSString)
+            return parsed
+        }
+
+        // 5. Build the CommonJS module object and populate the cache *before*
+        //    executing the file, so circular requires don't loop infinitely.
+        let dirname = (absPath as NSString).deletingLastPathComponent as String
+        let moduleObj = JSValue(newObjectIn: context)!
+        let initialExports = JSValue(newObjectIn: context)!
+        moduleObj.setObject(initialExports, forKeyedSubscript: "exports" as NSString)
+        moduleObj.setObject(absPath, forKeyedSubscript: "filename" as NSString)
+        moduleObj.setObject(dirname, forKeyedSubscript: "dirname" as NSString)
+        cache.setObject(moduleObj, forKeyedSubscript: absPath as NSString)
+
+        // 6. Build a child require that knows this file's dirname.
+        let childRequire = makeRequire(parentDirname: dirname)
+
+        // 7. Wrap source in the CJS function and compile it.
+        //    We use a JS-level string escape via the URL source map name only;
+        //    single-quotes in the path are not safe to embed in JS source.
+        //    So we pass __filename and __dirname as arguments, not interpolated strings.
+        let fileURL = URL(fileURLWithPath: absPath)
+        let wrapper = "(function(exports, module, require, __filename, __dirname) {\n\(source)\n})"
+        guard let fn = context.evaluateScript(wrapper, withSourceURL: fileURL),
+              !fn.isUndefined, !fn.isNull
+        else {
+            AKError("require(): failed to compile '\(absPath)'")
+            // Remove from cache so a retry can work.
+            cache.setObject(JSValue(undefinedIn: context), forKeyedSubscript: absPath as NSString)
+            return nil
+        }
+
+        // 8. Execute the wrapper with the CommonJS arguments.
+        fn.call(withArguments: [
+            initialExports,
+            moduleObj,
+            childRequire,
+            absPath,
+            dirname,
+        ])
+
+        // 9. Read final exports (may have been replaced by `module.exports = ...`).
+        let finalExports = moduleObj.objectForKeyedSubscript("exports")!
+
+        // 10. Legacy detection: if the module never touched module.exports,
+        //     `finalExports` will be the same JS object identity as `initialExports`.
+        //     In that case, re-evaluate the source bare (no wrapper) to capture its
+        //     last expression — this preserves the pre-CJS behaviour for plain scripts.
+        //     We detect "untouched" by comparing JS object identity with ===.
+        let sameRef = context.evaluateScript("(function(a,b){return a===b})")!
+            .call(withArguments: [finalExports, initialExports])
+        let wasUntouched = sameRef?.toBool() ?? false
+
+        if wasUntouched {
+            // Re-evaluate bare to get the last expression value.
+            if let bare = context.evaluateScript(source, withSourceURL: fileURL),
+               !bare.isUndefined {
+                // Update the cache entry so subsequent require() calls return the same value.
+                moduleObj.setObject(bare, forKeyedSubscript: "exports" as NSString)
+                return bare
+            }
+        }
+
+        return finalExports
     }
 }
 
