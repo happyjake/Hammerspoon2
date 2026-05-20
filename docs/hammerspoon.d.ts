@@ -3561,6 +3561,87 @@ declare class HSTimer {
 }
 
 /**
+ * Translate text between languages using the macOS on-device Translation framework.
+Language identifiers use BCP-47 format (e.g. `"en"`, `"fr"`, `"zh-Hans"`).
+Call `hs.translation.supportedLanguages()` to list every language the framework
+recognises, and `hs.translation.status()` to check whether a specific pair is
+installed and ready for offline use.
+Language packs are downloaded through
+**System Settings → General → Language & Region → Translation Languages**.
+`hs.translation` cannot trigger downloads programmatically; `session()` returns
+`null` when the requested pair is not yet installed.
+## Quick start
+```js
+hs.translation.status("en", "fr").then(s => {
+    if (s === "installed") {
+        const session = hs.translation.session("en", "fr")
+        session.translate("Good morning").then(r => console.log(r))
+    } else {
+        console.log("Install en→fr in System Settings → Language & Region → Translation Languages")
+    }
+})
+```
+ */
+declare namespace hs.translation {
+    /**
+     * All language codes supported by the on-device translation engine.
+Resolves to an array of BCP-47 identifiers (e.g. `["ar", "de", "en", "es", "fr"]`).
+This covers every language the framework knows about, regardless of whether
+the packs are installed locally. Use `status()` to distinguish installed
+pairs from merely supported ones.
+     * @returns Resolves to an array of BCP-47 language code strings.
+     */
+    function supportedLanguages(): Promise<string[]>;
+
+    /**
+     * Check the installation status of a language pair.
+     * @param sourceLanguage BCP-47 code of the source language (e.g. `"en"`).
+     * @param targetLanguage BCP-47 code of the target language (e.g. `"fr"`).
+     * @returns Resolves to `"installed"`, `"supported"`, or `"unsupported"`.
+     */
+    function status(sourceLanguage: string, targetLanguage: string): Promise<string>;
+
+    /**
+     * Create a translation session for a language pair.
+Returns an `HSTranslationSession`, or `null` if the system is running macOS
+older than 26.0.
+     * @param sourceLanguage BCP-47 code of the source language (e.g. `"en"`).
+     * @param targetLanguage BCP-47 code of the target language (e.g. `"fr"`).
+     * @returns An `HSTranslationSession`, or `null` on unsupported versions of macOS.
+     */
+    function session(sourceLanguage: string, targetLanguage: string): HSTranslationSession | undefined;
+
+}
+
+/**
+ * JavaScript-visible API for a translation session bound to a specific language pair.
+ */
+declare class HSTranslationSession {
+    /**
+     * Translate a string from the session's source language to its target language.
+     * @param text The text to translate.
+     * @returns A Promise resolving to the translated string,
+     */
+    static translate(text: string): Promise<string>;
+
+    /**
+     * The Swift type name, for JavaScript introspection.
+     */
+    typeName: string;
+
+    /**
+     * BCP-47 identifier of the source language (e.g. `"en"`).
+     */
+    sourceLanguage: string;
+
+    /**
+     * BCP-47 identifier of the target language (e.g. `"fr"`).
+     */
+    targetLanguage: string;
+
+}
+
+/**
  * # hs.ui
 **Create custom user interfaces, alerts, dialogs, and file pickers**
 The `hs.ui` module provides a set of tools for creating custom user interfaces

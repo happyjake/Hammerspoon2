@@ -8385,6 +8385,182 @@
       "rawDocumentation": "Module for creating and managing timers"
     },
     {
+      "name": "hs.translation",
+      "methods": [
+        {
+          "name": "supportedLanguages",
+          "signature": "func supportedLanguages() -> JSPromise?",
+          "rawDocumentation": "All language codes supported by the on-device translation engine.\n\nResolves to an array of BCP-47 identifiers (e.g. `[\"ar\", \"de\", \"en\", \"es\", \"fr\"]`).\nThis covers every language the framework knows about, regardless of whether\nthe packs are installed locally. Use `status()` to distinguish installed\npairs from merely supported ones.\n\n- Returns: {Promise<string[]>} Resolves to an array of BCP-47 language code strings.\n- Example:\n```js\nhs.translation.supportedLanguages().then(langs => {\n    console.log(langs.includes(\"fr\")) // true\n})\n```",
+          "description": "All language codes supported by the on-device translation engine.\nResolves to an array of BCP-47 identifiers (e.g. `[\"ar\", \"de\", \"en\", \"es\", \"fr\"]`).\nThis covers every language the framework knows about, regardless of whether\nthe packs are installed locally. Use `status()` to distinguish installed\npairs from merely supported ones.",
+          "params": [],
+          "returns": {
+            "type": "JSPromise?",
+            "description": "Resolves to an array of BCP-47 language code strings.",
+            "promiseType": "string[]"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.translation.supportedLanguages().then(langs => {\n    console.log(langs.includes(\"fr\")) // true\n})"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.translation/HSTranslationModule.swift",
+          "lineNumber": 49
+        },
+        {
+          "name": "status",
+          "signature": "func status(_ sourceLanguage: String, _ targetLanguage: String) -> JSPromise?",
+          "rawDocumentation": "Check the installation status of a language pair.\n\nResolves to one of three strings:\n- `\"installed\"` — downloaded and ready for offline translation.\n- `\"supported\"` — available but not yet downloaded.\n- `\"unsupported\"` — not available on this system.\n\n- Parameter sourceLanguage: BCP-47 code of the source language (e.g. `\"en\"`).\n- Parameter targetLanguage: BCP-47 code of the target language (e.g. `\"fr\"`).\n- Returns: {Promise<string>} Resolves to `\"installed\"`, `\"supported\"`, or `\"unsupported\"`.\n- Example:\n```js\nhs.translation.status(\"en\", \"fr\").then(s => console.log(s))\n// \"installed\"\n```",
+          "description": "Check the installation status of a language pair.",
+          "params": [
+            {
+              "name": "sourceLanguage",
+              "type": "String",
+              "description": "BCP-47 code of the source language (e.g. `\"en\"`)."
+            },
+            {
+              "name": "targetLanguage",
+              "type": "String",
+              "description": "BCP-47 code of the target language (e.g. `\"fr\"`)."
+            }
+          ],
+          "returns": {
+            "type": "JSPromise?",
+            "description": "Resolves to `\"installed\"`, `\"supported\"`, or `\"unsupported\"`.",
+            "promiseType": "string"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.translation.status(\"en\", \"fr\").then(s => console.log(s))\n// \"installed\""
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.translation/HSTranslationModule.swift",
+          "lineNumber": 66
+        },
+        {
+          "name": "session",
+          "signature": "func session(_ sourceLanguage: String, _ targetLanguage: String) -> HSTranslationSession?",
+          "rawDocumentation": "Create a translation session for a language pair.\n\nReturns an `HSTranslationSession`, or `null` if the system is running macOS\nolder than 26.0.\n\n- Parameter sourceLanguage: BCP-47 code of the source language (e.g. `\"en\"`).\n- Parameter targetLanguage: BCP-47 code of the target language (e.g. `\"fr\"`).\n- Returns: An `HSTranslationSession`, or `null` on unsupported versions of macOS.\n- Example:\n```js\nconst session = hs.translation.session(\"en\", \"fr\")\nif (session) {\n    session.translate(\"Hello\").then(r => console.log(r))\n} else {\n    console.log(\"Language pair not installed\")\n}\n```",
+          "description": "Create a translation session for a language pair.\nReturns an `HSTranslationSession`, or `null` if the system is running macOS\nolder than 26.0.",
+          "params": [
+            {
+              "name": "sourceLanguage",
+              "type": "String",
+              "description": "BCP-47 code of the source language (e.g. `\"en\"`)."
+            },
+            {
+              "name": "targetLanguage",
+              "type": "String",
+              "description": "BCP-47 code of the target language (e.g. `\"fr\"`)."
+            }
+          ],
+          "returns": {
+            "type": "HSTranslationSession?",
+            "description": "An `HSTranslationSession`, or `null` on unsupported versions of macOS."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const session = hs.translation.session(\"en\", \"fr\")\nif (session) {\n    session.translate(\"Hello\").then(r => console.log(r))\n} else {\n    console.log(\"Language pair not installed\")\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.translation/HSTranslationModule.swift",
+          "lineNumber": 85
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSTranslationSessionAPI",
+          "type": "typedef",
+          "rawDocumentation": "JavaScript-visible API for a translation session bound to a specific language pair.",
+          "description": "JavaScript-visible API for a translation session bound to a specific language pair.",
+          "methods": [
+            {
+              "name": "translate",
+              "signature": "func translate(_ text: String) -> JSPromise?",
+              "rawDocumentation": "Translate a string from the session's source language to its target language.\n\n- Parameter text: The text to translate.\n- Returns: {Promise<string>} A Promise resolving to the translated string,\n  or rejecting with an error message if translation fails.\n- Example:\n```js\nconst session = hs.translation.session(\"en\", \"fr\")\nsession.translate(\"Hello, world!\").then(result => console.log(result))\n// \"Bonjour le monde !\"\n```",
+              "description": "Translate a string from the session's source language to its target language.",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "String",
+                  "description": "The text to translate."
+                }
+              ],
+              "returns": {
+                "type": "JSPromise?",
+                "description": "A Promise resolving to the translated string,",
+                "promiseType": "string"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const session = hs.translation.session(\"en\", \"fr\")\nsession.translate(\"Hello, world!\").then(result => console.log(result))\n// \"Bonjour le monde !\""
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.translation/HSTranslationSession.swift",
+              "lineNumber": 50
+            }
+          ],
+          "properties": [
+            {
+              "name": "typeName",
+              "signature": "var typeName: String { get }",
+              "rawDocumentation": "The Swift type name, for JavaScript introspection.\n\n- Example:\n```js\nconst session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.typeName) // \"HSTranslationSession\"\n```",
+              "description": "The Swift type name, for JavaScript introspection.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.typeName) // \"HSTranslationSession\""
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.translation/HSTranslationSession.swift",
+              "lineNumber": 19
+            },
+            {
+              "name": "sourceLanguage",
+              "signature": "var sourceLanguage: String { get }",
+              "rawDocumentation": "BCP-47 identifier of the source language (e.g. `\"en\"`).\n\n- Example:\n```js\nconst session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.sourceLanguage) // \"en\"\n```",
+              "description": "BCP-47 identifier of the source language (e.g. `\"en\"`).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.sourceLanguage) // \"en\""
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.translation/HSTranslationSession.swift",
+              "lineNumber": 28
+            },
+            {
+              "name": "targetLanguage",
+              "signature": "var targetLanguage: String { get }",
+              "rawDocumentation": "BCP-47 identifier of the target language (e.g. `\"fr\"`).\n\n- Example:\n```js\nconst session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.targetLanguage) // \"fr\"\n```",
+              "description": "BCP-47 identifier of the target language (e.g. `\"fr\"`).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.targetLanguage) // \"fr\""
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.translation/HSTranslationSession.swift",
+              "lineNumber": 37
+            }
+          ]
+        }
+      ],
+      "description": "Translate text between languages using the macOS on-device Translation framework.\nLanguage identifiers use BCP-47 format (e.g. `\"en\"`, `\"fr\"`, `\"zh-Hans\"`).\nCall `hs.translation.supportedLanguages()` to list every language the framework\nrecognises, and `hs.translation.status()` to check whether a specific pair is\ninstalled and ready for offline use.\nLanguage packs are downloaded through\n**System Settings → General → Language & Region → Translation Languages**.\n`hs.translation` cannot trigger downloads programmatically; `session()` returns\n`null` when the requested pair is not yet installed.\n## Quick start\n```js\nhs.translation.status(\"en\", \"fr\").then(s => {\n    if (s === \"installed\") {\n        const session = hs.translation.session(\"en\", \"fr\")\n        session.translate(\"Good morning\").then(r => console.log(r))\n    } else {\n        console.log(\"Install en→fr in System Settings → Language & Region → Translation Languages\")\n    }\n})\n```",
+      "rawDocumentation": "Translate text between languages using the macOS on-device Translation framework.\n\nLanguage identifiers use BCP-47 format (e.g. `\"en\"`, `\"fr\"`, `\"zh-Hans\"`).\nCall `hs.translation.supportedLanguages()` to list every language the framework\nrecognises, and `hs.translation.status()` to check whether a specific pair is\ninstalled and ready for offline use.\n\nLanguage packs are downloaded through\n**System Settings → General → Language & Region → Translation Languages**.\n`hs.translation` cannot trigger downloads programmatically; `session()` returns\n`null` when the requested pair is not yet installed.\n\n## Quick start\n\n```js\nhs.translation.status(\"en\", \"fr\").then(s => {\n    if (s === \"installed\") {\n        const session = hs.translation.session(\"en\", \"fr\")\n        session.translate(\"Good morning\").then(r => console.log(r))\n    } else {\n        console.log(\"Install en→fr in System Settings → Language & Region → Translation Languages\")\n    }\n})\n```"
+    },
+    {
       "name": "hs.ui",
       "methods": [
         {
@@ -11262,5 +11438,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-19T23:02:04.173Z"
+  "generatedAt": "2026-05-20T14:06:06.686Z"
 }
