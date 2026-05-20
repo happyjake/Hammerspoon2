@@ -8,6 +8,7 @@
 import Foundation
 import JavaScriptCore
 import Carbon
+import AppKit
 
 // MARK: - Declare our JavaScript API
 
@@ -60,6 +61,115 @@ import Carbon
     /// console.log(hs.hotkey.getModifierMap())
     /// ```
     @objc func getModifierMap() -> [String: UInt32]
+
+    /// Bind a callback to a double-tap of a bare modifier key.
+    /// Detects modifier-down → all-up → modifier-down within 300ms, with no
+    /// intervening key press. Fires on the second release.
+    /// - Parameter modifier: One of 'shift', 'ctrl', 'cmd', 'opt'
+    /// - Parameter callback: Function to invoke
+    /// - Returns: An HSDoubleTapHotkey with .unbind()
+    /// - Example:
+    /// ```js
+    /// hs.hotkey.bindDoubleTap('shift', () => console.log('shift!'))
+    /// ```
+    @objc func bindDoubleTap(_ modifier: String, _ callback: JSValue) -> HSDoubleTapHotkey?
+}
+
+// MARK: - DoubleTap Support Types
+
+/// Object representing a double-tap hotkey binding. Use .unbind() to remove it.
+@objc protocol HSDoubleTapHotkeyAPI: HSTypeAPI, JSExport {
+    /// Remove the double-tap binding
+    /// - Example:
+    /// ```js
+    /// const hk = hs.hotkey.bindDoubleTap('shift', () => {})
+    /// hk.unbind()
+    /// ```
+    @objc func unbind()
+}
+
+@_documentation(visibility: private)
+@MainActor
+@objc class HSDoubleTapHotkey: NSObject, HSDoubleTapHotkeyAPI {
+    @objc var typeName = "HSDoubleTapHotkey"
+    private let unbinder: () -> Void
+
+    init(unbinder: @escaping () -> Void) {
+        self.unbinder = unbinder
+        super.init()
+    }
+
+    @objc func unbind() { unbinder() }
+}
+
+/// Detects double-press of a bare modifier key within 300ms with no intervening key.
+private final class DoubleTapDetector {
+    private let modifierMask: NSEvent.ModifierFlags
+    private let callback: JSValue
+    private var globalMonitor: Any?
+    private var localMonitor: Any?
+    private var state: Int = 0
+    private var firstReleaseAt: Date?
+    private static let windowSeconds: TimeInterval = 0.3
+    private static let trackedMask: NSEvent.ModifierFlags = [.shift, .control, .command, .option]
+
+    init(modifier: NSEvent.ModifierFlags, callback: JSValue) {
+        self.modifierMask = modifier
+        self.callback = callback
+    }
+
+    func start() {
+        let handler: (NSEvent) -> Void = { [weak self] e in self?.handle(e) }
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.flagsChanged, .keyDown]) { e in
+            handler(e)
+        }
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.flagsChanged, .keyDown]) { e in
+            handler(e)
+            return e
+        }
+    }
+
+    func stop() {
+        if let g = globalMonitor { NSEvent.removeMonitor(g); globalMonitor = nil }
+        if let l = localMonitor  { NSEvent.removeMonitor(l); localMonitor  = nil }
+    }
+
+    private func handle(_ event: NSEvent) {
+        if event.type == .keyDown {
+            state = 0; firstReleaseAt = nil
+            return
+        }
+        let flags = event.modifierFlags.intersection(Self.trackedMask)
+        let isOurModOnly = flags == modifierMask
+        let isOurModDown = flags.contains(modifierMask)
+        let allUp = flags.isEmpty
+
+        switch state {
+        case 0:
+            if isOurModDown && isOurModOnly { state = 1 }
+        case 1:
+            if allUp { state = 2; firstReleaseAt = Date() }
+            else { state = 0 }
+        case 2:
+            if let t = firstReleaseAt, Date().timeIntervalSince(t) > Self.windowSeconds {
+                state = 0; firstReleaseAt = nil
+            } else if isOurModDown && isOurModOnly {
+                state = 3
+            } else if !allUp {
+                state = 0; firstReleaseAt = nil
+            }
+        case 3:
+            if allUp {
+                let cb = self.callback
+                DispatchQueue.main.async { _ = cb.call(withArguments: []) }
+                state = 0; firstReleaseAt = nil
+            } else if !isOurModDown {
+                state = 0; firstReleaseAt = nil
+            }
+        default:
+            state = 0; firstReleaseAt = nil
+        }
+    }
 }
 
 // MARK: - Implementation
@@ -71,6 +181,9 @@ import Carbon
 
     // Track active hotkeys for cleanup
     private var activeHotkeys: [HSHotkey] = []
+
+    // Track active double-tap detectors for cleanup
+    private var doubleTapDetectors: [DoubleTapDetector] = []
 
     // MARK: - Module lifecycle
 
@@ -86,6 +199,12 @@ import Carbon
             hotkey.disable()
         }
         activeHotkeys.removeAll()
+
+        // Stop all double-tap detectors
+        for detector in doubleTapDetectors {
+            detector.stop()
+        }
+        doubleTapDetectors.removeAll()
     }
 
     isolated deinit {
@@ -133,6 +252,29 @@ import Carbon
         activeHotkeys.append(hotkey)
 
         return hotkey
+    }
+
+    // MARK: - Double-tap binding
+
+    @objc func bindDoubleTap(_ modifierName: String, _ callback: JSValue) -> HSDoubleTapHotkey? {
+        let mask: NSEvent.ModifierFlags
+        switch modifierName.lowercased() {
+        case "shift":                     mask = .shift
+        case "ctrl", "control":           mask = .control
+        case "cmd", "command":            mask = .command
+        case "opt", "alt", "option":      mask = .option
+        default:
+            AKError("bindDoubleTap: unknown modifier '\(modifierName)'")
+            return nil
+        }
+        let detector = DoubleTapDetector(modifier: mask, callback: callback)
+        detector.start()
+        doubleTapDetectors.append(detector)
+
+        return HSDoubleTapHotkey(unbinder: { [weak self, weak detector] in
+            detector?.stop()
+            if let d = detector { self?.doubleTapDetectors.removeAll { $0 === d } }
+        })
     }
 
     // MARK: - Helper methods
