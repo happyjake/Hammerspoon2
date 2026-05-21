@@ -353,6 +353,7 @@ The HSFooModuleAPI protocol should observe the following rules:
   - The underlying _addWatcher call MUST be lazy (only on first on() call).
   - _removeWatcher MUST be called automatically when the last listener is removed.
   - Duplicate listener registration is silently rejected with console.error (not thrown).
+  - The module's shutdown() method MUST remove all watchers and set properties like _watcherEmitter to nil
 
   ---
   Pattern B — Object-level watcher (hs.ax, hs.location)

@@ -139,7 +139,7 @@ extension JSEngine: JSEngineProtocol {
 
 struct RequireInstaller: JSContextInstallable {
     func install(in context: JSContext) throws {
-        let require: @convention(block) (String) -> (JSValue?) = { path in
+        let require: @convention(block) (String) -> (JSValue?) = { [weak context] path in
             let expandedPath = NSString(string: path).expandingTildeInPath
 
             // Return void or throw an error here.
@@ -155,7 +155,7 @@ struct RequireInstaller: JSContextInstallable {
                 return nil
             }
 
-            return context.evaluateScript(fileContent, withSourceURL: fileURL)
+            return context?.evaluateScript(fileContent, withSourceURL: fileURL)
         }
 
         context.setObject(require, forKeyedSubscript: "require" as NSString)

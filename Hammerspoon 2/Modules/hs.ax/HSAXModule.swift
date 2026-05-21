@@ -220,6 +220,12 @@ import AXSwift
             observer.stop()
         }
         observers.removeAll()
+
+        _watcherEmitter = nil
+        focusedElement = nil
+        findByRole = nil
+        findByTitle = nil
+        printHierarchy = nil
     }
 
     isolated deinit {

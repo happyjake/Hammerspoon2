@@ -138,6 +138,12 @@ struct TaskTracker {
             task.destroy()
         }
         tasks.removeAllObjects()
+        runAsync = nil
+        shell = nil
+        parallel = nil
+        sequence = nil
+        builder = nil
+        TaskBuilder = nil
     }
 
     isolated deinit {

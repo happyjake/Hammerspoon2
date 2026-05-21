@@ -200,6 +200,10 @@ import JavaScriptCore
             timer.destroy()
         }
         timers.removeAllObjects()
+        doUntil = nil
+        doWhile = nil
+        waitUntil = nil
+        waitWhile = nil
     }
 
     isolated deinit {
