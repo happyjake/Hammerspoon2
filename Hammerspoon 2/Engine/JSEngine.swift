@@ -74,6 +74,9 @@ class JSEngine {
         // Force GC so JS proxies for Swift objects that lost all JS references are collected
         // before we nil the context, allowing their Swift counterparts to be freed promptly.
         if let context = context {
+            context.globalObject.deleteProperty("hs")
+            context.globalObject.deleteProperty("console")
+            context.globalObject.deleteProperty("require")
             unsafe JavaScriptCore.JSGarbageCollect(context.jsGlobalContextRef)
         }
 
