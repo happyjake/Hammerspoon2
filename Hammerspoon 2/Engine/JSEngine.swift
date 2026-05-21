@@ -65,6 +65,18 @@ class JSEngine {
             self["hs"] = nil
         }
 
+        // ConsoleModule has no shutdown() so we can just nil it out
+        self["console"] = nil
+
+        // require() isn't even an object, so we can just nil it out
+        self["require"] = nil
+
+        // Force GC so JS proxies for Swift objects that lost all JS references are collected
+        // before we nil the context, allowing their Swift counterparts to be freed promptly.
+        if let context = context {
+            unsafe JavaScriptCore.JSGarbageCollect(context.jsGlobalContextRef)
+        }
+
         context = nil
         vm = nil
     }
