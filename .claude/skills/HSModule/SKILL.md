@@ -164,6 +164,95 @@ private var _callbackPressed: JSCallback?
 
 **Exception — strong refs for visible UI objects:**
 `hs.ui` intentionally uses `[UUID: HSUIWindow]` (strong) for windows, alerts, and dialogs. These must stay alive on screen even if JS drops the reference. This is the only legitimate reason to use strong tracking. UI objects call back to the module to `register`/`unregister` themselves when shown/closed.
+
+## JSValue retention and JSContext leaks
+
+Every `JSValue` stored anywhere in Swift holds the **entire old `JSContext` alive** until that `JSValue` is released. If `hs.reload()` is called and any Swift object is still holding a `JSValue` from the old context, that context — and its entire JS heap, including all JS proxies for Swift objects — will remain in memory indefinitely.
+
+This section documents the patterns that cause these leaks and how to prevent them.
+
+### Closures that capture JSValue are the same as raw JSValue
+
+A closure that closes over a `JSValue` parameter is functionally identical to storing that `JSValue` directly. Both hold a strong reference to the old `JSContext`.
+
+```swift
+// WRONG — the closure captures `callback` by value; JSValue is retained
+interactive.clickCallback = { callback.call(withArguments: []) }
+
+// WRONG — equivalent problem; isHovered is Bool but callback is captured
+interactive.hoverCallback = { isHovered in callback.call(withArguments: [isHovered]) }
+```
+
+Any closure stored in a property (even a non-`JSValue` typed property like `(() -> Void)?`) that was created by capturing a `JSValue` must be cleared during shutdown with the same urgency as a raw `JSValue`.
+
+**If JSValue-capturing closures are stored in sub-objects** (e.g. an element tree), the parent object must explicitly nil those sub-objects during `close()`/`shutdown()` — it is not sufficient to just release the parent via ARC, because ARC only runs when the retain count reaches zero, which may not happen until the JS proxy for the parent is GC'd (which requires the context to be freed first — a chicken-and-egg deadlock).
+
+The correct pattern is to break the chain eagerly in `close()`:
+
+```swift
+@objc func close() {
+    guard isOpen else { return }
+    // Eagerly release the element tree so closures that captured JSValue callbacks
+    // are freed NOW, before this object's own retain count reaches zero.
+    rootElement = nil
+    currentElement = nil
+    containerStack.removeAll()
+    // ... close the window etc. ...
+}
+```
+
+### `_watcherEmitter` must be nilled in `shutdown()`
+
+Every module that uses the Pattern A watcher stores a JS EventEmitter instance in `_watcherEmitter: JSValue?`. This `JSValue` holds the old `JSContext` alive. It MUST be nilled in `shutdown()` — calling `_removeWatcher()` alone is not sufficient, because `_removeWatcher()` only removes the underlying OS listener, not the emitter value itself.
+
+```swift
+func shutdown() {
+    _removeWatcher()
+    _watcherEmitter = nil   // REQUIRED — releases the JSValue holding the old context
+}
+```
+
+The same applies to any other `JSValue?` stored directly on a module (e.g. `doUntil`, `doWhile`, `waitUntil`, `waitWhile` on `HSTimerModule`): they must all be nilled in `shutdown()`.
+
+### `close()` is the single cleanup point — not `deinit`
+
+For objects that have a `close()` or `destroy()` lifecycle method, **all JSValue cleanup must happen in `close()`/`destroy()`**, not only in `deinit`. This is because:
+
+- `shutdown()` calls `close()`/`destroy()` explicitly — this is the primary cleanup path.
+- `deinit` runs only after the object's ARC count drops to zero.
+- If a JS proxy still references the Swift object (because the old context hasn't been freed yet), `deinit` never runs — but `close()` already ran, so that's fine. If `close()` didn't release the JSValues, the proxy prevents the context from being freed, which prevents `deinit` from running — a deadlock.
+
+The dependency is:
+> `close()` releases JSValues → JSContext freed → JS proxy collected → ARC drops → `deinit` runs
+
+Reversing this by relying on `deinit` to release JSValues breaks the chain.
+
+### One-shot callbacks: nil after invocation
+
+For objects that show a modal UI and invoke a callback exactly once (e.g. `HSUITextPrompt`, `HSUIFilePicker`), nil the callback immediately after calling it. There is no `close()` to clear it, and the object may remain alive for a long time if not GC'd:
+
+```swift
+@objc func show() {
+    // ... run the modal ...
+    if let callback = buttonCallback {
+        buttonCallback = nil          // release BEFORE calling, so it's freed even if callback throws
+        callback.call(withArguments: [buttonIndex, inputText])
+    }
+}
+```
+
+Nilling before calling (rather than after) is slightly safer: if the callback throws a JS exception, the `JSValue` is still released.
+
+### Shutdown checklist
+
+When writing or reviewing a module's `shutdown()`, verify:
+
+- [ ] `_removeWatcher()` called if the module uses Pattern A watchers
+- [ ] `_watcherEmitter = nil` set after `_removeWatcher()`
+- [ ] Every other `JSValue?` property stored on the module is nilled
+- [ ] Every `JSValue?`-capturing closure stored on the module or its sub-objects is cleared
+- [ ] `destroy()` called on all tracked child objects (which detach their own `JSCallback`s)
+- [ ] `close()` on long-lived UI objects clears element trees and callback properties eagerly
  * If HSFooModule includes an hs.foo.js file, and that file needs to store any properties/methods/objects/etc in the hs.foo namespace, there must be a declaration in HSFooModuleAPI to hold it. JavaScriptCore cannot modify HSFooModule instances at runtime to add additional properties/methods and they will go silently out of scope in unpredictable ways.
  * In general we should avoid creating an hs.foo.js file unless absolutely necessary - it is strongly preferred to keep all code together in Swift. Legitimate uses of a .js file would include the watcher patterns mentioned below
 
