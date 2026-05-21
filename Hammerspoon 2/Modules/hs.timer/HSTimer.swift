@@ -120,7 +120,7 @@ import JavaScriptCore
                                      repeats: repeats)
 
         // Add to common run loop modes so timer fires during modal dialogs, etc.
-        if let timer = timer {
+        if let timer {
             RunLoop.current.add(timer, forMode: .common)
         }
     }

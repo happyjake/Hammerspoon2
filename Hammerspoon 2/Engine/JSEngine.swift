@@ -9,6 +9,18 @@ import Foundation
 import JavaScriptCore
 import JavaScriptCoreExtras
 
+// MARK: - JSContext lifetime diagnostics
+
+private var contextTrackerKey: UInt8 = 0
+
+private final class ContextLifetimeTracker {
+    let id: UUID
+    init(id: UUID) { self.id = id }
+    deinit { print("JSContext freed: \(id)") }
+}
+
+// MARK: -
+
 @_documentation(visibility: private)
 class JSEngine {
     static let shared = JSEngine()
@@ -32,6 +44,9 @@ class JSEngine {
         }
 
         context.name = "Hammerspoon \(id)"
+
+        // Attach a sentinel so we can observe exactly when this JSContext's ARC drops to 0.
+        unsafe objc_setAssociatedObject(context, &contextTrackerKey, ContextLifetimeTracker(id: id), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 
         // Set up exception handler to catch JavaScript errors
         context.exceptionHandler = { context, exception in
@@ -102,12 +117,23 @@ extension JSEngine: JSEngineProtocol {
         return context?.evaluateScript(script)?.toObject()
     }
 
-    @discardableResult func evalFromURL(_ url: URL) throws -> Any? {
+    @discardableResult func evalFromURL(_ url: URL, wrapInIIFE: Bool = false) throws -> Any? {
         guard url.isFileURL else {
             throw HammerspoonError(.jsEvalURLKind, msg: "Refusing to eval remote URL")
         }
 
-        let script = try String(contentsOf: url, encoding: .utf8)
+        var script = try String(contentsOf: url, encoding: .utf8)
+        if wrapInIIFE {
+            // Wrapping in an IIFE scopes top-level `const`/`let` bindings to the function
+            // rather than the global lexical environment. Without this, every `const t = hs.timer.new(...)`
+            // creates a permanent GC root that prevents the JS proxy (and thus the Swift HSTimer) from
+            // being collected until the entire JSContext is torn down — which only happens after reload
+            // unwinds completely. With the IIFE, JSC's incremental GC can collect the proxy once the
+            // function returns, allowing moduleRoot.shutdown() to be the sole cleanup path.
+            //
+            // Note: error line numbers reported by JSC will be offset by 1 (the opening IIFE line).
+            script = "(function(){\n" + script + "\n})();"
+        }
         return context?.evaluateScript(script, withSourceURL: url)
     }
 
