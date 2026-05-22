@@ -274,12 +274,14 @@ import Darwin
                     var addr = unsafe base.assumingMemoryBound(to: sockaddr_in.self).pointee.sin_addr
                     var buffer = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
                     guard unsafe inet_ntop(AF_INET, &addr, &buffer, socklen_t(INET_ADDRSTRLEN)) != nil else { return nil }
-                    return String(cString: buffer)
+                    let address = String(utf8String: buffer)
+                    return address
                 case AF_INET6:
                     var addr = unsafe base.assumingMemoryBound(to: sockaddr_in6.self).pointee.sin6_addr
                     var buffer = [CChar](repeating: 0, count: Int(INET6_ADDRSTRLEN))
                     guard unsafe inet_ntop(AF_INET6, &addr, &buffer, socklen_t(INET6_ADDRSTRLEN)) != nil else { return nil }
-                    return String(cString: buffer)
+                    let address = String(utf8String: buffer)
+                    return address
                 default:
                     return nil
                 }

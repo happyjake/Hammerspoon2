@@ -35,9 +35,15 @@ import JavaScriptCore
 /// ```js
 /// const search = hs.bonjour.newSearch()
 /// search.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {
-///     if (event === 'serviceFound') {
-///         console.log('Found:', svc.name, '— more coming:', moreComing)
-///     }
+///     if (event !== 'serviceFound') return
+///     console.log('Discovered: ' + svc.name + ' (' + svc.type + ' ' + svc.domain + ')')
+///     svc.resolve(5, ev => {
+///         if (ev === 'error') { console.error('Resolve failed for' + svc.name); return }
+///         if (ev !== 'resolved') return
+///         console.log('  Host:      ' + svc.hostname + ' port ' + svc.port)
+///         console.log('  Addresses: ' + svc.addresses.join(', '))
+///         if (svc.txtRecord) console.log('  TXT record:', JSON.stringify(svc.txtRecord))
+///     })
 /// })
 /// ```
 @objc protocol HSBonjourSearchAPI: HSTypeAPI, JSExport {
