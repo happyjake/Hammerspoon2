@@ -218,10 +218,19 @@ private final class CommonJSLoader {
     /// and /index.js in order.
     func resolveWithExtensions(_ candidate: String) -> String? {
         let fm = FileManager.default
-        if fm.fileExists(atPath: candidate) { return candidate }
+        var isDir: ObjCBool = false
+        // Accept the bare path only if it's a regular file. Directories must
+        // resolve via the /index.js extension probe; otherwise we'd return a
+        // directory path that the loader can't read.
+        if fm.fileExists(atPath: candidate, isDirectory: &isDir) && !isDir.boolValue {
+            return candidate
+        }
         for ext in [".js", ".json", "/index.js"] {
             let probe = candidate + ext
-            if fm.fileExists(atPath: probe) { return probe }
+            var probeIsDir: ObjCBool = false
+            if fm.fileExists(atPath: probe, isDirectory: &probeIsDir) && !probeIsDir.boolValue {
+                return probe
+            }
         }
         return nil
     }
