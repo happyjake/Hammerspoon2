@@ -96,9 +96,8 @@ import JavaScriptCore
         self.callback = JSCallback(value: callback, owner: self)
     }
 
-    isolated deinit {
-        destroy()
-        print("deinit of HSTimerObject: interval=\(interval), repeats=\(repeats)")
+    deinit {
+        print("HSTimer deinit")
     }
 
     func destroy() {

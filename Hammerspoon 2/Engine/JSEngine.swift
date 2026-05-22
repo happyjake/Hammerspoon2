@@ -86,13 +86,12 @@ class JSEngine {
         // require() isn't even an object, so we can just nil it out
         self["require"] = nil
 
-        // Force GC so JS proxies for Swift objects that lost all JS references are collected
-        // before we nil the context, allowing their Swift counterparts to be freed promptly.
+        // Remove global properties from the lexical environment so JSC's GC can collect
+        // any remaining JS proxies for Swift objects.
         if let context = context {
             context.globalObject.deleteProperty("hs")
             context.globalObject.deleteProperty("console")
             context.globalObject.deleteProperty("require")
-            unsafe JavaScriptCore.JSGarbageCollect(context.jsGlobalContextRef)
         }
 
         context = nil
