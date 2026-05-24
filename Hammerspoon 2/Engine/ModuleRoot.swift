@@ -36,6 +36,7 @@ import JavaScriptCoreExtras
     @objc var pasteboard: HSPasteboardModule { get }
     @objc var screen: HSScreenModule { get }
     @objc var sqlite: HSSqliteModule { get }
+    @objc var switcher: HSSwitcherModule { get }
     @objc var task: HSTaskModule { get }
     @objc var power: HSPowerModule { get }
     @objc var timer: HSTimerModule { get }
@@ -111,6 +112,7 @@ import JavaScriptCoreExtras
     @objc var pasteboard: HSPasteboardModule { get { getOrCreate(name: "pasteboard", type: HSPasteboardModule.self)}}
     @objc var screen: HSScreenModule { get { getOrCreate(name: "screen", type: HSScreenModule.self)}}
     @objc var sqlite: HSSqliteModule { get { getOrCreate(name: "sqlite", type: HSSqliteModule.self)}}
+    @objc var switcher: HSSwitcherModule { get { getOrCreate(name: "switcher", type: HSSwitcherModule.self)}}
     @objc var task: HSTaskModule { get { getOrCreate(name: "task", type: HSTaskModule.self)}}
     @objc var power: HSPowerModule { get { getOrCreate(name: "power", type: HSPowerModule.self)}}
     @objc var timer: HSTimerModule { get { getOrCreate(name: "timer", type: HSTimerModule.self)}}
