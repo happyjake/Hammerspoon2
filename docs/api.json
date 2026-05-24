@@ -516,6 +516,80 @@
           "lineNumber": 120
         },
         {
+          "name": "installedApps",
+          "signature": "func installedApps(_ extraRoots: JSValue) -> [[String: Any]]",
+          "rawDocumentation": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; call `invalidateInstalledAppsCache()`\nto force a rescan.\n\nRoots scanned in order (dedup by bundleID — first wins):\n  1. /Applications\n  2. ~/Applications\n  3. /System/Applications\n  4. /System/Applications/Utilities\n  5. Any caller-supplied extra roots\n\nBundles with `LSUIElement = true` or `NSUIElement = true` are skipped.\nIcons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.\n\n- Parameter extraRoots: Optional array of additional directories to scan.\n- Returns: Array of `{name, displayName, bundleID, path, iconPath, version}`\n- Example:\n```js\nconst apps = hs.application.installedApps()\nconsole.log(apps[0].displayName, apps[0].bundleID)\n\n// With extra roots:\nconst more = hs.application.installedApps(['~/Tools', '~/Dev/Apps'])\n```",
+          "description": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; call `invalidateInstalledAppsCache()`\nto force a rescan.\n1. /Applications\n2. ~/Applications\n3. /System/Applications\n4. /System/Applications/Utilities\n5. Any caller-supplied extra roots\nBundles with `LSUIElement = true` or `NSUIElement = true` are skipped.\nIcons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.",
+          "params": [
+            {
+              "name": "extraRoots",
+              "type": "JSValue",
+              "description": "Optional array of additional directories to scan."
+            }
+          ],
+          "returns": {
+            "type": "[[String: Any]]",
+            "description": "Array of `{name, displayName, bundleID, path, iconPath, version}`"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const apps = hs.application.installedApps()\nconsole.log(apps[0].displayName, apps[0].bundleID)\n\n// With extra roots:\nconst more = hs.application.installedApps(['~/Tools', '~/Dev/Apps'])"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
+          "lineNumber": 147
+        },
+        {
+          "name": "invalidateInstalledAppsCache",
+          "signature": "func invalidateInstalledAppsCache()",
+          "rawDocumentation": "Force the next call to `installedApps()` to rescan from disk.\n- Example:\n```js\nhs.application.invalidateInstalledAppsCache()\n```",
+          "description": "Force the next call to `installedApps()` to rescan from disk.",
+          "params": [],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.application.invalidateInstalledAppsCache()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
+          "lineNumber": 154
+        },
+        {
+          "name": "killPid",
+          "signature": "func killPid(_ pid: Int, _ force: Bool) -> Bool",
+          "rawDocumentation": "Send SIGTERM (force=false) or SIGKILL (force=true) to an arbitrary PID.\nRefuses to signal PID 0, 1, or this process. Returns true if the signal\nwas delivered, false on error (logged via AKError).\n- Parameter pid: Target PID\n- Parameter force: When true sends SIGKILL; otherwise SIGTERM.\n- Returns: true on success\n- Example:\n```js\nhs.application.killPid(12345, false)   // graceful\nhs.application.killPid(12345, true)    // force\n```",
+          "description": "Send SIGTERM (force=false) or SIGKILL (force=true) to an arbitrary PID.\nRefuses to signal PID 0, 1, or this process. Returns true if the signal\nwas delivered, false on error (logged via AKError).",
+          "params": [
+            {
+              "name": "pid",
+              "type": "Int",
+              "description": "Target PID"
+            },
+            {
+              "name": "force",
+              "type": "Bool",
+              "description": "When true sends SIGKILL; otherwise SIGTERM."
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true on success"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.application.killPid(12345, false)   // graceful\nhs.application.killPid(12345, true)    // force"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
+          "lineNumber": 167
+        },
+        {
           "name": "addWatcher",
           "signature": "func addWatcher(_ listener: JSValue)",
           "rawDocumentation": "Create a watcher for application events\n- Parameters:\n   - listener: A javascript function/lambda to call when any application event is received. The function will be called with two parameters: the name of the event, and the associated HSApplication object\n- Example:\n```js\nhs.application.addWatcher((event, app) => {\n    console.log(event, app && app.title)\n})\n```",
@@ -536,7 +610,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 131
+          "lineNumber": 178
         },
         {
           "name": "removeWatcher",
@@ -559,7 +633,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 140
+          "lineNumber": 187
         }
       ],
       "properties": [],
@@ -3225,6 +3299,245 @@
       "rawDocumentation": "Module for controlling the Hammerspoon console"
     },
     {
+      "name": "hs.crypto",
+      "methods": [
+        {
+          "name": "aesGcmEncryptB64",
+          "signature": "func aesGcmEncryptB64(_ opts: JSValue) -> [String: String]?",
+          "rawDocumentation": "AES-256-GCM encrypt. Inputs and outputs are base64 strings.\n- Parameter opts: `{ keyB64: string, nonceB64: string, plaintext: string }`\n  - `keyB64`: base64-encoded 32-byte key\n  - `nonceB64`: base64-encoded 12-byte nonce (reuse-once invariant on caller)\n  - `plaintext`: UTF-8 string to encrypt\n- Returns: `{ nonceB64, ciphertextB64 }` where ciphertextB64 includes the 16-byte tag at the end\n- Example:\n```js\nconst { ciphertextB64 } = hs.crypto.aesGcmEncryptB64({ keyB64, nonceB64, plaintext: 'hi' })\n```",
+          "description": "AES-256-GCM encrypt. Inputs and outputs are base64 strings.",
+          "params": [
+            {
+              "name": "opts",
+              "type": "JSValue",
+              "description": "`{ keyB64: string, nonceB64: string, plaintext: string }`"
+            }
+          ],
+          "returns": {
+            "type": "[String: String]?",
+            "description": "`{ nonceB64, ciphertextB64 }` where ciphertextB64 includes the 16-byte tag at the end"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const { ciphertextB64 } = hs.crypto.aesGcmEncryptB64({ keyB64, nonceB64, plaintext: 'hi' })"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.crypto/HSCryptoModule.swift",
+          "lineNumber": 29
+        },
+        {
+          "name": "aesGcmDecryptB64",
+          "signature": "func aesGcmDecryptB64(_ opts: JSValue) -> String?",
+          "rawDocumentation": "AES-256-GCM authenticate-and-decrypt. Returns the plaintext UTF-8 string,\nor null on auth failure / bad input. Designed to round-trip with Android's\nCipher.getInstance(\"AES/GCM/NoPadding\") output (ciphertext+tag concatenated).\n- Parameter opts: `{ keyB64: string, nonceB64: string, ciphertextB64: string }`\n- Returns: the decoded UTF-8 plaintext, or null if authentication failed\n- Example:\n```js\nconst plain = hs.crypto.aesGcmDecryptB64({ keyB64, nonceB64, ciphertextB64 })\nif (plain === null) { /* auth failed */ }\n```",
+          "description": "AES-256-GCM authenticate-and-decrypt. Returns the plaintext UTF-8 string,\nor null on auth failure / bad input. Designed to round-trip with Android's\nCipher.getInstance(\"AES/GCM/NoPadding\") output (ciphertext+tag concatenated).",
+          "params": [
+            {
+              "name": "opts",
+              "type": "JSValue",
+              "description": "`{ keyB64: string, nonceB64: string, ciphertextB64: string }`"
+            }
+          ],
+          "returns": {
+            "type": "String?",
+            "description": "the decoded UTF-8 plaintext, or null if authentication failed"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const plain = hs.crypto.aesGcmDecryptB64({ keyB64, nonceB64, ciphertextB64 })\nif (plain === null) { /* auth failed */ }"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.crypto/HSCryptoModule.swift",
+          "lineNumber": 41
+        },
+        {
+          "name": "sha256B64",
+          "signature": "func sha256B64(_ input: String) -> String",
+          "rawDocumentation": "SHA-256 of a UTF-8 string, returned as base64. Useful for PSK → key\nderivation that matches Android's `MessageDigest.getInstance(\"SHA-256\")\n.digest(passphrase.toByteArray())` shape.\n- Parameter input: a UTF-8 string\n- Returns: base64-encoded 32-byte digest\n- Example:\n```js\nconst keyB64 = hs.crypto.sha256B64('my-passphrase')\n```",
+          "description": "SHA-256 of a UTF-8 string, returned as base64. Useful for PSK → key\nderivation that matches Android's `MessageDigest.getInstance(\"SHA-256\")\n.digest(passphrase.toByteArray())` shape.",
+          "params": [
+            {
+              "name": "input",
+              "type": "String",
+              "description": "a UTF-8 string"
+            }
+          ],
+          "returns": {
+            "type": "String",
+            "description": "base64-encoded 32-byte digest"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const keyB64 = hs.crypto.sha256B64('my-passphrase')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.crypto/HSCryptoModule.swift",
+          "lineNumber": 52
+        }
+      ],
+      "properties": [],
+      "types": []
+    },
+    {
+      "name": "hs.eventtap",
+      "methods": [
+        {
+          "name": "makeTap",
+          "signature": "func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap",
+          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Input Monitoring permission.\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged'\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n```",
+          "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Input Monitoring permission.",
+          "params": [
+            {
+              "name": "eventTypes",
+              "type": "[String]",
+              "description": "Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged'"
+            },
+            {
+              "name": "callback",
+              "type": "JSValue",
+              "description": "Function called with an event object. Return true to consume (suppress) the event."
+            }
+          ],
+          "returns": {
+            "type": "HSEventTap",
+            "description": "An HSEventTap instance"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
+          "lineNumber": 28
+        },
+        {
+          "name": "keyStroke",
+          "signature": "func keyStroke(_ mods: [String], _ key: String)",
+          "rawDocumentation": "Synthesise a key stroke (M1 stub — lands in M3/M4).\n- Parameter mods: Array of modifier strings, e.g. ['cmd']\n- Parameter key: Key name, e.g. 'v'\n- Example:\n```js\nhs.eventtap.keyStroke(['cmd'], 'v')\n```",
+          "description": "Synthesise a key stroke (M1 stub — lands in M3/M4).",
+          "params": [
+            {
+              "name": "mods",
+              "type": "[String]",
+              "description": "Array of modifier strings, e.g. ['cmd']"
+            },
+            {
+              "name": "key",
+              "type": "String",
+              "description": "Key name, e.g. 'v'"
+            }
+          ],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.eventtap.keyStroke(['cmd'], 'v')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
+          "lineNumber": 37
+        },
+        {
+          "name": "typeText",
+          "signature": "func typeText(_ text: String)",
+          "rawDocumentation": "Type a string by synthesising key events (M1 stub — lands in M4).\n- Parameter text: Text to type\n- Example:\n```js\nhs.eventtap.typeText('Hello!')\n```",
+          "description": "Type a string by synthesising key events (M1 stub — lands in M4).",
+          "params": [
+            {
+              "name": "text",
+              "type": "String",
+              "description": "Text to type"
+            }
+          ],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.eventtap.typeText('Hello!')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
+          "lineNumber": 45
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSEventTapAPI",
+          "type": "typedef",
+          "rawDocumentation": "Object representing a CGEventTap-based global key event tap.",
+          "description": "Object representing a CGEventTap-based global key event tap.",
+          "methods": [
+            {
+              "name": "start",
+              "signature": "func start() -> Bool",
+              "rawDocumentation": "Start the event tap. Returns true on success.\nRequires Input Monitoring permission. Returns false if permission is missing.\n- Returns: true if the tap was started successfully\n- Example:\n```js\nconst tap = hs.eventtap.new(['keyDown'], e => false)\ntap.start()\n```",
+              "description": "Start the event tap. Returns true on success.\nRequires Input Monitoring permission. Returns false if permission is missing.",
+              "params": [],
+              "returns": {
+                "type": "Bool",
+                "description": "true if the tap was started successfully"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const tap = hs.eventtap.new(['keyDown'], e => false)\ntap.start()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTap.swift",
+              "lineNumber": 20
+            },
+            {
+              "name": "stop",
+              "signature": "func stop()",
+              "rawDocumentation": "Stop the event tap.\n- Example:\n```js\ntap.stop()\n```",
+              "description": "Stop the event tap.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "tap.stop()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTap.swift",
+              "lineNumber": 27
+            }
+          ],
+          "properties": [
+            {
+              "name": "isRunning",
+              "signature": "var isRunning: Bool { get }",
+              "rawDocumentation": "Whether the tap is currently running.\n- Returns: true if the tap is active\n- Example:\n```js\nconsole.log(tap.isRunning)\n```",
+              "description": "Whether the tap is currently running.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log(tap.isRunning)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTap.swift",
+              "lineNumber": 35
+            }
+          ]
+        }
+      ],
+      "description": "Module for creating CGEventTap-based global keyboard event monitors",
+      "rawDocumentation": "Module for creating CGEventTap-based global keyboard event monitors"
+    },
+    {
       "name": "hs.fs",
       "methods": [
         {
@@ -4466,7 +4779,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
-          "lineNumber": 29
+          "lineNumber": 30
         },
         {
           "name": "bindSpec",
@@ -4512,7 +4825,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
-          "lineNumber": 46
+          "lineNumber": 47
         },
         {
           "name": "getKeyCodeMap",
@@ -4532,7 +4845,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
-          "lineNumber": 54
+          "lineNumber": 55
         },
         {
           "name": "getModifierMap",
@@ -4552,7 +4865,38 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
-          "lineNumber": 62
+          "lineNumber": 63
+        },
+        {
+          "name": "bindDoubleTap",
+          "signature": "func bindDoubleTap(_ modifier: String, _ callback: JSValue) -> HSDoubleTapHotkey?",
+          "rawDocumentation": "Bind a callback to a double-tap of a bare modifier key.\nDetects modifier-down → all-up → modifier-down within 300ms, with no\nintervening key press. Fires on the second release.\n- Parameter modifier: One of 'shift', 'ctrl', 'cmd', 'opt'\n- Parameter callback: Function to invoke\n- Returns: An HSDoubleTapHotkey with .unbind()\n- Example:\n```js\nhs.hotkey.bindDoubleTap('shift', () => console.log('shift!'))\n```",
+          "description": "Bind a callback to a double-tap of a bare modifier key.\nDetects modifier-down → all-up → modifier-down within 300ms, with no\nintervening key press. Fires on the second release.",
+          "params": [
+            {
+              "name": "modifier",
+              "type": "String",
+              "description": "One of 'shift', 'ctrl', 'cmd', 'opt'"
+            },
+            {
+              "name": "callback",
+              "type": "JSValue",
+              "description": "Function to invoke"
+            }
+          ],
+          "returns": {
+            "type": "HSDoubleTapHotkey?",
+            "description": "An HSDoubleTapHotkey with .unbind()"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.hotkey.bindDoubleTap('shift', () => console.log('shift!'))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
+          "lineNumber": 75
         }
       ],
       "properties": [],
@@ -4670,10 +5014,674 @@
               "lineNumber": 62
             }
           ]
+        },
+        {
+          "name": "HSDoubleTapHotkeyAPI",
+          "type": "typedef",
+          "rawDocumentation": "Object representing a double-tap hotkey binding. Use .unbind() to remove it.",
+          "description": "Object representing a double-tap hotkey binding. Use .unbind() to remove it.",
+          "methods": [
+            {
+              "name": "unbind",
+              "signature": "func unbind()",
+              "rawDocumentation": "Remove the double-tap binding\n- Example:\n```js\nconst hk = hs.hotkey.bindDoubleTap('shift', () => {})\nhk.unbind()\n```",
+              "description": "Remove the double-tap binding",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const hk = hs.hotkey.bindDoubleTap('shift', () => {})\nhk.unbind()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
+              "lineNumber": 88
+            }
+          ],
+          "properties": []
         }
       ],
       "description": "Module for creating and managing system-wide hotkeys",
       "rawDocumentation": "Module for creating and managing system-wide hotkeys"
+    },
+    {
+      "name": "hs.httpserver",
+      "methods": [
+        {
+          "name": "serve",
+          "signature": "func serve(_ opts: JSValue) -> HSHttpServer?",
+          "rawDocumentation": "Start an HTTP server.\n- Parameter opts: `{ port, hostname?, maxBodyBytes?, fetch }`\n  - `port`: TCP port to bind (required, 1..65535)\n  - `hostname`: bind address (default `'127.0.0.1'`; use `'0.0.0.0'` for LAN)\n  - `maxBodyBytes`: request body cap, over → 413 (default 32 MiB)\n  - `fetch`: handler `(request) => Response | Promise<Response>` (required)\n- Returns: a server handle with `.hostname`, `.port`, `.url`, `.stop()`\n- Example:\n```js\nconst server = hs.httpserver.serve({\n  port: 9876,\n  fetch: async (req) => new Response('hi', { status: 200 })\n})\n```",
+          "description": "Start an HTTP server.",
+          "params": [
+            {
+              "name": "opts",
+              "type": "JSValue",
+              "description": "`{ port, hostname?, maxBodyBytes?, fetch }`"
+            }
+          ],
+          "returns": {
+            "type": "HSHttpServer?",
+            "description": "a server handle with `.hostname`, `.port`, `.url`, `.stop()`"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const server = hs.httpserver.serve({\n  port: 9876,\n  fetch: async (req) => new Response('hi', { status: 200 })\n})"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServerModule.swift",
+          "lineNumber": 27
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSHttpHeadersAPI",
+          "type": "typedef",
+          "rawDocumentation": "",
+          "description": "",
+          "methods": [
+            {
+              "name": "make",
+              "signature": "static func make(_ init_: JSValue) -> HSHttpHeaders",
+              "rawDocumentation": "Factory equivalent to `new Headers(init)`. The JS wrapper in\n`hs.httpserver.js` delegates here.\n- Parameter init_: plain JS object `{name: value}` or another Headers\n- Returns: a new Headers instance",
+              "description": "Factory equivalent to `new Headers(init)`. The JS wrapper in\n`hs.httpserver.js` delegates here.",
+              "params": [
+                {
+                  "name": "init_",
+                  "type": "JSValue",
+                  "description": "plain JS object `{name: value}` or another Headers"
+                }
+              ],
+              "returns": {
+                "type": "HSHttpHeaders",
+                "description": "a new Headers instance"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 23
+            },
+            {
+              "name": "get",
+              "signature": "func get(_ name: String) -> String?",
+              "rawDocumentation": "Get the combined value for a header name (case-insensitive). Multi-value\nheaders are joined with `, ` per RFC 7230 §3.2.2.",
+              "description": "Get the combined value for a header name (case-insensitive). Multi-value\nheaders are joined with `, ` per RFC 7230 §3.2.2.",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": ""
+                }
+              ],
+              "returns": {
+                "type": "String?",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 27
+            },
+            {
+              "name": "set",
+              "signature": "func set(_ name: String, _ value: String)",
+              "rawDocumentation": "Set a header to a single value, replacing any prior value(s).",
+              "description": "Set a header to a single value, replacing any prior value(s).",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": ""
+                },
+                {
+                  "name": "value",
+                  "type": "String",
+                  "description": ""
+                }
+              ],
+              "returns": null,
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 30
+            },
+            {
+              "name": "has",
+              "signature": "func has(_ name: String) -> Bool",
+              "rawDocumentation": "True if the header is present.",
+              "description": "True if the header is present.",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": ""
+                }
+              ],
+              "returns": {
+                "type": "Bool",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 33
+            },
+            {
+              "name": "deleteHeader",
+              "signature": "func deleteHeader(_ name: String)",
+              "rawDocumentation": "Remove a header.",
+              "description": "Remove a header.",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": ""
+                }
+              ],
+              "returns": null,
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 36
+            },
+            {
+              "name": "append",
+              "signature": "func append(_ name: String, _ value: String)",
+              "rawDocumentation": "Append a value to a header; the prior value(s) are kept.",
+              "description": "Append a value to a header; the prior value(s) are kept.",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": ""
+                },
+                {
+                  "name": "value",
+                  "type": "String",
+                  "description": ""
+                }
+              ],
+              "returns": null,
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 39
+            },
+            {
+              "name": "keys",
+              "signature": "func keys() -> [String]",
+              "rawDocumentation": "All header names (lower-cased).",
+              "description": "All header names (lower-cased).",
+              "params": [],
+              "returns": {
+                "type": "[String]",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 42
+            },
+            {
+              "name": "values",
+              "signature": "func values() -> [String]",
+              "rawDocumentation": "All header values, in the same order as `keys()`.",
+              "description": "All header values, in the same order as `keys()`.",
+              "params": [],
+              "returns": {
+                "type": "[String]",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 45
+            },
+            {
+              "name": "entries",
+              "signature": "func entries() -> [[String]]",
+              "rawDocumentation": "`[[name, value], …]` pairs.",
+              "description": "`[[name, value], …]` pairs.",
+              "params": [],
+              "returns": {
+                "type": "[[String]]",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 48
+            }
+          ],
+          "properties": []
+        },
+        {
+          "name": "HSHttpRequestAPI",
+          "type": "typedef",
+          "rawDocumentation": "",
+          "description": "",
+          "methods": [
+            {
+              "name": "text",
+              "signature": "func text() -> JSPromise?",
+              "rawDocumentation": "Decode the request body as UTF-8 text.\n- Returns: {Promise<string>} A Promise resolving to the body text. Rejects\n  with TypeError if the body has already been read.",
+              "description": "Decode the request body as UTF-8 text.",
+              "params": [],
+              "returns": {
+                "type": "JSPromise?",
+                "description": "A Promise resolving to the body text. Rejects",
+                "promiseType": "string"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 25
+            },
+            {
+              "name": "json",
+              "signature": "func json() -> JSPromise?",
+              "rawDocumentation": "Decode and JSON.parse the request body.\n- Returns: {Promise<any>} A Promise resolving to the parsed JSON value.",
+              "description": "Decode and JSON.parse the request body.",
+              "params": [],
+              "returns": {
+                "type": "JSPromise?",
+                "description": "A Promise resolving to the parsed JSON value.",
+                "promiseType": "any"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 29
+            }
+          ],
+          "properties": [
+            {
+              "name": "method",
+              "signature": "var method: String { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 15
+            },
+            {
+              "name": "url",
+              "signature": "var url: String { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 16
+            },
+            {
+              "name": "pathname",
+              "signature": "var pathname: String { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 17
+            },
+            {
+              "name": "headers",
+              "signature": "var headers: HSHttpHeaders { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 18
+            },
+            {
+              "name": "remoteAddress",
+              "signature": "var remoteAddress: String { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 19
+            },
+            {
+              "name": "bodyUsed",
+              "signature": "var bodyUsed: Bool { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 20
+            },
+            {
+              "name": "search",
+              "signature": "var search: String { get }",
+              "rawDocumentation": "URLSearchParams for the URL's query string — exposed via the JS-side\npolyfill (hs.httpserver.js). Returns the raw query string here; the JS\nshim wraps it.\n- Returns: query string (without leading '?'), or empty",
+              "description": "URLSearchParams for the URL's query string — exposed via the JS-side\npolyfill (hs.httpserver.js). Returns the raw query string here; the JS\nshim wraps it.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 35
+            }
+          ]
+        },
+        {
+          "name": "HSHttpResponseAPI",
+          "type": "typedef",
+          "rawDocumentation": "",
+          "description": "",
+          "methods": [
+            {
+              "name": "make",
+              "signature": "static func make(_ body: JSValue, _ init_: JSValue) -> HSHttpResponse",
+              "rawDocumentation": "Factory equivalent to `new Response(body, init)`. The JS wrapper in\n`hs.httpserver.js` delegates here so users can write the canonical\n`new Response('hi', { status: 200 })` form.",
+              "description": "Factory equivalent to `new Response(body, init)`. The JS wrapper in\n`hs.httpserver.js` delegates here so users can write the canonical\n`new Response('hi', { status: 200 })` form.",
+              "params": [
+                {
+                  "name": "body",
+                  "type": "JSValue",
+                  "description": ""
+                },
+                {
+                  "name": "init_",
+                  "type": "JSValue",
+                  "description": ""
+                }
+              ],
+              "returns": {
+                "type": "HSHttpResponse",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
+              "lineNumber": 35
+            },
+            {
+              "name": "json",
+              "signature": "static func json(_ value: JSValue, _ init_: JSValue?) -> HSHttpResponse",
+              "rawDocumentation": "JSON convenience: `Response.json({ok: true})` → JSON-stringified body\nwith `Content-Type: application/json`.",
+              "description": "JSON convenience: `Response.json({ok: true})` → JSON-stringified body\nwith `Content-Type: application/json`.",
+              "params": [
+                {
+                  "name": "value",
+                  "type": "JSValue",
+                  "description": ""
+                },
+                {
+                  "name": "init_",
+                  "type": "JSValue?",
+                  "description": ""
+                }
+              ],
+              "returns": {
+                "type": "HSHttpResponse",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
+              "lineNumber": 39
+            },
+            {
+              "name": "redirect",
+              "signature": "static func redirect(_ url: String, _ status: NSNumber?) -> HSHttpResponse",
+              "rawDocumentation": "Redirect: sets `Location` header and a 3xx status (default 302).",
+              "description": "Redirect: sets `Location` header and a 3xx status (default 302).",
+              "params": [
+                {
+                  "name": "url",
+                  "type": "String",
+                  "description": ""
+                },
+                {
+                  "name": "status",
+                  "type": "NSNumber?",
+                  "description": ""
+                }
+              ],
+              "returns": {
+                "type": "HSHttpResponse",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
+              "lineNumber": 42
+            }
+          ],
+          "properties": [
+            {
+              "name": "status",
+              "signature": "var status: Int { get }",
+              "rawDocumentation": "HTTP status code (e.g. 200, 404).",
+              "description": "HTTP status code (e.g. 200, 404).",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
+              "lineNumber": 22
+            },
+            {
+              "name": "statusText",
+              "signature": "var statusText: String { get }",
+              "rawDocumentation": "HTTP status text. Defaults from `status` per RFC 7231 if not provided.",
+              "description": "HTTP status text. Defaults from `status` per RFC 7231 if not provided.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
+              "lineNumber": 25
+            },
+            {
+              "name": "headers",
+              "signature": "var headers: HSHttpHeaders { get }",
+              "rawDocumentation": "Response headers.",
+              "description": "Response headers.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
+              "lineNumber": 28
+            }
+          ]
+        },
+        {
+          "name": "HSHttpServerAPI",
+          "type": "typedef",
+          "rawDocumentation": "",
+          "description": "",
+          "methods": [
+            {
+              "name": "stop",
+              "signature": "func stop()",
+              "rawDocumentation": "Stop the server. Idempotent.\n- Example:\n```js\nserver.stop()\n```",
+              "description": "Stop the server. Idempotent.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "server.stop()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
+              "lineNumber": 31
+            }
+          ],
+          "properties": [
+            {
+              "name": "hostname",
+              "signature": "var hostname: String { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
+              "lineNumber": 22
+            },
+            {
+              "name": "port",
+              "signature": "var port: Int { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
+              "lineNumber": 23
+            },
+            {
+              "name": "url",
+              "signature": "var url: String { get }",
+              "rawDocumentation": "",
+              "description": "",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
+              "lineNumber": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hs.keychain",
+      "methods": [
+        {
+          "name": "set",
+          "signature": "func set(_ account: String, _ value: String) -> Bool",
+          "rawDocumentation": "Store a value under the given account name in the Keychain.\n- Parameters:\n  - account: account name (user-facing key)\n  - value: secret string to store\n- Returns: true if the item was saved successfully\n- Example:\n```js\nhs.keychain.set('webhook_psk', 'my-secret')\n```",
+          "description": "Store a value under the given account name in the Keychain.",
+          "params": [
+            {
+              "name": "account",
+              "type": "String",
+              "description": "account name (user-facing key)"
+            },
+            {
+              "name": "value",
+              "type": "String",
+              "description": "secret string to store"
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true if the item was saved successfully"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.keychain.set('webhook_psk', 'my-secret')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.keychain/HSKeychainModule.swift",
+          "lineNumber": 24
+        },
+        {
+          "name": "get",
+          "signature": "func get(_ account: String) -> String?",
+          "rawDocumentation": "Retrieve the value for an account name.\n- Parameter account: account name\n- Returns: the stored string, or null if the item does not exist\n- Example:\n```js\nconst psk = hs.keychain.get('webhook_psk')\n```",
+          "description": "Retrieve the value for an account name.",
+          "params": [
+            {
+              "name": "account",
+              "type": "String",
+              "description": "account name"
+            }
+          ],
+          "returns": {
+            "type": "String?",
+            "description": "the stored string, or null if the item does not exist"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const psk = hs.keychain.get('webhook_psk')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.keychain/HSKeychainModule.swift",
+          "lineNumber": 33
+        },
+        {
+          "name": "has",
+          "signature": "func has(_ account: String) -> Bool",
+          "rawDocumentation": "Check whether an item exists under the given account name.\n- Parameter account: account name\n- Returns: true if the item is present\n- Example:\n```js\nif (!hs.keychain.has('webhook_psk')) { /* prompt */ }\n```",
+          "description": "Check whether an item exists under the given account name.",
+          "params": [
+            {
+              "name": "account",
+              "type": "String",
+              "description": "account name"
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true if the item is present"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "if (!hs.keychain.has('webhook_psk')) { /* prompt */ }"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.keychain/HSKeychainModule.swift",
+          "lineNumber": 42
+        },
+        {
+          "name": "deleteAccount",
+          "signature": "func deleteAccount(_ account: String) -> Bool",
+          "rawDocumentation": "Delete the item under the given account name.\n- Parameter account: account name\n- Returns: true if an item was deleted; false if no item existed\n- Example:\n```js\nhs.keychain.delete('webhook_psk')\n```",
+          "description": "Delete the item under the given account name.",
+          "params": [
+            {
+              "name": "account",
+              "type": "String",
+              "description": "account name"
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true if an item was deleted; false if no item existed"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.keychain.delete('webhook_psk')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.keychain/HSKeychainModule.swift",
+          "lineNumber": 51
+        },
+        {
+          "name": "list",
+          "signature": "func list() -> [String]",
+          "rawDocumentation": "List all account names belonging to this app's Keychain namespace.\n- Returns: array of account names\n- Example:\n```js\nconsole.log(hs.keychain.list())\n```",
+          "description": "List all account names belonging to this app's Keychain namespace.",
+          "params": [],
+          "returns": {
+            "type": "[String]",
+            "description": "array of account names"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "console.log(hs.keychain.list())"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.keychain/HSKeychainModule.swift",
+          "lineNumber": 59
+        }
+      ],
+      "properties": [],
+      "types": []
     },
     {
       "name": "hs.location",
@@ -6014,7 +7022,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 22
+          "lineNumber": 23
         },
         {
           "name": "requestAccessibility",
@@ -6031,7 +7039,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 29
+          "lineNumber": 30
         },
         {
           "name": "checkScreenRecording",
@@ -6051,7 +7059,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 37
+          "lineNumber": 38
         },
         {
           "name": "requestScreenRecording",
@@ -6068,7 +7076,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 45
+          "lineNumber": 46
         },
         {
           "name": "checkCamera",
@@ -6088,7 +7096,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 53
+          "lineNumber": 54
         },
         {
           "name": "requestCamera",
@@ -6109,7 +7117,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 61
+          "lineNumber": 62
         },
         {
           "name": "checkMicrophone",
@@ -6129,7 +7137,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 69
+          "lineNumber": 70
         },
         {
           "name": "requestMicrophone",
@@ -6150,7 +7158,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 77
+          "lineNumber": 78
         },
         {
           "name": "checkNotifications",
@@ -6170,7 +7178,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 89
+          "lineNumber": 90
         },
         {
           "name": "requestNotifications",
@@ -6191,7 +7199,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 100
+          "lineNumber": 101
         },
         {
           "name": "checkLocation",
@@ -6211,7 +7219,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 108
+          "lineNumber": 109
         },
         {
           "name": "requestLocation",
@@ -6232,7 +7240,44 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 118
+          "lineNumber": 119
+        },
+        {
+          "name": "checkInputMonitoring",
+          "signature": "func checkInputMonitoring() -> Bool",
+          "rawDocumentation": "Check whether the user has granted Input Monitoring access to this app.\nRequired for hs.eventtap to receive global key events.\n- Returns: true if granted, false if denied or unknown\n- Example:\n```js\nif (!hs.permissions.checkInputMonitoring()) {\n  hs.notify.show('VibeCast', 'Grant Input Monitoring in System Settings')\n}\n```",
+          "description": "Check whether the user has granted Input Monitoring access to this app.\nRequired for hs.eventtap to receive global key events.",
+          "params": [],
+          "returns": {
+            "type": "Bool",
+            "description": "true if granted, false if denied or unknown"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "if (!hs.permissions.checkInputMonitoring()) {\n  hs.notify.show('VibeCast', 'Grant Input Monitoring in System Settings')\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 130
+        },
+        {
+          "name": "requestInputMonitoring",
+          "signature": "func requestInputMonitoring()",
+          "rawDocumentation": "Trigger the macOS Input Monitoring permission prompt.\n- Example:\n```js\nhs.permissions.requestInputMonitoring()\n```",
+          "description": "Trigger the macOS Input Monitoring permission prompt.",
+          "params": [],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.permissions.requestInputMonitoring()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 137
         }
       ],
       "properties": [],
@@ -7163,6 +8208,236 @@
       ],
       "description": "Inspect and control the displays attached to the system.\n## Obtaining screens\n```javascript\nconst all    = hs.screen.all();   // [HSScreen, ...]\nconst main   = hs.screen.main();   // screen containing the focused window\nconst primary = hs.screen.primary(); // screen with the global menu bar\n```\n## Navigation\n```javascript\nconst right = hs.screen.main().toEast();\nif (right) console.log(\"Screen to the right:\", right.name);\n```\n## Display modes\n```javascript\nconst s = hs.screen.primary();\nconsole.log(s.mode);\n// → { width: 1440, height: 900, scale: 2, frequency: 60 }\n\ns.setMode(1920, 1080, 1, 60);\n```\n## Screenshots\n```javascript\nconst img = await hs.screen.main().snapshot();\nimg.saveToFile(\"/tmp/screen.png\");\n```",
       "rawDocumentation": "Inspect and control the displays attached to the system.\n\n## Obtaining screens\n\n```javascript\nconst all    = hs.screen.all();   // [HSScreen, ...]\nconst main   = hs.screen.main();   // screen containing the focused window\nconst primary = hs.screen.primary(); // screen with the global menu bar\n```\n\n## Navigation\n\n```javascript\nconst right = hs.screen.main().toEast();\nif (right) console.log(\"Screen to the right:\", right.name);\n```\n\n## Display modes\n\n```javascript\nconst s = hs.screen.primary();\nconsole.log(s.mode);\n// → { width: 1440, height: 900, scale: 2, frequency: 60 }\n\ns.setMode(1920, 1080, 1, 60);\n```\n\n## Screenshots\n\n```javascript\nconst img = await hs.screen.main().snapshot();\nimg.saveToFile(\"/tmp/screen.png\");\n```"
+    },
+    {
+      "name": "hs.sqlite",
+      "methods": [
+        {
+          "name": "open",
+          "signature": "func open(_ path: String) -> HSSqliteDB?",
+          "rawDocumentation": "Open an SQLite database file. Returns an HSSqliteDB on success, null on failure.\n`~` is expanded; parent directories must already exist.\n- Parameter path: Filesystem path to the database file\n- Returns: An open HSSqliteDB, or null if the open failed\n- Example:\n```js\nconst db = hs.sqlite.open('~/Library/Application Support/VibeCast/vibecast.db')\n```",
+          "description": "Open an SQLite database file. Returns an HSSqliteDB on success, null on failure.\n`~` is expanded; parent directories must already exist.",
+          "params": [
+            {
+              "name": "path",
+              "type": "String",
+              "description": "Filesystem path to the database file"
+            }
+          ],
+          "returns": {
+            "type": "HSSqliteDB?",
+            "description": "An open HSSqliteDB, or null if the open failed"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const db = hs.sqlite.open('~/Library/Application Support/VibeCast/vibecast.db')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteModule.swift",
+          "lineNumber": 24
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSSqliteDBAPI",
+          "type": "typedef",
+          "rawDocumentation": "",
+          "description": "",
+          "methods": [
+            {
+              "name": "exec",
+              "signature": "func exec(_ sql: String) -> Bool",
+              "rawDocumentation": "Execute one or more SQL statements with no parameters. Returns true on\nsuccess, false on error (logged via AKError). Use this for DDL\n(CREATE/DROP/PRAGMA) and other parameter-less statements.\n- Parameter sql: SQL text, possibly containing multiple `;`-separated statements\n- Returns: True on success\n- Example:\n```js\ndb.exec('CREATE TABLE IF NOT EXISTS t (id INTEGER PRIMARY KEY, name TEXT)')\n```",
+              "description": "Execute one or more SQL statements with no parameters. Returns true on\nsuccess, false on error (logged via AKError). Use this for DDL\n(CREATE/DROP/PRAGMA) and other parameter-less statements.",
+              "params": [
+                {
+                  "name": "sql",
+                  "type": "String",
+                  "description": "SQL text, possibly containing multiple `;`-separated statements"
+                }
+              ],
+              "returns": {
+                "type": "Bool",
+                "description": "True on success"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "db.exec('CREATE TABLE IF NOT EXISTS t (id INTEGER PRIMARY KEY, name TEXT)')"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
+              "lineNumber": 38
+            },
+            {
+              "name": "run",
+              "signature": "func run(_ sql: String, _ params: JSValue) -> JSValue?",
+              "rawDocumentation": "Run a parameterized write. Returns an object `{ changes, lastInsertRowid }`\non success, or null on error.\n- Parameter sql: Parameterized SQL with `?` placeholders\n- Parameter params: Array of values to bind (or null/undefined for no params)\n- Returns: `{ changes: number, lastInsertRowid: number }` or null\n- Example:\n```js\ndb.run('INSERT INTO t (name) VALUES (?)', ['alice'])\n```",
+              "description": "Run a parameterized write. Returns an object `{ changes, lastInsertRowid }`\non success, or null on error.",
+              "params": [
+                {
+                  "name": "sql",
+                  "type": "String",
+                  "description": "Parameterized SQL with `?` placeholders"
+                },
+                {
+                  "name": "params",
+                  "type": "JSValue",
+                  "description": "Array of values to bind (or null/undefined for no params)"
+                }
+              ],
+              "returns": {
+                "type": "JSValue?",
+                "description": "`{ changes: number, lastInsertRowid: number }` or null"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "db.run('INSERT INTO t (name) VALUES (?)', ['alice'])"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
+              "lineNumber": 49
+            },
+            {
+              "name": "query",
+              "signature": "func query(_ sql: String, _ params: JSValue) -> [[String: Any]]",
+              "rawDocumentation": "Run a parameterized read. Returns an array of plain JS objects keyed by\ncolumn name. Empty array if no rows.\n- Parameter sql: Parameterized SELECT\n- Parameter params: Array of values to bind\n- Returns: An array of objects\n- Example:\n```js\nconst rows = db.query('SELECT * FROM t WHERE name LIKE ?', ['a%'])\n```",
+              "description": "Run a parameterized read. Returns an array of plain JS objects keyed by\ncolumn name. Empty array if no rows.",
+              "params": [
+                {
+                  "name": "sql",
+                  "type": "String",
+                  "description": "Parameterized SELECT"
+                },
+                {
+                  "name": "params",
+                  "type": "JSValue",
+                  "description": "Array of values to bind"
+                }
+              ],
+              "returns": {
+                "type": "[[String: Any]]",
+                "description": "An array of objects"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const rows = db.query('SELECT * FROM t WHERE name LIKE ?', ['a%'])"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
+              "lineNumber": 60
+            },
+            {
+              "name": "transaction",
+              "signature": "func transaction(_ fn: JSValue) -> JSValue?",
+              "rawDocumentation": "Run a JS function inside a BEGIN/COMMIT pair. If the function throws,\nthe transaction is rolled back and the exception is re-thrown to the\ncaller. Returns the function's return value on success.\nNested transactions throw — savepoints are not supported in v1.\n- Parameter fn: A function with no arguments\n- Returns: The function's return value, or null on rollback\n- Example:\n```js\ndb.transaction(() => {\n  db.run('UPDATE t SET name = ? WHERE id = ?', ['bob', 1])\n  db.run('DELETE FROM t WHERE id = ?', [2])\n})\n```",
+              "description": "Run a JS function inside a BEGIN/COMMIT pair. If the function throws,\nthe transaction is rolled back and the exception is re-thrown to the\ncaller. Returns the function's return value on success.\nNested transactions throw — savepoints are not supported in v1.",
+              "params": [
+                {
+                  "name": "fn",
+                  "type": "JSValue",
+                  "description": "A function with no arguments"
+                }
+              ],
+              "returns": {
+                "type": "JSValue?",
+                "description": "The function's return value, or null on rollback"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "db.transaction(() => {\n  db.run('UPDATE t SET name = ? WHERE id = ?', ['bob', 1])\n  db.run('DELETE FROM t WHERE id = ?', [2])\n})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
+              "lineNumber": 75
+            },
+            {
+              "name": "close",
+              "signature": "func close()",
+              "rawDocumentation": "Close the database. Idempotent — second call is a no-op. Throws if\ncalled inside a transaction.\n- Example:\n```js\ndb.close()\n```",
+              "description": "Close the database. Idempotent — second call is a no-op. Throws if\ncalled inside a transaction.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "db.close()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
+              "lineNumber": 83
+            }
+          ],
+          "properties": [
+            {
+              "name": "path",
+              "signature": "var path: String { get }",
+              "rawDocumentation": "The filesystem path of the database.",
+              "description": "The filesystem path of the database.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
+              "lineNumber": 24
+            },
+            {
+              "name": "isOpen",
+              "signature": "var isOpen: Bool { get }",
+              "rawDocumentation": "Whether the database is currently open. Becomes false after `close()`.",
+              "description": "Whether the database is currently open. Becomes false after `close()`.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
+              "lineNumber": 27
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hs.switcher",
+      "methods": [
+        {
+          "name": "enable",
+          "signature": "func enable(_ cfg: JSValue) -> [String: Any]",
+          "rawDocumentation": "Enable the switcher with the given configuration.\n\n- Parameter cfg: Object with optional keys:\n  - `commitDelayMs` (number, default 250) — milliseconds of ctrl-idle\n    after which the highlighted selection is committed.\n  - `filterPlaceholder` (string, default \"Type to filter…\")\n  - `onCommit` (function, args: `{ appName, appPid, windowTitle, windowID }`)\n  - `onCancel` (function, no args)\n\n- Returns: `{ disable: function }` on success, or `{ error: string }`\n  on failure. The `error` is one of `\"accessibility\"`,\n  `\"inputMonitoring\"`, or a free-form string describing what went wrong.\n\n- Example:\n```js\nconst sw = hs.switcher.enable({\n  onCommit: e => console.log('switched to', e.appName)\n})\nif (sw.error) console.warn('switcher unavailable:', sw.error)\n// later: sw.disable()\n```",
+          "description": "Enable the switcher with the given configuration.\nafter which the highlighted selection is committed.",
+          "params": [
+            {
+              "name": "cfg",
+              "type": "JSValue",
+              "description": "Object with optional keys:"
+            }
+          ],
+          "returns": {
+            "type": "[String: Any]",
+            "description": "`{ disable: function }` on success, or `{ error: string }`"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const sw = hs.switcher.enable({\n  onCommit: e => console.log('switched to', e.appName)\n})\nif (sw.error) console.warn('switcher unavailable:', sw.error)\n// later: sw.disable()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
+          "lineNumber": 38
+        }
+      ],
+      "properties": [],
+      "types": [],
+      "description": "Module for a cmd+Tab-replacement window/app switcher. Backed by the live\n`HSWindowRegistry` (MRU observer cache) and Swift-owned eventtap, so\ntrigger latency and cycle latency stay sub-frame regardless of how many\napps are running.",
+      "rawDocumentation": "Module for a cmd+Tab-replacement window/app switcher. Backed by the live\n`HSWindowRegistry` (MRU observer cache) and Swift-owned eventtap, so\ntrigger latency and cycle latency stay sub-frame regardless of how many\napps are running."
     },
     {
       "name": "hs.task",
@@ -8700,6 +9975,116 @@
               "lineNumber": 114
             },
             {
+              "name": "textField",
+              "signature": "func textField(_ initial: JSValue) -> HSUIWindow",
+              "rawDocumentation": "Add a single-line text input field\n- Parameter initial: The initial value — a plain JS string OR an `HSString`\n  (from `hs.ui.string()`). When you pass an HSString, the field is two-way\n  bound: typing updates the HSString and `hsString.set(...)` updates the field.\n- Returns: Self for chaining (apply `.placeholder()`, `.focused()`,\n  `.onChange()`, `.onSubmit()`, `.onKey()`, `.font()`, `.foregroundColor()`,\n  `.frame()` etc.)\n- Example:\n```js\nconst query = hs.ui.string('')\nhs.ui.window().textField(query)\n  .placeholder('Search…')\n  .focused(true)\n  .onChange(v => console.log(v))\n  .onSubmit(v => launch(v))\n  .onKey((key, mods) => key === 'ArrowDown' ? true : false)\n.end().show()\n```",
+              "description": "Add a single-line text input field\n(from `hs.ui.string()`). When you pass an HSString, the field is two-way\nbound: typing updates the HSString and `hsString.set(...)` updates the field.",
+              "params": [
+                {
+                  "name": "initial",
+                  "type": "JSValue",
+                  "description": "The initial value — a plain JS string OR an `HSString`"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining (apply `.placeholder()`, `.focused()`,"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const query = hs.ui.string('')\nhs.ui.window().textField(query)\n  .placeholder('Search…')\n  .focused(true)\n  .onChange(v => console.log(v))\n  .onSubmit(v => launch(v))\n  .onKey((key, mods) => key === 'ArrowDown' ? true : false)\n.end().show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 134
+            },
+            {
+              "name": "placeholder",
+              "signature": "func placeholder(_ text: String) -> HSUIWindow",
+              "rawDocumentation": "Set placeholder text for the current text field (greyed-out hint when empty)\n- Parameter text: The placeholder string\n- Returns: Self for chaining",
+              "description": "Set placeholder text for the current text field (greyed-out hint when empty)",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "String",
+                  "description": "The placeholder string"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 139
+            },
+            {
+              "name": "focused",
+              "signature": "func focused(_ enabled: Bool) -> HSUIWindow",
+              "rawDocumentation": "Control whether the current text field grabs first-responder when shown.\nDefault is true.\n- Parameter enabled: true to autofocus\n- Returns: Self for chaining",
+              "description": "Control whether the current text field grabs first-responder when shown.\nDefault is true.",
+              "params": [
+                {
+                  "name": "enabled",
+                  "type": "Bool",
+                  "description": "true to autofocus"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 145
+            },
+            {
+              "name": "onChange",
+              "signature": "func onChange(_ callback: JSValue) -> HSUIWindow",
+              "rawDocumentation": "Register a callback that fires whenever the current text field's value changes.\nCalled with the new string.\n- Parameter callback: `(value: string) => void`\n- Returns: Self for chaining",
+              "description": "Register a callback that fires whenever the current text field's value changes.\nCalled with the new string.",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSValue",
+                  "description": "`(value: string) => void`"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 151
+            },
+            {
+              "name": "onSubmit",
+              "signature": "func onSubmit(_ callback: JSValue) -> HSUIWindow",
+              "rawDocumentation": "Register a callback that fires when the current text field submits (Enter pressed\nand not consumed by `onKey`). Called with the current value.\n- Parameter callback: `(value: string) => void`\n- Returns: Self for chaining",
+              "description": "Register a callback that fires when the current text field submits (Enter pressed\nand not consumed by `onKey`). Called with the current value.",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSValue",
+                  "description": "`(value: string) => void`"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 157
+            },
+            {
               "name": "vstack",
               "signature": "func vstack() -> HSUIWindow",
               "rawDocumentation": "Begin a vertical stack (elements arranged top to bottom)\n- Returns: Self for chaining (call `end()` when done)",
@@ -8712,7 +10097,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 120
+              "lineNumber": 163
             },
             {
               "name": "hstack",
@@ -8727,7 +10112,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 124
+              "lineNumber": 167
             },
             {
               "name": "zstack",
@@ -8742,7 +10127,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 128
+              "lineNumber": 171
             },
             {
               "name": "spacer",
@@ -8757,7 +10142,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 132
+              "lineNumber": 175
             },
             {
               "name": "end",
@@ -8772,7 +10157,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 136
+              "lineNumber": 179
             },
             {
               "name": "fill",
@@ -8793,7 +10178,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 143
+              "lineNumber": 186
             },
             {
               "name": "stroke",
@@ -8814,7 +10199,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 148
+              "lineNumber": 191
             },
             {
               "name": "strokeWidth",
@@ -8835,7 +10220,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 153
+              "lineNumber": 196
             },
             {
               "name": "cornerRadius",
@@ -8856,7 +10241,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 158
+              "lineNumber": 201
             },
             {
               "name": "frame",
@@ -8877,7 +10262,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 163
+              "lineNumber": 206
             },
             {
               "name": "opacity",
@@ -8898,7 +10283,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 168
+              "lineNumber": 211
             },
             {
               "name": "font",
@@ -8919,7 +10304,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 175
+              "lineNumber": 218
             },
             {
               "name": "foregroundColor",
@@ -8940,7 +10325,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 180
+              "lineNumber": 223
             },
             {
               "name": "resizable",
@@ -8955,7 +10340,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 186
+              "lineNumber": 229
             },
             {
               "name": "aspectRatio",
@@ -8976,7 +10361,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 191
+              "lineNumber": 234
             },
             {
               "name": "padding",
@@ -8997,7 +10382,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 198
+              "lineNumber": 241
             },
             {
               "name": "spacing",
@@ -9018,7 +10403,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 203
+              "lineNumber": 246
             },
             {
               "name": "onClick",
@@ -9039,7 +10424,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 210
+              "lineNumber": 253
             },
             {
               "name": "onHover",
@@ -9060,7 +10445,151 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 215
+              "lineNumber": 258
+            },
+            {
+              "name": "borderless",
+              "signature": "func borderless() -> HSUIWindow",
+              "rawDocumentation": "Remove the window's title bar and chrome, making it completely borderless.\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().borderless().show()\n```",
+              "description": "Remove the window's title bar and chrome, making it completely borderless.",
+              "params": [],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().borderless().show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 268
+            },
+            {
+              "name": "level",
+              "signature": "func level(_ name: String) -> HSUIWindow",
+              "rawDocumentation": "Set the window level by name.\n- Parameter name: One of 'normal', 'floating', 'popUpMenu', 'screenSaver'\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().level('floating').show()\n```",
+              "description": "Set the window level by name.",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": "One of 'normal', 'floating', 'popUpMenu', 'screenSaver'"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().level('floating').show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 277
+            },
+            {
+              "name": "center",
+              "signature": "func center() -> HSUIWindow",
+              "rawDocumentation": "Center the window on the main screen when shown.\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().center().show()\n```",
+              "description": "Center the window on the main screen when shown.",
+              "params": [],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().center().show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 285
+            },
+            {
+              "name": "canBecomeKey",
+              "signature": "func canBecomeKey(_ enabled: Bool) -> HSUIWindow",
+              "rawDocumentation": "Control whether the window can become the key window (receive keyboard events).\n- Parameter enabled: true to allow the window to become key\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().canBecomeKey(true).show()\n```",
+              "description": "Control whether the window can become the key window (receive keyboard events).",
+              "params": [
+                {
+                  "name": "enabled",
+                  "type": "Bool",
+                  "description": "true to allow the window to become key"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().canBecomeKey(true).show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 294
+            },
+            {
+              "name": "onKey",
+              "signature": "func onKey(_ callback: JSValue) -> HSUIWindow",
+              "rawDocumentation": "Register a callback that fires on local key events while this window is key.\n- Parameter callback: Function called with (key, modifiers) where key is a character string\n  and modifiers is an array of strings like 'shift', 'cmd', etc.\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().onKey((key, mods) => console.log(key, mods)).show()\n```",
+              "description": "Register a callback that fires on local key events while this window is key.\nand modifiers is an array of strings like 'shift', 'cmd', etc.",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSValue",
+                  "description": "Function called with (key, modifiers) where key is a character string"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().onKey((key, mods) => console.log(key, mods)).show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 304
+            },
+            {
+              "name": "onBlur",
+              "signature": "func onBlur(_ callback: JSValue) -> HSUIWindow",
+              "rawDocumentation": "Register a callback that fires when the window loses key status (blurs).\n- Parameter callback: Function to invoke when the window resigns key\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().onBlur(() => console.log('blurred')).show()\n```",
+              "description": "Register a callback that fires when the window loses key status (blurs).",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSValue",
+                  "description": "Function to invoke when the window resigns key"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().onBlur(() => console.log('blurred')).show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 313
             }
           ],
           "properties": []
@@ -9893,6 +11422,26 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.window/HSWindowModule.swift",
           "lineNumber": 78
+        },
+        {
+          "name": "snapshot",
+          "signature": "func snapshot() -> [[String: Any]]",
+          "rawDocumentation": "Get a snapshot of the live window registry — apps and their windows in\nMRU order, populated from observers. Reads from cache; no AX calls on\nthe hot path. Use this in latency-sensitive code like switchers.\n- Returns: An array of dictionaries: `[{pid, name, bundleID, iconBase64, windows: [{id, title}]}]`\n- Example:\n```js\nconst snap = hs.window.snapshot()\nconsole.log(snap[0].name, snap[0].windows.length)\n```",
+          "description": "Get a snapshot of the live window registry — apps and their windows in\nMRU order, populated from observers. Reads from cache; no AX calls on\nthe hot path. Use this in latency-sensitive code like switchers.",
+          "params": [],
+          "returns": {
+            "type": "[[String: Any]]",
+            "description": "An array of dictionaries: `[{pid, name, bundleID, iconBase64, windows: [{id, title}]}]`"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const snap = hs.window.snapshot()\nconsole.log(snap[0].name, snap[0].windows.length)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.window/HSWindowModule.swift",
+          "lineNumber": 89
         },
         {
           "name": "findByTitle",
@@ -11262,5 +12811,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-19T23:02:04.173Z"
+  "generatedAt": "2026-05-24T20:12:40.340Z"
 }
