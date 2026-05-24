@@ -114,9 +114,15 @@ import AXSwift
         guard let axApp = Application(app) else {
             return []
         }
+        // Bound AX messaging: a misbehaving app cannot freeze the main thread for more
+        // than 100ms per call. Default is 6s, which froze the UI when Preview hung.
+        AXUIElementSetMessagingTimeout(axApp.element, 0.1)
 
         do {
             let windows: [UIElement] = try axApp.windows() ?? []
+            for w in windows {
+                AXUIElementSetMessagingTimeout(w.element, 0.1)
+            }
             return windows
         } catch {
             AKTrace("Failed to get windows for \(app.localizedName ?? "unknown"): \(error.localizedDescription)")
