@@ -164,16 +164,7 @@ import Carbon
         }
 
         if let callback {
-            // Call the callback
-            callback.call(withArguments: [])
-
-            // Check for JavaScript errors
-            if let context = callback.context,
-               let exception = context.exception,
-               !exception.isUndefined {
-                AKError("hs.hotkey: Error in callback: \(exception.toString() ?? "unknown error")")
-                context.exception = nil
-            }
+            callback.callSafely(withArguments: [], context: "hs.hotkey")
         }
     }
 }

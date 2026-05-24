@@ -365,7 +365,7 @@ import SwiftUI
                 if event.modifierFlags.contains(.control) { mods.append("ctrl") }
                 if event.modifierFlags.contains(.command) { mods.append("cmd") }
                 if event.modifierFlags.contains(.option)  { mods.append("opt") }
-                _ = cb.call(withArguments: [key, mods])
+                cb.callSafely(withArguments: [key, mods], context: "hs.ui.window onKey")
                 return event
             }
         }
@@ -377,7 +377,7 @@ import SwiftUI
                 object: window,
                 queue: .main
             ) { [weak self] _ in
-                _ = cb.call(withArguments: [])
+                cb.callSafely(withArguments: [], context: "hs.ui.window onBlur")
             }
         }
 
@@ -638,7 +638,7 @@ import SwiftUI
 
     @objc func onClick(_ callback: JSValue) -> HSUIWindow {
         if let interactive = currentElement as? any InteractiveModifiable {
-            interactive.clickCallback = { callback.call(withArguments: []) }
+            interactive.clickCallback = { callback.callSafely(withArguments: [], context: "hs.ui onClick") }
         } else {
             AKWarning("hs.ui: onClick() called on an element that does not support interactions")
         }
@@ -647,7 +647,7 @@ import SwiftUI
 
     @objc func onHover(_ callback: JSValue) -> HSUIWindow {
         if let interactive = currentElement as? any InteractiveModifiable {
-            interactive.hoverCallback = { isHovered in callback.call(withArguments: [isHovered]) }
+            interactive.hoverCallback = { isHovered in callback.callSafely(withArguments: [isHovered], context: "hs.ui onHover") }
         } else {
             AKWarning("hs.ui: onHover() called on an element that does not support interactions")
         }

@@ -416,7 +416,7 @@ extension HSNotifyModule: UNUserNotificationCenterDelegate {
                     "notificationId":   notifId,
                 ]
                 if let text = userText { responseObj["userText"] = text }
-                cb.call(withArguments: [responseObj])
+                cb.callSafely(withArguments: [responseObj], context: "hs.notify response")
             }
 
             // Prune the per-notification category now that it has served its purpose.

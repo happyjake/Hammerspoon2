@@ -133,7 +133,7 @@ import AppKit
             "isRepeat": event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
         ]
 
-        let result = callback.call(withArguments: [jsEvent])
+        let result = callback.callSafely(withArguments: [jsEvent], context: "hs.eventtap \(typeName)")
         let consume = result?.toBool() ?? false
         return consume ? nil : Unmanaged.passUnretained(event)
     }

@@ -175,7 +175,7 @@ class HSApplicationWatcherObject {
             return
         }
         let eventApp = (notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.asHSApplication()
-        callback.call(withArguments: [eventName, eventApp as Any])
+        callback.callSafely(withArguments: [eventName, eventApp as Any], context: "hs.application watcher")
     }
 }
 

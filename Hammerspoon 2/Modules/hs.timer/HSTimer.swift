@@ -164,22 +164,12 @@ import JavaScriptCore
             return
         }
 
-        // Call the callback
-        callback.call(withArguments: [])
-
-        // Check for JavaScript errors
-        if let context = callback.context,
-           let exception = context.exception,
-           !exception.isUndefined {
-            AKError("hs.timer: Error in callback: \(exception.toString() ?? "unknown error")")
-
-            // Clear the exception
-            context.exception = nil
-
-            // Stop the timer if we're not supposed to continue on error
-            if !continueOnError {
-                stop()
-            }
+        // Call the callback. callSafely catches & logs any thrown JS exception
+        // (incl. stack) tagged "hs.timer" and clears the engine exception slot;
+        // it returns nil on throw so we can decide whether to stop the timer.
+        let result = callback.callSafely(withArguments: [], context: "hs.timer")
+        if result == nil && !continueOnError {
+            stop()
         }
 
         // For one-shot timers, clean up after firing

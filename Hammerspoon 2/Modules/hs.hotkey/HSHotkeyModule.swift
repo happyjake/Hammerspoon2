@@ -161,7 +161,7 @@ private final class DoubleTapDetector {
         case 3:
             if allUp {
                 let cb = self.callback
-                DispatchQueue.main.async { _ = cb.call(withArguments: []) }
+                DispatchQueue.main.async { cb.callSafely(withArguments: [], context: "hs.hotkey doubletap") }
                 state = 0; firstReleaseAt = nil
             } else if !isOurModDown {
                 state = 0; firstReleaseAt = nil

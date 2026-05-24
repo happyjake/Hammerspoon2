@@ -33,14 +33,18 @@ class JSEngine {
 
         context.name = "Hammerspoon \(id)"
 
-        // Set up exception handler to catch JavaScript errors
-        context.exceptionHandler = { context, exception in
-            if let exception = exception {
-                AKError("JavaScript Exception: \(exception.toString() ?? "unknown")")
-                if let stack = exception.objectForKeyedSubscript("stack") {
-                    AKError("Stack trace: \(stack)")
-                }
-            }
+        // Format any uncaught JS exception with name/message/sourceURL:line:col
+        // + full JS stack; clear it so the engine state stays clean for the
+        // next call. callSafely covers the common Swift→JS paths with their
+        // caller-site tag; this handler is the catch-all for re-entrant or
+        // pure-JS throws that don't pass through a callSafely site. JSC fires
+        // the handler on the JSContext's owning thread (main in HS2), so the
+        // MainActor.assumeIsolated assertion is honest.
+        context.exceptionHandler = { ctx, exception in
+            guard let exception else { return }
+            let message = "JSException: " + formatJSException(exception)
+            ctx?.exception = nil
+            MainActor.assumeIsolated { AKError(message) }
         }
 
         // This is our startup sequence - install all components in order

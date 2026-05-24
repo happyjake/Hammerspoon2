@@ -487,7 +487,7 @@ import AppKit
                 let current = NSPasteboard.general.changeCount
                 if current != self.lastChangeCount {
                     self.lastChangeCount = current
-                    self.watcherCallback?.call(withArguments: [current])
+                    self.watcherCallback?.callSafely(withArguments: [current], context: "hs.pasteboard watcher")
                 }
             }
         }
