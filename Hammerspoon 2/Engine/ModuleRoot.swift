@@ -22,10 +22,13 @@ import JavaScriptCoreExtras
     @objc var bonjour: HSBonjourModule { get }
     @objc var camera: HSCameraModule { get }
     @objc var console: HSConsoleModule { get }
+    @objc var crypto: HSCryptoModule { get }
     @objc var eventtap: HSEventTapModule { get }
     @objc var fs: HSFSModule { get }
     @objc var hashing: HSHashModule { get }
     @objc var hotkey: HSHotkeyModule { get }
+    @objc var httpserver: HSHttpServerModule { get }
+    @objc var keychain: HSKeychainModule { get }
     @objc var location: HSLocationModule { get }
     @objc var permissions: HSPermissionsModule { get }
     @objc var notify: HSNotifyModule { get }
@@ -93,10 +96,13 @@ import JavaScriptCoreExtras
     @objc var bonjour: HSBonjourModule { get { getOrCreate(name: "bonjour", type: HSBonjourModule.self)}}
     @objc var camera: HSCameraModule { get { getOrCreate(name: "camera", type: HSCameraModule.self)}}
     @objc var console: HSConsoleModule { get { getOrCreate(name: "console", type: HSConsoleModule.self)}}
+    @objc var crypto: HSCryptoModule { get { getOrCreate(name: "crypto", type: HSCryptoModule.self)}}
     @objc var eventtap: HSEventTapModule { get { getOrCreate(name: "eventtap", type: HSEventTapModule.self)}}
     @objc var fs: HSFSModule { get { getOrCreate(name: "fs", type: HSFSModule.self)}}
     @objc var hashing: HSHashModule { get { getOrCreate(name: "hashing", type: HSHashModule.self)}}
     @objc var hotkey: HSHotkeyModule { get { getOrCreate(name: "hotkey", type: HSHotkeyModule.self)}}
+    @objc var httpserver: HSHttpServerModule { get { getOrCreate(name: "httpserver", type: HSHttpServerModule.self)}}
+    @objc var keychain: HSKeychainModule { get { getOrCreate(name: "keychain", type: HSKeychainModule.self)}}
     @objc var location: HSLocationModule { get { getOrCreate(name: "location", type: HSLocationModule.self)}}
     @objc var notify: HSNotifyModule { get { getOrCreate(name: "notify", type: HSNotifyModule.self)}}
     @objc var permissions: HSPermissionsModule { get { getOrCreate(name: "permissions", type: HSPermissionsModule.self)}}

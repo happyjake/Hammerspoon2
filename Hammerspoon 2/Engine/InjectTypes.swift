@@ -26,6 +26,10 @@ struct TypeBridgesInstaller: JSContextInstallable {
             "HSFont":  HSFont.self,
             "HSColor": HSColor.self,
             "HSImage": HSImage.self,
+
+            // hs.httpserver — Fetch API types
+            "HSHttpHeaders":  HSHttpHeaders.self,
+            "HSHttpResponse": HSHttpResponse.self,
         ]
 
         typeBridges.forEach { key, value in
