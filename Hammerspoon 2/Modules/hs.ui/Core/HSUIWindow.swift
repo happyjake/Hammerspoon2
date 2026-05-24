@@ -113,6 +113,49 @@ import SwiftUI
     ///   `.foregroundColor()`, `.frame()`, `.onClick()` etc.)
     @objc func button(_ label: JSValue) -> HSUIWindow
 
+    /// Add a single-line text input field
+    /// - Parameter initial: The initial value — a plain JS string OR an `HSString`
+    ///   (from `hs.ui.string()`). When you pass an HSString, the field is two-way
+    ///   bound: typing updates the HSString and `hsString.set(...)` updates the field.
+    /// - Returns: Self for chaining (apply `.placeholder()`, `.focused()`,
+    ///   `.onChange()`, `.onSubmit()`, `.onKey()`, `.font()`, `.foregroundColor()`,
+    ///   `.frame()` etc.)
+    /// - Example:
+    /// ```js
+    /// const query = hs.ui.string('')
+    /// hs.ui.window().textField(query)
+    ///   .placeholder('Search…')
+    ///   .focused(true)
+    ///   .onChange(v => console.log(v))
+    ///   .onSubmit(v => launch(v))
+    ///   .onKey((key, mods) => key === 'ArrowDown' ? true : false)
+    /// .end().show()
+    /// ```
+    @objc func textField(_ initial: JSValue) -> HSUIWindow
+
+    /// Set placeholder text for the current text field (greyed-out hint when empty)
+    /// - Parameter text: The placeholder string
+    /// - Returns: Self for chaining
+    @objc func placeholder(_ text: String) -> HSUIWindow
+
+    /// Control whether the current text field grabs first-responder when shown.
+    /// Default is true.
+    /// - Parameter enabled: true to autofocus
+    /// - Returns: Self for chaining
+    @objc func focused(_ enabled: Bool) -> HSUIWindow
+
+    /// Register a callback that fires whenever the current text field's value changes.
+    /// Called with the new string.
+    /// - Parameter callback: `(value: string) => void`
+    /// - Returns: Self for chaining
+    @objc func onChange(_ callback: JSValue) -> HSUIWindow
+
+    /// Register a callback that fires when the current text field submits (Enter pressed
+    /// and not consumed by `onKey`). Called with the current value.
+    /// - Parameter callback: `(value: string) => void`
+    /// - Returns: Self for chaining
+    @objc func onSubmit(_ callback: JSValue) -> HSUIWindow
+
     // MARK: Layout Containers
 
     /// Begin a vertical stack (elements arranged top to bottom)
@@ -472,6 +515,46 @@ import SwiftUI
         return self
     }
 
+    @objc func textField(_ initial: JSValue) -> HSUIWindow {
+        guard let hsString = HSString.fromJSValue(initial) else { return self }
+        let field = UITextField(content: hsString)
+        currentElement = field
+        addToCurrentContainer(field)
+        return self
+    }
+
+    @objc func placeholder(_ text: String) -> HSUIWindow {
+        if let field = currentElement as? UITextField {
+            field.placeholderText = text
+        }
+        return self
+    }
+
+    @objc func focused(_ enabled: Bool) -> HSUIWindow {
+        if let field = currentElement as? UITextField {
+            field.startFocused = enabled
+        }
+        return self
+    }
+
+    @objc func onChange(_ callback: JSValue) -> HSUIWindow {
+        if let field = currentElement as? UITextField {
+            field.onChangeCallback = callback
+        } else {
+            AKWarning("hs.ui: onChange() called on an element that does not support it")
+        }
+        return self
+    }
+
+    @objc func onSubmit(_ callback: JSValue) -> HSUIWindow {
+        if let field = currentElement as? UITextField {
+            field.onSubmitCallback = callback
+        } else {
+            AKWarning("hs.ui: onSubmit() called on an element that does not support it")
+        }
+        return self
+    }
+
     // MARK: - Layout Containers
 
     @objc func vstack() -> HSUIWindow {
@@ -683,7 +766,11 @@ import SwiftUI
     }
 
     @objc func onKey(_ callback: JSValue) -> HSUIWindow {
-        keyCallback = callback
+        if let field = currentElement as? UITextField {
+            field.onKeyCallback = callback
+        } else {
+            keyCallback = callback
+        }
         return self
     }
 
