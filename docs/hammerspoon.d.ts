@@ -556,6 +556,38 @@ declare namespace hs.application {
     function launchOrFocus(bundleID: string): Promise<boolean>;
 
     /**
+     * Enumerate every `.app` bundle under the standard application roots,
+plus any caller-supplied extra roots. Results are cached for 30 seconds
+per unique `extraRoots` argument; call `invalidateInstalledAppsCache()`
+to force a rescan.
+1. /Applications
+2. ~/Applications
+3. /System/Applications
+4. /System/Applications/Utilities
+5. Any caller-supplied extra roots
+Bundles with `LSUIElement = true` or `NSUIElement = true` are skipped.
+Icons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.
+     * @param extraRoots Optional array of additional directories to scan.
+     * @returns Array of `{name, displayName, bundleID, path, iconPath, version}`
+     */
+    function installedApps(extraRoots: JSValue): [[String: Any]];
+
+    /**
+     * Force the next call to `installedApps()` to rescan from disk.
+     */
+    function invalidateInstalledAppsCache(): void;
+
+    /**
+     * Send SIGTERM (force=false) or SIGKILL (force=true) to an arbitrary PID.
+Refuses to signal PID 0, 1, or this process. Returns true if the signal
+was delivered, false on error (logged via AKError).
+     * @param pid Target PID
+     * @param force When true sends SIGKILL; otherwise SIGTERM.
+     * @returns true on success
+     */
+    function killPid(pid: number, force: boolean): boolean;
+
+    /**
      * Create a watcher for application events
      * @param listener A javascript function/lambda to call when any application event is received. The function will be called with two parameters: the name of the event, and the associated HSApplication object
      */
@@ -1607,6 +1639,88 @@ declare namespace hs.console {
 }
 
 /**
+ */
+declare namespace hs.crypto {
+    /**
+     * AES-256-GCM encrypt. Inputs and outputs are base64 strings.
+     * @param opts `{ keyB64: string, nonceB64: string, plaintext: string }`
+     * @returns `{ nonceB64, ciphertextB64 }` where ciphertextB64 includes the 16-byte tag at the end
+     */
+    function aesGcmEncryptB64(opts: JSValue): Record<string, string> | undefined;
+
+    /**
+     * AES-256-GCM authenticate-and-decrypt. Returns the plaintext UTF-8 string,
+or null on auth failure / bad input. Designed to round-trip with Android's
+Cipher.getInstance("AES/GCM/NoPadding") output (ciphertext+tag concatenated).
+     * @param opts `{ keyB64: string, nonceB64: string, ciphertextB64: string }`
+     * @returns the decoded UTF-8 plaintext, or null if authentication failed
+     */
+    function aesGcmDecryptB64(opts: JSValue): string | undefined;
+
+    /**
+     * SHA-256 of a UTF-8 string, returned as base64. Useful for PSK → key
+derivation that matches Android's `MessageDigest.getInstance("SHA-256")
+.digest(passphrase.toByteArray())` shape.
+     * @param input a UTF-8 string
+     * @returns base64-encoded 32-byte digest
+     */
+    function sha256B64(input: string): string;
+
+}
+
+/**
+ * Module for creating CGEventTap-based global keyboard event monitors
+ */
+declare namespace hs.eventtap {
+    /**
+     * Create a new event tap for the specified event types.
+Call .start() on the returned object to begin receiving events.
+Requires Input Monitoring permission.
+     * @param eventTypes Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged'
+     * @param callback Function called with an event object. Return true to consume (suppress) the event.
+     * @returns An HSEventTap instance
+     */
+    function makeTap(eventTypes: string[], callback: JSValue): HSEventTap;
+
+    /**
+     * Synthesise a key stroke (M1 stub — lands in M3/M4).
+     * @param mods Array of modifier strings, e.g. ['cmd']
+     * @param key Key name, e.g. 'v'
+     */
+    function keyStroke(mods: string[], key: string): void;
+
+    /**
+     * Type a string by synthesising key events (M1 stub — lands in M4).
+     * @param text Text to type
+     */
+    function typeText(text: string): void;
+
+}
+
+/**
+ * Object representing a CGEventTap-based global key event tap.
+ */
+declare class HSEventTap {
+    /**
+     * Start the event tap. Returns true on success.
+Requires Input Monitoring permission. Returns false if permission is missing.
+     * @returns true if the tap was started successfully
+     */
+    static start(): boolean;
+
+    /**
+     * Stop the event tap.
+     */
+    static stop(): void;
+
+    /**
+     * Whether the tap is currently running.
+     */
+    isRunning: boolean;
+
+}
+
+/**
  * Module for filesystem operations.
 `hs.fs` provides a comprehensive set of filesystem operations covering file
 I/O, directory management, path manipulation, metadata access, symbolic
@@ -2034,6 +2148,16 @@ declare namespace hs.hotkey {
      */
     function getModifierMap(): Record<string, number>;
 
+    /**
+     * Bind a callback to a double-tap of a bare modifier key.
+Detects modifier-down → all-up → modifier-down within 300ms, with no
+intervening key press. Fires on the second release.
+     * @param modifier One of 'shift', 'ctrl', 'cmd', 'opt'
+     * @param callback Function to invoke
+     * @returns An HSDoubleTapHotkey with .unbind()
+     */
+    function bindDoubleTap(modifier: string, callback: JSValue): HSDoubleTapHotkey | undefined;
+
 }
 
 /**
@@ -2071,6 +2195,244 @@ declare class HSHotkey {
      * The callback function to be called when the hotkey is released
      */
     callbackReleased: JSValue | undefined;
+
+}
+
+/**
+ * Object representing a double-tap hotkey binding. Use .unbind() to remove it.
+ */
+declare class HSDoubleTapHotkey {
+    /**
+     * Remove the double-tap binding
+     */
+    static unbind(): void;
+
+}
+
+/**
+ */
+declare namespace hs.httpserver {
+    /**
+     * Start an HTTP server.
+     * @param opts `{ port, hostname?, maxBodyBytes?, fetch }`
+     * @returns a server handle with `.hostname`, `.port`, `.url`, `.stop()`
+     */
+    function serve(opts: JSValue): HSHttpServer | undefined;
+
+}
+
+/**
+ */
+declare class HSHttpHeaders {
+    /**
+     * Factory equivalent to `new Headers(init)`. The JS wrapper in
+`hs.httpserver.js` delegates here.
+     * @param init_ plain JS object `{name: value}` or another Headers
+     * @returns a new Headers instance
+     */
+    static make(init_: JSValue): HSHttpHeaders;
+
+    /**
+     * Get the combined value for a header name (case-insensitive). Multi-value
+headers are joined with `, ` per RFC 7230 §3.2.2.
+     * @param name
+     */
+    static get(name: string): string | undefined;
+
+    /**
+     * Set a header to a single value, replacing any prior value(s).
+     * @param name
+     * @param value
+     */
+    static set(name: string, value: string): void;
+
+    /**
+     * True if the header is present.
+     * @param name
+     */
+    static has(name: string): boolean;
+
+    /**
+     * Remove a header.
+     * @param name
+     */
+    static deleteHeader(name: string): void;
+
+    /**
+     * Append a value to a header; the prior value(s) are kept.
+     * @param name
+     * @param value
+     */
+    static append(name: string, value: string): void;
+
+    /**
+     * All header names (lower-cased).
+     */
+    static keys(): string[];
+
+    /**
+     * All header values, in the same order as `keys()`.
+     */
+    static values(): string[];
+
+    /**
+     * `[[name, value], …]` pairs.
+     */
+    static entries(): [[String]];
+
+}
+
+/**
+ */
+declare class HSHttpRequest {
+    /**
+     * Decode the request body as UTF-8 text.
+     * @returns A Promise resolving to the body text. Rejects
+     */
+    static text(): Promise<string>;
+
+    /**
+     * Decode and JSON.parse the request body.
+     * @returns A Promise resolving to the parsed JSON value.
+     */
+    static json(): Promise<any>;
+
+    /**
+     */
+    method: string;
+
+    /**
+     */
+    url: string;
+
+    /**
+     */
+    pathname: string;
+
+    /**
+     */
+    headers: HSHttpHeaders;
+
+    /**
+     */
+    remoteAddress: string;
+
+    /**
+     */
+    bodyUsed: boolean;
+
+    /**
+     * URLSearchParams for the URL's query string — exposed via the JS-side
+polyfill (hs.httpserver.js). Returns the raw query string here; the JS
+shim wraps it.
+     */
+    search: string;
+
+}
+
+/**
+ */
+declare class HSHttpResponse {
+    /**
+     * Factory equivalent to `new Response(body, init)`. The JS wrapper in
+`hs.httpserver.js` delegates here so users can write the canonical
+`new Response('hi', { status: 200 })` form.
+     * @param body
+     * @param init_
+     */
+    static make(body: JSValue, init_: JSValue): HSHttpResponse;
+
+    /**
+     * JSON convenience: `Response.json({ok: true})` → JSON-stringified body
+with `Content-Type: application/json`.
+     * @param value
+     * @param init_
+     */
+    static json(value: JSValue, init_: JSValue | undefined): HSHttpResponse;
+
+    /**
+     * Redirect: sets `Location` header and a 3xx status (default 302).
+     * @param url
+     * @param status
+     */
+    static redirect(url: string, status: NSNumber | undefined): HSHttpResponse;
+
+    /**
+     * HTTP status code (e.g. 200, 404).
+     */
+    status: number;
+
+    /**
+     * HTTP status text. Defaults from `status` per RFC 7231 if not provided.
+     */
+    statusText: string;
+
+    /**
+     * Response headers.
+     */
+    headers: HSHttpHeaders;
+
+}
+
+/**
+ */
+declare class HSHttpServer {
+    /**
+     * Stop the server. Idempotent.
+     */
+    static stop(): void;
+
+    /**
+     */
+    hostname: string;
+
+    /**
+     */
+    port: number;
+
+    /**
+     */
+    url: string;
+
+}
+
+/**
+ */
+declare namespace hs.keychain {
+    /**
+     * Store a value under the given account name in the Keychain.
+     * @param account account name (user-facing key)
+     * @param value secret string to store
+     * @returns true if the item was saved successfully
+     */
+    function set(account: string, value: string): boolean;
+
+    /**
+     * Retrieve the value for an account name.
+     * @param account account name
+     * @returns the stored string, or null if the item does not exist
+     */
+    function get(account: string): string | undefined;
+
+    /**
+     * Check whether an item exists under the given account name.
+     * @param account account name
+     * @returns true if the item is present
+     */
+    function has(account: string): boolean;
+
+    /**
+     * Delete the item under the given account name.
+     * @param account account name
+     * @returns true if an item was deleted; false if no item existed
+     */
+    function deleteAccount(account: string): boolean;
+
+    /**
+     * List all account names belonging to this app's Keychain namespace.
+     * @returns array of account names
+     */
+    function list(): string[];
 
 }
 
@@ -2822,6 +3184,18 @@ resolve immediately with the previously granted or denied state.
      */
     function requestLocation(): Promise<boolean>;
 
+    /**
+     * Check whether the user has granted Input Monitoring access to this app.
+Required for hs.eventtap to receive global key events.
+     * @returns true if granted, false if denied or unknown
+     */
+    function checkInputMonitoring(): boolean;
+
+    /**
+     * Trigger the macOS Input Monitoring permission prompt.
+     */
+    function requestInputMonitoring(): void;
+
 }
 
 /**
@@ -3189,6 +3563,94 @@ Assign one of `0`, `90`, `180`, or `270` to rotate the display.
 Assign a new absolute file path or `file://` URL string to change the wallpaper.
      */
     desktopImage: string | undefined;
+
+}
+
+/**
+ */
+declare namespace hs.sqlite {
+    /**
+     * Open an SQLite database file. Returns an HSSqliteDB on success, null on failure.
+`~` is expanded; parent directories must already exist.
+     * @param path Filesystem path to the database file
+     * @returns An open HSSqliteDB, or null if the open failed
+     */
+    function open(path: string): HSSqliteDB | undefined;
+
+}
+
+/**
+ */
+declare class HSSqliteDB {
+    /**
+     * Execute one or more SQL statements with no parameters. Returns true on
+success, false on error (logged via AKError). Use this for DDL
+(CREATE/DROP/PRAGMA) and other parameter-less statements.
+     * @param sql SQL text, possibly containing multiple `;`-separated statements
+     * @returns True on success
+     */
+    static exec(sql: string): boolean;
+
+    /**
+     * Run a parameterized write. Returns an object `{ changes, lastInsertRowid }`
+on success, or null on error.
+     * @param sql Parameterized SQL with `?` placeholders
+     * @param params Array of values to bind (or null/undefined for no params)
+     * @returns `{ changes: number, lastInsertRowid: number }` or null
+     */
+    static run(sql: string, params: JSValue): JSValue | undefined;
+
+    /**
+     * Run a parameterized read. Returns an array of plain JS objects keyed by
+column name. Empty array if no rows.
+     * @param sql Parameterized SELECT
+     * @param params Array of values to bind
+     * @returns An array of objects
+     */
+    static query(sql: string, params: JSValue): [[String: Any]];
+
+    /**
+     * Run a JS function inside a BEGIN/COMMIT pair. If the function throws,
+the transaction is rolled back and the exception is re-thrown to the
+caller. Returns the function's return value on success.
+Nested transactions throw — savepoints are not supported in v1.
+     * @param fn A function with no arguments
+     * @returns The function's return value, or null on rollback
+     */
+    static transaction(fn: JSValue): JSValue | undefined;
+
+    /**
+     * Close the database. Idempotent — second call is a no-op. Throws if
+called inside a transaction.
+     */
+    static close(): void;
+
+    /**
+     * The filesystem path of the database.
+     */
+    path: string;
+
+    /**
+     * Whether the database is currently open. Becomes false after `close()`.
+     */
+    isOpen: boolean;
+
+}
+
+/**
+ * Module for a cmd+Tab-replacement window/app switcher. Backed by the live
+`HSWindowRegistry` (MRU observer cache) and Swift-owned eventtap, so
+trigger latency and cycle latency stay sub-frame regardless of how many
+apps are running.
+ */
+declare namespace hs.switcher {
+    /**
+     * Enable the switcher with the given configuration.
+after which the highlighted selection is committed.
+     * @param cfg Object with optional keys:
+     * @returns `{ disable: function }` on success, or `{ error: string }`
+     */
+    function enable(cfg: JSValue): Record<string, any>;
 
 }
 
@@ -3937,6 +4399,46 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
     static button(label: JSValue): HSUIWindow;
 
     /**
+     * Add a single-line text input field
+(from `hs.ui.string()`). When you pass an HSString, the field is two-way
+bound: typing updates the HSString and `hsString.set(...)` updates the field.
+     * @param initial The initial value — a plain JS string OR an `HSString`
+     * @returns Self for chaining (apply `.placeholder()`, `.focused()`,
+     */
+    static textField(initial: JSValue): HSUIWindow;
+
+    /**
+     * Set placeholder text for the current text field (greyed-out hint when empty)
+     * @param text The placeholder string
+     * @returns Self for chaining
+     */
+    static placeholder(text: string): HSUIWindow;
+
+    /**
+     * Control whether the current text field grabs first-responder when shown.
+Default is true.
+     * @param enabled true to autofocus
+     * @returns Self for chaining
+     */
+    static focused(enabled: boolean): HSUIWindow;
+
+    /**
+     * Register a callback that fires whenever the current text field's value changes.
+Called with the new string.
+     * @param callback `(value: string) => void`
+     * @returns Self for chaining
+     */
+    static onChange(callback: JSValue): HSUIWindow;
+
+    /**
+     * Register a callback that fires when the current text field submits (Enter pressed
+and not consumed by `onKey`). Called with the current value.
+     * @param callback `(value: string) => void`
+     * @returns Self for chaining
+     */
+    static onSubmit(callback: JSValue): HSUIWindow;
+
+    /**
      * Begin a vertical stack (elements arranged top to bottom)
      * @returns Self for chaining (call `end()` when done)
      */
@@ -4062,6 +4564,47 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
      * @returns Self for chaining
      */
     static onHover(callback: JSValue): HSUIWindow;
+
+    /**
+     * Remove the window's title bar and chrome, making it completely borderless.
+     * @returns Self for chaining
+     */
+    static borderless(): HSUIWindow;
+
+    /**
+     * Set the window level by name.
+     * @param name One of 'normal', 'floating', 'popUpMenu', 'screenSaver'
+     * @returns Self for chaining
+     */
+    static level(name: string): HSUIWindow;
+
+    /**
+     * Center the window on the main screen when shown.
+     * @returns Self for chaining
+     */
+    static center(): HSUIWindow;
+
+    /**
+     * Control whether the window can become the key window (receive keyboard events).
+     * @param enabled true to allow the window to become key
+     * @returns Self for chaining
+     */
+    static canBecomeKey(enabled: boolean): HSUIWindow;
+
+    /**
+     * Register a callback that fires on local key events while this window is key.
+and modifiers is an array of strings like 'shift', 'cmd', etc.
+     * @param callback Function called with (key, modifiers) where key is a character string
+     * @returns Self for chaining
+     */
+    static onKey(callback: JSValue): HSUIWindow;
+
+    /**
+     * Register a callback that fires when the window loses key status (blurs).
+     * @param callback Function to invoke when the window resigns key
+     * @returns Self for chaining
+     */
+    static onBlur(callback: JSValue): HSUIWindow;
 
 }
 
@@ -4385,6 +4928,14 @@ declare namespace hs.window {
      * @returns An array of windows in z-order
      */
     function orderedWindows(): HSWindow[];
+
+    /**
+     * Get a snapshot of the live window registry — apps and their windows in
+MRU order, populated from observers. Reads from cache; no AX calls on
+the hot path. Use this in latency-sensitive code like switchers.
+     * @returns An array of dictionaries: `[{pid, name, bundleID, iconBase64, windows: [{id, title}]}]`
+     */
+    function snapshot(): [[String: Any]];
 
     /**
      * Find windows by title
