@@ -106,11 +106,22 @@ import AXSwift
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
+        HSWindowModule.lastInstance = self
         AKTrace("Init of \(name): \(engineID)")
     }
 
     /// Internal accessor for other modules (e.g. `hs.switcher`).
     func internalRegistry() -> HSWindowRegistry { registry }
+
+    /// Weak singleton-style accessor: the most-recently-initialised
+    /// `HSWindowModule` registers itself here so cross-module callers
+    /// (specifically `hs.switcher`) can read snapshots without going through
+    /// JSContext lookup. Multi-engine setups will see the last-loaded engine's
+    /// registry, which is fine since the picker is a global UI feature.
+    private static weak var lastInstance: HSWindowModule?
+    static func sharedRegistry() -> HSWindowRegistry? {
+        return lastInstance?.registry
+    }
 
     func shutdown() {
         // No cleanup needed for this module

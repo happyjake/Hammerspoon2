@@ -103,9 +103,11 @@ import AppKit
 }
 
 /// Detects double-press of a bare modifier key within 300ms with no intervening key.
-private final class DoubleTapDetector {
+/// Reused by `hs.hotkey.bindDoubleTap` (JS callback) and `hs.switcher` (Swift callback).
+internal final class DoubleTapDetector {
     private let modifierMask: NSEvent.ModifierFlags
-    private let callback: JSValue
+    private let callback: JSValue?
+    private let swiftCallback: (@MainActor () -> Void)?
     private var globalMonitor: Any?
     private var localMonitor: Any?
     private var state: Int = 0
@@ -116,6 +118,13 @@ private final class DoubleTapDetector {
     init(modifier: NSEvent.ModifierFlags, callback: JSValue) {
         self.modifierMask = modifier
         self.callback = callback
+        self.swiftCallback = nil
+    }
+
+    init(modifier: NSEvent.ModifierFlags, swiftCallback: @escaping @MainActor () -> Void) {
+        self.modifierMask = modifier
+        self.callback = nil
+        self.swiftCallback = swiftCallback
     }
 
     func start() {
@@ -160,8 +169,11 @@ private final class DoubleTapDetector {
             }
         case 3:
             if allUp {
-                let cb = self.callback
-                DispatchQueue.main.async { cb.callSafely(withArguments: [], context: "hs.hotkey doubletap") }
+                if let swift = swiftCallback {
+                    DispatchQueue.main.async { swift() }
+                } else if let cb = self.callback {
+                    DispatchQueue.main.async { cb.callSafely(withArguments: [], context: "hs.hotkey doubletap") }
+                }
                 state = 0; firstReleaseAt = nil
             } else if !isOurModDown {
                 state = 0; firstReleaseAt = nil
