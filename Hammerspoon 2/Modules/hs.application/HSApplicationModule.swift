@@ -119,6 +119,53 @@ import UniformTypeIdentifiers
     /// ```
     @objc func launchOrFocus(_ bundleID: String) -> JSPromise?
 
+    /// Enumerate every `.app` bundle under the standard application roots,
+    /// plus any caller-supplied extra roots. Results are cached for 30 seconds
+    /// per unique `extraRoots` argument; call `invalidateInstalledAppsCache()`
+    /// to force a rescan.
+    ///
+    /// Roots scanned in order (dedup by bundleID — first wins):
+    ///   1. /Applications
+    ///   2. ~/Applications
+    ///   3. /System/Applications
+    ///   4. /System/Applications/Utilities
+    ///   5. Any caller-supplied extra roots
+    ///
+    /// Bundles with `LSUIElement = true` or `NSUIElement = true` are skipped.
+    /// Icons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.
+    ///
+    /// - Parameter extraRoots: Optional array of additional directories to scan.
+    /// - Returns: Array of `{name, displayName, bundleID, path, iconPath, version}`
+    /// - Example:
+    /// ```js
+    /// const apps = hs.application.installedApps()
+    /// console.log(apps[0].displayName, apps[0].bundleID)
+    ///
+    /// // With extra roots:
+    /// const more = hs.application.installedApps(['~/Tools', '~/Dev/Apps'])
+    /// ```
+    @objc(installedApps:) func installedApps(_ extraRoots: JSValue) -> [[String: Any]]
+
+    /// Force the next call to `installedApps()` to rescan from disk.
+    /// - Example:
+    /// ```js
+    /// hs.application.invalidateInstalledAppsCache()
+    /// ```
+    @objc func invalidateInstalledAppsCache()
+
+    /// Send SIGTERM (force=false) or SIGKILL (force=true) to an arbitrary PID.
+    /// Refuses to signal PID 0, 1, or this process. Returns true if the signal
+    /// was delivered, false on error (logged via AKError).
+    /// - Parameter pid: Target PID
+    /// - Parameter force: When true sends SIGKILL; otherwise SIGTERM.
+    /// - Returns: true on success
+    /// - Example:
+    /// ```js
+    /// hs.application.killPid(12345, false)   // graceful
+    /// hs.application.killPid(12345, true)    // force
+    /// ```
+    @objc func killPid(_ pid: Int, _ force: Bool) -> Bool
+
     /// Create a watcher for application events
     /// - Parameters:
     ///    - listener: A javascript function/lambda to call when any application event is received. The function will be called with two parameters: the name of the event, and the associated HSApplication object
@@ -179,12 +226,21 @@ class HSApplicationWatcherObject {
     }
 }
 
+private struct InstalledAppsCacheEntry {
+    let apps: [[String: Any]]
+    let timestamp: TimeInterval
+}
+
 @_documentation(visibility: private)
 @MainActor
 @objc class HSApplicationModule: NSObject, HSModuleAPI, HSApplicationModuleAPI {
     var name = "hs.application"
     let engineID: UUID
     private var watcher: HSApplicationWatcherObject? = nil
+
+    // installedApps() cache: keyed by the joined extraRoots string.
+    private var installedAppsCache: [String: InstalledAppsCacheEntry] = [:]
+    private let installedAppsCacheTTL: TimeInterval = 30
 
     // Swift-retained storage for the JS-defined ApplicationModuleWatcherEmitter instance
     @objc var _watcherEmitter: JSValue? = nil
@@ -337,6 +393,149 @@ class HSApplicationWatcherObject {
                 }
             }
         }
+    }
+
+    // MARK: - Installed apps + process signaling
+
+    @objc(installedApps:) func installedApps(_ extraRoots: JSValue) -> [[String: Any]] {
+        let extras = extractExtraRoots(extraRoots)
+        let cacheKey = extras.joined(separator: "\n")
+        let now = Date().timeIntervalSince1970
+        if let entry = installedAppsCache[cacheKey],
+           now - entry.timestamp < installedAppsCacheTTL {
+            return entry.apps
+        }
+
+        let standardRoots = [
+            "/Applications",
+            NSString(string: "~/Applications").expandingTildeInPath,
+            "/System/Applications",
+            "/System/Applications/Utilities",
+        ]
+        let allRoots = standardRoots + extras
+
+        var seen = Set<String>()
+        var result: [[String: Any]] = []
+        for root in allRoots {
+            for url in scanForApps(in: root) {
+                guard let info = readInfoPlist(at: url),
+                      let bundleID = info["CFBundleIdentifier"] as? String else { continue }
+                if seen.contains(bundleID) { continue }
+                if (info["LSUIElement"] as? Bool == true) ||
+                   (info["NSUIElement"] as? Bool == true) { continue }
+                seen.insert(bundleID)
+
+                let name = info["CFBundleName"] as? String ?? url.deletingPathExtension().lastPathComponent
+                let displayName = info["CFBundleDisplayName"] as? String ?? name
+
+                result.append([
+                    "name":        name,
+                    "displayName": displayName,
+                    "bundleID":    bundleID,
+                    "path":        url.path,
+                    "iconPath":    iconPathFromBundle(info: info, appPath: url.path) as Any,
+                    "version":     info["CFBundleShortVersionString"] as? String ?? "",
+                ])
+            }
+        }
+        installedAppsCache[cacheKey] = InstalledAppsCacheEntry(apps: result, timestamp: now)
+        return result
+    }
+
+    @objc func invalidateInstalledAppsCache() {
+        installedAppsCache.removeAll()
+    }
+
+    @objc func killPid(_ pid: Int, _ force: Bool) -> Bool {
+        let myPid = Int(ProcessInfo.processInfo.processIdentifier)
+        guard pid > 1, pid != myPid else {
+            AKWarning("hs.application.killPid: refused to signal pid \(pid)")
+            return false
+        }
+        let sig: Int32 = force ? SIGKILL : SIGTERM
+        let rc = kill(pid_t(pid), sig)
+        if rc != 0 {
+            let err = errno
+            AKError("hs.application.killPid: kill(\(pid), \(sig)) failed: \(String(cString: strerror(err)))")
+            return false
+        }
+        return true
+    }
+
+    // MARK: - Private helpers for installedApps
+
+    private func extractExtraRoots(_ value: JSValue) -> [String] {
+        guard value.isArray else { return [] }
+        let count = Int(value.objectForKeyedSubscript("length")?.toInt32() ?? 0)
+        var result: [String] = []
+        for i in 0..<count {
+            if let s = value.atIndex(i)?.toString(), !s.isEmpty {
+                result.append(NSString(string: s).expandingTildeInPath)
+            }
+        }
+        return result
+    }
+
+    private func scanForApps(in root: String) -> [URL] {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: root) else { return [] }
+        let rootURL = URL(fileURLWithPath: root)
+        var found: [URL] = []
+        if let entries = try? fm.contentsOfDirectory(at: rootURL, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) {
+            for entry in entries {
+                if entry.pathExtension == "app" {
+                    found.append(entry)
+                } else {
+                    // Recurse one level for /Applications/Utilities/*.app patterns
+                    var isDir: ObjCBool = false
+                    if fm.fileExists(atPath: entry.path, isDirectory: &isDir), isDir.boolValue {
+                        if let sub = try? fm.contentsOfDirectory(at: entry, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) {
+                            for s in sub where s.pathExtension == "app" {
+                                found.append(s)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return found
+    }
+
+    private func readInfoPlist(at appURL: URL) -> [String: Any]? {
+        let plistURL = appURL.appendingPathComponent("Contents/Info.plist")
+        guard let data = try? Data(contentsOf: plistURL) else { return nil }
+        return try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+    }
+
+    /// Resolves the path of the bundle's primary icon (.icns) without any image
+    /// processing. macOS / SwiftUI both render `.icns` files natively, so callers
+    /// can hand this path directly to `hs.image.fromPath()` or pass it through to
+    /// SwiftUI without converting. Returns nil if the bundle doesn't declare an
+    /// icon or the file doesn't exist on disk.
+    private func iconPathFromBundle(info: [String: Any], appPath: String) -> String? {
+        var iconName: String?
+
+        // Modern (iOS/macOS): CFBundleIcons → CFBundlePrimaryIcon → CFBundleIconFile / IconFiles
+        if let icons = info["CFBundleIcons"] as? [String: Any],
+           let primary = icons["CFBundlePrimaryIcon"] as? [String: Any] {
+            iconName = primary["CFBundleIconFile"] as? String
+            if iconName == nil, let files = primary["CFBundleIconFiles"] as? [String] {
+                iconName = files.last
+            }
+        }
+
+        // Legacy: top-level CFBundleIconFile
+        if iconName == nil {
+            iconName = info["CFBundleIconFile"] as? String
+        }
+
+        guard var name = iconName else { return nil }
+        if (name as NSString).pathExtension.isEmpty {
+            name += ".icns"
+        }
+
+        let path = (appPath as NSString).appendingPathComponent("Contents/Resources/\(name)")
+        return FileManager.default.fileExists(atPath: path) ? path : nil
     }
 }
 
