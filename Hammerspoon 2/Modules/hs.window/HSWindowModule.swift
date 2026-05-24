@@ -76,6 +76,17 @@ import AXSwift
     /// const wins = hs.window.orderedWindows()
     /// ```
     @objc func orderedWindows() -> [HSWindow]
+
+    /// Get a snapshot of the live window registry — apps and their windows in
+    /// MRU order, populated from observers. Reads from cache; no AX calls on
+    /// the hot path. Use this in latency-sensitive code like switchers.
+    /// - Returns: An array of dictionaries: `[{pid, name, bundleID, iconBase64, windows: [{id, title}]}]`
+    /// - Example:
+    /// ```js
+    /// const snap = hs.window.snapshot()
+    /// console.log(snap[0].name, snap[0].windows.length)
+    /// ```
+    @objc func snapshot() -> [[String: Any]]
 }
 
 // MARK: - Implementation
@@ -86,12 +97,20 @@ import AXSwift
     var name = "hs.window"
     let engineID: UUID
 
+    /// Live, in-memory MRU cache of running apps/windows. Maintained by
+    /// observers (NSWorkspace + AXObserver). Used by hs.window.snapshot()
+    /// and by hs.switcher for sub-frame trigger latency.
+    private lazy var registry: HSWindowRegistry = HSWindowRegistry()
+
     // MARK: - Module lifecycle
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
         AKTrace("Init of \(name): \(engineID)")
     }
+
+    /// Internal accessor for other modules (e.g. `hs.switcher`).
+    func internalRegistry() -> HSWindowRegistry { registry }
 
     func shutdown() {
         // No cleanup needed for this module
@@ -233,6 +252,26 @@ import AXSwift
         }
     }
 
+    @objc func snapshot() -> [[String: Any]] {
+        return registry.snapshot().map { app in
+            var dict: [String: Any] = [
+                "pid": Int(app.pid),
+                "name": app.name,
+                "bundleID": app.bundleID as Any,
+                "windows": app.windows.map { win in
+                    [
+                        "id": win.stableID,
+                        "title": win.title,
+                    ] as [String: Any]
+                },
+            ]
+            if let icon = app.icon, let png = icon.pngDataRepresentation() {
+                dict["iconBase64"] = png.base64EncodedString()
+            }
+            return dict
+        }
+    }
+
     @objc func orderedWindows() -> [HSWindow] {
         guard checkAccessibility() else { return [] }
 
@@ -258,5 +297,15 @@ import AXSwift
         }
 
         return windows
+    }
+}
+
+private extension NSImage {
+    /// PNG-encoded data for the (first) bitmap representation. Used to embed
+    /// app icons in `hs.window.snapshot()` results.
+    func pngDataRepresentation() -> Data? {
+        guard let tiff = self.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff) else { return nil }
+        return rep.representation(using: .png, properties: [:])
     }
 }
