@@ -173,6 +173,7 @@ import JavaScriptCore
     let engineID: UUID
 
     private var callbacks: [String: JSValue] = [:]
+    private var loggedDeniedOnce = false
 
     // Private userInfo key used to carry the category ID through to didReceive for pruning.
     fileprivate static let categoryIdKey = "_hs.notify.categoryId"
@@ -181,6 +182,11 @@ import JavaScriptCore
         self.engineID = engineID
         super.init()
         UNUserNotificationCenter.current().delegate = self
+        // Request alert+sound auth lazily on module init. macOS only prompts
+        // the user once; subsequent grants/denials are silently honored.
+        // If previously denied, this call is a no-op and we silently skip
+        // show() calls below.
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
         AKTrace("Init of \(name): \(engineID)")
     }
 
@@ -212,14 +218,33 @@ import JavaScriptCore
             callbacks[id] = callback
         }
 
-        let request = UNNotificationRequest(identifier: id, content: content, trigger: nil)
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error {
+        // Check authorization synchronously-ish; if denied or undetermined,
+        // skip silently with a one-shot warn instructing the user to grant
+        // it in System Settings. Otherwise every show() would spam AKError.
+        UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
+            let authorized = (settings.authorizationStatus == .authorized
+                              || settings.authorizationStatus == .provisional)
+            if !authorized {
                 Task { @MainActor in
-                    AKError("hs.notify.show(): Failed to deliver notification: \(error.localizedDescription)")
+                    self?.logDeniedOnce()
+                }
+                return
+            }
+            let request = UNNotificationRequest(identifier: id, content: content, trigger: nil)
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error {
+                    Task { @MainActor in
+                        AKError("hs.notify.show(): Failed to deliver notification: \(error.localizedDescription)")
+                    }
                 }
             }
         }
+    }
+
+    private func logDeniedOnce() {
+        guard !loggedDeniedOnce else { return }
+        loggedDeniedOnce = true
+        AKWarning("hs.notify: notifications are denied for Hammerspoon 2. Enable them in System Settings → Notifications → Hammerspoon 2 (subsequent show() calls will be silently skipped).")
     }
 
     @objc func new(_ options: JSValue) -> HSNotification? {
