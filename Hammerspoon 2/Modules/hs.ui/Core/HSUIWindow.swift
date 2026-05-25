@@ -324,6 +324,18 @@ import SwiftUI
     /// hs.ui.window().onBlur(() => console.log('blurred')).show()
     /// ```
     @objc func onBlur(_ callback: JSValue) -> HSUIWindow
+
+    /// Round the window's outer corners (Spotlight/Raycast popup look).
+    /// Applies layer cornerRadius + masksToBounds to the window's content view
+    /// and makes the NSWindow background fully transparent so the corners
+    /// outside the rounded shape are see-through.
+    /// - Parameter radius: Corner radius in points. 0 disables rounding.
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().borderless().windowCornerRadius(12).show()
+    /// ```
+    @objc func windowCornerRadius(_ radius: Double) -> HSUIWindow
 }
 
 @MainActor
@@ -347,6 +359,7 @@ import SwiftUI
     private var windowLevel: NSWindow.Level = .floating  // default: floating (matches existing behaviour)
     private var shouldCenter: Bool = false
     private var canBecomeKeyOverride: Bool = false
+    private var windowCornerRadiusValue: CGFloat = 0
     private var keyCallback: JSValue?
     private var blurCallback: JSValue?
     private var keyMonitor: Any?
@@ -405,7 +418,18 @@ import SwiftUI
         window.contentView = wrapper
         window.setContentSize(windowFrame.size)
         window.isOpaque = false
-        window.backgroundColor = NSColor(windowBackgroundColor)
+        if windowCornerRadiusValue > 0 {
+            // Clip the contentView to a rounded shape and make the NSWindow's
+            // own background fully transparent — otherwise the rectangular
+            // window BG would render the corners outside the rounded mask.
+            window.backgroundColor = .clear
+            wrapper.wantsLayer = true
+            wrapper.layer?.cornerRadius = windowCornerRadiusValue
+            wrapper.layer?.masksToBounds = true
+            wrapper.layer?.backgroundColor = NSColor(windowBackgroundColor).cgColor
+        } else {
+            window.backgroundColor = NSColor(windowBackgroundColor)
+        }
         window.level = windowLevel
         window.isReleasedWhenClosed = false
         window.delegate = self
@@ -850,6 +874,11 @@ import SwiftUI
 
     @objc func onBlur(_ callback: JSValue) -> HSUIWindow {
         blurCallback = callback
+        return self
+    }
+
+    @objc func windowCornerRadius(_ radius: Double) -> HSUIWindow {
+        windowCornerRadiusValue = max(0, CGFloat(radius))
         return self
     }
 

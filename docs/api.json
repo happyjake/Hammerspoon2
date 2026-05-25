@@ -4848,6 +4848,32 @@
           "lineNumber": 55
         },
         {
+          "name": "testDoubleTapSequence",
+          "signature": "func testDoubleTapSequence(_ modifier: String, _ sequence: JSValue) -> Int",
+          "rawDocumentation": "Drive a `DoubleTapDetector` through a synthetic event sequence and\nreport how many times the trigger fired. For testing only.\n- Parameter modifier: 'shift', 'ctrl', 'cmd', or 'alt'.\n- Parameter sequence: array of events, each `{type, mods, atMs}`.\n  - `type`: 'flagsChanged' or 'keyDown'\n  - `mods`: array of modifier names currently held (e.g. ['ctrl'])\n  - `atMs`: milliseconds elapsed since the synthetic clock origin\n- Returns: integer fire count.",
+          "description": "Drive a `DoubleTapDetector` through a synthetic event sequence and\nreport how many times the trigger fired. For testing only.",
+          "params": [
+            {
+              "name": "modifier",
+              "type": "String",
+              "description": "'shift', 'ctrl', 'cmd', or 'alt'."
+            },
+            {
+              "name": "sequence",
+              "type": "JSValue",
+              "description": "array of events, each `{type, mods, atMs}`."
+            }
+          ],
+          "returns": {
+            "type": "Int",
+            "description": "integer fire count."
+          },
+          "examples": [],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
+          "lineNumber": 65
+        },
+        {
           "name": "getModifierMap",
           "signature": "func getModifierMap() -> [String: UInt32]",
           "rawDocumentation": "Get the mapping of modifier names to modifier flags\n- Returns: A dictionary mapping modifier names to their numeric values\n- Example:\n```js\nconsole.log(hs.hotkey.getModifierMap())\n```",
@@ -4865,7 +4891,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
-          "lineNumber": 63
+          "lineNumber": 73
         },
         {
           "name": "bindDoubleTap",
@@ -4896,7 +4922,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
-          "lineNumber": 75
+          "lineNumber": 85
         }
       ],
       "properties": [],
@@ -5036,7 +5062,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.hotkey/HSHotkeyModule.swift",
-              "lineNumber": 88
+              "lineNumber": 98
             }
           ],
           "properties": []
@@ -8434,6 +8460,87 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
           "lineNumber": 38
+        },
+        {
+          "name": "show",
+          "signature": "func show() -> Bool",
+          "rawDocumentation": "Open the picker right now, as if the user had triggered ctrl×2.\nUses the first active binding's config; no-op if `enable()` has not\nbeen called. Intended for testing / custom hotkey wiring.\n- Returns: true if the picker opened, false otherwise.\n- Example:\n```js\nhs.switcher.show()\n```",
+          "description": "Open the picker right now, as if the user had triggered ctrl×2.\nUses the first active binding's config; no-op if `enable()` has not\nbeen called. Intended for testing / custom hotkey wiring.",
+          "params": [],
+          "returns": {
+            "type": "Bool",
+            "description": "true if the picker opened, false otherwise."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.switcher.show()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
+          "lineNumber": 48
+        },
+        {
+          "name": "debugState",
+          "signature": "func debugState() -> [String: Any]?",
+          "rawDocumentation": "Diagnostic snapshot of the live picker (if open) and the registry.\nReturns null if no session is active.\n- Returns: object with `windowFrame`, `screenVisibleFrame`,\n  `selectedAppIndex`, `selectedWindowIndex`, `mode`, `filterText`,\n  `apps` (array of `{name, pid, windowTitles}`)\n- Example:\n```js\nhs.switcher.show(); const s = hs.switcher.debugState()\n```",
+          "description": "Diagnostic snapshot of the live picker (if open) and the registry.\nReturns null if no session is active.",
+          "params": [],
+          "returns": {
+            "type": "[String: Any]?",
+            "description": "object with `windowFrame`, `screenVisibleFrame`,"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.switcher.show(); const s = hs.switcher.debugState()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
+          "lineNumber": 59
+        },
+        {
+          "name": "debugMove",
+          "signature": "func debugMove(_ axis: String, _ delta: Int) -> Bool",
+          "rawDocumentation": "Programmatically move the current session's selection (no UI events).\n`axis` is 'app' or 'window'; `delta` is +1 / -1.\n- Returns: true if a session was active to move.",
+          "description": "Programmatically move the current session's selection (no UI events).\n`axis` is 'app' or 'window'; `delta` is +1 / -1.",
+          "params": [
+            {
+              "name": "axis",
+              "type": "String",
+              "description": ""
+            },
+            {
+              "name": "delta",
+              "type": "Int",
+              "description": ""
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true if a session was active to move."
+          },
+          "examples": [],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
+          "lineNumber": 64
+        },
+        {
+          "name": "debugCommit",
+          "signature": "func debugCommit() -> [String: Any]",
+          "rawDocumentation": "Programmatically commit the current selection (same path as Enter).\nReturns a dict with `frontmostBefore`, `targetApp`, `targetPid`,\n`committed` (bool), and the caller can poll `frontmostAfter` via\n`hs.application.frontmost()` shortly after.",
+          "description": "Programmatically commit the current selection (same path as Enter).\nReturns a dict with `frontmostBefore`, `targetApp`, `targetPid`,\n`committed` (bool), and the caller can poll `frontmostAfter` via\n`hs.application.frontmost()` shortly after.",
+          "params": [],
+          "returns": {
+            "type": "[String: Any]",
+            "description": ""
+          },
+          "examples": [],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
+          "lineNumber": 70
         }
       ],
       "properties": [],
@@ -8965,6 +9072,59 @@
       ],
       "description": "Module for running external processes",
       "rawDocumentation": "Module for running external processes"
+    },
+    {
+      "name": "hs.text",
+      "methods": [
+        {
+          "name": "toPinyin",
+          "signature": "func toPinyin(_ s: String) -> String",
+          "rawDocumentation": "Convert Mandarin characters in a string to lowercase pinyin, stripped\nof tone diacritics and inter-syllable spaces. Non-CJK characters are\npassed through (lowercased). Used by the launcher's fuzzy matcher\nand the switcher's filter to match e.g. \"weixin\" against \"微信\".\n\n- Parameter s: input string\n- Returns: lowercase pinyin (no spaces, no diacritics)\n- Example:\n```js\nhs.text.toPinyin('微信')         // → 'weixin'\nhs.text.toPinyin('支付宝')        // → 'zhifubao'\nhs.text.toPinyin('Hello 世界')    // → 'hello shijie'\n```",
+          "description": "Convert Mandarin characters in a string to lowercase pinyin, stripped\nof tone diacritics and inter-syllable spaces. Non-CJK characters are\npassed through (lowercased). Used by the launcher's fuzzy matcher\nand the switcher's filter to match e.g. \"weixin\" against \"微信\".",
+          "params": [
+            {
+              "name": "s",
+              "type": "String",
+              "description": "input string"
+            }
+          ],
+          "returns": {
+            "type": "String",
+            "description": "lowercase pinyin (no spaces, no diacritics)"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.text.toPinyin('微信')         // → 'weixin'\nhs.text.toPinyin('支付宝')        // → 'zhifubao'\nhs.text.toPinyin('Hello 世界')    // → 'hello shijie'"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.text/HSTextModule.swift",
+          "lineNumber": 28
+        },
+        {
+          "name": "useASCIIInput",
+          "signature": "func useASCIIInput() -> Bool",
+          "rawDocumentation": "Switch the system's current keyboard input source to an ASCII-capable\nlayout (e.g. \"ABC\" or \"U.S.\"). The previously-selected ASCII source is\nreused. No-op if already on an ASCII source.\n\nUseful when opening a search field — the user can type Latin letters\neven if they were last using a Chinese / Japanese / Korean IME.\n\n- Returns: true if the switch succeeded (or the current source is\n  already ASCII), false if no ASCII source could be located.\n- Example:\n```js\nhs.text.useASCIIInput()\n```",
+          "description": "Switch the system's current keyboard input source to an ASCII-capable\nlayout (e.g. \"ABC\" or \"U.S.\"). The previously-selected ASCII source is\nreused. No-op if already on an ASCII source.\nUseful when opening a search field — the user can type Latin letters\neven if they were last using a Chinese / Japanese / Korean IME.",
+          "params": [],
+          "returns": {
+            "type": "Bool",
+            "description": "true if the switch succeeded (or the current source is"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.text.useASCIIInput()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.text/HSTextModule.swift",
+          "lineNumber": 43
+        }
+      ],
+      "properties": [],
+      "types": []
     },
     {
       "name": "hs.timer",
@@ -9863,6 +10023,42 @@
               "lineNumber": 79
             },
             {
+              "name": "currentFrame",
+              "signature": "func currentFrame() -> [String: Double]?",
+              "rawDocumentation": "Return the window's actual on-screen frame after show(), as\n`{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null\nif the window has not been shown. For debugging/testing only.",
+              "description": "Return the window's actual on-screen frame after show(), as\n`{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null\nif the window has not been shown. For debugging/testing only.",
+              "params": [],
+              "returns": {
+                "type": "[String: Double]?",
+                "description": ""
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 84
+            },
+            {
+              "name": "snapshotToPNG",
+              "signature": "func snapshotToPNG(_ path: String) -> Bool",
+              "rawDocumentation": "Render this window's content view to a PNG file at the given path.\nUses NSView.cacheDisplay — this does NOT capture the screen, only\nre-renders this view's own drawing, so no Screen Recording permission\nis required and only this window's pixels are produced.\n- Parameter path: absolute filesystem path to write\n- Returns: true on success",
+              "description": "Render this window's content view to a PNG file at the given path.\nUses NSView.cacheDisplay — this does NOT capture the screen, only\nre-renders this view's own drawing, so no Screen Recording permission\nis required and only this window's pixels are produced.",
+              "params": [
+                {
+                  "name": "path",
+                  "type": "String",
+                  "description": "absolute filesystem path to write"
+                }
+              ],
+              "returns": {
+                "type": "Bool",
+                "description": "true on success"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 92
+            },
+            {
               "name": "backgroundColor",
               "signature": "func backgroundColor(_ colorValue: JSValue) -> HSUIWindow",
               "rawDocumentation": "Set the window's background color\n- Parameter colorValue: Color as hex string (e.g., \"#FF0000\") or HSColor object\n- Returns: Self for chaining",
@@ -9881,7 +10077,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 86
+              "lineNumber": 99
             },
             {
               "name": "rectangle",
@@ -9896,7 +10092,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 92
+              "lineNumber": 105
             },
             {
               "name": "circle",
@@ -9911,7 +10107,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 96
+              "lineNumber": 109
             },
             {
               "name": "text",
@@ -9932,7 +10128,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 102
+              "lineNumber": 115
             },
             {
               "name": "image",
@@ -9953,7 +10149,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 107
+              "lineNumber": 120
             },
             {
               "name": "button",
@@ -9974,7 +10170,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 114
+              "lineNumber": 127
             },
             {
               "name": "textField",
@@ -10000,7 +10196,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 134
+              "lineNumber": 147
             },
             {
               "name": "placeholder",
@@ -10021,7 +10217,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 139
+              "lineNumber": 152
             },
             {
               "name": "focused",
@@ -10042,7 +10238,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 145
+              "lineNumber": 158
             },
             {
               "name": "onChange",
@@ -10063,7 +10259,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 151
+              "lineNumber": 164
             },
             {
               "name": "onSubmit",
@@ -10084,7 +10280,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 157
+              "lineNumber": 170
             },
             {
               "name": "vstack",
@@ -10099,7 +10295,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 163
+              "lineNumber": 176
             },
             {
               "name": "hstack",
@@ -10114,7 +10310,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 167
+              "lineNumber": 180
             },
             {
               "name": "zstack",
@@ -10129,7 +10325,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 171
+              "lineNumber": 184
             },
             {
               "name": "spacer",
@@ -10144,7 +10340,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 175
+              "lineNumber": 188
             },
             {
               "name": "end",
@@ -10159,7 +10355,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 179
+              "lineNumber": 192
             },
             {
               "name": "fill",
@@ -10180,7 +10376,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 186
+              "lineNumber": 199
             },
             {
               "name": "stroke",
@@ -10201,7 +10397,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 191
+              "lineNumber": 204
             },
             {
               "name": "strokeWidth",
@@ -10222,7 +10418,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 196
+              "lineNumber": 209
             },
             {
               "name": "cornerRadius",
@@ -10243,7 +10439,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 201
+              "lineNumber": 214
             },
             {
               "name": "frame",
@@ -10264,7 +10460,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 206
+              "lineNumber": 219
             },
             {
               "name": "opacity",
@@ -10285,7 +10481,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 211
+              "lineNumber": 224
             },
             {
               "name": "font",
@@ -10306,7 +10502,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 218
+              "lineNumber": 231
             },
             {
               "name": "foregroundColor",
@@ -10327,7 +10523,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 223
+              "lineNumber": 236
             },
             {
               "name": "resizable",
@@ -10342,7 +10538,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 229
+              "lineNumber": 242
             },
             {
               "name": "aspectRatio",
@@ -10363,7 +10559,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 234
+              "lineNumber": 247
             },
             {
               "name": "padding",
@@ -10384,7 +10580,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 241
+              "lineNumber": 254
             },
             {
               "name": "spacing",
@@ -10405,7 +10601,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 246
+              "lineNumber": 259
             },
             {
               "name": "onClick",
@@ -10426,7 +10622,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 253
+              "lineNumber": 266
             },
             {
               "name": "onHover",
@@ -10447,7 +10643,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 258
+              "lineNumber": 271
             },
             {
               "name": "borderless",
@@ -10467,7 +10663,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 268
+              "lineNumber": 281
             },
             {
               "name": "level",
@@ -10493,7 +10689,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 277
+              "lineNumber": 290
             },
             {
               "name": "center",
@@ -10513,7 +10709,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 285
+              "lineNumber": 298
             },
             {
               "name": "canBecomeKey",
@@ -10539,7 +10735,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 294
+              "lineNumber": 307
             },
             {
               "name": "onKey",
@@ -10565,7 +10761,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 304
+              "lineNumber": 317
             },
             {
               "name": "onBlur",
@@ -10591,7 +10787,33 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 313
+              "lineNumber": 326
+            },
+            {
+              "name": "windowCornerRadius",
+              "signature": "func windowCornerRadius(_ radius: Double) -> HSUIWindow",
+              "rawDocumentation": "Round the window's outer corners (Spotlight/Raycast popup look).\nApplies layer cornerRadius + masksToBounds to the window's content view\nand makes the NSWindow background fully transparent so the corners\noutside the rounded shape are see-through.\n- Parameter radius: Corner radius in points. 0 disables rounding.\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().borderless().windowCornerRadius(12).show()\n```",
+              "description": "Round the window's outer corners (Spotlight/Raycast popup look).\nApplies layer cornerRadius + masksToBounds to the window's content view\nand makes the NSWindow background fully transparent so the corners\noutside the rounded shape are see-through.",
+              "params": [
+                {
+                  "name": "radius",
+                  "type": "Double",
+                  "description": "Corner radius in points. 0 disables rounding."
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().borderless().windowCornerRadius(12).show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 338
             }
           ],
           "properties": []
@@ -12372,6 +12594,52 @@
           "lineNumber": 85
         },
         {
+          "name": "fromSymbol",
+          "signature": "static func fromSymbol(_ name: String) -> HSImage?",
+          "rawDocumentation": "Create an image from an SF Symbol name (e.g. \"magnifyingglass\",\n\"gearshape\", \"terminal\", \"arrow.up.right.square\"). Returns nil if\nthe symbol name is not recognised by the system.\n- Parameter name: SF Symbol identifier\n- Example:\n```js\nconst img = HSImage.fromSymbol('magnifyingglass')\n```",
+          "description": "Create an image from an SF Symbol name (e.g. \"magnifyingglass\",\n\"gearshape\", \"terminal\", \"arrow.up.right.square\"). Returns nil if\nthe symbol name is not recognised by the system.",
+          "params": [
+            {
+              "name": "name",
+              "type": "String",
+              "description": "SF Symbol identifier"
+            }
+          ],
+          "returns": {
+            "type": "HSImage?",
+            "description": ""
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const img = HSImage.fromSymbol('magnifyingglass')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
+          "lineNumber": 95
+        },
+        {
+          "name": "empty",
+          "signature": "static func empty() -> HSImage",
+          "rawDocumentation": "Create an empty (fully transparent) image. Useful as a placeholder\nfor pre-allocated image slots that should render nothing when no\ncontent is bound.\n- Returns: An HSImage wrapping a 1×1 fully-transparent NSImage\n- Example:\n```js\nconst blank = HSImage.empty()\n```",
+          "description": "Create an empty (fully transparent) image. Useful as a placeholder\nfor pre-allocated image slots that should render nothing when no\ncontent is bound.",
+          "params": [],
+          "returns": {
+            "type": "HSImage",
+            "description": "An HSImage wrapping a 1×1 fully-transparent NSImage"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const blank = HSImage.empty()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
+          "lineNumber": 105
+        },
+        {
           "name": "fromURL",
           "signature": "static func fromURL(_ url: String) -> JSPromise?",
           "rawDocumentation": "Load an image from a URL (asynchronous)\n- Parameter url: URL string of the image\n- Returns: {Promise<HSImage>} A Promise that resolves to the loaded image, or rejects on error",
@@ -12391,7 +12659,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 90
+          "lineNumber": 110
         },
         {
           "name": "size",
@@ -12412,7 +12680,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 95
+          "lineNumber": 115
         },
         {
           "name": "name",
@@ -12433,7 +12701,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 100
+          "lineNumber": 120
         },
         {
           "name": "setSize",
@@ -12459,7 +12727,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 107
+          "lineNumber": 127
         },
         {
           "name": "copyImage",
@@ -12474,7 +12742,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 111
+          "lineNumber": 131
         },
         {
           "name": "croppedCopy",
@@ -12495,7 +12763,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 116
+          "lineNumber": 136
         },
         {
           "name": "saveToFile",
@@ -12516,7 +12784,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 121
+          "lineNumber": 141
         },
         {
           "name": "template",
@@ -12537,7 +12805,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 126
+          "lineNumber": 146
         },
         {
           "name": "set",
@@ -12555,7 +12823,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 130
+          "lineNumber": 150
         }
       ],
       "properties": [],
@@ -12813,5 +13081,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-25T08:04:56.930Z"
+  "generatedAt": "2026-05-25T10:57:31.804Z"
 }

@@ -214,6 +214,22 @@ declare class HSImage {
     static iconForFileType(fileType: string): HSImage | undefined;
 
     /**
+     * Create an image from an SF Symbol name (e.g. "magnifyingglass",
+"gearshape", "terminal", "arrow.up.right.square"). Returns nil if
+the symbol name is not recognised by the system.
+     * @param name SF Symbol identifier
+     */
+    static fromSymbol(name: string): HSImage | undefined;
+
+    /**
+     * Create an empty (fully transparent) image. Useful as a placeholder
+for pre-allocated image slots that should render nothing when no
+content is bound.
+     * @returns An HSImage wrapping a 1×1 fully-transparent NSImage
+     */
+    static empty(): HSImage;
+
+    /**
      * Load an image from a URL (asynchronous)
      * @param url URL string of the image
      * @returns A Promise that resolves to the loaded image, or rejects on error
@@ -2143,6 +2159,15 @@ declare namespace hs.hotkey {
     function getKeyCodeMap(): Record<string, number>;
 
     /**
+     * Drive a `DoubleTapDetector` through a synthetic event sequence and
+report how many times the trigger fired. For testing only.
+     * @param modifier 'shift', 'ctrl', 'cmd', or 'alt'.
+     * @param sequence array of events, each `{type, mods, atMs}`.
+     * @returns integer fire count.
+     */
+    function testDoubleTapSequence(modifier: string, sequence: JSValue): number;
+
+    /**
      * Get the mapping of modifier names to modifier flags
      * @returns A dictionary mapping modifier names to their numeric values
      */
@@ -3670,6 +3695,38 @@ after which the highlighted selection is committed.
      */
     function enable(cfg: JSValue): Record<string, any>;
 
+    /**
+     * Open the picker right now, as if the user had triggered ctrl×2.
+Uses the first active binding's config; no-op if `enable()` has not
+been called. Intended for testing / custom hotkey wiring.
+     * @returns true if the picker opened, false otherwise.
+     */
+    function show(): boolean;
+
+    /**
+     * Diagnostic snapshot of the live picker (if open) and the registry.
+Returns null if no session is active.
+     * @returns object with `windowFrame`, `screenVisibleFrame`,
+     */
+    function debugState(): Record<string, any> | undefined;
+
+    /**
+     * Programmatically move the current session's selection (no UI events).
+`axis` is 'app' or 'window'; `delta` is +1 / -1.
+     * @param axis
+     * @param delta
+     * @returns true if a session was active to move.
+     */
+    function debugMove(axis: string, delta: number): boolean;
+
+    /**
+     * Programmatically commit the current selection (same path as Enter).
+Returns a dict with `frontmostBefore`, `targetApp`, `targetPid`,
+`committed` (bool), and the caller can poll `frontmostAfter` via
+`hs.application.frontmost()` shortly after.
+     */
+    function debugCommit(): Record<string, any>;
+
 }
 
 /**
@@ -3834,6 +3891,31 @@ declare class HSTask {
      * The termination reason
      */
     terminationReason: string | undefined;
+
+}
+
+/**
+ */
+declare namespace hs.text {
+    /**
+     * Convert Mandarin characters in a string to lowercase pinyin, stripped
+of tone diacritics and inter-syllable spaces. Non-CJK characters are
+passed through (lowercased). Used by the launcher's fuzzy matcher
+and the switcher's filter to match e.g. "weixin" against "微信".
+     * @param s input string
+     * @returns lowercase pinyin (no spaces, no diacritics)
+     */
+    function toPinyin(s: string): string;
+
+    /**
+     * Switch the system's current keyboard input source to an ASCII-capable
+layout (e.g. "ABC" or "U.S."). The previously-selected ASCII source is
+reused. No-op if already on an ASCII source.
+Useful when opening a search field — the user can type Latin letters
+even if they were last using a Chinese / Japanese / Korean IME.
+     * @returns true if the switch succeeded (or the current source is
+     */
+    function useASCIIInput(): boolean;
 
 }
 
@@ -4375,6 +4457,23 @@ declare class HSUIWindow {
     static close(): void;
 
     /**
+     * Return the window's actual on-screen frame after show(), as
+`{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null
+if the window has not been shown. For debugging/testing only.
+     */
+    static currentFrame(): Record<string, number> | undefined;
+
+    /**
+     * Render this window's content view to a PNG file at the given path.
+Uses NSView.cacheDisplay — this does NOT capture the screen, only
+re-renders this view's own drawing, so no Screen Recording permission
+is required and only this window's pixels are produced.
+     * @param path absolute filesystem path to write
+     * @returns true on success
+     */
+    static snapshotToPNG(path: string): boolean;
+
+    /**
      * Set the window's background color
      * @param colorValue Color as hex string (e.g., "#FF0000") or HSColor object
      * @returns Self for chaining
@@ -4623,6 +4722,16 @@ and modifiers is an array of strings like 'shift', 'cmd', etc.
      * @returns Self for chaining
      */
     static onBlur(callback: JSValue): HSUIWindow;
+
+    /**
+     * Round the window's outer corners (Spotlight/Raycast popup look).
+Applies layer cornerRadius + masksToBounds to the window's content view
+and makes the NSWindow background fully transparent so the corners
+outside the rounded shape are see-through.
+     * @param radius Corner radius in points. 0 disables rounding.
+     * @returns Self for chaining
+     */
+    static windowCornerRadius(radius: number): HSUIWindow;
 
 }
 
