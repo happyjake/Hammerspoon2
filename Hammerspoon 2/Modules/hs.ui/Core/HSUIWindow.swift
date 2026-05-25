@@ -78,6 +78,19 @@ import SwiftUI
     /// Close and destroy the window
     @objc func close()
 
+    /// Return the window's actual on-screen frame after show(), as
+    /// `{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null
+    /// if the window has not been shown. For debugging/testing only.
+    @objc func currentFrame() -> [String: Double]?
+
+    /// Render this window's content view to a PNG file at the given path.
+    /// Uses NSView.cacheDisplay — this does NOT capture the screen, only
+    /// re-renders this view's own drawing, so no Screen Recording permission
+    /// is required and only this window's pixels are produced.
+    /// - Parameter path: absolute filesystem path to write
+    /// - Returns: true on success
+    @objc func snapshotToPNG(_ path: String) -> Bool
+
     // MARK: Window Styling
 
     /// Set the window's background color
@@ -378,7 +391,19 @@ import SwiftUI
             backgroundColor: windowBackgroundColor,
             containerSize: windowFrame.size
         )
-        window.contentView = NSHostingView(rootView: contentView)
+        // Use NSHostingView wrapped in a generic NSView with explicit frame.
+        // The wrapper insulates the window from NSHostingView's
+        // intrinsicContentSize propagation — which otherwise grows the
+        // window taller than the configured windowFrame whenever the
+        // SwiftUI content has a larger preferred height.
+        let host = NSHostingView(rootView: contentView)
+        host.autoresizingMask = [.width, .height]
+        host.frame = NSRect(origin: .zero, size: windowFrame.size)
+        let wrapper = NSView(frame: NSRect(origin: .zero, size: windowFrame.size))
+        wrapper.autoresizesSubviews = true
+        wrapper.addSubview(host)
+        window.contentView = wrapper
+        window.setContentSize(windowFrame.size)
         window.isOpaque = false
         window.backgroundColor = NSColor(windowBackgroundColor)
         window.level = windowLevel
@@ -393,6 +418,15 @@ import SwiftUI
             window.setFrame(NSRect(x: x, y: y, width: w, height: h), display: false)
         }
 
+        // When the host app (HS2) is in the background — which it usually is
+        // when a window is shown from a hotkey — macOS will not automatically
+        // route key events to a key-accepting window. We must explicitly
+        // activate the app first. Without this, the launcher/textField
+        // appears but the user's typing goes to whatever app WAS foreground
+        // (Spotlight-style focus stealing requires this on macOS 14+).
+        if canBecomeKeyOverride {
+            NSApp.activate(ignoringOtherApps: true)
+        }
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
 
@@ -432,6 +466,46 @@ import SwiftUI
 
     @objc func hide() {
         nsWindow?.orderOut(nil)
+    }
+
+    @objc func currentFrame() -> [String: Double]? {
+        guard let w = nsWindow else { return nil }
+        let f = w.frame
+        return ["x": f.origin.x, "y": f.origin.y, "w": f.size.width, "h": f.size.height]
+    }
+
+    @objc func snapshotToPNG(_ path: String) -> Bool {
+        guard let win = nsWindow else {
+            AKError("snapshotToPNG: no nsWindow")
+            return false
+        }
+        guard let view = win.contentView else {
+            AKError("snapshotToPNG: no contentView")
+            return false
+        }
+        let bounds = view.bounds
+        AKWarning("snapshotToPNG: view.bounds = \(bounds)")
+        // Force layout/display so the cached bitmap captures the latest tree.
+        view.layoutSubtreeIfNeeded()
+        view.displayIfNeeded()
+
+        guard let bitmap = view.bitmapImageRepForCachingDisplay(in: bounds) else {
+            AKError("snapshotToPNG: bitmapImageRepForCachingDisplay returned nil")
+            return false
+        }
+        view.cacheDisplay(in: bounds, to: bitmap)
+        guard let png = bitmap.representation(using: .png, properties: [:]) else {
+            AKError("snapshotToPNG: PNG conversion failed")
+            return false
+        }
+        do {
+            try png.write(to: URL(fileURLWithPath: path))
+            AKWarning("snapshotToPNG: wrote \(png.count) bytes to \(path)")
+            return true
+        } catch {
+            AKError("snapshotToPNG: write failed: \(error.localizedDescription)")
+            return false
+        }
     }
 
     @objc func close() {

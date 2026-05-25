@@ -23,7 +23,11 @@ private struct ReactiveText: View {
             .font(font)
             .foregroundStyle(foreground)
             .opacity(opacity)
-            .frame(width: width, height: height)
+            .multilineTextAlignment(.leading)
+            // When a frame is set explicitly, anchor the text to top-leading
+            // so multi-line lists (launcher results) flow from the upper-left
+            // rather than getting centered inside the frame.
+            .frame(width: width, height: height, alignment: .topLeading)
     }
 }
 
