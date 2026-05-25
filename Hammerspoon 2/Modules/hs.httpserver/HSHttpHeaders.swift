@@ -15,6 +15,10 @@
 import Foundation
 import JavaScriptCore
 
+/// Multi-map of HTTP header name → value(s), with case-insensitive lookup
+/// per RFC 7230 §3.2. Backs both incoming `HSHttpRequest.headers` and
+/// outgoing `HSHttpResponse.headers`. Mirrors the WHATWG Fetch `Headers`
+/// API: `get`, `set`, `append`, `delete`, `has`, iteration.
 @objc protocol HSHttpHeadersAPI: HSTypeAPI, JSExport {
     /// Factory equivalent to `new Headers(init)`. The JS wrapper in
     /// `hs.httpserver.js` delegates here.

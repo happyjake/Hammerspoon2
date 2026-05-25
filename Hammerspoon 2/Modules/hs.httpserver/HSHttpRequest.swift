@@ -11,6 +11,10 @@
 import Foundation
 import JavaScriptCore
 
+/// One incoming HTTP request as observed by `hs.httpserver`. Models the
+/// WHATWG Fetch `Request` shape: `method`, `url`, `pathname`, `headers`,
+/// and a body-as-string/json accessor. Passed to the user's `fetch`
+/// handler to produce a Response.
 @objc protocol HSHttpRequestAPI: HSTypeAPI, JSExport {
     @objc var method: String { get }
     @objc var url: String { get }

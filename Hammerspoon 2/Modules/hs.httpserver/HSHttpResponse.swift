@@ -17,6 +17,9 @@
 import Foundation
 import JavaScriptCore
 
+/// One outgoing HTTP response. Models the WHATWG Fetch `Response` shape:
+/// `status`, `statusText`, `headers`, and a body-as-bytes accessor.
+/// Returned by the user's `fetch` handler.
 @objc protocol HSHttpResponseAPI: HSTypeAPI, JSExport {
     /// HTTP status code (e.g. 200, 404).
     @objc var status: Int { get }

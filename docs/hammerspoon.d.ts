@@ -2210,6 +2210,10 @@ declare class HSDoubleTapHotkey {
 }
 
 /**
+ * Multi-map of HTTP header name → value(s), with case-insensitive lookup
+per RFC 7230 §3.2. Backs both incoming `HSHttpRequest.headers` and
+outgoing `HSHttpResponse.headers`. Mirrors the WHATWG Fetch `Headers`
+API: `get`, `set`, `append`, `delete`, `has`, iteration.
  */
 declare namespace hs.httpserver {
     /**
@@ -2222,6 +2226,10 @@ declare namespace hs.httpserver {
 }
 
 /**
+ * Multi-map of HTTP header name → value(s), with case-insensitive lookup
+per RFC 7230 §3.2. Backs both incoming `HSHttpRequest.headers` and
+outgoing `HSHttpResponse.headers`. Mirrors the WHATWG Fetch `Headers`
+API: `get`, `set`, `append`, `delete`, `has`, iteration.
  */
 declare class HSHttpHeaders {
     /**
@@ -2283,6 +2291,10 @@ headers are joined with `, ` per RFC 7230 §3.2.2.
 }
 
 /**
+ * One incoming HTTP request as observed by `hs.httpserver`. Models the
+WHATWG Fetch `Request` shape: `method`, `url`, `pathname`, `headers`,
+and a body-as-string/json accessor. Passed to the user's `fetch`
+handler to produce a Response.
  */
 declare class HSHttpRequest {
     /**
@@ -2331,6 +2343,8 @@ shim wraps it.
 }
 
 /**
+ * `status`, `statusText`, `headers`, and a body-as-bytes accessor.
+Returned by the user's `fetch` handler.
  */
 declare class HSHttpResponse {
     /**
@@ -2375,6 +2389,10 @@ with `Content-Type: application/json`.
 }
 
 /**
+ * A bound HTTP server listening on a configured hostname/port. Returned
+by `hs.httpserver.serve(...)`. Lifecycle: `start` happens implicitly on
+creation; call `stop()` to shut it down. Each accepted connection
+dispatches to the user-supplied `fetch` handler.
  */
 declare class HSHttpServer {
     /**
