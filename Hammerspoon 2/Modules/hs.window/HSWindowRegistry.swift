@@ -5,7 +5,13 @@
 
 import Foundation
 import AppKit
+import ApplicationServices
 import AXSwift
+
+// No-op C callback used only by the AXObserverCreate probe in
+// installObserver(for:). AXObserverCreate expects an @convention(c) function
+// pointer; a `let` of typealias `AXObserverCallback` satisfies the bridge.
+private let axProbeCallback: AXObserverCallback = { _, _, _, _ in }
 
 /// Long-lived, in-memory cache of running apps and their windows, maintained
 /// by NSWorkspace notifications and per-app AXObservers. The switcher reads
@@ -133,6 +139,24 @@ final class HSWindowRegistry {
     // MARK: - AXObserver
 
     private func installObserver(for entry: HSAppEntry) {
+        // Pre-flight: AXSwift's `Observer.init` is a throwing initializer that
+        // assigns `self.axObserver` *before* the throw, so when AXObserverCreate
+        // fails the object is considered fully initialized — Swift then runs
+        // `deinit → stop()`, which dereferences the (nil) AXObserver! IUO and
+        // crashes via assertion. The most common trigger is a freshly-deployed
+        // ad-hoc-signed build whose cdhash changed, so macOS hasn't re-granted
+        // Accessibility yet. Probe AXObserverCreate ourselves first; on any
+        // failure, go straight to the poll fallback without ever letting the
+        // broken AXSwift init run.
+        var probe: AXObserver?
+        let probeErr = unsafe AXObserverCreate(entry.pid, axProbeCallback, &probe)
+        guard probeErr == .success, probe != nil else {
+            AKTrace("AXObserverCreate probe failed for pid \(entry.pid) (\(entry.name)): \(probeErr); falling back to polled refresh")
+            installPollFallback(for: entry)
+            return
+        }
+        probe = nil   // discard; AXSwift will create its own below
+
         do {
             let observer = try Observer(processID: entry.pid) { [weak self, weak entry] _, element, notif in
                 MainActor.assumeIsolated {
