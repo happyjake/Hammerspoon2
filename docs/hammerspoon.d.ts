@@ -581,7 +581,9 @@ to force a rescan.
 3. /System/Applications
 4. /System/Applications/Utilities
 5. Any caller-supplied extra roots
-Bundles with `LSUIElement = true` or `NSUIElement = true` are skipped.
+Bundles with `LSBackgroundOnly = true` (true daemons with no UI) are
+skipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,
+Bartender, ClipMenu) are included because users still launch them.
 Icons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.
      * @param extraRoots Optional array of additional directories to scan.
      * @returns Array of `{name, displayName, bundleID, path, iconPath, version}`
