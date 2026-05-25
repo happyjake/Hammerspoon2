@@ -5080,8 +5080,8 @@
         {
           "name": "HSHttpHeadersAPI",
           "type": "typedef",
-          "rawDocumentation": "",
-          "description": "",
+          "rawDocumentation": "Multi-map of HTTP header name → value(s), with case-insensitive lookup\nper RFC 7230 §3.2. Backs both incoming `HSHttpRequest.headers` and\noutgoing `HSHttpResponse.headers`. Mirrors the WHATWG Fetch `Headers`\nAPI: `get`, `set`, `append`, `delete`, `has`, iteration.",
+          "description": "Multi-map of HTTP header name → value(s), with case-insensitive lookup\nper RFC 7230 §3.2. Backs both incoming `HSHttpRequest.headers` and\noutgoing `HSHttpResponse.headers`. Mirrors the WHATWG Fetch `Headers`\nAPI: `get`, `set`, `append`, `delete`, `has`, iteration.",
           "methods": [
             {
               "name": "make",
@@ -5102,7 +5102,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 23
+              "lineNumber": 27
             },
             {
               "name": "get",
@@ -5123,7 +5123,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 27
+              "lineNumber": 31
             },
             {
               "name": "set",
@@ -5146,7 +5146,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 30
+              "lineNumber": 34
             },
             {
               "name": "has",
@@ -5167,7 +5167,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 33
+              "lineNumber": 37
             },
             {
               "name": "deleteHeader",
@@ -5185,7 +5185,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 36
+              "lineNumber": 40
             },
             {
               "name": "append",
@@ -5208,7 +5208,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 39
+              "lineNumber": 43
             },
             {
               "name": "keys",
@@ -5223,7 +5223,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 42
+              "lineNumber": 46
             },
             {
               "name": "values",
@@ -5238,7 +5238,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 45
+              "lineNumber": 49
             },
             {
               "name": "entries",
@@ -5253,7 +5253,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 48
+              "lineNumber": 52
             }
           ],
           "properties": []
@@ -5261,8 +5261,8 @@
         {
           "name": "HSHttpRequestAPI",
           "type": "typedef",
-          "rawDocumentation": "",
-          "description": "",
+          "rawDocumentation": "One incoming HTTP request as observed by `hs.httpserver`. Models the\nWHATWG Fetch `Request` shape: `method`, `url`, `pathname`, `headers`,\nand a body-as-string/json accessor. Passed to the user's `fetch`\nhandler to produce a Response.",
+          "description": "One incoming HTTP request as observed by `hs.httpserver`. Models the\nWHATWG Fetch `Request` shape: `method`, `url`, `pathname`, `headers`,\nand a body-as-string/json accessor. Passed to the user's `fetch`\nhandler to produce a Response.",
           "methods": [
             {
               "name": "text",
@@ -5278,7 +5278,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 25
+              "lineNumber": 29
             },
             {
               "name": "json",
@@ -5294,7 +5294,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 29
+              "lineNumber": 33
             }
           ],
           "properties": [
@@ -5306,7 +5306,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 15
+              "lineNumber": 19
             },
             {
               "name": "url",
@@ -5316,7 +5316,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 16
+              "lineNumber": 20
             },
             {
               "name": "pathname",
@@ -5326,7 +5326,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 17
+              "lineNumber": 21
             },
             {
               "name": "headers",
@@ -5336,7 +5336,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 18
+              "lineNumber": 22
             },
             {
               "name": "remoteAddress",
@@ -5346,7 +5346,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 19
+              "lineNumber": 23
             },
             {
               "name": "bodyUsed",
@@ -5356,7 +5356,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 20
+              "lineNumber": 24
             },
             {
               "name": "search",
@@ -5366,15 +5366,15 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 35
+              "lineNumber": 39
             }
           ]
         },
         {
           "name": "HSHttpResponseAPI",
           "type": "typedef",
-          "rawDocumentation": "",
-          "description": "",
+          "rawDocumentation": "One outgoing HTTP response. Models the WHATWG Fetch `Response` shape:\n`status`, `statusText`, `headers`, and a body-as-bytes accessor.\nReturned by the user's `fetch` handler.",
+          "description": "`status`, `statusText`, `headers`, and a body-as-bytes accessor.\nReturned by the user's `fetch` handler.",
           "methods": [
             {
               "name": "make",
@@ -5400,7 +5400,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 35
+              "lineNumber": 38
             },
             {
               "name": "json",
@@ -5426,7 +5426,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 39
+              "lineNumber": 42
             },
             {
               "name": "redirect",
@@ -5452,7 +5452,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 42
+              "lineNumber": 45
             }
           ],
           "properties": [
@@ -5464,7 +5464,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 22
+              "lineNumber": 25
             },
             {
               "name": "statusText",
@@ -5474,7 +5474,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 25
+              "lineNumber": 28
             },
             {
               "name": "headers",
@@ -5484,15 +5484,15 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 28
+              "lineNumber": 31
             }
           ]
         },
         {
           "name": "HSHttpServerAPI",
           "type": "typedef",
-          "rawDocumentation": "",
-          "description": "",
+          "rawDocumentation": "A bound HTTP server listening on a configured hostname/port. Returned\nby `hs.httpserver.serve(...)`. Lifecycle: `start` happens implicitly on\ncreation; call `stop()` to shut it down. Each accepted connection\ndispatches to the user-supplied `fetch` handler.",
+          "description": "A bound HTTP server listening on a configured hostname/port. Returned\nby `hs.httpserver.serve(...)`. Lifecycle: `start` happens implicitly on\ncreation; call `stop()` to shut it down. Each accepted connection\ndispatches to the user-supplied `fetch` handler.",
           "methods": [
             {
               "name": "stop",
@@ -5509,7 +5509,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
-              "lineNumber": 31
+              "lineNumber": 35
             }
           ],
           "properties": [
@@ -5521,7 +5521,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
-              "lineNumber": 22
+              "lineNumber": 26
             },
             {
               "name": "port",
@@ -5531,7 +5531,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
-              "lineNumber": 23
+              "lineNumber": 27
             },
             {
               "name": "url",
@@ -5541,11 +5541,13 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
-              "lineNumber": 24
+              "lineNumber": 28
             }
           ]
         }
-      ]
+      ],
+      "description": "Multi-map of HTTP header name → value(s), with case-insensitive lookup\nper RFC 7230 §3.2. Backs both incoming `HSHttpRequest.headers` and\noutgoing `HSHttpResponse.headers`. Mirrors the WHATWG Fetch `Headers`\nAPI: `get`, `set`, `append`, `delete`, `has`, iteration.",
+      "rawDocumentation": "Multi-map of HTTP header name → value(s), with case-insensitive lookup\nper RFC 7230 §3.2. Backs both incoming `HSHttpRequest.headers` and\noutgoing `HSHttpResponse.headers`. Mirrors the WHATWG Fetch `Headers`\nAPI: `get`, `set`, `append`, `delete`, `has`, iteration."
     },
     {
       "name": "hs.keychain",
@@ -12811,5 +12813,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-24T20:16:21.615Z"
+  "generatedAt": "2026-05-25T08:04:56.930Z"
 }

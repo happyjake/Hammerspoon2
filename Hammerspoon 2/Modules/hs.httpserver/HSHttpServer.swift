@@ -18,6 +18,10 @@ import Foundation
 import Network
 import JavaScriptCore
 
+/// A bound HTTP server listening on a configured hostname/port. Returned
+/// by `hs.httpserver.serve(...)`. Lifecycle: `start` happens implicitly on
+/// creation; call `stop()` to shut it down. Each accepted connection
+/// dispatches to the user-supplied `fetch` handler.
 @objc protocol HSHttpServerAPI: HSTypeAPI, JSExport {
     @objc var hostname: String { get }
     @objc var port: Int { get }
