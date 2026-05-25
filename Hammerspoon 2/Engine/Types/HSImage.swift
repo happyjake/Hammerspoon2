@@ -84,6 +84,16 @@ import Observation
     /// - Returns: An HSImage object representing the file type's icon
     @objc static func iconForFileType(_ fileType: String) -> HSImage?
 
+    /// Create an image from an SF Symbol name (e.g. "magnifyingglass",
+    /// "gearshape", "terminal", "arrow.up.right.square"). Returns nil if
+    /// the symbol name is not recognised by the system.
+    /// - Parameter name: SF Symbol identifier
+    /// - Example:
+    /// ```js
+    /// const img = HSImage.fromSymbol('magnifyingglass')
+    /// ```
+    @objc static func fromSymbol(_ name: String) -> HSImage?
+
     /// Load an image from a URL (asynchronous)
     /// - Parameter url: URL string of the image
     /// - Returns: {Promise<HSImage>} A Promise that resolves to the loaded image, or rejects on error
@@ -189,6 +199,14 @@ import Observation
             return nil
         }
 
+        return image.toBridge()
+    }
+
+    @objc static func fromSymbol(_ name: String) -> HSImage? {
+        guard let image = NSImage(systemSymbolName: name, accessibilityDescription: nil) else {
+            AKError("HSImage: Failed to find SF Symbol: \(name)")
+            return nil
+        }
         return image.toBridge()
     }
 

@@ -17,9 +17,13 @@ struct UICanvasView: View {
     let containerSize: CGSize
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topLeading) {
             backgroundColor.ignoresSafeArea()
+            // Element gets its natural height (so VStack children don't space
+            // out via implicit fill) and the full canvas width. ZStack's
+            // .topLeading alignment then anchors the element to the top-left.
             element.toSwiftUI(containerSize: containerSize)
+                .frame(width: containerSize.width, alignment: .topLeading)
         }
     }
 }
