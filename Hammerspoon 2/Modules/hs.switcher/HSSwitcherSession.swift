@@ -59,14 +59,20 @@ final class HSSwitcherSession {
     func commit() {
         guard !isClosed else { return }
         guard let (app, window) = state.currentSelection() else { cancel(); return }
-        focus(app: app, window: window)
         let payload: [String: Any] = [
             "appName": app.name,
             "appPid": Int(app.pid),
             "windowTitle": window?.title as Any,
             "windowID": window?.stableID as Any,
         ]
-        close(callbackKind: .commit(payload))
+        // Tear down the picker FIRST so we don't compete with the target for
+        // key window status when we activate. close() calls tearDown() which
+        // orderOut's the picker, then we focus.
+        isClosed = true
+        tearDown()
+        focus(app: app, window: window)
+        config.onCommit?.callSafely(withArguments: [payload], context: "hs.switcher onCommit")
+        onClose()
     }
 
     func cancel() {
@@ -95,6 +101,72 @@ final class HSSwitcherSession {
             break
         }
         onClose()
+    }
+
+    // MARK: - Debug introspection
+
+    func debugState() -> [String: Any] {
+        var dict: [String: Any] = [
+            "selectedAppIndex": state.selectedAppIndex,
+            "selectedWindowIndex": state.selectedWindowIndex,
+            "mode": state.mode == .filter ? "filter" : "cycle",
+            "filterText": state.filterText,
+            "appCount": state.apps.count,
+        ]
+        if let w = window {
+            let f = w.frame
+            dict["windowFrame"] = ["x": f.origin.x, "y": f.origin.y, "w": f.width, "h": f.height]
+        }
+        if let screen = NSScreen.main {
+            let f = screen.visibleFrame
+            dict["screenVisibleFrame"] = ["x": f.origin.x, "y": f.origin.y, "w": f.width, "h": f.height]
+        }
+        let apps = state.apps.prefix(20).map { app -> [String: Any] in
+            return [
+                "name": app.name,
+                "pid": Int(app.pid),
+                "windowCount": app.windows.count,
+                "windowTitles": app.windows.prefix(5).map { $0.title },
+            ]
+        }
+        dict["apps"] = Array(apps)
+        if let (selApp, selWin) = state.currentSelection() {
+            dict["currentSelectionApp"] = selApp.name
+            dict["currentSelectionWindow"] = selWin?.title ?? "(no window)"
+        }
+        return dict
+    }
+
+    func debugMove(axis: String, delta: Int) {
+        switch axis {
+        case "app":    state.moveAppSelection(by: delta)
+        case "window": state.moveWindowSelection(by: delta)
+        default: break
+        }
+    }
+
+    /// Captures pre-commit state, runs commit, returns details so a test
+    /// harness can compare against NSWorkspace state after the fact.
+    func debugCommit() -> [String: Any] {
+        let beforeApp = NSWorkspace.shared.frontmostApplication
+        guard let (app, window) = state.currentSelection() else {
+            return [
+                "committed": false,
+                "reason": "no selection",
+                "frontmostBefore": beforeApp?.localizedName ?? "?",
+                "frontmostBeforePid": Int(beforeApp?.processIdentifier ?? 0),
+            ]
+        }
+        let dict: [String: Any] = [
+            "committed": true,
+            "frontmostBefore": beforeApp?.localizedName ?? "?",
+            "frontmostBeforePid": Int(beforeApp?.processIdentifier ?? 0),
+            "targetApp": app.name,
+            "targetPid": Int(app.pid),
+            "targetWindow": window?.title as Any,
+        ]
+        commit()
+        return dict
     }
 
     private func tearDown() {
@@ -182,33 +254,57 @@ final class HSSwitcherSession {
         win.hasShadow = true
         win.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
         win.hidesOnDeactivate = false
+        // Center on the screen with the currently-active app (NSScreen.main
+        // tracks that, unlike NSScreen.screens.first). Use visibleFrame so
+        // we sit below the menu bar / above the Dock.
+        //
+        // IMPORTANT: use literal constants for w/h, not `win.frame.{width,height}`.
+        // After assigning an NSHostingController as `contentViewController`, the
+        // panel's frame can be reported as 0×0 until SwiftUI completes its first
+        // layout pass — which hasn't happened yet at this point. Reading the
+        // frame here produced a 0-sized window centered on the screen.
+        let panelW: CGFloat = 640
+        let panelH: CGFloat = 480
         if let screen = NSScreen.main {
-            let f = screen.frame
-            let w = win.frame.width
-            let h = win.frame.height
-            win.setFrame(NSRect(x: f.midX - w/2, y: f.midY - h/2, width: w, height: h), display: false)
+            let f = screen.visibleFrame
+            win.setFrame(
+                NSRect(x: f.midX - panelW/2, y: f.midY - panelH/2, width: panelW, height: panelH),
+                display: true
+            )
         }
         win.makeKeyAndOrderFront(nil)
         win.orderFrontRegardless()
         self.window = win
 
-        // Cancel if user switches apps via something else (cmd-tab, click on
-        // another window, etc.)
-        resignKeyObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.didResignKeyNotification,
-            object: win, queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in self?.cancel() }
-        }
+        // NOTE: deliberately NOT observing didResignKeyNotification to cancel
+        // the session. With a nonactivatingPanel, the picker frequently loses
+        // key status moments after opening — the actual frontmost app reclaims
+        // it — which would kill the session before the user could commit. The
+        // user cancels explicitly via Escape, click-outside (via the safety
+        // timer), or the 15s timeout.
     }
 
     private func focus(app: HSAppEntry, window: HSWindowEntry?) {
+        // Raise the specific window first (so it's the one that's front when
+        // the app activates), then activate the app.
         if let win = window {
             AXUIElementSetMessagingTimeout(win.axElement.element, 0.1)
             try? win.axElement.performAction(.raise)
         }
-        if let running = NSRunningApplication(processIdentifier: app.pid) {
-            running.activate(options: [])
+
+        // macOS 14+ blocks `NSRunningApplication.activate(...)` from a
+        // background process — that's the same restriction that broke
+        // cross-app activation here. `NSWorkspace.shared.openApplication(at:)`
+        // goes through LaunchServices instead and is the modern, allowed
+        // path. (It's what `hs.application.launchOrFocus()` uses too.)
+        guard let running = NSRunningApplication(processIdentifier: app.pid),
+              let bundleURL = running.bundleURL else { return }
+        let cfg = NSWorkspace.OpenConfiguration()
+        cfg.activates = true
+        NSWorkspace.shared.openApplication(at: bundleURL, configuration: cfg) { _, error in
+            if let error = error {
+                AKError("hs.switcher: openApplication failed for \(app.name): \(error.localizedDescription)")
+            }
         }
     }
 }
