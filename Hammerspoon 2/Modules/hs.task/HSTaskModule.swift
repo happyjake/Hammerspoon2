@@ -79,6 +79,19 @@ import JavaScriptCoreExtras
     /// const b = new hs.task.TaskBuilder().launchPath("/bin/echo")
     /// ```
     @objc var TaskBuilder: JSValue? { get set }
+
+    /// Run a short-lived command synchronously and return its stdout as a
+    /// string. Use sparingly — this blocks the JS thread until the process
+    /// exits. Intended for fast utilities (`ps`, `whoami`, `uname`) where
+    /// awaiting a Promise would add UI flicker.
+    /// - Parameter launchPath: Absolute path to the executable
+    /// - Parameter arguments: Argument array
+    /// - Returns: Combined stdout as a string, or null on failure
+    /// - Example:
+    /// ```js
+    /// const out = hs.task.runSync('/bin/ps', ['-axo', 'pid,rss,comm'])
+    /// ```
+    @objc func runSync(_ launchPath: String, _ arguments: [String]) -> String?
 }
 
 // MARK: - Implementation
@@ -174,6 +187,27 @@ struct TaskTracker {
     }
 
     // MARK: - Task constructors
+
+    @objc func runSync(_ launchPath: String, _ arguments: [String]) -> String? {
+        let process = Process()
+        process.launchPath = launchPath
+        process.arguments = arguments
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        // Send stderr to /dev/null — caller only wants stdout.
+        process.standardError = FileHandle(forWritingAtPath: "/dev/null")
+        do {
+            try process.run()
+            // readDataToEndOfFile() blocks until the pipe is closed, which
+            // happens when the process exits — so this also waits for exit.
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            return String(data: data, encoding: .utf8)
+        } catch {
+            AKError("hs.task.runSync: failed to launch \(launchPath): \(error.localizedDescription)")
+            return nil
+        }
+    }
 
     @objc func new(_ launchPath: String, _ arguments: [String], _ completionCallback: JSValue? = nil, _ environment: JSValue? = nil, _ streamingCallback: JSValue? = nil) -> HSTask {
         // Parse environment dictionary if provided
