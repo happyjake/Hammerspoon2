@@ -24,10 +24,12 @@ private struct ReactiveText: View {
             .foregroundStyle(foreground)
             .opacity(opacity)
             .multilineTextAlignment(.leading)
-            // When a frame is set explicitly, anchor the text to top-leading
-            // so multi-line lists (launcher results) flow from the upper-left
-            // rather than getting centered inside the frame.
-            .frame(width: width, height: height, alignment: .topLeading)
+            // Horizontal: leading (left-aligned). Vertical: center — so single-
+            // line row text (icon + title in launcher) lines up with its
+            // siblings instead of top-anchoring inside the fixed row height.
+            // The canvas-level ZStack already anchors the whole element tree
+            // to topLeading, so list flow from the upper-left is preserved.
+            .frame(width: width, height: height, alignment: .leading)
     }
 }
 

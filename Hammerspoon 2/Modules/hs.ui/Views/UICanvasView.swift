@@ -5,6 +5,7 @@
 //  Created by Claude Code on 12/02/2026.
 //
 
+import AppKit
 import SwiftUI
 
 /// SwiftUI view that renders an HSUIElement tree.
@@ -16,6 +17,18 @@ struct UICanvasView: View {
     let backgroundColor: Color
     let containerSize: CGSize
 
+    /// Pick a color scheme based on the background's perceived luminance.
+    /// Dark backgrounds get `.dark` so SwiftUI secondary colors (notably
+    /// TextField placeholder text) render with proper contrast — otherwise
+    /// a borderless dark popup would inherit the system "light" appearance
+    /// and the placeholder would be nearly invisible.
+    private var resolvedColorScheme: ColorScheme {
+        let ns = NSColor(backgroundColor).usingColorSpace(.sRGB)
+        guard let c = ns else { return .light }
+        let lum = 0.299 * c.redComponent + 0.587 * c.greenComponent + 0.114 * c.blueComponent
+        return lum < 0.5 ? .dark : .light
+    }
+
     var body: some View {
         ZStack(alignment: .topLeading) {
             backgroundColor.ignoresSafeArea()
@@ -25,5 +38,6 @@ struct UICanvasView: View {
             element.toSwiftUI(containerSize: containerSize)
                 .frame(width: containerSize.width, alignment: .topLeading)
         }
+        .environment(\.colorScheme, resolvedColorScheme)
     }
 }
