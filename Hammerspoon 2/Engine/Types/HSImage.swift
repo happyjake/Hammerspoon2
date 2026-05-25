@@ -94,6 +94,16 @@ import Observation
     /// ```
     @objc static func fromSymbol(_ name: String) -> HSImage?
 
+    /// Create an empty (fully transparent) image. Useful as a placeholder
+    /// for pre-allocated image slots that should render nothing when no
+    /// content is bound.
+    /// - Returns: An HSImage wrapping a 1×1 fully-transparent NSImage
+    /// - Example:
+    /// ```js
+    /// const blank = HSImage.empty()
+    /// ```
+    @objc static func empty() -> HSImage
+
     /// Load an image from a URL (asynchronous)
     /// - Parameter url: URL string of the image
     /// - Returns: {Promise<HSImage>} A Promise that resolves to the loaded image, or rejects on error
@@ -207,6 +217,12 @@ import Observation
             AKError("HSImage: Failed to find SF Symbol: \(name)")
             return nil
         }
+        return image.toBridge()
+    }
+
+    @objc static func empty() -> HSImage {
+        // 1×1 transparent NSImage — renders as nothing in Image(nsImage:).
+        let image = NSImage(size: NSSize(width: 1, height: 1))
         return image.toBridge()
     }
 
