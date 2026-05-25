@@ -3745,6 +3745,17 @@ declare namespace hs.task {
     function new(launchPath: string, arguments: string[], completionCallback: JSValue | undefined, environment: JSValue | undefined, streamingCallback: JSValue | undefined): HSTask;
 
     /**
+     * Run a short-lived command synchronously and return its stdout as a
+string. Use sparingly — this blocks the JS thread until the process
+exits. Intended for fast utilities (`ps`, `whoami`, `uname`) where
+awaiting a Promise would add UI flicker.
+     * @param launchPath Absolute path to the executable
+     * @param arguments Argument array
+     * @returns Combined stdout as a string, or null on failure
+     */
+    function runSync(launchPath: string, arguments: string[]): string | undefined;
+
+    /**
      * Create and run a task asynchronously
      * @param launchPath - Full path to the executable
      * @param args - Array of arguments
