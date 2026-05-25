@@ -518,8 +518,8 @@
         {
           "name": "installedApps",
           "signature": "func installedApps(_ extraRoots: JSValue) -> [[String: Any]]",
-          "rawDocumentation": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; call `invalidateInstalledAppsCache()`\nto force a rescan.\n\nRoots scanned in order (dedup by bundleID — first wins):\n  1. /Applications\n  2. ~/Applications\n  3. /System/Applications\n  4. /System/Applications/Utilities\n  5. Any caller-supplied extra roots\n\nBundles with `LSUIElement = true` or `NSUIElement = true` are skipped.\nIcons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.\n\n- Parameter extraRoots: Optional array of additional directories to scan.\n- Returns: Array of `{name, displayName, bundleID, path, iconPath, version}`\n- Example:\n```js\nconst apps = hs.application.installedApps()\nconsole.log(apps[0].displayName, apps[0].bundleID)\n\n// With extra roots:\nconst more = hs.application.installedApps(['~/Tools', '~/Dev/Apps'])\n```",
-          "description": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; call `invalidateInstalledAppsCache()`\nto force a rescan.\n1. /Applications\n2. ~/Applications\n3. /System/Applications\n4. /System/Applications/Utilities\n5. Any caller-supplied extra roots\nBundles with `LSUIElement = true` or `NSUIElement = true` are skipped.\nIcons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.",
+          "rawDocumentation": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; call `invalidateInstalledAppsCache()`\nto force a rescan.\n\nRoots scanned in order (dedup by bundleID — first wins):\n  1. /Applications\n  2. ~/Applications\n  3. /System/Applications\n  4. /System/Applications/Utilities\n  5. Any caller-supplied extra roots\n\nBundles with `LSBackgroundOnly = true` (true daemons with no UI) are\nskipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,\nBartender, ClipMenu) are included because users still launch them.\nIcons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.\n\n- Parameter extraRoots: Optional array of additional directories to scan.\n- Returns: Array of `{name, displayName, bundleID, path, iconPath, version}`\n- Example:\n```js\nconst apps = hs.application.installedApps()\nconsole.log(apps[0].displayName, apps[0].bundleID)\n\n// With extra roots:\nconst more = hs.application.installedApps(['~/Tools', '~/Dev/Apps'])\n```",
+          "description": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; call `invalidateInstalledAppsCache()`\nto force a rescan.\n1. /Applications\n2. ~/Applications\n3. /System/Applications\n4. /System/Applications/Utilities\n5. Any caller-supplied extra roots\nBundles with `LSBackgroundOnly = true` (true daemons with no UI) are\nskipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,\nBartender, ClipMenu) are included because users still launch them.\nIcons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.",
           "params": [
             {
               "name": "extraRoots",
@@ -539,7 +539,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 147
+          "lineNumber": 149
         },
         {
           "name": "invalidateInstalledAppsCache",
@@ -556,7 +556,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 154
+          "lineNumber": 156
         },
         {
           "name": "killPid",
@@ -587,7 +587,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 167
+          "lineNumber": 169
         },
         {
           "name": "addWatcher",
@@ -610,7 +610,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 178
+          "lineNumber": 180
         },
         {
           "name": "removeWatcher",
@@ -633,7 +633,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 187
+          "lineNumber": 189
         }
       ],
       "properties": [],
@@ -13112,5 +13112,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-25T11:37:09.698Z"
+  "generatedAt": "2026-05-25T11:41:34.129Z"
 }

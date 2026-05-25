@@ -131,7 +131,9 @@ import UniformTypeIdentifiers
     ///   4. /System/Applications/Utilities
     ///   5. Any caller-supplied extra roots
     ///
-    /// Bundles with `LSUIElement = true` or `NSUIElement = true` are skipped.
+    /// Bundles with `LSBackgroundOnly = true` (true daemons with no UI) are
+    /// skipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,
+    /// Bartender, ClipMenu) are included because users still launch them.
     /// Icons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.
     ///
     /// - Parameter extraRoots: Optional array of additional directories to scan.
@@ -421,8 +423,13 @@ private struct InstalledAppsCacheEntry {
                 guard let info = readInfoPlist(at: url),
                       let bundleID = info["CFBundleIdentifier"] as? String else { continue }
                 if seen.contains(bundleID) { continue }
-                if (info["LSUIElement"] as? Bool == true) ||
-                   (info["NSUIElement"] as? Bool == true) { continue }
+                // Exclude only true daemons (`LSBackgroundOnly = true` — no UI
+                // at all). LSUIElement / NSUIElement apps like Hammerspoon 1,
+                // Bartender, ClipMenu, MonitorControl live in the menu bar
+                // without a Dock icon but are very much user-launchable and
+                // should appear in the launcher.
+                if (info["LSBackgroundOnly"] as? Bool == true) ||
+                   (info["NSBGOnly"] as? Bool == true) { continue }
                 seen.insert(bundleID)
 
                 let name = info["CFBundleName"] as? String ?? url.deletingPathExtension().lastPathComponent
