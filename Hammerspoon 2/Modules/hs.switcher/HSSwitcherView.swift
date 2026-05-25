@@ -37,9 +37,9 @@ struct HSSwitcherView: View {
                         }
                     }
                 }
-                .frame(maxHeight: 432)
             }
         }
+        .frame(width: 640, height: 480, alignment: .topLeading)
         .background(.thinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }

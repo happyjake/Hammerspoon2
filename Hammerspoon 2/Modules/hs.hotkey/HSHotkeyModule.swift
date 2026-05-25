@@ -54,6 +54,16 @@ import AppKit
     /// ```
     @objc func getKeyCodeMap() -> [String: UInt32]
 
+    /// Drive a `DoubleTapDetector` through a synthetic event sequence and
+    /// report how many times the trigger fired. For testing only.
+    /// - Parameter modifier: 'shift', 'ctrl', 'cmd', or 'alt'.
+    /// - Parameter sequence: array of events, each `{type, mods, atMs}`.
+    ///   - `type`: 'flagsChanged' or 'keyDown'
+    ///   - `mods`: array of modifier names currently held (e.g. ['ctrl'])
+    ///   - `atMs`: milliseconds elapsed since the synthetic clock origin
+    /// - Returns: integer fire count.
+    @objc func testDoubleTapSequence(_ modifier: String, _ sequence: JSValue) -> Int
+
     /// Get the mapping of modifier names to modifier flags
     /// - Returns: A dictionary mapping modifier names to their numeric values
     /// - Example:
@@ -144,25 +154,40 @@ internal final class DoubleTapDetector {
     }
 
     private func handle(_ event: NSEvent) {
-        if event.type == .keyDown {
+        feed(eventType: event.type, flags: event.modifierFlags.intersection(Self.trackedMask), now: Date())
+    }
+
+    /// Pure entry point — testable without an NSEvent. `flags` should already
+    /// be intersected with `trackedMask`. `now` is injectable for time-based
+    /// behaviour (state-2 expiry).
+    internal func feed(eventType: NSEvent.EventType, flags: NSEvent.ModifierFlags, now: Date) {
+        if eventType == .keyDown {
             state = 0; firstReleaseAt = nil
             return
         }
-        let flags = event.modifierFlags.intersection(Self.trackedMask)
         let isOurModOnly = flags == modifierMask
         let isOurModDown = flags.contains(modifierMask)
         let allUp = flags.isEmpty
+
+        // Expire stale state-2 BEFORE evaluating the switch, so the current
+        // event participates in state-0 logic instead of being dropped. This
+        // matters for the ctrl×2 → switcher path: after a commit the user is
+        // typically in another app for seconds before re-triggering, leaving
+        // firstReleaseAt deeply stale. Without this restructure, the first
+        // ctrl-down "wakes up" the detector but doesn't count toward the new
+        // double-tap, requiring a phantom ctrl tap before ctrl×2 works again.
+        if state == 2, let t = firstReleaseAt, now.timeIntervalSince(t) > Self.windowSeconds {
+            state = 0; firstReleaseAt = nil
+        }
 
         switch state {
         case 0:
             if isOurModDown && isOurModOnly { state = 1 }
         case 1:
-            if allUp { state = 2; firstReleaseAt = Date() }
+            if allUp { state = 2; firstReleaseAt = now }
             else { state = 0 }
         case 2:
-            if let t = firstReleaseAt, Date().timeIntervalSince(t) > Self.windowSeconds {
-                state = 0; firstReleaseAt = nil
-            } else if isOurModDown && isOurModOnly {
+            if isOurModDown && isOurModOnly {
                 state = 3
             } else if !allUp {
                 state = 0; firstReleaseAt = nil
@@ -293,6 +318,46 @@ internal final class DoubleTapDetector {
 
     @objc func getKeyCodeMap() -> [String: UInt32] {
         return KeyCodeMapper.keyMap
+    }
+
+    @objc func testDoubleTapSequence(_ modifier: String, _ sequence: JSValue) -> Int {
+        let mask: NSEvent.ModifierFlags
+        switch modifier.lowercased() {
+        case "shift":                     mask = .shift
+        case "ctrl", "control":           mask = .control
+        case "cmd", "command":            mask = .command
+        case "opt", "alt", "option":      mask = .option
+        default: return -1
+        }
+        var fires = 0
+        let det = DoubleTapDetector(modifier: mask, swiftCallback: { fires += 1 })
+        guard sequence.isArray, let arr = sequence.toArray() as? [[String: Any]] else { return -2 }
+        let origin = Date(timeIntervalSinceReferenceDate: 0)
+        for ev in arr {
+            let typeStr = (ev["type"] as? String) ?? "flagsChanged"
+            let atMs = (ev["atMs"] as? Int) ?? 0
+            let now = origin.addingTimeInterval(TimeInterval(atMs) / 1000.0)
+            let modsArr = (ev["mods"] as? [String]) ?? []
+            var flags: NSEvent.ModifierFlags = []
+            for m in modsArr {
+                switch m.lowercased() {
+                case "shift":  flags.insert(.shift)
+                case "ctrl", "control": flags.insert(.control)
+                case "cmd", "command":  flags.insert(.command)
+                case "opt", "alt", "option": flags.insert(.option)
+                default: break
+                }
+            }
+            let evType: NSEvent.EventType = (typeStr == "keyDown") ? .keyDown : .flagsChanged
+            det.feed(eventType: evType, flags: flags, now: now)
+            // DispatchQueue.main.async (which the detector uses to fire its
+            // callback) won't have run yet — but for our internal swift
+            // callback we don't actually go through main.async on test path;
+            // it's just `fires += 1`. Wait — yes we DO. Fix: do a runloop spin
+            // after each event so the async fires.
+            RunLoop.current.run(until: Date().addingTimeInterval(0.001))
+        }
+        return fires
     }
 
     @objc func getModifierMap() -> [String: UInt32] {

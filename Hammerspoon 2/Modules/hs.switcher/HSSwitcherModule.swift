@@ -36,6 +36,38 @@ import AppKit
     /// // later: sw.disable()
     /// ```
     @objc func enable(_ cfg: JSValue) -> [String: Any]
+
+    /// Open the picker right now, as if the user had triggered ctrl×2.
+    /// Uses the first active binding's config; no-op if `enable()` has not
+    /// been called. Intended for testing / custom hotkey wiring.
+    /// - Returns: true if the picker opened, false otherwise.
+    /// - Example:
+    /// ```js
+    /// hs.switcher.show()
+    /// ```
+    @objc func show() -> Bool
+
+    /// Diagnostic snapshot of the live picker (if open) and the registry.
+    /// Returns null if no session is active.
+    /// - Returns: object with `windowFrame`, `screenVisibleFrame`,
+    ///   `selectedAppIndex`, `selectedWindowIndex`, `mode`, `filterText`,
+    ///   `apps` (array of `{name, pid, windowTitles}`)
+    /// - Example:
+    /// ```js
+    /// hs.switcher.show(); const s = hs.switcher.debugState()
+    /// ```
+    @objc func debugState() -> [String: Any]?
+
+    /// Programmatically move the current session's selection (no UI events).
+    /// `axis` is 'app' or 'window'; `delta` is +1 / -1.
+    /// - Returns: true if a session was active to move.
+    @objc func debugMove(_ axis: String, _ delta: Int) -> Bool
+
+    /// Programmatically commit the current selection (same path as Enter).
+    /// Returns a dict with `frontmostBefore`, `targetApp`, `targetPid`,
+    /// `committed` (bool), and the caller can poll `frontmostAfter` via
+    /// `hs.application.frontmost()` shortly after.
+    @objc func debugCommit() -> [String: Any]
 }
 
 // MARK: - Implementation
@@ -60,6 +92,31 @@ import AppKit
 
     isolated deinit {
         AKTrace("Deinit of \(name): \(engineID)")
+    }
+
+    @objc func show() -> Bool {
+        guard let binding = activeBindings.first else {
+            AKWarning("hs.switcher.show(): no active binding — call enable() first")
+            return false
+        }
+        return binding.triggerNow()
+    }
+
+    @objc func debugState() -> [String: Any]? {
+        guard let binding = activeBindings.first else { return nil }
+        return binding.debugState()
+    }
+
+    @objc func debugMove(_ axis: String, _ delta: Int) -> Bool {
+        guard let binding = activeBindings.first else { return false }
+        return binding.debugMove(axis: axis, delta: delta)
+    }
+
+    @objc func debugCommit() -> [String: Any] {
+        guard let binding = activeBindings.first else {
+            return ["committed": false, "reason": "no active binding"]
+        }
+        return binding.debugCommit()
     }
 
     @objc func enable(_ cfg: JSValue) -> [String: Any] {
@@ -133,11 +190,20 @@ final class HSSwitcherBinding {
     }
 
     func install() -> Bool {
+        // Touch the window registry now so it can begin seeding apps + AX
+        // observers immediately — by the time the user triggers ctrl×2,
+        // the snapshot will already be populated. Without this, the first
+        // trigger runs against a near-empty registry (only the apps whose
+        // windowCreated AX events have fired since seed) and the picker
+        // shows half-empty.
+        _ = HSWindowRegistry.shared
+
         let det = DoubleTapDetector(modifier: .control, swiftCallback: { [weak self] in
             self?.onTrigger()
         })
         det.start()
         self.detector = det
+        AKTrace("hs.switcher: installed ctrl×2 detector")
         return true
     }
 
@@ -148,13 +214,48 @@ final class HSSwitcherBinding {
         detector = nil
     }
 
-    private func onTrigger() {
-        if activeSession != nil { return }   // ignore re-triggers
-        guard let registry = HSWindowModule.sharedRegistry() else { return }
+    /// Programmatic trigger used by `hs.switcher.show()`. Returns true if
+    /// the picker actually opened.
+    @discardableResult
+    func triggerNow() -> Bool {
+        if activeSession != nil { return false }
+        // Filter out system helpers / menubar apps that aren't sensible
+        // switch targets (loginwindow, WindowManager, agents with 0 windows).
+        let snap = HSWindowRegistry.shared.snapshot().filter { $0.isSwitchable }
+        AKTrace("hs.switcher: triggered with \(snap.count) switchable apps")
         let session = HSSwitcherSession(config: config) { [weak self] in
             self?.activeSession = nil
         }
-        _ = session.start(snapshot: registry.snapshot())
+        if !session.start(snapshot: snap) {
+            AKError("hs.switcher: session.start() returned false")
+            return false
+        }
         activeSession = session
+        return true
+    }
+
+    private func onTrigger() { _ = triggerNow() }
+
+    /// Returns a JS-friendly snapshot of the current session's state, or nil.
+    func debugState() -> [String: Any]? {
+        guard let session = activeSession else { return nil }
+        return session.debugState()
+    }
+
+    /// Programmatically move selection on the active session. Returns false
+    /// if no session is active.
+    func debugMove(axis: String, delta: Int) -> Bool {
+        guard let session = activeSession else { return false }
+        session.debugMove(axis: axis, delta: delta)
+        return true
+    }
+
+    /// Programmatically run commit() on the active session, returning the
+    /// pre-state so the caller can compare against NSWorkspace state after.
+    func debugCommit() -> [String: Any] {
+        guard let session = activeSession else {
+            return ["committed": false, "reason": "no active session"]
+        }
+        return session.debugCommit()
     }
 }

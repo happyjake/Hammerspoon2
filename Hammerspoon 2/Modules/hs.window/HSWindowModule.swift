@@ -98,29 +98,28 @@ import AXSwift
     let engineID: UUID
 
     /// Live, in-memory MRU cache of running apps/windows. Maintained by
-    /// observers (NSWorkspace + AXObserver). Used by hs.window.snapshot()
-    /// and by hs.switcher for sub-frame trigger latency.
-    private lazy var registry: HSWindowRegistry = HSWindowRegistry()
+    /// observers (NSWorkspace + AXObserver). Process-wide singleton — see
+    /// `HSWindowRegistry.shared`. Cached locally for convenience.
+    private var registry: HSWindowRegistry { HSWindowRegistry.shared }
 
     // MARK: - Module lifecycle
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        HSWindowModule.lastInstance = self
+        // Touch the shared registry so observers are wired up early, even if
+        // JS hasn't called any hs.window API yet (hs.switcher reads it on the
+        // first ctrl×2 trigger).
+        _ = HSWindowRegistry.shared
         AKTrace("Init of \(name): \(engineID)")
     }
 
     /// Internal accessor for other modules (e.g. `hs.switcher`).
     func internalRegistry() -> HSWindowRegistry { registry }
 
-    /// Weak singleton-style accessor: the most-recently-initialised
-    /// `HSWindowModule` registers itself here so cross-module callers
-    /// (specifically `hs.switcher`) can read snapshots without going through
-    /// JSContext lookup. Multi-engine setups will see the last-loaded engine's
-    /// registry, which is fine since the picker is a global UI feature.
-    private static weak var lastInstance: HSWindowModule?
+    /// Returns the process-wide window registry. Always available — does not
+    /// depend on JS having touched `hs.window` first.
     static func sharedRegistry() -> HSWindowRegistry? {
-        return lastInstance?.registry
+        return HSWindowRegistry.shared
     }
 
     func shutdown() {

@@ -10,8 +10,14 @@ import AXSwift
 /// Long-lived, in-memory cache of running apps and their windows, maintained
 /// by NSWorkspace notifications and per-app AXObservers. The switcher reads
 /// snapshots from here on the hot path — no AX calls at trigger time.
+///
+/// Process-wide singleton: running apps are global OS state, not per-engine.
+/// This also lets `hs.switcher` access the registry without depending on JS
+/// having touched `hs.window` first (which would leave it un-instantiated).
 @MainActor
 final class HSWindowRegistry {
+    static let shared = HSWindowRegistry()
+
     private var appsByPid: [pid_t: HSAppEntry] = [:]
     private var appMRU: [pid_t] = []          // most-recent first
     private var nextWindowID: UInt64 = 1
