@@ -194,6 +194,9 @@ final class HSSwitcherSession {
             state.mode = .filter
             state.filterText = s
             keyHandler?.setFilterMode(true)
+            // First letter entered the filter — make sure the user is typing
+            // Latin even if their IME was Chinese / Japanese / Korean.
+            _ = switchToASCIIInputSource()
             ensureSelectionInBounds()
         case .filterAppend(let s):
             state.filterText += s
