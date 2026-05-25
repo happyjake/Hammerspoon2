@@ -31,14 +31,24 @@ final class HSSwitcherState {
     var filterText: String = ""
 
     /// Computed filtered view. In cycle mode this is `apps`; in filter mode,
-    /// apps whose name matches or that have at least one window-title match.
+    /// apps whose name matches (literal substring OR pinyin substring) or
+    /// that have at least one window-title match (same rules).
     func filteredApps() -> [HSAppEntry] {
         guard mode == .filter, !filterText.isEmpty else { return apps }
         let needle = filterText.lowercased()
         return apps.filter { app in
-            if app.name.lowercased().contains(needle) { return true }
-            return app.windows.contains { $0.title.lowercased().contains(needle) }
+            if Self.matches(app.name, needle: needle) { return true }
+            return app.windows.contains { Self.matches($0.title, needle: needle) }
         }
+    }
+
+    /// Substring match against the literal string and against its pinyin
+    /// form so typing "weixin" matches "微信". Pinyin lookups are cached
+    /// process-wide (PinyinCache).
+    private static func matches(_ hay: String, needle: String) -> Bool {
+        if hay.lowercased().contains(needle) { return true }
+        let py = PinyinCache.shared.get(hay)
+        return !py.isEmpty && py != hay.lowercased() && py.contains(needle)
     }
 
     /// Move app selection forward (delta=+1) or back (delta=-1), wrapping.
