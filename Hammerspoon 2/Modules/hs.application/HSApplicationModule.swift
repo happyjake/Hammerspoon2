@@ -77,6 +77,19 @@ import UniformTypeIdentifiers
     /// ```
     @objc func pathForBundleID(_ bundleID: String) -> String?
 
+    /// Render the application's icon as a base64-encoded PNG string. Use the
+    /// returned string as the body of a `data:image/png;base64,…` URL to render
+    /// the icon in HTML/SwiftUI without exposing the underlying .icns path.
+    /// Falls back to NSWorkspace's generic icon if no application is found.
+    /// - Parameter bundleID: The application bundle identifier (e.g. "com.apple.Safari")
+    /// - Returns: The base64-encoded PNG bytes, or null if the bundle could not be located
+    /// - Example:
+    /// ```js
+    /// const b64 = hs.application.iconForBundleID("com.apple.Safari")
+    /// element.src = "data:image/png;base64," + b64
+    /// ```
+    @objc func iconForBundleID(_ bundleID: String) -> String?
+
     /// Fetch filesystem paths for an application
     /// - Parameter bundleID: The application bundle identifier to search for (e.g. "com.apple.Safari")
     /// - Returns: An array of strings containing any filesystem paths that were found
@@ -512,6 +525,37 @@ private struct InstalledAppsCacheEntry {
         let plistURL = appURL.appendingPathComponent("Contents/Info.plist")
         guard let data = try? Data(contentsOf: plistURL) else { return nil }
         return try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+    }
+
+    @objc func iconForBundleID(_ bundleID: String) -> String? {
+        let workspace = NSWorkspace.shared
+        // urlForApplication looks up the app by bundle identifier; if the
+        // bundleID isn't a known installed app (e.g. a CLI tool or service),
+        // fall through to nil — caller will use a fallback letter tile.
+        guard let url = workspace.urlForApplication(withBundleIdentifier: bundleID) else { return nil }
+        // NSWorkspace returns an NSImage that includes multiple representations
+        // (multi-size .icns). Pick a 44px target so the rendered PNG is sharp
+        // on @2x without being huge.
+        let icon = workspace.icon(forFile: url.path)
+        let target = NSSize(width: 44, height: 44)
+        // Render at @2x for retina sharpness, but keep the *bitmap*'s declared
+        // size at the logical 44pt so CSS `width:22px;height:22px` still fits.
+        let scale: CGFloat = 2
+        guard let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int(target.width * scale),
+            pixelsHigh: Int(target.height * scale),
+            bitsPerSample: 8, samplesPerPixel: 4,
+            hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 32
+        ) else { return nil }
+        bitmap.size = target
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+        icon.draw(in: NSRect(origin: .zero, size: target))
+        NSGraphicsContext.restoreGraphicsState()
+        guard let png = bitmap.representation(using: .png, properties: [:]) else { return nil }
+        return png.base64EncodedString()
     }
 
     /// Resolves the path of the bundle's primary icon (.icns) without any image
