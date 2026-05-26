@@ -28,9 +28,9 @@ struct HSNotifyStructureTests {
         makeHarness().expectTrue("typeof hs.notify.show === 'function'")
     }
 
-    @Test("new is a function")
-    func testNewIsFunction() {
-        makeHarness().expectTrue("typeof hs.notify.new === 'function'")
+    @Test("create is a function")
+    func testCreateIsFunction() {
+        makeHarness().expectTrue("typeof hs.notify.create === 'function'")
     }
 
     @Test("removeAllDelivered is a function")
@@ -44,34 +44,34 @@ struct HSNotifyStructureTests {
     }
 
     @Test("new() returns null when called without a title")
-    func testNewWithoutTitleReturnsNull() {
+    func testCreateWithoutTitleReturnsNull() {
         let harness = makeHarness()
         harness.expectTrue(
-            "(function() { var n = hs.notify.new({}); return n === null || n === undefined; })()"
+            "(function() { var n = hs.notify.create({}); return n === null || n === undefined; })()"
         )
         #expect(!harness.hasException)
     }
 
     @Test("new() returns null when passed a non-object")
-    func testNewWithNonObjectReturnsNull() {
+    func testCreateWithNonObjectReturnsNull() {
         let harness = makeHarness()
         harness.expectTrue(
-            "(function() { var n = hs.notify.new('oops'); return n === null || n === undefined; })()"
+            "(function() { var n = hs.notify.create('oops'); return n === null || n === undefined; })()"
         )
         #expect(!harness.hasException)
     }
 
     @Test("new() returns an object when given a valid title")
-    func testNewReturnsObject() {
+    func testCreateReturnsObject() {
         let harness = makeHarness()
-        harness.expectTrue("typeof hs.notify.new({ title: 'Test' }) === 'object'")
+        harness.expectTrue("typeof hs.notify.create({ title: 'Test' }) === 'object'")
     }
 
     @Test("HSNotification has an identifier string")
     func testNotificationHasIdentifier() {
         let harness = makeHarness()
         harness.expectTrue(
-            "typeof hs.notify.new({ title: 'Test' }).identifier === 'string'"
+            "typeof hs.notify.create({ title: 'Test' }).identifier === 'string'"
         )
     }
 
@@ -79,7 +79,7 @@ struct HSNotifyStructureTests {
     func testNotificationIdentifierIsNonEmpty() {
         let harness = makeHarness()
         harness.expectTrue(
-            "hs.notify.new({ title: 'Test' }).identifier.length > 0"
+            "hs.notify.create({ title: 'Test' }).identifier.length > 0"
         )
     }
 
@@ -88,8 +88,8 @@ struct HSNotifyStructureTests {
         let harness = makeHarness()
         harness.expectTrue("""
             (function() {
-                var a = hs.notify.new({ title: 'A' });
-                var b = hs.notify.new({ title: 'B' });
+                var a = hs.notify.create({ title: 'A' });
+                var b = hs.notify.create({ title: 'B' });
                 return a.identifier !== b.identifier;
             })()
         """)
@@ -99,7 +99,7 @@ struct HSNotifyStructureTests {
     func testNotificationSendIsFunction() {
         let harness = makeHarness()
         harness.expectTrue(
-            "typeof hs.notify.new({ title: 'Test' }).send === 'function'"
+            "typeof hs.notify.create({ title: 'Test' }).send === 'function'"
         )
     }
 
@@ -107,7 +107,7 @@ struct HSNotifyStructureTests {
     func testNotificationWithdrawIsFunction() {
         let harness = makeHarness()
         harness.expectTrue(
-            "typeof hs.notify.new({ title: 'Test' }).withdraw === 'function'"
+            "typeof hs.notify.create({ title: 'Test' }).withdraw === 'function'"
         )
     }
 
@@ -116,7 +116,7 @@ struct HSNotifyStructureTests {
         let harness = makeHarness()
         harness.expectTrue("""
             (function() {
-                var n = hs.notify.new({ title: 'Chain test' });
+                var n = hs.notify.create({ title: 'Chain test' });
                 return n.send() === n;
             })()
         """)
@@ -127,7 +127,7 @@ struct HSNotifyStructureTests {
     func testWithdrawDoesNotThrow() {
         let harness = makeHarness()
         harness.eval("""
-            var _nwn = hs.notify.new({ title: 'Withdraw test' });
+            var _nwn = hs.notify.create({ title: 'Withdraw test' });
             _nwn.send();
             _nwn.withdraw();
         """)
@@ -149,10 +149,10 @@ struct HSNotifyStructureTests {
     }
 
     @Test("new() accepts all documented options without throwing")
-    func testNewAcceptsAllOptions() {
+    func testCreateAcceptsAllOptions() {
         let harness = makeHarness()
         harness.eval("""
-            hs.notify.new({
+            hs.notify.create({
                 title:           'Full options test',
                 subtitle:        'Subtitle',
                 body:            'Body text',

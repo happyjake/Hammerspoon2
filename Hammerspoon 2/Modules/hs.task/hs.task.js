@@ -31,7 +31,7 @@
                 const terminationCallback = options;
                 streamCallback = legacyStreamCallback;
 
-                const task = hs.task.new.call(hs.task, launchPath, args, terminationCallback, streamCallback);
+                const task = hs.task.create.call(hs.task, launchPath, args, terminationCallback, streamCallback);
                 task.start();
                 return; // Legacy mode doesn't return a promise
             }
@@ -76,7 +76,7 @@
             };
 
             // Create and start the task
-            const task = hs.task.new.call(hs.task, launchPath, args, terminationCallback, environment, streamCallback);
+            const task = hs.task.create.call(hs.task, launchPath, args, terminationCallback, environment, streamCallback);
 
             if (workingDirectory) {
                 task.workingDirectory = workingDirectory;
@@ -206,7 +206,7 @@
                 streamCallback = this.outputCallback;
             }
 
-            const task = hs.task.new.call(hs.task, this.launchPath, this.args, null, this.env, streamCallback);
+            const task = hs.task.create.call(hs.task, this.launchPath, this.args, null, this.env, streamCallback);
 
             if (this.cwd) {
                 task.workingDirectory = this.cwd;

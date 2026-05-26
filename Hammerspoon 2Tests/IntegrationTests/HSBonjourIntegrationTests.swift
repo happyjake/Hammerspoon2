@@ -23,9 +23,9 @@ struct HSBonjourModuleAPITests {
         makeHarness().expectTrue("typeof hs.bonjour === 'object'")
     }
 
-    @Test("newSearch is a function")
-    func testNewSearchIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.newSearch === 'function'")
+    @Test("createSearch is a function")
+    func testCreateSearchIsFunction() {
+        makeHarness().expectTrue("typeof hs.bonjour.createSearch === 'function'")
     }
 
     @Test("removeSearch is a function")
@@ -97,21 +97,21 @@ struct HSBonjourSearchAPITests {
         return harness
     }
 
-    @Test("newSearch() returns an object")
-    func testNewSearchReturnsObject() {
-        makeHarness().expectTrue("typeof hs.bonjour.newSearch() === 'object'")
+    @Test("createSearch() returns an object")
+    func testCreateSearchReturnsObject() {
+        makeHarness().expectTrue("typeof hs.bonjour.createSearch() === 'object'")
     }
 
     @Test("search.typeName is HSBonjourSearch")
     func testSearchTypeName() {
-        makeHarness().expectEqual("hs.bonjour.newSearch().typeName", "HSBonjourSearch")
+        makeHarness().expectEqual("hs.bonjour.createSearch().typeName", "HSBonjourSearch")
     }
 
     @Test("search.identifier is a non-empty string")
     func testSearchIdentifierIsString() {
         let harness = makeHarness()
-        harness.expectTrue("typeof hs.bonjour.newSearch().identifier === 'string'")
-        harness.expectTrue("hs.bonjour.newSearch().identifier.length > 0")
+        harness.expectTrue("typeof hs.bonjour.createSearch().identifier === 'string'")
+        harness.expectTrue("hs.bonjour.createSearch().identifier.length > 0")
         #expect(!harness.hasException)
     }
 
@@ -120,8 +120,8 @@ struct HSBonjourSearchAPITests {
         let harness = makeHarness()
         harness.expectTrue("""
             (function() {
-                var a = hs.bonjour.newSearch();
-                var b = hs.bonjour.newSearch();
+                var a = hs.bonjour.createSearch();
+                var b = hs.bonjour.createSearch();
                 return a.identifier !== b.identifier;
             })()
         """)
@@ -130,22 +130,22 @@ struct HSBonjourSearchAPITests {
 
     @Test("search has findServices function")
     func testFindServicesIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.newSearch().findServices === 'function'")
+        makeHarness().expectTrue("typeof hs.bonjour.createSearch().findServices === 'function'")
     }
 
     @Test("search has findBrowsableDomains function")
     func testFindBrowsableDomainsIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.newSearch().findBrowsableDomains === 'function'")
+        makeHarness().expectTrue("typeof hs.bonjour.createSearch().findBrowsableDomains === 'function'")
     }
 
     @Test("search has findRegistrationDomains function")
     func testFindRegistrationDomainsIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.newSearch().findRegistrationDomains === 'function'")
+        makeHarness().expectTrue("typeof hs.bonjour.createSearch().findRegistrationDomains === 'function'")
     }
 
     @Test("search has stop function")
     func testStopIsFunction() {
-        makeHarness().expectTrue("typeof hs.bonjour.newSearch().stop === 'function'")
+        makeHarness().expectTrue("typeof hs.bonjour.createSearch().stop === 'function'")
     }
 
     @Test("search.stop() returns self for chaining")
@@ -153,7 +153,7 @@ struct HSBonjourSearchAPITests {
         let harness = makeHarness()
         harness.expectTrue("""
             (function() {
-                var s = hs.bonjour.newSearch();
+                var s = hs.bonjour.createSearch();
                 return s.stop() === s;
             })()
         """)
@@ -163,7 +163,7 @@ struct HSBonjourSearchAPITests {
     @Test("search.includesPeerToPeer is settable and gettable")
     func testIncludesPeerToPeerRoundtrip() {
         let harness = makeHarness()
-        harness.eval("var s = hs.bonjour.newSearch(); s.includesPeerToPeer = true;")
+        harness.eval("var s = hs.bonjour.createSearch(); s.includesPeerToPeer = true;")
         harness.expectTrue("s.includesPeerToPeer === true")
         #expect(!harness.hasException)
     }
@@ -172,7 +172,7 @@ struct HSBonjourSearchAPITests {
     func testRemoveSearch() {
         let harness = makeHarness()
         harness.eval("""
-            var s = hs.bonjour.newSearch();
+            var s = hs.bonjour.createSearch();
             hs.bonjour.removeSearch(s);
         """)
         #expect(!harness.hasException)

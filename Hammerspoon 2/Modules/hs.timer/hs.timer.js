@@ -25,7 +25,7 @@ hs.timer.doUntil = function(predicateFn, actionFn, checkInterval) {
 
     checkInterval = checkInterval || 1;
 
-    const timer = hs.timer.new(checkInterval, function() {
+    const timer = hs.timer.create(checkInterval, function() {
         if (predicateFn()) {
             actionFn();
             timer.stop();
@@ -52,7 +52,7 @@ hs.timer.doWhile = function(predicateFn, actionFn, checkInterval) {
 
     checkInterval = checkInterval || 1;
 
-    const timer = hs.timer.new(checkInterval, function() {
+    const timer = hs.timer.create(checkInterval, function() {
         if (!predicateFn()) {
             timer.stop();
         } else {
@@ -78,7 +78,7 @@ hs.timer.waitUntil = function(predicateFn, actionFn, checkInterval) {
 
     checkInterval = checkInterval || 1;
 
-    const timer = hs.timer.new(checkInterval, function() {
+    const timer = hs.timer.create(checkInterval, function() {
         if (predicateFn()) {
             actionFn();
             timer.stop();
@@ -103,7 +103,7 @@ hs.timer.waitWhile = function(predicateFn, actionFn, checkInterval) {
 
     checkInterval = checkInterval || 1;
 
-    const timer = hs.timer.new(checkInterval, function() {
+    const timer = hs.timer.create(checkInterval, function() {
         if (!predicateFn()) {
             actionFn();
             timer.stop();
