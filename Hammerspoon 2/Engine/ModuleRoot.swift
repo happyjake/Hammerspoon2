@@ -42,6 +42,7 @@ import JavaScriptCoreExtras
     @objc var text: HSTextModule { get }
     @objc var timer: HSTimerModule { get }
     @objc var ui: HSUIModule { get }
+    @objc var webview: HSWebviewModule { get }
     @objc var window: HSWindowModule { get }
 }
 
@@ -119,6 +120,7 @@ import JavaScriptCoreExtras
     @objc var text: HSTextModule { get { getOrCreate(name: "text", type: HSTextModule.self)}}
     @objc var timer: HSTimerModule { get { getOrCreate(name: "timer", type: HSTimerModule.self)}}
     @objc var ui: HSUIModule { get { getOrCreate(name: "ui", type: HSUIModule.self)}}
+    @objc var webview: HSWebviewModule { get { getOrCreate(name: "webview", type: HSWebviewModule.self)}}
     @objc var window: HSWindowModule { get { getOrCreate(name: "window", type: HSWindowModule.self)}}
 }
 
