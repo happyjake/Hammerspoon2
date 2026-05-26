@@ -54,6 +54,13 @@ protocol TextModifiable: HSUIElement, AnyObject {
     var foregroundColor: HSColor? { get set }
 }
 
+/// Protocol for elements that have a second "accent" color for highlighted
+/// spans within them — currently the attributedText element for per-segment
+/// match highlighting.
+protocol AccentColorModifiable: HSUIElement, AnyObject {
+    var accentColor: HSColor? { get set }
+}
+
 /// Protocol for elements that support click and hover callbacks
 protocol InteractiveModifiable: HSUIElement, AnyObject {
     var clickCallback: (() -> Void)? { get set }
