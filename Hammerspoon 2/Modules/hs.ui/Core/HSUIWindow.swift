@@ -114,6 +114,36 @@ import SwiftUI
     /// - Returns: Self for chaining (apply modifiers like `font()`, `foregroundColor()`)
     @objc func text(_ content: JSValue) -> HSUIWindow
 
+    /// Add an inline multi-color text element. The content is an `HSString`
+    /// whose value is a JSON-encoded array of `{ text, accent }` segments;
+    /// segments render as one concatenated SwiftUI Text with per-segment
+    /// color. Use for per-character match highlighting where some letters
+    /// (the matched query chars) get the accent color.
+    /// - Parameter content: A plain JS string OR an `HSString` carrying the
+    ///   JSON segments. The segment shape is `[{ text: string, accent: bool }, …]`.
+    /// - Returns: Self for chaining (apply `.font()`, `.foregroundColor()` for
+    ///   the default color, `.accentColor()` for the matched-segment color,
+    ///   and `.frame()`).
+    /// - Example:
+    /// ```js
+    /// const segs = hs.ui.string(JSON.stringify([
+    ///   { text: 'Sa',  accent: true  },
+    ///   { text: 'fari', accent: false }
+    /// ]))
+    /// win.attributedText(segs)
+    ///    .font(HSFont.body())
+    ///    .foregroundColor('#F2F2F4')
+    ///    .accentColor('#7B9CFF')
+    ///    .frame({ w: 400, h: 18 })
+    /// ```
+    @objc func attributedText(_ content: JSValue) -> HSUIWindow
+
+    /// Set the accent color used for `accent: true` segments inside an
+    /// `attributedText()` element. No effect on other elements.
+    /// - Parameter colorValue: Color as hex string or HSColor
+    /// - Returns: Self for chaining
+    @objc func accentColor(_ colorValue: JSValue) -> HSUIWindow
+
     /// Add an image element
     /// - Parameter imageValue: Image as HSImage object or file path string
     /// - Returns: Self for chaining (apply modifiers like `resizable()`, `aspectRatio()`, `frame()`)
@@ -597,6 +627,14 @@ import SwiftUI
         return self
     }
 
+    @objc func attributedText(_ content: JSValue) -> HSUIWindow {
+        guard let hsString = HSString.fromJSValue(content) else { return self }
+        let element = UIAttributedText(content: hsString)
+        currentElement = element
+        addToCurrentContainer(element)
+        return self
+    }
+
     @objc func image(_ imageValue: JSValue) -> HSUIWindow {
         let hsImage = HSImage.fromJSValue(imageValue)
         let imageElement = UIImage(hsImage: hsImage)
@@ -772,6 +810,14 @@ import SwiftUI
         if let textable = currentElement as? any TextModifiable,
            let hsColor = HSColor.fromJSValue(colorValue) {
             textable.foregroundColor = hsColor
+        }
+        return self
+    }
+
+    @objc func accentColor(_ colorValue: JSValue) -> HSUIWindow {
+        if let accentable = currentElement as? any AccentColorModifiable,
+           let hsColor = HSColor.fromJSValue(colorValue) {
+            accentable.accentColor = hsColor
         }
         return self
     }
