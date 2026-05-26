@@ -143,9 +143,6 @@ import JavaScriptCoreExtras
     /// }).start()
     /// ```
     @objc var terminationReason: String? { get }
-
-    /// SKIP_DOCS
-    @objc func _shutdown()
 }
 
 @_documentation(visibility: private)
@@ -232,8 +229,21 @@ import JavaScriptCoreExtras
         terminationCallback = nil
         streamingCallback?.detach(from: self)
         streamingCallback = nil
-        if let process = process, process.isRunning {
-            process.terminate()
+
+        // This is called when HS is restarting/exiting, to clean up this HSTask.
+        // We will send it a SIGTERM, then attempt to wait a few seconds and send a SIGKILL.
+        // FIXME: When HS is exiting, the SIGKILL tasks likely won't ever get called.
+        guard let process, process.isRunning else { return }
+        let pid = process.processIdentifier
+
+        terminate()
+
+        Task.detached {
+            try? await Task.sleep(for: .seconds(5))
+
+            let result = kill(pid, SIGKILL)
+            let errorMsg = unsafe String(validatingCString: strerror(result)) ?? "NONE"
+            print("hs.task SIGKILL result: \(pid) (\(errorMsg))")
         }
     }
 
@@ -306,22 +316,6 @@ import JavaScriptCoreExtras
         }
 
         return self
-    }
-
-    // This is called when HS is restarting/exiting, to clean up this HSTask.
-    // We will send it a SIGTERM, then attempt to wait a few seconds and send a SIGKILL.
-    // FIXME: When HS is exiting, the SIGKILL tasks likely won't ever get called.
-    @objc func _shutdown() {
-        guard let process, process.isRunning else { return }
-
-        let pid = process.processIdentifier
-
-        terminate()
-        Task.detached {
-            try? await Task.sleep(for: .seconds(5))
-
-            kill(pid, SIGKILL)
-        }
     }
 
     @objc func terminate() {
