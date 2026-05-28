@@ -133,16 +133,17 @@ import JavaScriptCore
     /// | `home` | The current user's home directory |
     /// | `computer` | All locally mounted volumes |
     /// | `network` | Network-mounted volumes |
+    /// | `applications` | Common locations for .app bundles |
     /// | `icloud` | iCloud Documents |
     /// | `icloudData` | iCloud Data (non-document ubiquitous files) |
     ///
     /// - Example:
     /// ```js
-    /// q.setScopes([hs.spotlight.scope.home])
-    /// q.setScopes([hs.spotlight.scope.computer])
-    /// q.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive'])
+    /// q.setScopes(hs.spotlight.scope.home)
+    /// q.setScopes(hs.spotlight.scope.computer)
+    /// q.setScopes(hs.spotlight.scope.home + ['/Volumes/ExternalDrive'])
     /// ```
-    @objc var scope: [String: String] { get }
+    @objc var scope: [String: [String]] { get }
 
     /// Common Spotlight metadata attribute key shortcuts.
     ///
@@ -202,7 +203,7 @@ import JavaScriptCore
     }
 
     func shutdown() {
-        for q in queries.allObjects { q.destroy() }
+        queries.allObjects.forEach { q in q.destroy() }
         queries.removeAllObjects()
         AKTrace("Shutdown of \(name): \(engineID)")
     }
@@ -223,13 +224,14 @@ import JavaScriptCore
         return q
     }
 
-    @objc var scope: [String: String] {
+    @objc var scope: [String: [String]] {
         [
-            "home":      NSMetadataQueryUserHomeScope,
-            "computer":  NSMetadataQueryLocalComputerScope,
-            "network":   NSMetadataQueryNetworkScope,
-            "icloud":    NSMetadataQueryUbiquitousDocumentsScope,
-            "icloudData": NSMetadataQueryUbiquitousDataScope,
+            "home":      [NSMetadataQueryUserHomeScope],
+            "computer":  [NSMetadataQueryLocalComputerScope],
+            "network":   [NSMetadataQueryNetworkScope],
+            "applications": ["/Applications", "/System/Applications", "~/Applications"],
+            "icloud":    [NSMetadataQueryUbiquitousDocumentsScope],
+            "icloudData": [NSMetadataQueryUbiquitousDataScope],
         ]
     }
 
