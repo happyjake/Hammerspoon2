@@ -35,6 +35,7 @@ import JavaScriptCoreExtras
     @objc var osascript: HSOSAScriptModule { get }
     @objc var pasteboard: HSPasteboardModule { get }
     @objc var screen: HSScreenModule { get }
+    @objc var spotlight: HSSpotlightModule { get }
     @objc var task: HSTaskModule { get }
     @objc var power: HSPowerModule { get }
     @objc var timer: HSTimerModule { get }
@@ -113,6 +114,7 @@ import JavaScriptCoreExtras
     @objc var osascript: HSOSAScriptModule { get { getOrCreate(name: "osascript", type: HSOSAScriptModule.self)}}
     @objc var pasteboard: HSPasteboardModule { get { getOrCreate(name: "pasteboard", type: HSPasteboardModule.self)}}
     @objc var screen: HSScreenModule { get { getOrCreate(name: "screen", type: HSScreenModule.self)}}
+    @objc var spotlight: HSSpotlightModule { get { getOrCreate(name: "spotlight", type: HSSpotlightModule.self)}}
     @objc var task: HSTaskModule { get { getOrCreate(name: "task", type: HSTaskModule.self)}}
     @objc var power: HSPowerModule { get { getOrCreate(name: "power", type: HSPowerModule.self)}}
     @objc var timer: HSTimerModule { get { getOrCreate(name: "timer", type: HSTimerModule.self)}}

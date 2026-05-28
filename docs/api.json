@@ -7582,6 +7582,626 @@
       "rawDocumentation": "Inspect and control the displays attached to the system.\n\n## Obtaining screens\n\n```javascript\nconst all    = hs.screen.all();   // [HSScreen, ...]\nconst main   = hs.screen.main();   // screen containing the focused window\nconst primary = hs.screen.primary(); // screen with the global menu bar\n```\n\n## Navigation\n\n```javascript\nconst right = hs.screen.main().toEast();\nif (right) console.log(\"Screen to the right:\", right.name);\n```\n\n## Display modes\n\n```javascript\nconst s = hs.screen.primary();\nconsole.log(s.mode);\n// → { width: 1440, height: 900, scale: 2, frequency: 60 }\n\ns.setMode(1920, 1080, 1, 60);\n```\n\n## Screenshots\n\n```javascript\nconst img = await hs.screen.main().snapshot();\nimg.saveToFile(\"/tmp/screen.png\");\n```"
     },
     {
+      "name": "hs.spotlight",
+      "methods": [
+        {
+          "name": "create",
+          "signature": "func create() -> HSSpotlightQuery",
+          "isStatic": false,
+          "rawDocumentation": "Creates and returns a new, unconfigured Spotlight query.\n\nConfigure it with `setQuery()`, `setScopes()`, and `setCallback()`, then call `start()`.\nThe query is automatically stopped and released when the module shuts down.\n- Returns: A new `HSSpotlightQuery`\n- Example:\n```js\nconst q = hs.spotlight.create()\nq.setQuery(\"kMDItemKind == 'PDF Document'\")\n .setCallback((event) => { if (event === 'didFinish') q.stop() })\n .start()\n```",
+          "description": "Creates and returns a new, unconfigured Spotlight query.\nConfigure it with `setQuery()`, `setScopes()`, and `setCallback()`, then call `start()`.\nThe query is automatically stopped and released when the module shuts down.",
+          "params": [],
+          "returns": {
+            "type": "HSSpotlightQuery",
+            "description": "A new `HSSpotlightQuery`"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const q = hs.spotlight.create()\nq.setQuery(\"kMDItemKind == 'PDF Document'\")\n .setCallback((event) => { if (event === 'didFinish') q.stop() })\n .start()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightModule.swift",
+          "lineNumber": 102
+        },
+        {
+          "name": "search",
+          "signature": "func search(_ predicate: String, _ callback: JSValue) -> HSSpotlightQuery",
+          "isStatic": false,
+          "rawDocumentation": "Convenience helper that creates, configures, and starts a query in one call.\n\nEquivalent to `create().setQuery(predicate).setCallback(callback).start()`.\nCall `q.stop()` from inside `callback` (when `event === 'didFinish'`) to end\nthe search once you have what you need.\n- Parameters:\n  - predicate: An NSPredicate-format query string\n  - callback: A function called with `(event, update?)` lifecycle events\n- Returns: The `HSSpotlightQuery` object (use to stop the search early)\n- Example:\n```js\nconst q = hs.spotlight.search(\n    \"kMDItemDisplayName BEGINSWITH 'Report'\",\n    (event) => {\n        if (event === 'didFinish') {\n            console.log('Found ' + q.count + ' reports')\n            q.stop()\n        }\n    }\n)\n```",
+          "description": "Convenience helper that creates, configures, and starts a query in one call.\nEquivalent to `create().setQuery(predicate).setCallback(callback).start()`.\nCall `q.stop()` from inside `callback` (when `event === 'didFinish'`) to end\nthe search once you have what you need.",
+          "params": [
+            {
+              "name": "predicate",
+              "type": "String",
+              "description": "An NSPredicate-format query string"
+            },
+            {
+              "name": "callback",
+              "type": "JSValue",
+              "description": "A function called with `(event, update?)` lifecycle events"
+            }
+          ],
+          "returns": {
+            "type": "HSSpotlightQuery",
+            "description": "The `HSSpotlightQuery` object (use to stop the search early)"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const q = hs.spotlight.search(\n    \"kMDItemDisplayName BEGINSWITH 'Report'\",\n    (event) => {\n        if (event === 'didFinish') {\n            console.log('Found ' + q.count + ' reports')\n            q.stop()\n        }\n    }\n)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightModule.swift",
+          "lineNumber": 125
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "signature": "var scope: [String: String] { get }",
+          "rawDocumentation": "Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.\n\n| Key | Description |\n|-----|-------------|\n| `home` | The current user's home directory |\n| `computer` | All locally mounted volumes |\n| `network` | Network-mounted volumes |\n| `icloud` | iCloud Documents |\n| `icloudData` | iCloud Data (non-document ubiquitous files) |\n\n- Example:\n```js\nq.setScopes([hs.spotlight.scope.home])\nq.setScopes([hs.spotlight.scope.computer])\nq.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive'])\n```",
+          "description": "Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.\n| Key | Description |\n|-----|-------------|\n| `home` | The current user's home directory |\n| `computer` | All locally mounted volumes |\n| `network` | Network-mounted volumes |\n| `icloud` | iCloud Documents |\n| `icloudData` | iCloud Data (non-document ubiquitous files) |",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "q.setScopes([hs.spotlight.scope.home])\nq.setScopes([hs.spotlight.scope.computer])\nq.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive'])"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightModule.swift",
+          "lineNumber": 145
+        },
+        {
+          "name": "attribute",
+          "signature": "var attribute: [String: String] { get }",
+          "rawDocumentation": "Common Spotlight metadata attribute key shortcuts.\n\nThese are plain `kMDItem*` string values — using them is equivalent to typing\nthe raw key name, but they provide autocomplete and avoid typos.\n\n| Key | Attribute | Description |\n|-----|-----------|-------------|\n| `path` | `kMDItemPath` | Absolute filesystem path |\n| `displayName` | `kMDItemDisplayName` | User-visible display name |\n| `fsName` | `kMDItemFSName` | Filename on disk |\n| `contentType` | `kMDItemContentType` | UTI content type |\n| `contentTypeTree` | `kMDItemContentTypeTree` | Full UTI conformance tree |\n| `kind` | `kMDItemKind` | Finder \"Kind\" string |\n| `fileSize` | `kMDItemFSSize` | File size in bytes |\n| `creationDate` | `kMDItemFSCreationDate` | Filesystem creation date |\n| `modifiedDate` | `kMDItemFSContentChangeDate` | Last content modification date |\n| `lastUsedDate` | `kMDItemLastUsedDate` | Last time the item was opened |\n| `useCount` | `kMDItemUseCount` | Number of times opened |\n| `authors` | `kMDItemAuthors` | Document authors |\n| `title` | `kMDItemTitle` | Document title |\n| `comment` | `kMDItemComment` | User comment |\n| `keywords` | `kMDItemKeywords` | Tags/keywords |\n| `durationSeconds` | `kMDItemDurationSeconds` | Media duration in seconds |\n| `pixelWidth` | `kMDItemPixelWidth` | Image/video width in pixels |\n| `pixelHeight` | `kMDItemPixelHeight` | Image/video height in pixels |\n| `whereFroms` | `kMDItemWhereFroms` | Download source URLs |\n| `bundleIdentifier` | `kMDItemCFBundleIdentifier` | App bundle identifier |\n\n- Example:\n```js\nconst name = item.valueForAttribute(hs.spotlight.attribute.displayName)\nconst size = item.valueForAttribute(hs.spotlight.attribute.fileSize)\nq.setSortDescriptors([{ attribute: hs.spotlight.attribute.modifiedDate, ascending: false }])\n```",
+          "description": "Common Spotlight metadata attribute key shortcuts.\nThese are plain `kMDItem*` string values — using them is equivalent to typing\nthe raw key name, but they provide autocomplete and avoid typos.\n| Key | Attribute | Description |\n|-----|-----------|-------------|\n| `path` | `kMDItemPath` | Absolute filesystem path |\n| `displayName` | `kMDItemDisplayName` | User-visible display name |\n| `fsName` | `kMDItemFSName` | Filename on disk |\n| `contentType` | `kMDItemContentType` | UTI content type |\n| `contentTypeTree` | `kMDItemContentTypeTree` | Full UTI conformance tree |\n| `kind` | `kMDItemKind` | Finder \"Kind\" string |\n| `fileSize` | `kMDItemFSSize` | File size in bytes |\n| `creationDate` | `kMDItemFSCreationDate` | Filesystem creation date |\n| `modifiedDate` | `kMDItemFSContentChangeDate` | Last content modification date |\n| `lastUsedDate` | `kMDItemLastUsedDate` | Last time the item was opened |\n| `useCount` | `kMDItemUseCount` | Number of times opened |\n| `authors` | `kMDItemAuthors` | Document authors |\n| `title` | `kMDItemTitle` | Document title |\n| `comment` | `kMDItemComment` | User comment |\n| `keywords` | `kMDItemKeywords` | Tags/keywords |\n| `durationSeconds` | `kMDItemDurationSeconds` | Media duration in seconds |\n| `pixelWidth` | `kMDItemPixelWidth` | Image/video width in pixels |\n| `pixelHeight` | `kMDItemPixelHeight` | Image/video height in pixels |\n| `whereFroms` | `kMDItemWhereFroms` | Download source URLs |\n| `bundleIdentifier` | `kMDItemCFBundleIdentifier` | App bundle identifier |",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const name = item.valueForAttribute(hs.spotlight.attribute.displayName)\nconst size = item.valueForAttribute(hs.spotlight.attribute.fileSize)\nq.setSortDescriptors([{ attribute: hs.spotlight.attribute.modifiedDate, ascending: false }])"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightModule.swift",
+          "lineNumber": 181
+        }
+      ],
+      "types": [
+        {
+          "name": "HSSpotlightGroupAPI",
+          "type": "typedef",
+          "rawDocumentation": "A grouped set of Spotlight results that share a common metadata attribute value.\n\nGroups are returned by `HSSpotlightQuery.groups()` when grouping attributes have been\nconfigured with `setGroupingAttributes()`. Do not instantiate `HSSpotlightGroup` directly.\n\nWhen multiple grouping attributes are specified, groups nest: each group has `subgroups()`\ncontaining the next level of grouping.",
+          "description": "A grouped set of Spotlight results that share a common metadata attribute value.\nGroups are returned by `HSSpotlightQuery.groups()` when grouping attributes have been\nconfigured with `setGroupingAttributes()`. Do not instantiate `HSSpotlightGroup` directly.\nWhen multiple grouping attributes are specified, groups nest: each group has `subgroups()`\ncontaining the next level of grouping.",
+          "methods": [
+            {
+              "name": "value",
+              "signature": "func value() -> NSObject?",
+              "isStatic": false,
+              "rawDocumentation": "The shared value of the grouping attribute for all results in this group.\n\nReturns `null` only in the unlikely case that the underlying value cannot be bridged.\n- Returns: The attribute value (string, number, Date, etc.) or null\n- Example:\n```js\nq.groups().forEach(g => console.log(g.attribute + ' = ' + g.value()))\n```",
+              "description": "The shared value of the grouping attribute for all results in this group.\nReturns `null` only in the unlikely case that the underlying value cannot be bridged.",
+              "params": [],
+              "returns": {
+                "type": "NSObject?",
+                "description": "The attribute value (string, number, Date, etc.) or null"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.groups().forEach(g => console.log(g.attribute + ' = ' + g.value()))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightGroup.swift",
+              "lineNumber": 36
+            },
+            {
+              "name": "results",
+              "signature": "func results() -> [HSSpotlightItem]",
+              "isStatic": false,
+              "rawDocumentation": "Returns the items contained in this group as an array of `HSSpotlightItem` objects.\n- Returns: An array of `HSSpotlightItem` objects\n- Example:\n```js\nq.groups().forEach(group => {\n    console.log(group.value() + ': ' + group.count + ' items')\n    group.results().forEach(item =>\n        console.log('  ' + item.valueForAttribute('kMDItemPath'))\n    )\n})\n```",
+              "description": "Returns the items contained in this group as an array of `HSSpotlightItem` objects.",
+              "params": [],
+              "returns": {
+                "type": "[HSSpotlightItem]",
+                "description": "An array of `HSSpotlightItem` objects"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.groups().forEach(group => {\n    console.log(group.value() + ': ' + group.count + ' items')\n    group.results().forEach(item =>\n        console.log('  ' + item.valueForAttribute('kMDItemPath'))\n    )\n})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightGroup.swift",
+              "lineNumber": 57
+            },
+            {
+              "name": "subgroups",
+              "signature": "func subgroups() -> [HSSpotlightGroup]",
+              "isStatic": false,
+              "rawDocumentation": "Returns nested subgroups when multiple grouping attributes were specified.\n\nReturns an empty array if no subgroups exist for this group.\n- Returns: An array of `HSSpotlightGroup` objects\n- Example:\n```js\n// Two-level grouping: contentType → kind\nq.groups().forEach(type => {\n    type.subgroups().forEach(kind =>\n        console.log(type.value() + '/' + kind.value() + ': ' + kind.count)\n    )\n})\n```",
+              "description": "Returns nested subgroups when multiple grouping attributes were specified.\nReturns an empty array if no subgroups exist for this group.",
+              "params": [],
+              "returns": {
+                "type": "[HSSpotlightGroup]",
+                "description": "An array of `HSSpotlightGroup` objects"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "// Two-level grouping: contentType → kind\nq.groups().forEach(type => {\n    type.subgroups().forEach(kind =>\n        console.log(type.value() + '/' + kind.value() + ': ' + kind.count)\n    )\n})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightGroup.swift",
+              "lineNumber": 72
+            }
+          ],
+          "properties": [
+            {
+              "name": "identifier",
+              "signature": "var identifier: String { get }",
+              "rawDocumentation": "A unique identifier for this group object (UUID string).",
+              "description": "A unique identifier for this group object (UUID string).",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightGroup.swift",
+              "lineNumber": 19
+            },
+            {
+              "name": "attribute",
+              "signature": "var attribute: String { get }",
+              "rawDocumentation": "The metadata attribute name by which results in this group are clustered.\n- Example:\n```js\nq.groups().forEach(g => console.log('Grouped by: ' + g.attribute))\n```",
+              "description": "The metadata attribute name by which results in this group are clustered.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.groups().forEach(g => console.log('Grouped by: ' + g.attribute))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightGroup.swift",
+              "lineNumber": 26
+            },
+            {
+              "name": "count",
+              "signature": "var count: Int { get }",
+              "rawDocumentation": "The number of results contained in this group.\n- Example:\n```js\nconst total = q.groups().reduce((sum, g) => sum + g.count, 0)\nconsole.log('Total results across all groups: ' + total)\n```",
+              "description": "The number of results contained in this group.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const total = q.groups().reduce((sum, g) => sum + g.count, 0)\nconsole.log('Total results across all groups: ' + total)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightGroup.swift",
+              "lineNumber": 44
+            }
+          ]
+        },
+        {
+          "name": "HSSpotlightItemAPI",
+          "type": "typedef",
+          "rawDocumentation": "An individual result returned by a Spotlight query.\n\nInstances are returned by `HSSpotlightQuery.results()` and related methods.\nDo not instantiate `HSSpotlightItem` directly.\n\nMetadata values are read via `valueForAttribute()` using standard `kMDItem*` keys.\nCall `attributes()` to discover which keys are populated on a particular item.\nCommon attribute key shortcuts live in `hs.spotlight.attribute`.",
+          "description": "An individual result returned by a Spotlight query.\nInstances are returned by `HSSpotlightQuery.results()` and related methods.\nDo not instantiate `HSSpotlightItem` directly.\nMetadata values are read via `valueForAttribute()` using standard `kMDItem*` keys.\nCall `attributes()` to discover which keys are populated on a particular item.\nCommon attribute key shortcuts live in `hs.spotlight.attribute`.",
+          "methods": [
+            {
+              "name": "attributes",
+              "signature": "func attributes() -> [String]",
+              "isStatic": false,
+              "rawDocumentation": "Returns the list of metadata attribute names present on this item.\n\nThe list is typically not exhaustive — some attributes (such as `kMDItemPath`)\nmay be readable via `valueForAttribute()` even when absent from this list.\n- Returns: An array of attribute name strings\n- Example:\n```js\nconst item = q.results()[0]\nconsole.log('Attributes: ' + item.attributes().join(', '))\n```",
+              "description": "Returns the list of metadata attribute names present on this item.\nThe list is typically not exhaustive — some attributes (such as `kMDItemPath`)\nmay be readable via `valueForAttribute()` even when absent from this list.",
+              "params": [],
+              "returns": {
+                "type": "[String]",
+                "description": "An array of attribute name strings"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const item = q.results()[0]\nconsole.log('Attributes: ' + item.attributes().join(', '))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightItem.swift",
+              "lineNumber": 32
+            },
+            {
+              "name": "valueForAttribute",
+              "signature": "func valueForAttribute(_ key: String) -> NSObject?",
+              "isStatic": false,
+              "rawDocumentation": "Returns the value for a specific metadata attribute, or `null` if absent.\n\nThe return type depends on the attribute: common types include strings, numbers,\ndates, and arrays of strings. `NSURL`-typed values are automatically converted\nto their string representation.\n- Parameter key: An attribute key such as `\"kMDItemPath\"` or `hs.spotlight.attribute.path`\n- Returns: The attribute value, or null\n- Example:\n```js\nconst path = item.valueForAttribute(hs.spotlight.attribute.path)\nconst name = item.valueForAttribute('kMDItemDisplayName')\nconsole.log(name + ' at ' + path)\n```",
+              "description": "Returns the value for a specific metadata attribute, or `null` if absent.\nThe return type depends on the attribute: common types include strings, numbers,\ndates, and arrays of strings. `NSURL`-typed values are automatically converted\nto their string representation.",
+              "params": [
+                {
+                  "name": "key",
+                  "type": "String",
+                  "description": "An attribute key such as `\"kMDItemPath\"` or `hs.spotlight.attribute.path`"
+                }
+              ],
+              "returns": {
+                "type": "NSObject?",
+                "description": "The attribute value, or null"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const path = item.valueForAttribute(hs.spotlight.attribute.path)\nconst name = item.valueForAttribute('kMDItemDisplayName')\nconsole.log(name + ' at ' + path)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightItem.swift",
+              "lineNumber": 47
+            }
+          ],
+          "properties": [
+            {
+              "name": "identifier",
+              "signature": "var identifier: String { get }",
+              "rawDocumentation": "A unique identifier for this result object (UUID string).",
+              "description": "A unique identifier for this result object (UUID string).",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightItem.swift",
+              "lineNumber": 20
+            }
+          ]
+        },
+        {
+          "name": "HSSpotlightQueryAPI",
+          "type": "typedef",
+          "rawDocumentation": "A configurable Spotlight search query that can be started, stopped, and queried for results.\n\nCreate instances via `hs.spotlight.create()` or the convenience helper `hs.spotlight.search()`.\nConfigure the query with chainable setter methods, register a callback, then call `start()`.\n\nResults accumulate during the initial gathering phase (`\"didStart\"` → `\"inProgress\"` → `\"didFinish\"`)\nand continue to update during the live-monitoring phase (`\"didUpdate\"`). Stop explicitly\nwith `stop()` when you no longer need live updates.\n\n- Example:\n```js\nconst q = hs.spotlight.create()\nq.setQuery(\"kMDItemContentType == 'com.apple.application-bundle'\")\n .setScopes([hs.spotlight.scope.computer])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         console.log('Found ' + q.count + ' applications')\n         q.results().forEach(item =>\n             console.log(item.valueForAttribute(hs.spotlight.attribute.displayName))\n         )\n         q.stop()\n     }\n })\n .start()\n```",
+          "description": "A configurable Spotlight search query that can be started, stopped, and queried for results.\nCreate instances via `hs.spotlight.create()` or the convenience helper `hs.spotlight.search()`.\nConfigure the query with chainable setter methods, register a callback, then call `start()`.\nResults accumulate during the initial gathering phase (`\"didStart\"` → `\"inProgress\"` → `\"didFinish\"`)\nand continue to update during the live-monitoring phase (`\"didUpdate\"`). Stop explicitly\nwith `stop()` when you no longer need live updates.",
+          "methods": [
+            {
+              "name": "setQuery",
+              "signature": "func setQuery(_ predicate: String) -> HSSpotlightQuery",
+              "isStatic": false,
+              "rawDocumentation": "Sets the NSPredicate query string for this search.\n\nThe string must be a valid `NSPredicate` format expression using `kMDItem*` attribute\nkeys and MDQuery operators (`==`, `!=`, `<`, `>`, `BEGINSWITH`, `CONTAINS`, etc.).\n\nIf the query is already running when this is called, it is stopped and restarted\nautomatically.\n- Parameter predicate: An NSPredicate-format query string\n- Returns: this query, for chaining\n- Example:\n```js\n// Find PDFs larger than 1 MB\nq.setQuery(\"kMDItemContentType == 'com.adobe.pdf' AND kMDItemFSSize > 1048576\")\n\n// Find items whose display name begins with \"Report\"\nq.setQuery(\"kMDItemDisplayName BEGINSWITH 'Report'\")\n\n// Find images taken in 2024\nq.setQuery(\"kMDItemContentTypeTree == 'public.image' AND kMDItemContentCreationDate >= $time.iso('2024-01-01')\")\n```",
+              "description": "Sets the NSPredicate query string for this search.\nThe string must be a valid `NSPredicate` format expression using `kMDItem*` attribute\nkeys and MDQuery operators (`==`, `!=`, `<`, `>`, `BEGINSWITH`, `CONTAINS`, etc.).\nIf the query is already running when this is called, it is stopped and restarted\nautomatically.",
+              "params": [
+                {
+                  "name": "predicate",
+                  "type": "String",
+                  "description": "An NSPredicate-format query string"
+                }
+              ],
+              "returns": {
+                "type": "HSSpotlightQuery",
+                "description": "this query, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "// Find PDFs larger than 1 MB\nq.setQuery(\"kMDItemContentType == 'com.adobe.pdf' AND kMDItemFSSize > 1048576\")\n\n// Find items whose display name begins with \"Report\"\nq.setQuery(\"kMDItemDisplayName BEGINSWITH 'Report'\")\n\n// Find images taken in 2024\nq.setQuery(\"kMDItemContentTypeTree == 'public.image' AND kMDItemContentCreationDate >= $time.iso('2024-01-01')\")"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 82
+            },
+            {
+              "name": "setScopes",
+              "signature": "func setScopes(_ scopes: JSValue) -> HSSpotlightQuery",
+              "isStatic": false,
+              "rawDocumentation": "Sets the search scopes that restrict where Spotlight looks.\n\nPass an array of predefined scope strings from `hs.spotlight.scope`, absolute\ndirectory paths, or a mix of both. Paths beginning with `~` are expanded to the\nuser's home directory.\n\nWhen not set, the query defaults to `hs.spotlight.scope.computer`.\n- Parameter scopes: An array of scope-constant strings or absolute directory paths\n- Returns: this query, for chaining\n- Example:\n```js\n// Home directory only\nq.setScopes([hs.spotlight.scope.home])\n\n// Specific folder\nq.setScopes(['/Users/alice/Documents'])\n\n// Mix of predefined scope and a folder\nq.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive/Projects'])\n```",
+              "description": "Sets the search scopes that restrict where Spotlight looks.\nPass an array of predefined scope strings from `hs.spotlight.scope`, absolute\ndirectory paths, or a mix of both. Paths beginning with `~` are expanded to the\nuser's home directory.\nWhen not set, the query defaults to `hs.spotlight.scope.computer`.",
+              "params": [
+                {
+                  "name": "scopes",
+                  "type": "JSValue",
+                  "description": "An array of scope-constant strings or absolute directory paths"
+                }
+              ],
+              "returns": {
+                "type": "HSSpotlightQuery",
+                "description": "this query, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "// Home directory only\nq.setScopes([hs.spotlight.scope.home])\n\n// Specific folder\nq.setScopes(['/Users/alice/Documents'])\n\n// Mix of predefined scope and a folder\nq.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive/Projects'])"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 104
+            },
+            {
+              "name": "setSortDescriptors",
+              "signature": "func setSortDescriptors(_ descriptors: JSValue) -> HSSpotlightQuery",
+              "isStatic": false,
+              "rawDocumentation": "Sets sort descriptors that control the order of results.\n\nPass an array of objects, each with:\n- `attribute` (string): a `kMDItem*` key to sort on\n- `ascending` (boolean): `true` for ascending order (optional, defaults to `true`)\n\n- Parameter descriptors: An array of sort descriptor objects\n- Returns: this query, for chaining\n- Example:\n```js\nq.setSortDescriptors([\n    { attribute: hs.spotlight.attribute.fsName, ascending: true },\n    { attribute: hs.spotlight.attribute.fileSize, ascending: false }\n])\n```",
+              "description": "Sets sort descriptors that control the order of results.",
+              "params": [
+                {
+                  "name": "descriptors",
+                  "type": "JSValue",
+                  "description": "An array of sort descriptor objects"
+                }
+              ],
+              "returns": {
+                "type": "HSSpotlightQuery",
+                "description": "this query, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.setSortDescriptors([\n    { attribute: hs.spotlight.attribute.fsName, ascending: true },\n    { attribute: hs.spotlight.attribute.fileSize, ascending: false }\n])"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 121
+            },
+            {
+              "name": "setGroupingAttributes",
+              "signature": "func setGroupingAttributes(_ attrs: JSValue) -> HSSpotlightQuery",
+              "isStatic": false,
+              "rawDocumentation": "Sets the attributes by which results will be grouped.\n\nWhen grouping attributes are set, use `groups()` to retrieve results organised into\n`HSSpotlightGroup` objects. Specifying multiple attributes creates nested subgroups\naccessible via `group.subgroups()`.\n- Parameter attrs: An array of attribute name strings\n- Returns: this query, for chaining\n- Example:\n```js\n// Group image results by content type\nq.setQuery(\"kMDItemContentTypeTree == 'public.image'\")\n .setGroupingAttributes([hs.spotlight.attribute.contentType])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.groups().forEach(g =>\n             console.log(g.value() + ': ' + g.count + ' images')\n         )\n     }\n })\n .start()\n```",
+              "description": "Sets the attributes by which results will be grouped.\nWhen grouping attributes are set, use `groups()` to retrieve results organised into\n`HSSpotlightGroup` objects. Specifying multiple attributes creates nested subgroups\naccessible via `group.subgroups()`.",
+              "params": [
+                {
+                  "name": "attrs",
+                  "type": "JSValue",
+                  "description": "An array of attribute name strings"
+                }
+              ],
+              "returns": {
+                "type": "HSSpotlightQuery",
+                "description": "this query, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "// Group image results by content type\nq.setQuery(\"kMDItemContentTypeTree == 'public.image'\")\n .setGroupingAttributes([hs.spotlight.attribute.contentType])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.groups().forEach(g =>\n             console.log(g.value() + ': ' + g.count + ' images')\n         )\n     }\n })\n .start()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 144
+            },
+            {
+              "name": "setValueListAttributes",
+              "signature": "func setValueListAttributes(_ attrs: JSValue) -> HSSpotlightQuery",
+              "isStatic": false,
+              "rawDocumentation": "Sets the attributes for which aggregate value-list summaries are computed.\n\nAfter the query finishes, `valueLists()` returns aggregate data for each specified\nattribute: distinct values and the number of results carrying each value.\n- Parameter attrs: An array of attribute name strings\n- Returns: this query, for chaining\n- Example:\n```js\nq.setValueListAttributes([hs.spotlight.attribute.kind])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.valueLists().forEach(vl => {\n             console.log('=== ' + vl.attribute + ' ===')\n             vl.values.forEach(v =>\n                 console.log('  ' + v.value + ': ' + v.count + ' items')\n             )\n         })\n     }\n })\n .start()\n```",
+              "description": "Sets the attributes for which aggregate value-list summaries are computed.\nAfter the query finishes, `valueLists()` returns aggregate data for each specified\nattribute: distinct values and the number of results carrying each value.",
+              "params": [
+                {
+                  "name": "attrs",
+                  "type": "JSValue",
+                  "description": "An array of attribute name strings"
+                }
+              ],
+              "returns": {
+                "type": "HSSpotlightQuery",
+                "description": "this query, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.setValueListAttributes([hs.spotlight.attribute.kind])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.valueLists().forEach(vl => {\n             console.log('=== ' + vl.attribute + ' ===')\n             vl.values.forEach(v =>\n                 console.log('  ' + v.value + ': ' + v.count + ' items')\n             )\n         })\n     }\n })\n .start()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 167
+            },
+            {
+              "name": "setCallback",
+              "signature": "func setCallback(_ fn: JSValue) -> HSSpotlightQuery",
+              "isStatic": false,
+              "rawDocumentation": "Registers a callback that receives query lifecycle events.\n\nThe callback is called with:\n- `event` (string): one of `\"didStart\"`, `\"inProgress\"`, `\"didFinish\"`, `\"didUpdate\"`\n- `update` (object, `\"didUpdate\"` only): `{ added, changed, removed }` — each an array\n  of `HSSpotlightItem` objects describing what changed in this update cycle\n\n- Parameter fn: A JavaScript function `(event, update?) => void`\n- Returns: this query, for chaining\n- Example:\n```js\nq.setCallback((event, update) => {\n    if (event === 'didFinish') {\n        console.log('Initial gather complete — ' + q.count + ' results')\n    } else if (event === 'didUpdate') {\n        const added = update ? update.added.length : 0\n        console.log(added + ' items added in this update')\n    }\n})\n```",
+              "description": "Registers a callback that receives query lifecycle events.\nof `HSSpotlightItem` objects describing what changed in this update cycle",
+              "params": [
+                {
+                  "name": "fn",
+                  "type": "JSValue",
+                  "description": "A JavaScript function `(event, update?) => void`"
+                }
+              ],
+              "returns": {
+                "type": "HSSpotlightQuery",
+                "description": "this query, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.setCallback((event, update) => {\n    if (event === 'didFinish') {\n        console.log('Initial gather complete — ' + q.count + ' results')\n    } else if (event === 'didUpdate') {\n        const added = update ? update.added.length : 0\n        console.log(added + ' items added in this update')\n    }\n})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 189
+            },
+            {
+              "name": "start",
+              "signature": "func start() -> HSSpotlightQuery",
+              "isStatic": false,
+              "rawDocumentation": "Starts the query.\n\nThe query must have a predicate set (via `setQuery()`) before calling `start()`.\nCalling `start()` on an already-running query is a no-op.\n- Returns: this query, for chaining\n- Example:\n```js\nq.setQuery(\"kMDItemKind == 'Application'\").setCallback(handler).start()\n```",
+              "description": "Starts the query.\nThe query must have a predicate set (via `setQuery()`) before calling `start()`.\nCalling `start()` on an already-running query is a no-op.",
+              "params": [],
+              "returns": {
+                "type": "HSSpotlightQuery",
+                "description": "this query, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.setQuery(\"kMDItemKind == 'Application'\").setCallback(handler).start()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 200
+            },
+            {
+              "name": "stop",
+              "signature": "func stop() -> HSSpotlightQuery",
+              "isStatic": false,
+              "rawDocumentation": "Stops the query while preserving accumulated results.\n\nAfter stopping, `results()`, `count`, `groups()`, and `valueLists()` continue to\nreturn the last gathered data. Call `start()` again to resume.\n- Returns: this query, for chaining\n- Example:\n```js\nq.stop()\nconsole.log('Final result count: ' + q.count)\n```",
+              "description": "Stops the query while preserving accumulated results.\nAfter stopping, `results()`, `count`, `groups()`, and `valueLists()` continue to\nreturn the last gathered data. Call `start()` again to resume.",
+              "params": [],
+              "returns": {
+                "type": "HSSpotlightQuery",
+                "description": "this query, for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.stop()\nconsole.log('Final result count: ' + q.count)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 212
+            },
+            {
+              "name": "results",
+              "signature": "func results() -> [HSSpotlightItem]",
+              "isStatic": false,
+              "rawDocumentation": "Returns the current results as an array of `HSSpotlightItem` objects.\n\nThe result set is briefly frozen during access to ensure consistency. Safe to call\nfrom within a query callback.\n- Returns: An array of `HSSpotlightItem` objects (may be empty if the query has not run)\n- Example:\n```js\nconst items = q.results()\nitems.forEach(item =>\n    console.log(item.valueForAttribute(hs.spotlight.attribute.path))\n)\n```",
+              "description": "Returns the current results as an array of `HSSpotlightItem` objects.\nThe result set is briefly frozen during access to ensure consistency. Safe to call\nfrom within a query callback.",
+              "params": [],
+              "returns": {
+                "type": "[HSSpotlightItem]",
+                "description": "An array of `HSSpotlightItem` objects (may be empty if the query has not run)"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const items = q.results()\nitems.forEach(item =>\n    console.log(item.valueForAttribute(hs.spotlight.attribute.path))\n)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 226
+            },
+            {
+              "name": "groups",
+              "signature": "func groups() -> [HSSpotlightGroup]",
+              "isStatic": false,
+              "rawDocumentation": "Returns grouped results when grouping attributes have been configured.\n\nReturns an empty array if `setGroupingAttributes()` was not called.\n- Returns: An array of `HSSpotlightGroup` objects\n- Example:\n```js\nq.groups().forEach(group =>\n    console.log(group.attribute + ' = ' + group.value() + ' (' + group.count + ' items)')\n)\n```",
+              "description": "Returns grouped results when grouping attributes have been configured.\nReturns an empty array if `setGroupingAttributes()` was not called.",
+              "params": [],
+              "returns": {
+                "type": "[HSSpotlightGroup]",
+                "description": "An array of `HSSpotlightGroup` objects"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.groups().forEach(group =>\n    console.log(group.attribute + ' = ' + group.value() + ' (' + group.count + ' items)')\n)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 238
+            },
+            {
+              "name": "valueLists",
+              "signature": "func valueLists() -> [[String: Any]]",
+              "isStatic": false,
+              "rawDocumentation": "Returns aggregate value-list summaries for attributes set via `setValueListAttributes()`.\n\nEach entry is a plain object with:\n- `attribute` (string): the attribute name\n- `values` (array): objects with `value` and `count` keys for each distinct value\n\nReturns an empty array if `setValueListAttributes()` was not called.\n- Returns: An array of summary objects\n- Example:\n```js\nq.valueLists().forEach(vl =>\n    vl.values.forEach(v =>\n        console.log(vl.attribute + ': ' + v.value + ' (' + v.count + ')')\n    )\n)\n```",
+              "description": "Returns aggregate value-list summaries for attributes set via `setValueListAttributes()`.\nReturns an empty array if `setValueListAttributes()` was not called.",
+              "params": [],
+              "returns": {
+                "type": "[[String: Any]]",
+                "description": "An array of summary objects"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "q.valueLists().forEach(vl =>\n    vl.values.forEach(v =>\n        console.log(vl.attribute + ': ' + v.value + ' (' + v.count + ')')\n    )\n)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 256
+            },
+            {
+              "name": "destroy",
+              "signature": "func destroy()",
+              "isStatic": false,
+              "rawDocumentation": "Stops the query and releases all associated resources.\n\nCalled automatically during module shutdown. After calling `destroy()`,\nthe query object should not be used further.",
+              "description": "Stops the query and releases all associated resources.\nCalled automatically during module shutdown. After calling `destroy()`,\nthe query object should not be used further.",
+              "params": [],
+              "returns": null,
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 262
+            }
+          ],
+          "properties": [
+            {
+              "name": "identifier",
+              "signature": "var identifier: String { get }",
+              "rawDocumentation": "A unique identifier for this query object (UUID string).",
+              "description": "A unique identifier for this query object (UUID string).",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 37
+            },
+            {
+              "name": "count",
+              "signature": "var count: Int { get }",
+              "rawDocumentation": "The number of results gathered so far.\n- Example:\n```js\nconsole.log('Results so far: ' + q.count)\n```",
+              "description": "The number of results gathered so far.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log('Results so far: ' + q.count)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 44
+            },
+            {
+              "name": "isRunning",
+              "signature": "var isRunning: Bool { get }",
+              "rawDocumentation": "Whether the query is currently running (gathering or monitoring for live updates).\n- Example:\n```js\nif (!q.isRunning) q.start()\n```",
+              "description": "Whether the query is currently running (gathering or monitoring for live updates).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (!q.isRunning) q.start()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 51
+            },
+            {
+              "name": "isGathering",
+              "signature": "var isGathering: Bool { get }",
+              "rawDocumentation": "Whether the query is in the initial gathering phase.\n\n`true` from `\"didStart\"` until `\"didFinish\"`; `false` thereafter while live-monitoring.\n- Example:\n```js\nif (q.isGathering) console.log('Still collecting initial results…')\n```",
+              "description": "Whether the query is in the initial gathering phase.\n`true` from `\"didStart\"` until `\"didFinish\"`; `false` thereafter while live-monitoring.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (q.isGathering) console.log('Still collecting initial results…')"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
+              "lineNumber": 60
+            }
+          ]
+        }
+      ],
+      "description": "Query the macOS Spotlight metadata database.\n`hs.spotlight` wraps `NSMetadataQuery` to let you search for files and other\nmetadata objects indexed by Spotlight. Queries use `NSPredicate` syntax with\n`kMDItem*` attribute keys (see `hs.spotlight.attribute` for common shortcuts).\n## Quick start\n```js\n// Find all PDFs in the home directory and log their paths\nconst q = hs.spotlight.create()\nq.setQuery(\"kMDItemContentType == 'com.adobe.pdf'\")\n .setScopes([hs.spotlight.scope.home])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         console.log('Found ' + q.count + ' PDFs')\n         q.results().forEach(item =>\n             console.log(item.valueForAttribute(hs.spotlight.attribute.path))\n         )\n         q.stop()\n     }\n })\n .start()\n```\n## One-shot search convenience\n```js\nconst q = hs.spotlight.search(\n    \"kMDItemDisplayName BEGINSWITH 'Invoice'\",\n    (event) => {\n        if (event === 'didFinish') {\n            console.log('Found ' + q.count + ' invoices')\n            q.stop()\n        }\n    }\n)\n```\n## Grouping results by attribute\n```js\nconst q = hs.spotlight.create()\nq.setQuery(\"kMDItemContentTypeTree == 'public.image'\")\n .setScopes([hs.spotlight.scope.home])\n .setGroupingAttributes([hs.spotlight.attribute.kind])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.groups().forEach(g =>\n             console.log(g.value() + ': ' + g.count + ' images')\n         )\n         q.stop()\n     }\n })\n .start()\n```\n## Monitoring for live changes\n```js\n// Keep the query running to receive live-update events\nconst q = hs.spotlight.create()\nq.setQuery(\"kMDItemContentType == 'com.apple.application-bundle'\")\n .setScopes(['/Applications'])\n .setCallback((event, update) => {\n     if (event === 'didFinish') {\n         console.log('Initial scan: ' + q.count + ' apps')\n     } else if (event === 'didUpdate') {\n         console.log('App list changed — now ' + q.count + ' apps')\n         if (update) console.log('Added: ' + update.added.length)\n     }\n })\n .start()\n// Call q.stop() when you no longer want live updates\n```",
+      "rawDocumentation": "Query the macOS Spotlight metadata database.\n\n`hs.spotlight` wraps `NSMetadataQuery` to let you search for files and other\nmetadata objects indexed by Spotlight. Queries use `NSPredicate` syntax with\n`kMDItem*` attribute keys (see `hs.spotlight.attribute` for common shortcuts).\n\n## Quick start\n\n```js\n// Find all PDFs in the home directory and log their paths\nconst q = hs.spotlight.create()\nq.setQuery(\"kMDItemContentType == 'com.adobe.pdf'\")\n .setScopes([hs.spotlight.scope.home])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         console.log('Found ' + q.count + ' PDFs')\n         q.results().forEach(item =>\n             console.log(item.valueForAttribute(hs.spotlight.attribute.path))\n         )\n         q.stop()\n     }\n })\n .start()\n```\n\n## One-shot search convenience\n\n```js\nconst q = hs.spotlight.search(\n    \"kMDItemDisplayName BEGINSWITH 'Invoice'\",\n    (event) => {\n        if (event === 'didFinish') {\n            console.log('Found ' + q.count + ' invoices')\n            q.stop()\n        }\n    }\n)\n```\n\n## Grouping results by attribute\n\n```js\nconst q = hs.spotlight.create()\nq.setQuery(\"kMDItemContentTypeTree == 'public.image'\")\n .setScopes([hs.spotlight.scope.home])\n .setGroupingAttributes([hs.spotlight.attribute.kind])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.groups().forEach(g =>\n             console.log(g.value() + ': ' + g.count + ' images')\n         )\n         q.stop()\n     }\n })\n .start()\n```\n\n## Monitoring for live changes\n\n```js\n// Keep the query running to receive live-update events\nconst q = hs.spotlight.create()\nq.setQuery(\"kMDItemContentType == 'com.apple.application-bundle'\")\n .setScopes(['/Applications'])\n .setCallback((event, update) => {\n     if (event === 'didFinish') {\n         console.log('Initial scan: ' + q.count + ' apps')\n     } else if (event === 'didUpdate') {\n         console.log('App list changed — now ' + q.count + ' apps')\n         if (update) console.log('Added: ' + update.added.length)\n     }\n })\n .start()\n// Call q.stop() when you no longer want live updates\n```"
+    },
+    {
       "name": "hs.task",
       "methods": [
         {
@@ -11977,5 +12597,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-27T07:47:51.705Z"
+  "generatedAt": "2026-05-28T16:33:07.102Z"
 }

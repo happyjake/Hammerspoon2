@@ -412,6 +412,8 @@ extension JSTestHarness {
                 loadModule(HSTranslationModule.self, as: name)
             case "window":
                 loadModule(HSWindowModule.self, as: name)
+            case "spotlight":
+                loadModule(HSSpotlightModule.self, as: name)
             default:
                 print("⚠️ Unknown module: \(name)")
             }
