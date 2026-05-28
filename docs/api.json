@@ -7641,18 +7641,18 @@
       "properties": [
         {
           "name": "scope",
-          "signature": "var scope: [String: String] { get }",
-          "rawDocumentation": "Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.\n\n| Key | Description |\n|-----|-------------|\n| `home` | The current user's home directory |\n| `computer` | All locally mounted volumes |\n| `network` | Network-mounted volumes |\n| `icloud` | iCloud Documents |\n| `icloudData` | iCloud Data (non-document ubiquitous files) |\n\n- Example:\n```js\nq.setScopes([hs.spotlight.scope.home])\nq.setScopes([hs.spotlight.scope.computer])\nq.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive'])\n```",
-          "description": "Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.\n| Key | Description |\n|-----|-------------|\n| `home` | The current user's home directory |\n| `computer` | All locally mounted volumes |\n| `network` | Network-mounted volumes |\n| `icloud` | iCloud Documents |\n| `icloudData` | iCloud Data (non-document ubiquitous files) |",
+          "signature": "var scope: [String: [String]] { get }",
+          "rawDocumentation": "Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.\n\n| Key | Description |\n|-----|-------------|\n| `home` | The current user's home directory |\n| `computer` | All locally mounted volumes |\n| `network` | Network-mounted volumes |\n| `applications` | Common locations for .app bundles |\n| `icloud` | iCloud Documents |\n| `icloudData` | iCloud Data (non-document ubiquitous files) |\n\n- Example:\n```js\nq.setScopes(hs.spotlight.scope.home)\nq.setScopes(hs.spotlight.scope.computer)\nq.setScopes(hs.spotlight.scope.home + ['/Volumes/ExternalDrive'])\n```",
+          "description": "Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.\n| Key | Description |\n|-----|-------------|\n| `home` | The current user's home directory |\n| `computer` | All locally mounted volumes |\n| `network` | Network-mounted volumes |\n| `applications` | Common locations for .app bundles |\n| `icloud` | iCloud Documents |\n| `icloudData` | iCloud Data (non-document ubiquitous files) |",
           "examples": [
             {
               "lang": "js",
-              "code": "q.setScopes([hs.spotlight.scope.home])\nq.setScopes([hs.spotlight.scope.computer])\nq.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive'])"
+              "code": "q.setScopes(hs.spotlight.scope.home)\nq.setScopes(hs.spotlight.scope.computer)\nq.setScopes(hs.spotlight.scope.home + ['/Volumes/ExternalDrive'])"
             }
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightModule.swift",
-          "lineNumber": 145
+          "lineNumber": 146
         },
         {
           "name": "attribute",
@@ -7667,7 +7667,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightModule.swift",
-          "lineNumber": 181
+          "lineNumber": 182
         }
       ],
       "types": [
@@ -12597,5 +12597,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-28T16:33:07.102Z"
+  "generatedAt": "2026-05-28T22:42:40.986Z"
 }

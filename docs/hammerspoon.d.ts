@@ -3303,6 +3303,350 @@ Assign a new absolute file path or `file://` URL string to change the wallpaper.
 }
 
 /**
+ * Query the macOS Spotlight metadata database.
+`hs.spotlight` wraps `NSMetadataQuery` to let you search for files and other
+metadata objects indexed by Spotlight. Queries use `NSPredicate` syntax with
+`kMDItem*` attribute keys (see `hs.spotlight.attribute` for common shortcuts).
+## Quick start
+```js
+// Find all PDFs in the home directory and log their paths
+const q = hs.spotlight.create()
+q.setQuery("kMDItemContentType == 'com.adobe.pdf'")
+ .setScopes([hs.spotlight.scope.home])
+ .setCallback((event) => {
+     if (event === 'didFinish') {
+         console.log('Found ' + q.count + ' PDFs')
+         q.results().forEach(item =>
+             console.log(item.valueForAttribute(hs.spotlight.attribute.path))
+         )
+         q.stop()
+     }
+ })
+ .start()
+```
+## One-shot search convenience
+```js
+const q = hs.spotlight.search(
+    "kMDItemDisplayName BEGINSWITH 'Invoice'",
+    (event) => {
+        if (event === 'didFinish') {
+            console.log('Found ' + q.count + ' invoices')
+            q.stop()
+        }
+    }
+)
+```
+## Grouping results by attribute
+```js
+const q = hs.spotlight.create()
+q.setQuery("kMDItemContentTypeTree == 'public.image'")
+ .setScopes([hs.spotlight.scope.home])
+ .setGroupingAttributes([hs.spotlight.attribute.kind])
+ .setCallback((event) => {
+     if (event === 'didFinish') {
+         q.groups().forEach(g =>
+             console.log(g.value() + ': ' + g.count + ' images')
+         )
+         q.stop()
+     }
+ })
+ .start()
+```
+## Monitoring for live changes
+```js
+// Keep the query running to receive live-update events
+const q = hs.spotlight.create()
+q.setQuery("kMDItemContentType == 'com.apple.application-bundle'")
+ .setScopes(['/Applications'])
+ .setCallback((event, update) => {
+     if (event === 'didFinish') {
+         console.log('Initial scan: ' + q.count + ' apps')
+     } else if (event === 'didUpdate') {
+         console.log('App list changed — now ' + q.count + ' apps')
+         if (update) console.log('Added: ' + update.added.length)
+     }
+ })
+ .start()
+// Call q.stop() when you no longer want live updates
+```
+ */
+declare namespace hs.spotlight {
+    /**
+     * Creates and returns a new, unconfigured Spotlight query.
+Configure it with `setQuery()`, `setScopes()`, and `setCallback()`, then call `start()`.
+The query is automatically stopped and released when the module shuts down.
+     * @returns A new `HSSpotlightQuery`
+     */
+    function create(): HSSpotlightQuery;
+
+    /**
+     * Convenience helper that creates, configures, and starts a query in one call.
+Equivalent to `create().setQuery(predicate).setCallback(callback).start()`.
+Call `q.stop()` from inside `callback` (when `event === 'didFinish'`) to end
+the search once you have what you need.
+     * @param predicate An NSPredicate-format query string
+     * @param callback A function called with `(event, update?)` lifecycle events
+     * @returns The `HSSpotlightQuery` object (use to stop the search early)
+     */
+    function search(predicate: string, callback: JSValue): HSSpotlightQuery;
+
+    /**
+     * Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.
+| Key | Description |
+|-----|-------------|
+| `home` | The current user's home directory |
+| `computer` | All locally mounted volumes |
+| `network` | Network-mounted volumes |
+| `applications` | Common locations for .app bundles |
+| `icloud` | iCloud Documents |
+| `icloudData` | iCloud Data (non-document ubiquitous files) |
+     */
+    const scope: [String: [String]];
+
+    /**
+     * Common Spotlight metadata attribute key shortcuts.
+These are plain `kMDItem*` string values — using them is equivalent to typing
+the raw key name, but they provide autocomplete and avoid typos.
+| Key | Attribute | Description |
+|-----|-----------|-------------|
+| `path` | `kMDItemPath` | Absolute filesystem path |
+| `displayName` | `kMDItemDisplayName` | User-visible display name |
+| `fsName` | `kMDItemFSName` | Filename on disk |
+| `contentType` | `kMDItemContentType` | UTI content type |
+| `contentTypeTree` | `kMDItemContentTypeTree` | Full UTI conformance tree |
+| `kind` | `kMDItemKind` | Finder "Kind" string |
+| `fileSize` | `kMDItemFSSize` | File size in bytes |
+| `creationDate` | `kMDItemFSCreationDate` | Filesystem creation date |
+| `modifiedDate` | `kMDItemFSContentChangeDate` | Last content modification date |
+| `lastUsedDate` | `kMDItemLastUsedDate` | Last time the item was opened |
+| `useCount` | `kMDItemUseCount` | Number of times opened |
+| `authors` | `kMDItemAuthors` | Document authors |
+| `title` | `kMDItemTitle` | Document title |
+| `comment` | `kMDItemComment` | User comment |
+| `keywords` | `kMDItemKeywords` | Tags/keywords |
+| `durationSeconds` | `kMDItemDurationSeconds` | Media duration in seconds |
+| `pixelWidth` | `kMDItemPixelWidth` | Image/video width in pixels |
+| `pixelHeight` | `kMDItemPixelHeight` | Image/video height in pixels |
+| `whereFroms` | `kMDItemWhereFroms` | Download source URLs |
+| `bundleIdentifier` | `kMDItemCFBundleIdentifier` | App bundle identifier |
+     */
+    const attribute: Record<string, string>;
+
+}
+
+/**
+ * A grouped set of Spotlight results that share a common metadata attribute value.
+Groups are returned by `HSSpotlightQuery.groups()` when grouping attributes have been
+configured with `setGroupingAttributes()`. Do not instantiate `HSSpotlightGroup` directly.
+When multiple grouping attributes are specified, groups nest: each group has `subgroups()`
+containing the next level of grouping.
+ */
+declare class HSSpotlightGroup {
+    /**
+     * The shared value of the grouping attribute for all results in this group.
+Returns `null` only in the unlikely case that the underlying value cannot be bridged.
+     * @returns The attribute value (string, number, Date, etc.) or null
+     */
+    value(): NSObject | undefined;
+
+    /**
+     * Returns the items contained in this group as an array of `HSSpotlightItem` objects.
+     * @returns An array of `HSSpotlightItem` objects
+     */
+    results(): HSSpotlightItem[];
+
+    /**
+     * Returns nested subgroups when multiple grouping attributes were specified.
+Returns an empty array if no subgroups exist for this group.
+     * @returns An array of `HSSpotlightGroup` objects
+     */
+    subgroups(): HSSpotlightGroup[];
+
+    /**
+     * A unique identifier for this group object (UUID string).
+     */
+    identifier: string;
+
+    /**
+     * The metadata attribute name by which results in this group are clustered.
+     */
+    attribute: string;
+
+    /**
+     * The number of results contained in this group.
+     */
+    count: number;
+
+}
+
+/**
+ * An individual result returned by a Spotlight query.
+Instances are returned by `HSSpotlightQuery.results()` and related methods.
+Do not instantiate `HSSpotlightItem` directly.
+Metadata values are read via `valueForAttribute()` using standard `kMDItem*` keys.
+Call `attributes()` to discover which keys are populated on a particular item.
+Common attribute key shortcuts live in `hs.spotlight.attribute`.
+ */
+declare class HSSpotlightItem {
+    /**
+     * Returns the list of metadata attribute names present on this item.
+The list is typically not exhaustive — some attributes (such as `kMDItemPath`)
+may be readable via `valueForAttribute()` even when absent from this list.
+     * @returns An array of attribute name strings
+     */
+    attributes(): string[];
+
+    /**
+     * Returns the value for a specific metadata attribute, or `null` if absent.
+The return type depends on the attribute: common types include strings, numbers,
+dates, and arrays of strings. `NSURL`-typed values are automatically converted
+to their string representation.
+     * @param key An attribute key such as `"kMDItemPath"` or `hs.spotlight.attribute.path`
+     * @returns The attribute value, or null
+     */
+    valueForAttribute(key: string): NSObject | undefined;
+
+    /**
+     * A unique identifier for this result object (UUID string).
+     */
+    identifier: string;
+
+}
+
+/**
+ * A configurable Spotlight search query that can be started, stopped, and queried for results.
+Create instances via `hs.spotlight.create()` or the convenience helper `hs.spotlight.search()`.
+Configure the query with chainable setter methods, register a callback, then call `start()`.
+Results accumulate during the initial gathering phase (`"didStart"` → `"inProgress"` → `"didFinish"`)
+and continue to update during the live-monitoring phase (`"didUpdate"`). Stop explicitly
+with `stop()` when you no longer need live updates.
+ */
+declare class HSSpotlightQuery {
+    /**
+     * Sets the NSPredicate query string for this search.
+The string must be a valid `NSPredicate` format expression using `kMDItem*` attribute
+keys and MDQuery operators (`==`, `!=`, `<`, `>`, `BEGINSWITH`, `CONTAINS`, etc.).
+If the query is already running when this is called, it is stopped and restarted
+automatically.
+     * @param predicate An NSPredicate-format query string
+     * @returns this query, for chaining
+     */
+    setQuery(predicate: string): HSSpotlightQuery;
+
+    /**
+     * Sets the search scopes that restrict where Spotlight looks.
+Pass an array of predefined scope strings from `hs.spotlight.scope`, absolute
+directory paths, or a mix of both. Paths beginning with `~` are expanded to the
+user's home directory.
+When not set, the query defaults to `hs.spotlight.scope.computer`.
+     * @param scopes An array of scope-constant strings or absolute directory paths
+     * @returns this query, for chaining
+     */
+    setScopes(scopes: JSValue): HSSpotlightQuery;
+
+    /**
+     * Sets sort descriptors that control the order of results.
+     * @param descriptors An array of sort descriptor objects
+     * @returns this query, for chaining
+     */
+    setSortDescriptors(descriptors: JSValue): HSSpotlightQuery;
+
+    /**
+     * Sets the attributes by which results will be grouped.
+When grouping attributes are set, use `groups()` to retrieve results organised into
+`HSSpotlightGroup` objects. Specifying multiple attributes creates nested subgroups
+accessible via `group.subgroups()`.
+     * @param attrs An array of attribute name strings
+     * @returns this query, for chaining
+     */
+    setGroupingAttributes(attrs: JSValue): HSSpotlightQuery;
+
+    /**
+     * Sets the attributes for which aggregate value-list summaries are computed.
+After the query finishes, `valueLists()` returns aggregate data for each specified
+attribute: distinct values and the number of results carrying each value.
+     * @param attrs An array of attribute name strings
+     * @returns this query, for chaining
+     */
+    setValueListAttributes(attrs: JSValue): HSSpotlightQuery;
+
+    /**
+     * Registers a callback that receives query lifecycle events.
+of `HSSpotlightItem` objects describing what changed in this update cycle
+     * @param fn A JavaScript function `(event, update?) => void`
+     * @returns this query, for chaining
+     */
+    setCallback(fn: JSValue): HSSpotlightQuery;
+
+    /**
+     * Starts the query.
+The query must have a predicate set (via `setQuery()`) before calling `start()`.
+Calling `start()` on an already-running query is a no-op.
+     * @returns this query, for chaining
+     */
+    start(): HSSpotlightQuery;
+
+    /**
+     * Stops the query while preserving accumulated results.
+After stopping, `results()`, `count`, `groups()`, and `valueLists()` continue to
+return the last gathered data. Call `start()` again to resume.
+     * @returns this query, for chaining
+     */
+    stop(): HSSpotlightQuery;
+
+    /**
+     * Returns the current results as an array of `HSSpotlightItem` objects.
+The result set is briefly frozen during access to ensure consistency. Safe to call
+from within a query callback.
+     * @returns An array of `HSSpotlightItem` objects (may be empty if the query has not run)
+     */
+    results(): HSSpotlightItem[];
+
+    /**
+     * Returns grouped results when grouping attributes have been configured.
+Returns an empty array if `setGroupingAttributes()` was not called.
+     * @returns An array of `HSSpotlightGroup` objects
+     */
+    groups(): HSSpotlightGroup[];
+
+    /**
+     * Returns aggregate value-list summaries for attributes set via `setValueListAttributes()`.
+Returns an empty array if `setValueListAttributes()` was not called.
+     * @returns An array of summary objects
+     */
+    valueLists(): [[String: Any]];
+
+    /**
+     * Stops the query and releases all associated resources.
+Called automatically during module shutdown. After calling `destroy()`,
+the query object should not be used further.
+     */
+    destroy(): void;
+
+    /**
+     * A unique identifier for this query object (UUID string).
+     */
+    identifier: string;
+
+    /**
+     * The number of results gathered so far.
+     */
+    count: number;
+
+    /**
+     * Whether the query is currently running (gathering or monitoring for live updates).
+     */
+    isRunning: boolean;
+
+    /**
+     * Whether the query is in the initial gathering phase.
+`true` from `"didStart"` until `"didFinish"`; `false` thereafter while live-monitoring.
+     */
+    isGathering: boolean;
+
+}
+
+/**
  * Module for running external processes
  */
 declare namespace hs.task {
