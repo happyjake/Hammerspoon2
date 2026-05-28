@@ -3127,6 +3127,370 @@
       "rawDocumentation": "Module for discovering and interacting with camera devices.\n\nThis module lets you enumerate cameras, capture still images, and react to\ndevice connect/disconnect events in real time.\n\nCamera access requires user permission. Call `hs.permissions.requestCamera()`\nbefore using ``captureImage()`` or reading ``isInUse``.\n\n## Enumerating cameras\n\n```javascript\nconst cameras = hs.camera.all()\ncameras.forEach(cam => {\n    console.log(cam.name + \" — \" + (cam.isInUse ? \"in use\" : \"idle\"))\n})\n```\n\n## Finding a specific camera\n\n```javascript\nconst cam = hs.camera.findByName(\"FaceTime HD Camera\")\nif (cam) {\n    cam.captureImage()\n        .then(img => img.saveToFile(\"/tmp/snapshot.png\"))\n        .catch(err => console.error(\"Capture error: \" + err))\n}\n```\n\n## Watching for connect / disconnect events\n\n```javascript\nconst handler = (event, camera) => {\n    if (event === \"connected\")    console.log(\"Camera connected: \" + camera.name)\n    if (event === \"disconnected\") console.log(\"Camera disconnected: \" + camera.name)\n}\nhs.camera.addWatcher(handler)\n// Later…\nhs.camera.removeWatcher(handler)\n```\n\n## Watching a camera's in-use state\n\n```javascript\nconst cam = hs.camera.all()[0]\ncam.addWatcher((isInUse) => {\n    console.log(cam.name + \" is now \" + (isInUse ? \"in use\" : \"idle\"))\n})\n```"
     },
     {
+      "name": "hs.chooser",
+      "methods": [
+        {
+          "name": "create",
+          "signature": "func create() -> HSChooser",
+          "isStatic": false,
+          "rawDocumentation": "Create a new chooser.\n- Returns: A new `HSChooser` object ready for configuration\n- Example:\n```js\nconst c = hs.chooser.create()\nc.setChoices([{text: \"Hello\"}]).onSelect = item => console.log(item.text)\nc.show()\n```",
+          "description": "Create a new chooser.",
+          "params": [],
+          "returns": {
+            "type": "HSChooser",
+            "description": "A new `HSChooser` object ready for configuration"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const c = hs.chooser.create()\nc.setChoices([{text: \"Hello\"}]).onSelect = item => console.log(item.text)\nc.show()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooserModule.swift",
+          "lineNumber": 79
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSChooserAPI",
+          "type": "typedef",
+          "rawDocumentation": "A keyboard-driven floating chooser panel.\n\nCreate via `hs.chooser.create()`. Configure choices, set callbacks, then call `.show()`.\n\n## Choice format\n\nEach choice is a plain object with required `text` and optional `subText`, `image`, and\n`valid` fields. All other fields are passed through to the `onSelect` callback unchanged:\n\n```javascript\n{ text: \"Open Safari\", subText: \"com.apple.Safari\", image: HSImage.fromAppBundle(\"com.apple.Safari\"), valid: true, myData: 42 }\n```\n\n## Keyboard shortcuts\n\n- **Return** — confirm selection\n- **Escape** — dismiss (calls `onSelect` with `null`)\n- **↑ / ↓** — move through results",
+          "description": "A keyboard-driven floating chooser panel.\nCreate via `hs.chooser.create()`. Configure choices, set callbacks, then call `.show()`.\n## Choice format\nEach choice is a plain object with required `text` and optional `subText`, `image`, and\n```javascript\n{ text: \"Open Safari\", subText: \"com.apple.Safari\", image: HSImage.fromAppBundle(\"com.apple.Safari\"), valid: true, myData: 42 }\n```\n## Keyboard shortcuts",
+          "methods": [
+            {
+              "name": "setChoices",
+              "signature": "func setChoices(_ choices: JSValue) -> HSChooser",
+              "isStatic": false,
+              "rawDocumentation": "Set the choices list. Pass a static array or a function:\n\n- **Array** — the chooser filters it automatically as the user types.\n- **Function** — called with the current query string on every `refreshChoices()` and\n  on show. The function is responsible for filtering; the chooser displays all items it returns.\n\n- Parameter choices: An array of choice objects, or a function `(query) => [...]`\n- Returns: Self for chaining\n- Example:\n```js\n// Static\nchooser.setChoices([{text: \"Foo\"}, {text: \"Bar\"}])\n\n// Dynamic\nchooser.setChoices(q => items.filter(i => i.text.toLowerCase().includes(q.toLowerCase())))\n```",
+              "description": "on show. The function is responsible for filtering; the chooser displays all items it returns.",
+              "params": [
+                {
+                  "name": "choices",
+                  "type": "JSValue",
+                  "description": "An array of choice objects, or a function `(query) => [...]`"
+                }
+              ],
+              "returns": {
+                "type": "HSChooser",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "// Static\nchooser.setChoices([{text: \"Foo\"}, {text: \"Bar\"}])\n\n// Dynamic\nchooser.setChoices(q => items.filter(i => i.text.toLowerCase().includes(q.toLowerCase())))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 88
+            },
+            {
+              "name": "refreshChoices",
+              "signature": "func refreshChoices() -> HSChooser",
+              "isStatic": false,
+              "rawDocumentation": "Re-apply filtering (static choices) or re-invoke the choices function (dynamic).\nCall after updating an external data source in an async `onQueryChange` handler.\n- Returns: Self for chaining\n- Example:\n```js\nchooser.refreshChoices()\n```",
+              "description": "Re-apply filtering (static choices) or re-invoke the choices function (dynamic).\nCall after updating an external data source in an async `onQueryChange` handler.",
+              "params": [],
+              "returns": {
+                "type": "HSChooser",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.refreshChoices()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 97
+            },
+            {
+              "name": "show",
+              "signature": "func show() -> HSChooser",
+              "isStatic": false,
+              "rawDocumentation": "Show the chooser.\n- Returns: Self for chaining\n- Example:\n```js\nchooser.show()\n```",
+              "description": "Show the chooser.",
+              "params": [],
+              "returns": {
+                "type": "HSChooser",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 132
+            },
+            {
+              "name": "hide",
+              "signature": "func hide() -> HSChooser",
+              "isStatic": false,
+              "rawDocumentation": "Hide the chooser without making a selection. Restores focus to the previously active window.\n- Returns: Self for chaining\n- Example:\n```js\nchooser.hide()\n```",
+              "description": "Hide the chooser without making a selection. Restores focus to the previously active window.",
+              "params": [],
+              "returns": {
+                "type": "HSChooser",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.hide()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 140
+            },
+            {
+              "name": "destroy",
+              "signature": "func destroy()",
+              "isStatic": false,
+              "rawDocumentation": "Destroy the chooser and release all resources. After calling this, the object is unusable.\n- Example:\n```js\nchooser.destroy()\n```",
+              "description": "Destroy the chooser and release all resources. After calling this, the object is unusable.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.destroy()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 154
+            }
+          ],
+          "properties": [
+            {
+              "name": "typeName",
+              "signature": "var typeName: String { get }",
+              "rawDocumentation": "Read-only type identifier.",
+              "description": "Read-only type identifier.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 32
+            },
+            {
+              "name": "identifier",
+              "signature": "var identifier: String { get }",
+              "rawDocumentation": "Stable UUID string for this chooser instance.",
+              "description": "Stable UUID string for this chooser instance.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 35
+            },
+            {
+              "name": "query",
+              "signature": "var query: String { get set }",
+              "rawDocumentation": "The current text in the search field. Setting this from JS updates the display but\ndoes not invoke the `onQueryChange` callback.\n- Example:\n```js\nchooser.query = \"he\"\n```",
+              "description": "The current text in the search field. Setting this from JS updates the display but\ndoes not invoke the `onQueryChange` callback.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.query = \"he\""
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 45
+            },
+            {
+              "name": "placeholder",
+              "signature": "var placeholder: String { get set }",
+              "rawDocumentation": "Placeholder text shown in the empty search field (default: `\"Search...\"`).\n- Example:\n```js\nchooser.placeholder = \"Type to search...\"\n```",
+              "description": "Placeholder text shown in the empty search field (default: `\"Search...\"`).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.placeholder = \"Type to search...\""
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 52
+            },
+            {
+              "name": "searchSubText",
+              "signature": "var searchSubText: Bool { get set }",
+              "rawDocumentation": "Whether searches match against `subText` in addition to `text` (default: `false`).\nOnly applies when a static choices array is provided.\n- Example:\n```js\nchooser.searchSubText = true\n```",
+              "description": "Whether searches match against `subText` in addition to `text` (default: `false`).\nOnly applies when a static choices array is provided.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.searchSubText = true"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 60
+            },
+            {
+              "name": "enableDefaultForQuery",
+              "signature": "var enableDefaultForQuery: Bool { get set }",
+              "rawDocumentation": "When `true` and the query is non-empty but there are no matching choices, `onSelect`\nis called with `{ text: <query> }` instead of `null` (default: `false`).\n- Example:\n```js\nchooser.enableDefaultForQuery = true\n```",
+              "description": "When `true` and the query is non-empty but there are no matching choices, `onSelect`\nis called with `{ text: <query> }` instead of `null` (default: `false`).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.enableDefaultForQuery = true"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 68
+            },
+            {
+              "name": "selectedRow",
+              "signature": "var selectedRow: Int { get set }",
+              "rawDocumentation": "The zero-based index of the currently highlighted row (-1 when empty).\n- Example:\n```js\nchooser.selectedRow = 0\n```",
+              "description": "The zero-based index of the currently highlighted row (-1 when empty).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.selectedRow = 0"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 106
+            },
+            {
+              "name": "width",
+              "signature": "var width: Double { get set }",
+              "rawDocumentation": "Width of the chooser as a fraction of the screen width (default: `0.5` = 50 %).\n- Example:\n```js\nchooser.width = 0.4\n```",
+              "description": "Width of the chooser as a fraction of the screen width (default: `0.5` = 50 %).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.width = 0.4"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 115
+            },
+            {
+              "name": "visibleRows",
+              "signature": "var visibleRows: Int { get set }",
+              "rawDocumentation": "Maximum number of rows visible at once without scrolling (default: `10`).\n- Example:\n```js\nchooser.visibleRows = 8\n```",
+              "description": "Maximum number of rows visible at once without scrolling (default: `10`).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.visibleRows = 8"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 122
+            },
+            {
+              "name": "isVisible",
+              "signature": "var isVisible: Bool { get }",
+              "rawDocumentation": "`true` if the chooser panel is currently on screen.\n- Example:\n```js\nif (!chooser.isVisible) chooser.show()\n```",
+              "description": "`true` if the chooser panel is currently on screen.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (!chooser.isVisible) chooser.show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 147
+            },
+            {
+              "name": "onSelect",
+              "signature": "var onSelect: JSValue? { get set }",
+              "rawDocumentation": "Called when the user confirms a selection.\n\nThe argument is the chosen row object (the original dict you passed to `setChoices`,\nwith `text`, `subText`, `image`, `valid`, and any custom fields intact).\nThe argument is `null` when dismissed (Escape).\n\n- Example:\n```js\nchooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text)\n    else console.log(\"Dismissed\")\n}\n```",
+              "description": "Called when the user confirms a selection.\nThe argument is the chosen row object (the original dict you passed to `setChoices`,\nwith `text`, `subText`, `image`, `valid`, and any custom fields intact).\nThe argument is `null` when dismissed (Escape).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text)\n    else console.log(\"Dismissed\")\n}"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 171
+            },
+            {
+              "name": "onQueryChange",
+              "signature": "var onQueryChange: JSValue? { get set }",
+              "rawDocumentation": "Called on every keystroke with the new query string.\n\nUse this to debounce expensive searches or trigger async data fetching.\n\n- Example:\n```js\nchooser.onQueryChange = (q) => {\n    hs.timer.doAfter(0.05, () => { fetchResults(q).then(r => { cache = r; chooser.refreshChoices() }) })\n}\n```",
+              "description": "Called on every keystroke with the new query string.\nUse this to debounce expensive searches or trigger async data fetching.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.onQueryChange = (q) => {\n    hs.timer.doAfter(0.05, () => { fetchResults(q).then(r => { cache = r; chooser.refreshChoices() }) })\n}"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 183
+            },
+            {
+              "name": "onShow",
+              "signature": "var onShow: JSValue? { get set }",
+              "rawDocumentation": "Called after the panel becomes visible.\n- Example:\n```js\nchooser.onShow = () => console.log(\"Chooser appeared\")\n```",
+              "description": "Called after the panel becomes visible.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.onShow = () => console.log(\"Chooser appeared\")"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 190
+            },
+            {
+              "name": "onHide",
+              "signature": "var onHide: JSValue? { get set }",
+              "rawDocumentation": "Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).\n- Example:\n```js\nchooser.onHide = () => console.log(\"Chooser hidden\")\n```",
+              "description": "Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.onHide = () => console.log(\"Chooser hidden\")"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 197
+            },
+            {
+              "name": "onRightClick",
+              "signature": "var onRightClick: JSValue? { get set }",
+              "rawDocumentation": "Called when the user right-clicks a row. The argument is the zero-based row index.\n- Example:\n```js\nchooser.onRightClick = (rowIndex) => console.log(\"Right-clicked row \" + rowIndex)\n```",
+              "description": "Called when the user right-clicks a row. The argument is the zero-based row index.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.onRightClick = (rowIndex) => console.log(\"Right-clicked row \" + rowIndex)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 204
+            }
+          ]
+        }
+      ],
+      "description": "# hs.chooser\n**A Spotlight-style chooser for presenting options to the user**\n`hs.chooser` lets you show a floating search panel that users can type into to filter and\nselect from a list of items. It's ideal for launchers, emoji pickers, command palettes, and\nany interface where you want fast, keyboard-driven selection.\n## Quick Start\n```javascript\nconst chooser = hs.chooser.create()\n\nchooser.setChoices([\n    { text: \"Open Safari\", subText: \"Web browser\", action: \"safari\" },\n    { text: \"Open Terminal\", subText: \"Command line\", action: \"terminal\" }\n])\n\nchooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text + \" (\" + item.action + \")\")\n}\n\nchooser.show()\n```\n## Dynamic Choices\n```javascript\nconst allApps = hs.application.list()\n\nchooser.setChoices((query) => {\n    const q = query.toLowerCase()\n    return allApps\n        .filter(a => a.name.toLowerCase().includes(q))\n        .map(a => ({ text: a.name, subText: a.bundleID }))\n})\n```\n## Async Choices (with debounce)\n```javascript\nlet debounceTimer = null\nlet cachedResults = []\n\nchooser.setChoices(() => cachedResults)\n\nchooser.onQueryChange = (query) => {\n    if (debounceTimer) debounceTimer.invalidate()\n    debounceTimer = hs.timer.doAfter(0.05, () => {\n        fetchFromAPI(query).then(results => {\n            cachedResults = results\n            chooser.refreshChoices()\n        })\n    })\n}\n```",
+      "rawDocumentation": "# hs.chooser\n\n**A Spotlight-style chooser for presenting options to the user**\n\n`hs.chooser` lets you show a floating search panel that users can type into to filter and\nselect from a list of items. It's ideal for launchers, emoji pickers, command palettes, and\nany interface where you want fast, keyboard-driven selection.\n\n## Quick Start\n\n```javascript\nconst chooser = hs.chooser.create()\n\nchooser.setChoices([\n    { text: \"Open Safari\", subText: \"Web browser\", action: \"safari\" },\n    { text: \"Open Terminal\", subText: \"Command line\", action: \"terminal\" }\n])\n\nchooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text + \" (\" + item.action + \")\")\n}\n\nchooser.show()\n```\n\n## Dynamic Choices\n\nFor search-as-you-type filtering powered by your own data:\n\n```javascript\nconst allApps = hs.application.list()\n\nchooser.setChoices((query) => {\n    const q = query.toLowerCase()\n    return allApps\n        .filter(a => a.name.toLowerCase().includes(q))\n        .map(a => ({ text: a.name, subText: a.bundleID }))\n})\n```\n\n## Async Choices (with debounce)\n\nFor results fetched from an external source:\n\n```javascript\nlet debounceTimer = null\nlet cachedResults = []\n\nchooser.setChoices(() => cachedResults)\n\nchooser.onQueryChange = (query) => {\n    if (debounceTimer) debounceTimer.invalidate()\n    debounceTimer = hs.timer.doAfter(0.05, () => {\n        fetchFromAPI(query).then(results => {\n            cachedResults = results\n            chooser.refreshChoices()\n        })\n    })\n}\n```"
+    },
+    {
       "name": "hs.console",
       "methods": [
         {
@@ -12597,9 +12961,5 @@
       "category": "type"
     }
   ],
-<<<<<<< HEAD
-  "generatedAt": "2026-05-28T22:42:40.986Z"
-=======
-  "generatedAt": "2026-05-28T12:33:52.633Z"
->>>>>>> c895c01 (Checkpoint)
+  "generatedAt": "2026-05-28T22:43:31.138Z"
 }

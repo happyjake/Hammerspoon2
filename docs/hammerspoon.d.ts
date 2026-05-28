@@ -1556,6 +1556,191 @@ Queries the underlying CoreMediaIO device state each time it is read.
 }
 
 /**
+ * # hs.chooser
+**A Spotlight-style chooser for presenting options to the user**
+`hs.chooser` lets you show a floating search panel that users can type into to filter and
+select from a list of items. It's ideal for launchers, emoji pickers, command palettes, and
+any interface where you want fast, keyboard-driven selection.
+## Quick Start
+```javascript
+const chooser = hs.chooser.create()
+
+chooser.setChoices([
+    { text: "Open Safari", subText: "Web browser", action: "safari" },
+    { text: "Open Terminal", subText: "Command line", action: "terminal" }
+])
+
+chooser.onSelect = (item) => {
+    if (item) console.log("Selected: " + item.text + " (" + item.action + ")")
+}
+
+chooser.show()
+```
+## Dynamic Choices
+```javascript
+const allApps = hs.application.list()
+
+chooser.setChoices((query) => {
+    const q = query.toLowerCase()
+    return allApps
+        .filter(a => a.name.toLowerCase().includes(q))
+        .map(a => ({ text: a.name, subText: a.bundleID }))
+})
+```
+## Async Choices (with debounce)
+```javascript
+let debounceTimer = null
+let cachedResults = []
+
+chooser.setChoices(() => cachedResults)
+
+chooser.onQueryChange = (query) => {
+    if (debounceTimer) debounceTimer.invalidate()
+    debounceTimer = hs.timer.doAfter(0.05, () => {
+        fetchFromAPI(query).then(results => {
+            cachedResults = results
+            chooser.refreshChoices()
+        })
+    })
+}
+```
+ */
+declare namespace hs.chooser {
+    /**
+     * Create a new chooser.
+     * @returns A new `HSChooser` object ready for configuration
+     */
+    function create(): HSChooser;
+
+}
+
+/**
+ * A keyboard-driven floating chooser panel.
+Create via `hs.chooser.create()`. Configure choices, set callbacks, then call `.show()`.
+## Choice format
+Each choice is a plain object with required `text` and optional `subText`, `image`, and
+```javascript
+{ text: "Open Safari", subText: "com.apple.Safari", image: HSImage.fromAppBundle("com.apple.Safari"), valid: true, myData: 42 }
+```
+## Keyboard shortcuts
+ */
+declare class HSChooser {
+    /**
+     * on show. The function is responsible for filtering; the chooser displays all items it returns.
+     * @param choices An array of choice objects, or a function `(query) => [...]`
+     * @returns Self for chaining
+     */
+    setChoices(choices: JSValue): HSChooser;
+
+    /**
+     * Re-apply filtering (static choices) or re-invoke the choices function (dynamic).
+Call after updating an external data source in an async `onQueryChange` handler.
+     * @returns Self for chaining
+     */
+    refreshChoices(): HSChooser;
+
+    /**
+     * Show the chooser.
+     * @returns Self for chaining
+     */
+    show(): HSChooser;
+
+    /**
+     * Hide the chooser without making a selection. Restores focus to the previously active window.
+     * @returns Self for chaining
+     */
+    hide(): HSChooser;
+
+    /**
+     * Destroy the chooser and release all resources. After calling this, the object is unusable.
+     */
+    destroy(): void;
+
+    /**
+     * Read-only type identifier.
+     */
+    typeName: string;
+
+    /**
+     * Stable UUID string for this chooser instance.
+     */
+    identifier: string;
+
+    /**
+     * The current text in the search field. Setting this from JS updates the display but
+does not invoke the `onQueryChange` callback.
+     */
+    query: string;
+
+    /**
+     * Placeholder text shown in the empty search field (default: `"Search..."`).
+     */
+    placeholder: string;
+
+    /**
+     * Whether searches match against `subText` in addition to `text` (default: `false`).
+Only applies when a static choices array is provided.
+     */
+    searchSubText: boolean;
+
+    /**
+     * When `true` and the query is non-empty but there are no matching choices, `onSelect`
+is called with `{ text: <query> }` instead of `null` (default: `false`).
+     */
+    enableDefaultForQuery: boolean;
+
+    /**
+     * The zero-based index of the currently highlighted row (-1 when empty).
+     */
+    selectedRow: number;
+
+    /**
+     * Width of the chooser as a fraction of the screen width (default: `0.5` = 50 %).
+     */
+    width: number;
+
+    /**
+     * Maximum number of rows visible at once without scrolling (default: `10`).
+     */
+    visibleRows: number;
+
+    /**
+     * `true` if the chooser panel is currently on screen.
+     */
+    isVisible: boolean;
+
+    /**
+     * Called when the user confirms a selection.
+The argument is the chosen row object (the original dict you passed to `setChoices`,
+with `text`, `subText`, `image`, `valid`, and any custom fields intact).
+The argument is `null` when dismissed (Escape).
+     */
+    onSelect: JSValue | undefined;
+
+    /**
+     * Called on every keystroke with the new query string.
+Use this to debounce expensive searches or trigger async data fetching.
+     */
+    onQueryChange: JSValue | undefined;
+
+    /**
+     * Called after the panel becomes visible.
+     */
+    onShow: JSValue | undefined;
+
+    /**
+     * Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).
+     */
+    onHide: JSValue | undefined;
+
+    /**
+     * Called when the user right-clicks a row. The argument is the zero-based row index.
+     */
+    onRightClick: JSValue | undefined;
+
+}
+
+/**
  * Module for controlling the Hammerspoon console
  */
 declare namespace hs.console {
