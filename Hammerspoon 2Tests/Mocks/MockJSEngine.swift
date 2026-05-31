@@ -65,6 +65,10 @@ class MockJSEngine: JSEngineProtocol {
         return hasContextValue
     }
 
+    func shutdown() {
+        reset()
+    }
+
     // Helper methods for testing
     func reset() {
         evalCalls.removeAll()

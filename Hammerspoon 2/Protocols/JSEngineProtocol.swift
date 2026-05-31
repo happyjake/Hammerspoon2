@@ -35,6 +35,10 @@ protocol JSEngineProtocol {
     /// Checks if a JavaScript context exists
     /// - Returns: true if a context exists, false otherwise
     func hasContext() -> Bool
+
+    /// Terminates the current JavaScript context, if one exists
+    /// No new context is created in its place, this is intended for terminal app states like quitting
+    func shutdown()
 }
 
 extension JSEngineProtocol {
