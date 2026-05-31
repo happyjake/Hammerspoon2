@@ -162,6 +162,10 @@ extension JSEngine: JSEngineProtocol {
         return vm != nil || context != nil
     }
 
+    func shutdown() {
+        deleteContext()
+    }
+
     /// Creates a Promise that wraps an async operation
     /// - Parameter body: A closure that receives a JSPromiseHolder to resolve/reject the promise
     /// - Returns: A JSPromise representing the Promise, or nil if context is unavailable

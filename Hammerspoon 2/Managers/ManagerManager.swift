@@ -72,6 +72,7 @@ class ManagerManager {
     }
 
     func shutdown() {
+        engine.shutdown()
         NSApp.terminate(self)
     }
 }
