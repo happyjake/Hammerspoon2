@@ -47,6 +47,20 @@ import AppKit
     /// ```
     @objc(setImage::) func setImage(_ base64PNG: String, _ opts: JSValue) -> HSMenubarItem
 
+    /// Set the status-item image from an SVG document string. Rendered as a
+    /// template by default so macOS draws it adaptively (white on the dark menu
+    /// bar, black on light). Ideal for a vector glyph you regenerate over time
+    /// (e.g. a progress ring).
+    /// - Parameters:
+    ///   - svg: an SVG document string (should include an `xmlns`)
+    ///   - opts: `{ template?: bool, size?: number }` — template defaults true, size defaults 18 (pt)
+    /// - Returns: self for chaining
+    /// - Example:
+    /// ```js
+    /// item.setSVG('<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#000" stroke-width="2"/></svg>', {})
+    /// ```
+    @objc(setSVG::) func setSVG(_ svg: String, _ opts: JSValue) -> HSMenubarItem
+
     /// Register a function called (with no arguments) when the item is clicked.
     /// - Parameter fn: a JavaScript function
     /// - Returns: self for chaining
@@ -146,6 +160,19 @@ import AppKit
             return self
         }
         image.isTemplate = !(opts.isObject && opts.forProperty("template")?.toBool() == false)
+        button.image = image
+        return self
+    }
+
+    @objc(setSVG::) func setSVG(_ svg: String, _ opts: JSValue) -> HSMenubarItem {
+        guard let button = statusItem?.button else { return self }
+        guard let data = svg.data(using: .utf8), let image = NSImage(data: data) else {
+            AKWarning("hs.menubar setSVG: could not parse SVG")
+            return self
+        }
+        image.isTemplate = !(opts.isObject && opts.forProperty("template")?.toBool() == false)
+        let size = (opts.isObject ? opts.forProperty("size")?.toNumber()?.doubleValue : nil) ?? 18
+        if size > 0 { image.size = NSSize(width: size, height: size) }
         button.image = image
         return self
     }

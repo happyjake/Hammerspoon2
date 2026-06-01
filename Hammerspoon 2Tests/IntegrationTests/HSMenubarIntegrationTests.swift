@@ -65,4 +65,25 @@ struct HSMenubarStructureTests {
         h.expectTrue("(function(){ const f = it.frame(); return f === null || (typeof f === 'object' && 'x' in f && 'y' in f && 'w' in f && 'h' in f) })()")
         h.eval("it.remove()")
     }
+
+    @Test("setSVG chains and tolerates input") @MainActor func testSetSVG() {
+        let h = makeHarness()
+        h.eval("globalThis.it = hs.menubar.new()")
+        let svg = "<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" width=\\\"18\\\" height=\\\"18\\\" viewBox=\\\"0 0 24 24\\\"><circle cx=\\\"12\\\" cy=\\\"12\\\" r=\\\"8\\\" fill=\\\"none\\\" stroke=\\\"#000\\\" stroke-width=\\\"2\\\"/></svg>"
+        h.expectTrue("typeof it.setSVG === 'function'")
+        h.expectTrue("it.setSVG('\(svg)', {}) === it")
+        h.expectTrue("it.setSVG('not-svg', {}) === it") // malformed → no throw
+        h.eval("it.remove()")
+    }
+
+    // The whole eye-ring-progress feature hinges on NSImage parsing SVG. Verify
+    // that directly so a macOS without SVG support fails loudly here, not silently
+    // as a blank menu-bar item.
+    @Test("NSImage parses an SVG document") @MainActor func testNSImageParsesSVG() {
+        let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"#000\" stroke-width=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"3\" fill=\"#000\"/></svg>"
+        let data = svg.data(using: .utf8)!
+        let image = NSImage(data: data)
+        #expect(image != nil)
+        #expect((image?.size.width ?? 0) > 0)
+    }
 }
