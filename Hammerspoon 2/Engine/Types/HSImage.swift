@@ -148,6 +148,18 @@ import Observation
     /// Replace the image with a new one, triggering a re-render if bound to a UI element
     /// - Parameter value: New image as an HSImage object or a file path string
     @objc func set(_ value: JSValue)
+
+    /// Encode the image to a base64 string.
+    /// - Parameters:
+    ///   - format: `"jpeg"` or `"png"` (case-insensitive). Any other value is treated as `"png"`.
+    ///   - quality: JPEG compression quality in the range `0.0` (maximum compression) to `1.0`
+    ///     (maximum quality). Ignored when `format` is `"png"`.
+    /// - Returns: A base64-encoded string of the encoded image data, or `null` if encoding failed.
+    /// - Example:
+    /// ```js
+    /// const b64 = img.encode('jpeg', 0.8)
+    /// ```
+    @objc func encode(_ format: String, _ quality: Double) -> String?
 }
 
 @Observable
@@ -358,6 +370,22 @@ import Observation
             AKError("HSImage: Failed to save image: \(error.localizedDescription)")
             return false
         }
+    }
+
+    @objc func encode(_ format: String, _ quality: Double) -> String? {
+        let fileType: NSBitmapImageRep.FileType = format.lowercased() == "jpeg" ? .jpeg : .png
+        let properties: [NSBitmapImageRep.PropertyKey: Any] = fileType == .jpeg
+            ? [.compressionFactor: quality]
+            : [:]
+
+        guard let tiffData = image.tiffRepresentation,
+              let bitmapImage = NSBitmapImageRep(data: tiffData),
+              let imageData = bitmapImage.representation(using: fileType, properties: properties) else {
+            AKError("HSImage: Failed to encode image as \(format)")
+            return nil
+        }
+
+        return imageData.base64EncodedString()
     }
 
     @objc func template(_ stateValue: JSValue) -> Bool {
