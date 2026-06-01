@@ -72,6 +72,7 @@ import JavaScriptCore
     }
 
     @objc func open(_ path: String) -> HSSerialPort? {
+        ports.removeAll { !$0.isOpen }
         guard let port = HSSerialPort(path: path) else { return nil }
         ports.append(port)
         return port

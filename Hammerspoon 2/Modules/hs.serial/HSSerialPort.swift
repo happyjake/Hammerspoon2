@@ -38,6 +38,24 @@ import Darwin
     /// hs.serial.open('/dev/cu.usbmodem1').write('{"text":"hi"}\n')
     /// ```
     @objc func write(_ s: String) -> Bool
+
+    /// Register a callback invoked once per inbound line (newline/CR-delimited).
+    /// - Parameter cb: a function called with each line string.
+    /// - Returns: this port (chainable).
+    /// - Example:
+    /// ```js
+    /// hs.serial.open('/dev/cu.usbmodem1').onLine(line => console.log(line))
+    /// ```
+    @objc func onLine(_ cb: JSValue) -> HSSerialPort
+
+    /// Register a callback invoked when the port closes.
+    /// - Parameter cb: a function called when the port closes.
+    /// - Returns: this port (chainable).
+    /// - Example:
+    /// ```js
+    /// hs.serial.open('/dev/cu.usbmodem1').onClose(() => console.log('closed'))
+    /// ```
+    @objc func onClose(_ cb: JSValue) -> HSSerialPort
 }
 
 @_documentation(visibility: private)
@@ -48,6 +66,11 @@ import Darwin
     @objc var isOpen: Bool { fd >= 0 }
     var rawFD: Int32 { fd }        // for later tasks (read/write)
 
+    private var fileHandle: FileHandle?
+    private var buffer = [UInt8]()
+    private var lineCb: JSValue?
+    private var closeCb: JSValue?
+
     init?(path: String) {
         self.path = path
         super.init()
@@ -55,6 +78,7 @@ import Darwin
         guard f >= 0 else { return nil }
         fd = f
         configureRaw()
+        startReadLoop()
     }
 
     private func configureRaw() {
@@ -67,6 +91,30 @@ import Darwin
         tcsetattr(fd, TCSANOW, &t)
     }
 
+    private func startReadLoop() {
+        let fh = FileHandle(fileDescriptor: fd, closeOnDealloc: false)
+        fileHandle = fh
+        fh.readabilityHandler = { [weak self] handle in
+            let data = handle.availableData          // Data is Sendable → hop to main actor
+            if data.isEmpty { return }
+            Task { @MainActor in self?.ingest(data) }
+        }
+    }
+
+    @MainActor private func ingest(_ data: Data) {
+        buffer.append(contentsOf: data)
+        while let idx = buffer.firstIndex(where: { $0 == 0x0A || $0 == 0x0D }) {
+            let lineBytes = Array(buffer[0..<idx])
+            buffer.removeSubrange(0...idx)
+            if lineBytes.isEmpty { continue }
+            _ = lineCb?.callSafely(withArguments: [String(decoding: lineBytes, as: UTF8.self)], context: "hs.serial")
+        }
+    }
+
+    @objc func onLine(_ cb: JSValue) -> HSSerialPort { lineCb = cb; return self }
+
+    @objc func onClose(_ cb: JSValue) -> HSSerialPort { closeCb = cb; return self }
+
     @objc func write(_ s: String) -> Bool {
         guard fd >= 0 else { return false }
         let bytes = Array(s.utf8)
@@ -76,6 +124,9 @@ import Darwin
 
     @objc func close() {
         guard fd >= 0 else { return }
+        fileHandle?.readabilityHandler = nil
+        fileHandle = nil
         Darwin.close(fd); fd = -1
+        _ = closeCb?.callSafely(withArguments: ["closed"], context: "hs.serial")
     }
 }

@@ -81,4 +81,33 @@ struct HSSerialTests {
         harness.eval("port.close()")
         harness.expectTrue("port.isOpen === false")
     }
+
+    @Test func onLineDeliversLines() throws {
+        var master: Int32 = 0, slave: Int32 = 0
+        #expect(openpty(&master, &slave, nil, nil, nil) == 0)
+        defer { Darwin.close(master); Darwin.close(slave) }
+        let slavePath = String(cString: ttyname(slave))
+        let harness = JSTestHarness()
+        harness.loadModule(HSSerialModule.self, as: "serial")
+        harness.eval("globalThis.__lines = []; serial.open('\(slavePath)').onLine(l => __lines.push(l))")
+        let msg = "alpha\nbeta\n"
+        _ = msg.withCString { Darwin.write(master, $0, strlen($0)) }
+        #expect(harness.waitFor(timeout: 2.0) { (harness.eval("__lines.length") as? Int ?? 0) >= 2 })
+        harness.expectTrue("__lines[0] === 'alpha' && __lines[1] === 'beta'")
+    }
+
+    @Test func shutdownClosesPortsAndFiresOnClose() throws {
+        var master: Int32 = 0, slave: Int32 = 0
+        #expect(openpty(&master, &slave, nil, nil, nil) == 0)
+        defer { Darwin.close(master); Darwin.close(slave) }
+        let slavePath = String(cString: ttyname(slave))
+        let harness = JSTestHarness()
+        // Instantiate the module directly so we can call shutdown() from Swift
+        let module = HSSerialModule(engineID: UUID())
+        harness.context.objectForKeyedSubscript("hs")?.setObject(module, forKeyedSubscript: "serial" as NSString)
+        harness.eval("globalThis.__closed = false; globalThis.__p = hs.serial.open('\(slavePath)'); __p.onClose(() => { __closed = true })")
+        harness.expectTrue("__p.isOpen === true")
+        module.shutdown()
+        harness.expectTrue("__p.isOpen === false")
+    }
 }
