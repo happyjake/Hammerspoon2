@@ -30,6 +30,7 @@ import JavaScriptCoreExtras
     @objc var httpserver: HSHttpServerModule { get }
     @objc var keychain: HSKeychainModule { get }
     @objc var location: HSLocationModule { get }
+    @objc var menubar: HSMenubarModule { get }
     @objc var permissions: HSPermissionsModule { get }
     @objc var notify: HSNotifyModule { get }
     @objc var osascript: HSOSAScriptModule { get }
@@ -108,6 +109,7 @@ import JavaScriptCoreExtras
     @objc var httpserver: HSHttpServerModule { get { getOrCreate(name: "httpserver", type: HSHttpServerModule.self)}}
     @objc var keychain: HSKeychainModule { get { getOrCreate(name: "keychain", type: HSKeychainModule.self)}}
     @objc var location: HSLocationModule { get { getOrCreate(name: "location", type: HSLocationModule.self)}}
+    @objc var menubar: HSMenubarModule { get { getOrCreate(name: "menubar", type: HSMenubarModule.self)}}
     @objc var notify: HSNotifyModule { get { getOrCreate(name: "notify", type: HSNotifyModule.self)}}
     @objc var permissions: HSPermissionsModule { get { getOrCreate(name: "permissions", type: HSPermissionsModule.self)}}
     @objc var osascript: HSOSAScriptModule { get { getOrCreate(name: "osascript", type: HSOSAScriptModule.self)}}
