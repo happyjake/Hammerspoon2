@@ -84,37 +84,17 @@ import AppKit
         AKTrace("Deinit of \(name): \(engineID)")
     }
 
-    // MARK: - Coordinate helpers
-
-    /// Height of the primary display in points, used to flip CG (y-up) to HS (y-down).
-    private var primaryScreenHeight: CGFloat {
-        NSScreen.screens.first?.frame.height ?? 0
-    }
-
-    /// Converts a CG point (bottom-left origin, y-up) to Hammerspoon coordinates
-    /// (top-left origin, y-down) by flipping the Y axis against the primary screen height.
-    private func cgToHS(_ pt: CGPoint) -> CGPoint {
-        CGPoint(x: pt.x, y: primaryScreenHeight - pt.y)
-    }
-
-    /// Converts a Hammerspoon point (top-left origin, y-down) back to CG coordinates
-    /// (bottom-left origin, y-up).
-    private func hsToCG(_ pt: CGPoint) -> CGPoint {
-        CGPoint(x: pt.x, y: primaryScreenHeight - pt.y)
-    }
-
     // MARK: - HSMouseModuleAPI
 
     @objc func position() -> [String: Double] {
-        let cgLoc = CGEvent(source: nil)?.location ?? .zero
-        let hsLoc = cgToHS(cgLoc)
-        return ["x": Double(hsLoc.x), "y": Double(hsLoc.y)]
+        // CGEvent.location is already in top-left global coordinates, matching hs.screen — no flip.
+        let loc = CGEvent(source: nil)?.location ?? .zero
+        return ["x": Double(loc.x), "y": Double(loc.y)]
     }
 
     @objc func setPosition(_ point: [String: Double]) -> Bool {
-        let hsPoint = CGPoint(x: point["x"] ?? 0, y: point["y"] ?? 0)
-        let cgPoint = hsToCG(hsPoint)
-        CGWarpMouseCursorPosition(cgPoint)
+        // CGWarpMouseCursorPosition also takes top-left global coordinates — no flip.
+        CGWarpMouseCursorPosition(CGPoint(x: point["x"] ?? 0, y: point["y"] ?? 0))
         return true
     }
 
@@ -127,7 +107,6 @@ import AppKit
     }
 
     @objc func setAssociated(_ connected: Bool) -> Bool {
-        CGAssociateMouseAndMouseCursorPosition(connected ? 1 : 0) == .success
-        return true
+        return CGAssociateMouseAndMouseCursorPosition(connected ? 1 : 0) == .success
     }
 }
