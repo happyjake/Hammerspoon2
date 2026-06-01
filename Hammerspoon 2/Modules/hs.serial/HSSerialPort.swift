@@ -26,7 +26,7 @@ import Darwin
     /// Close the port.
     /// - Example:
     /// ```js
-    /// p.close()
+    /// const p = hs.serial.open('/dev/cu.usbmodem1'); p.close()
     /// ```
     @objc func close()
 
