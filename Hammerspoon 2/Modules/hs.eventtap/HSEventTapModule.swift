@@ -14,7 +14,7 @@ import CoreGraphics
     /// Create a new event tap for the specified event types.
     /// Call .start() on the returned object to begin receiving events.
     /// Requires Input Monitoring permission.
-    /// - Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged'
+    /// - Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'
     /// - Parameter callback: Function called with an event object. Return true to consume (suppress) the event.
     /// - Returns: An HSEventTap instance
     /// - Example:

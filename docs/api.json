@@ -6150,6 +6150,256 @@
       "rawDocumentation": "Determine the Mac's location via macOS Location Services.\n\nLocation data is obtained through WiFi network scanning and, where available, GPS\nhardware. User permission is required — call `hs.permissions.requestLocation()`\nbefore using any tracking features.\n\nThe module exposes a `geocoder` sub-object for forward/reverse geocoding without\nrequiring Location Services.\n\n## locationTable\n\nA `locationTable` is a plain JS object with the following keys:\n\n| Key | Type | Description |\n|-----|------|-------------|\n| `latitude` | number | Degrees north (positive) or south (negative) |\n| `longitude` | number | Degrees east (positive) or west (negative) |\n| `altitude` | number | Metres above sea level (`0` if unknown) |\n| `horizontalAccuracy` | number | Uncertainty radius in metres (`-1` if invalid) |\n| `verticalAccuracy` | number | Altitude accuracy in metres (`-1` if invalid) |\n| `course` | number | Direction of travel in degrees (`-1` if invalid) |\n| `speed` | number | Metres per second (`-1` if invalid) |\n| `timestamp` | number | Seconds since the Unix epoch |"
     },
     {
+      "name": "hs.menubar",
+      "methods": [
+        {
+          "name": "new",
+          "signature": "func new() -> HSMenubarItem",
+          "rawDocumentation": "Create a new status item in the macOS menu bar.\n- Returns: an `HSMenubarItem`. Chain `.setIcon(...)`, `.setTitle(...)`,\n  `.setCallback(fn)`, `.highlight(bool)`, and later `.remove()`.\n- Example:\n```js\nconst item = hs.menubar.new()\n    .setIcon('eye', {})\n    .setCallback(() => { /* open a popover */ })\n```",
+          "description": "Create a new status item in the macOS menu bar.",
+          "params": [],
+          "returns": {
+            "type": "HSMenubarItem",
+            "description": "an `HSMenubarItem`. Chain `.setIcon(...)`, `.setTitle(...)`,"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const item = hs.menubar.new()\n    .setIcon('eye', {})\n    .setCallback(() => { /* open a popover */ })"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarModule.swift",
+          "lineNumber": 23
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSMenubarItemAPI",
+          "type": "typedef",
+          "rawDocumentation": "",
+          "description": "",
+          "methods": [
+            {
+              "name": "setTitle",
+              "signature": "func setTitle(_ text: String, _ opts: JSValue) -> HSMenubarItem",
+              "rawDocumentation": "Set the status-item title (e.g. a `mm:ss` countdown). Empty string clears it.\n- Parameters:\n  - text: the string to display\n  - opts: `{ color?: hex string, monospaced?: bool }` — both optional\n- Returns: self for chaining\n- Example:\n```js\nitem.setTitle('47:12', { monospaced: true, color: '#5BE08B' })\n```",
+              "description": "Set the status-item title (e.g. a `mm:ss` countdown). Empty string clears it.",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "String",
+                  "description": "the string to display"
+                },
+                {
+                  "name": "opts",
+                  "type": "JSValue",
+                  "description": "`{ color?: hex string, monospaced?: bool }` — both optional"
+                }
+              ],
+              "returns": {
+                "type": "HSMenubarItem",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "item.setTitle('47:12', { monospaced: true, color: '#5BE08B' })"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
+              "lineNumber": 25
+            },
+            {
+              "name": "setIcon",
+              "signature": "func setIcon(_ symbolName: String, _ opts: JSValue) -> HSMenubarItem",
+              "rawDocumentation": "Set the status-item icon from an SF Symbol name.\n- Parameters:\n  - symbolName: an SF Symbol name (e.g. `'eye'`, `'eye.slash'`)\n  - opts: `{ pointSize?: number, color?: hex string, accessibilityLabel?: string }` — all optional.\n    When `color` is omitted the icon is a template (adapts to the menu bar).\n- Returns: self for chaining\n- Example:\n```js\nitem.setIcon('eye', { color: '#5BE08B' })\n```",
+              "description": "Set the status-item icon from an SF Symbol name.\nWhen `color` is omitted the icon is a template (adapts to the menu bar).",
+              "params": [
+                {
+                  "name": "symbolName",
+                  "type": "String",
+                  "description": "an SF Symbol name (e.g. `'eye'`, `'eye.slash'`)"
+                },
+                {
+                  "name": "opts",
+                  "type": "JSValue",
+                  "description": "`{ pointSize?: number, color?: hex string, accessibilityLabel?: string }` — all optional."
+                }
+              ],
+              "returns": {
+                "type": "HSMenubarItem",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "item.setIcon('eye', { color: '#5BE08B' })"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
+              "lineNumber": 37
+            },
+            {
+              "name": "setImage",
+              "signature": "func setImage(_ base64PNG: String, _ opts: JSValue) -> HSMenubarItem",
+              "rawDocumentation": "Set the status-item image from a base64-encoded PNG.\n- Parameters:\n  - base64PNG: PNG bytes, base64-encoded (a leading `data:image/png;base64,` is tolerated)\n  - opts: `{ template?: bool }` — template images adapt to light/dark menu bars (default true)\n- Returns: self for chaining\n- Example:\n```js\nitem.setImage(myBase64Png, { template: true })\n```",
+              "description": "Set the status-item image from a base64-encoded PNG.",
+              "params": [
+                {
+                  "name": "base64PNG",
+                  "type": "String",
+                  "description": "PNG bytes, base64-encoded (a leading `data:image/png;base64,` is tolerated)"
+                },
+                {
+                  "name": "opts",
+                  "type": "JSValue",
+                  "description": "`{ template?: bool }` — template images adapt to light/dark menu bars (default true)"
+                }
+              ],
+              "returns": {
+                "type": "HSMenubarItem",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "item.setImage(myBase64Png, { template: true })"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
+              "lineNumber": 48
+            },
+            {
+              "name": "setSVG",
+              "signature": "func setSVG(_ svg: String, _ opts: JSValue) -> HSMenubarItem",
+              "rawDocumentation": "Set the status-item image from an SVG document string. Rendered as a\ntemplate by default so macOS draws it adaptively (white on the dark menu\nbar, black on light). Ideal for a vector glyph you regenerate over time\n(e.g. a progress ring).\n- Parameters:\n  - svg: an SVG document string (should include an `xmlns`)\n  - opts: `{ template?: bool, size?: number }` — template defaults true, size defaults 18 (pt)\n- Returns: self for chaining\n- Example:\n```js\nitem.setSVG('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"#000\" stroke-width=\"2\"/></svg>', {})\n```",
+              "description": "Set the status-item image from an SVG document string. Rendered as a\ntemplate by default so macOS draws it adaptively (white on the dark menu\nbar, black on light). Ideal for a vector glyph you regenerate over time\n(e.g. a progress ring).",
+              "params": [
+                {
+                  "name": "svg",
+                  "type": "String",
+                  "description": "an SVG document string (should include an `xmlns`)"
+                },
+                {
+                  "name": "opts",
+                  "type": "JSValue",
+                  "description": "`{ template?: bool, size?: number }` — template defaults true, size defaults 18 (pt)"
+                }
+              ],
+              "returns": {
+                "type": "HSMenubarItem",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "item.setSVG('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"#000\" stroke-width=\"2\"/></svg>', {})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
+              "lineNumber": 62
+            },
+            {
+              "name": "setCallback",
+              "signature": "func setCallback(_ fn: JSValue) -> HSMenubarItem",
+              "rawDocumentation": "Register a function called (with no arguments) when the item is clicked.\n- Parameter fn: a JavaScript function\n- Returns: self for chaining\n- Example:\n```js\nitem.setCallback(() => { /* toggle the popover */ })\n```",
+              "description": "Register a function called (with no arguments) when the item is clicked.",
+              "params": [
+                {
+                  "name": "fn",
+                  "type": "JSValue",
+                  "description": "a JavaScript function"
+                }
+              ],
+              "returns": {
+                "type": "HSMenubarItem",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "item.setCallback(() => { /* toggle the popover */ })"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
+              "lineNumber": 71
+            },
+            {
+              "name": "highlight",
+              "signature": "func highlight(_ on: Bool) -> HSMenubarItem",
+              "rawDocumentation": "Highlight (or un-highlight) the status-item button background.\n- Parameter on: whether to draw the highlighted background\n- Returns: self for chaining\n- Example:\n```js\nitem.highlight(true)\n```",
+              "description": "Highlight (or un-highlight) the status-item button background.",
+              "params": [
+                {
+                  "name": "on",
+                  "type": "Bool",
+                  "description": "whether to draw the highlighted background"
+                }
+              ],
+              "returns": {
+                "type": "HSMenubarItem",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "item.highlight(true)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
+              "lineNumber": 80
+            },
+            {
+              "name": "frame",
+              "signature": "func frame() -> [String: Double]?",
+              "rawDocumentation": "The on-screen rect of the status-item button as `{x, y, w, h}`, in\nNSWindow (bottom-left origin) coordinates — the same convention as\n`hs.webview` `currentFrame()`/`setFrame()`, so a webview can be anchored\nto it. Returns null if the item has no realized on-screen button.\n- Returns: `{x, y, w, h}` or null\n- Example:\n```js\nconst f = item.frame()\n```",
+              "description": "The on-screen rect of the status-item button as `{x, y, w, h}`, in\nNSWindow (bottom-left origin) coordinates — the same convention as\n`hs.webview` `currentFrame()`/`setFrame()`, so a webview can be anchored\nto it. Returns null if the item has no realized on-screen button.",
+              "params": [],
+              "returns": {
+                "type": "[String: Double]?",
+                "description": "`{x, y, w, h}` or null"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const f = item.frame()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
+              "lineNumber": 91
+            },
+            {
+              "name": "remove",
+              "signature": "func remove()",
+              "rawDocumentation": "Remove the status item from the menu bar.\n- Example:\n```js\nitem.remove()\n```",
+              "description": "Remove the status item from the menu bar.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "item.remove()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
+              "lineNumber": 98
+            }
+          ],
+          "properties": []
+        }
+      ]
+    },
+    {
       "name": "hs.notify",
       "methods": [
         {
@@ -8262,6 +8512,223 @@
       ],
       "description": "Inspect and control the displays attached to the system.\n## Obtaining screens\n```javascript\nconst all    = hs.screen.all();   // [HSScreen, ...]\nconst main   = hs.screen.main();   // screen containing the focused window\nconst primary = hs.screen.primary(); // screen with the global menu bar\n```\n## Navigation\n```javascript\nconst right = hs.screen.main().toEast();\nif (right) console.log(\"Screen to the right:\", right.name);\n```\n## Display modes\n```javascript\nconst s = hs.screen.primary();\nconsole.log(s.mode);\n// → { width: 1440, height: 900, scale: 2, frequency: 60 }\n\ns.setMode(1920, 1080, 1, 60);\n```\n## Screenshots\n```javascript\nconst img = await hs.screen.main().snapshot();\nimg.saveToFile(\"/tmp/screen.png\");\n```",
       "rawDocumentation": "Inspect and control the displays attached to the system.\n\n## Obtaining screens\n\n```javascript\nconst all    = hs.screen.all();   // [HSScreen, ...]\nconst main   = hs.screen.main();   // screen containing the focused window\nconst primary = hs.screen.primary(); // screen with the global menu bar\n```\n\n## Navigation\n\n```javascript\nconst right = hs.screen.main().toEast();\nif (right) console.log(\"Screen to the right:\", right.name);\n```\n\n## Display modes\n\n```javascript\nconst s = hs.screen.primary();\nconsole.log(s.mode);\n// → { width: 1440, height: 900, scale: 2, frequency: 60 }\n\ns.setMode(1920, 1080, 1, 60);\n```\n\n## Screenshots\n\n```javascript\nconst img = await hs.screen.main().snapshot();\nimg.saveToFile(\"/tmp/screen.png\");\n```"
+    },
+    {
+      "name": "hs.serial",
+      "methods": [
+        {
+          "name": "list",
+          "signature": "func list() -> [[String: String]]",
+          "rawDocumentation": "List available serial ports (devices matching `/dev/cu.*`).\n- Returns: An array of `{ path, name }` objects (empty if none are present).\n- Example:\n```js\nhs.serial.list().forEach(p => console.log(p.path))\n```",
+          "description": "List available serial ports (devices matching `/dev/cu.*`).",
+          "params": [],
+          "returns": {
+            "type": "[[String: String]]",
+            "description": "An array of `{ path, name }` objects (empty if none are present)."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.serial.list().forEach(p => console.log(p.path))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
+          "lineNumber": 19
+        },
+        {
+          "name": "open",
+          "signature": "func open(_ path: String) -> HSSerialPort?",
+          "rawDocumentation": "Open a serial port by device path.\n- Parameter path: The device path, e.g. `/dev/cu.usbmodem1`.\n- Returns: An `HSSerialPort` object, or `null` if the port could not be opened.\n- Example:\n```js\nconst p = hs.serial.open('/dev/cu.usbmodem1')\nif (p) { console.log('opened', p.path) }\n```",
+          "description": "Open a serial port by device path.",
+          "params": [
+            {
+              "name": "path",
+              "type": "String",
+              "description": "The device path, e.g. `/dev/cu.usbmodem1`."
+            }
+          ],
+          "returns": {
+            "type": "HSSerialPort?",
+            "description": "An `HSSerialPort` object, or `null` if the port could not be opened."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const p = hs.serial.open('/dev/cu.usbmodem1')\nif (p) { console.log('opened', p.path) }"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
+          "lineNumber": 29
+        },
+        {
+          "name": "openFirst",
+          "signature": "func openFirst(_ match: String) -> HSSerialPort?",
+          "rawDocumentation": "Open the first serial port whose name contains the given string.\n- Parameter match: A substring to search for in each port's name.\n- Returns: An `HSSerialPort` object, or `null` if no matching port was found or could not be opened.\n- Example:\n```js\nconst p = hs.serial.openFirst('usbmodem')\nif (p) { console.log('opened', p.path) }\n```",
+          "description": "Open the first serial port whose name contains the given string.",
+          "params": [
+            {
+              "name": "match",
+              "type": "String",
+              "description": "A substring to search for in each port's name."
+            }
+          ],
+          "returns": {
+            "type": "HSSerialPort?",
+            "description": "An `HSSerialPort` object, or `null` if no matching port was found or could not be opened."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const p = hs.serial.openFirst('usbmodem')\nif (p) { console.log('opened', p.path) }"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
+          "lineNumber": 39
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSSerialPortAPI",
+          "type": "typedef",
+          "rawDocumentation": "An open serial port. Do not construct directly — use hs.serial.open().",
+          "description": "An open serial port. Do not construct directly — use hs.serial.open().",
+          "methods": [
+            {
+              "name": "close",
+              "signature": "func close()",
+              "rawDocumentation": "Close the port.\n- Example:\n```js\np.close()\n```",
+              "description": "Close the port.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "p.close()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
+              "lineNumber": 31
+            },
+            {
+              "name": "write",
+              "signature": "func write(_ s: String) -> Bool",
+              "rawDocumentation": "Write a string to the port (caller includes any trailing \"\\n\").\n- Parameter s: the bytes to write (UTF-8).\n- Returns: true if all bytes were written.\n- Example:\n```js\nhs.serial.open('/dev/cu.usbmodem1').write('{\"text\":\"hi\"}\\n')\n```",
+              "description": "Write a string to the port (caller includes any trailing \"\\n\").",
+              "params": [
+                {
+                  "name": "s",
+                  "type": "String",
+                  "description": "the bytes to write (UTF-8)."
+                }
+              ],
+              "returns": {
+                "type": "Bool",
+                "description": "true if all bytes were written."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.serial.open('/dev/cu.usbmodem1').write('{\"text\":\"hi\"}\\n')"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
+              "lineNumber": 40
+            },
+            {
+              "name": "onLine",
+              "signature": "func onLine(_ cb: JSValue) -> HSSerialPort",
+              "rawDocumentation": "Register a callback invoked once per inbound line (newline/CR-delimited).\n- Parameter cb: a function called with each line string.\n- Returns: this port (chainable).\n- Example:\n```js\nhs.serial.open('/dev/cu.usbmodem1').onLine(line => console.log(line))\n```",
+              "description": "Register a callback invoked once per inbound line (newline/CR-delimited).",
+              "params": [
+                {
+                  "name": "cb",
+                  "type": "JSValue",
+                  "description": "a function called with each line string."
+                }
+              ],
+              "returns": {
+                "type": "HSSerialPort",
+                "description": "this port (chainable)."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.serial.open('/dev/cu.usbmodem1').onLine(line => console.log(line))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
+              "lineNumber": 49
+            },
+            {
+              "name": "onClose",
+              "signature": "func onClose(_ cb: JSValue) -> HSSerialPort",
+              "rawDocumentation": "Register a callback invoked when the port closes.\n- Parameter cb: a function called when the port closes.\n- Returns: this port (chainable).\n- Example:\n```js\nhs.serial.open('/dev/cu.usbmodem1').onClose(() => console.log('closed'))\n```",
+              "description": "Register a callback invoked when the port closes.",
+              "params": [
+                {
+                  "name": "cb",
+                  "type": "JSValue",
+                  "description": "a function called when the port closes."
+                }
+              ],
+              "returns": {
+                "type": "HSSerialPort",
+                "description": "this port (chainable)."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.serial.open('/dev/cu.usbmodem1').onClose(() => console.log('closed'))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
+              "lineNumber": 58
+            }
+          ],
+          "properties": [
+            {
+              "name": "path",
+              "signature": "var path: String { get }",
+              "rawDocumentation": "The device path this port was opened on.\n- Example:\n```js\nconsole.log(hs.serial.open('/dev/cu.usbmodem1').path)\n```",
+              "description": "The device path this port was opened on.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log(hs.serial.open('/dev/cu.usbmodem1').path)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
+              "lineNumber": 17
+            },
+            {
+              "name": "isOpen",
+              "signature": "var isOpen: Bool { get }",
+              "rawDocumentation": "Whether the port is currently open.\n- Example:\n```js\nconst p = hs.serial.open('/dev/cu.usbmodem1'); console.log(p.isOpen)\n```",
+              "description": "Whether the port is currently open.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const p = hs.serial.open('/dev/cu.usbmodem1'); console.log(p.isOpen)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
+              "lineNumber": 24
+            }
+          ]
+        }
+      ],
+      "description": "Module for enumerating and opening serial ports (e.g. a USB-attached ESP32).",
+      "rawDocumentation": "Module for enumerating and opening serial ports (e.g. a USB-attached ESP32)."
     },
     {
       "name": "hs.sqlite",
@@ -13661,5 +14128,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-26T08:21:50.616Z"
+  "generatedAt": "2026-06-01T12:25:05.937Z"
 }

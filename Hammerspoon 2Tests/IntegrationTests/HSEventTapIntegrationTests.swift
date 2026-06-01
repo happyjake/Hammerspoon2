@@ -44,4 +44,32 @@ struct HSEventTapIntegrationTests {
         _ = h.eval("hs.eventtap.typeText('hello')")
         #expect(h.hasException == false)
     }
+
+    @Test("make() with mouse event types returns an HSEventTap object")
+    func testMakeMouseTypes() {
+        let h = JSTestHarness()
+        h.loadModule(HSEventTapModule.self, as: "eventtap")
+        // Each mouse type name must resolve to a tap object without throwing
+        let mouseTypes = [
+            "mouseMoved", "leftMouseDown", "leftMouseUp",
+            "rightMouseDown", "rightMouseUp",
+            "otherMouseDown", "otherMouseUp",
+            "leftMouseDragged", "rightMouseDragged",
+            "scrollWheel",
+        ]
+        for typeName in mouseTypes {
+            let result = h.eval("typeof hs.eventtap.make(['\(typeName)'], () => false)")
+            #expect(result as? String == "object", "Expected object for type '\(typeName)'")
+        }
+        #expect(h.hasException == false)
+    }
+
+    @Test("make() with mixed keyboard and mouse types returns an HSEventTap object")
+    func testMakeMixedTypes() {
+        let h = JSTestHarness()
+        h.loadModule(HSEventTapModule.self, as: "eventtap")
+        let result = h.eval("typeof hs.eventtap.make(['keyDown', 'mouseMoved', 'scrollWheel'], () => false)")
+        #expect(result as? String == "object")
+        #expect(h.hasException == false)
+    }
 }

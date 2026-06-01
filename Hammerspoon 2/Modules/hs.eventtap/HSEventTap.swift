@@ -49,9 +49,20 @@ import AppKit
         var mask: CGEventMask = 0
         for t in eventTypes {
             switch t {
-            case "keyDown":      mask |= CGEventMask(1 << CGEventType.keyDown.rawValue)
-            case "keyUp":        mask |= CGEventMask(1 << CGEventType.keyUp.rawValue)
-            case "flagsChanged": mask |= CGEventMask(1 << CGEventType.flagsChanged.rawValue)
+            case "keyDown":           mask |= CGEventMask(1 << CGEventType.keyDown.rawValue)
+            case "keyUp":             mask |= CGEventMask(1 << CGEventType.keyUp.rawValue)
+            case "flagsChanged":      mask |= CGEventMask(1 << CGEventType.flagsChanged.rawValue)
+            // Mouse event types
+            case "mouseMoved":        mask |= CGEventMask(1 << CGEventType.mouseMoved.rawValue)
+            case "leftMouseDown":     mask |= CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
+            case "leftMouseUp":       mask |= CGEventMask(1 << CGEventType.leftMouseUp.rawValue)
+            case "rightMouseDown":    mask |= CGEventMask(1 << CGEventType.rightMouseDown.rawValue)
+            case "rightMouseUp":      mask |= CGEventMask(1 << CGEventType.rightMouseUp.rawValue)
+            case "otherMouseDown":    mask |= CGEventMask(1 << CGEventType.otherMouseDown.rawValue)
+            case "otherMouseUp":      mask |= CGEventMask(1 << CGEventType.otherMouseUp.rawValue)
+            case "leftMouseDragged":  mask |= CGEventMask(1 << CGEventType.leftMouseDragged.rawValue)
+            case "rightMouseDragged": mask |= CGEventMask(1 << CGEventType.rightMouseDragged.rawValue)
+            case "scrollWheel":       mask |= CGEventMask(1 << CGEventType.scrollWheel.rawValue)
             default: break
             }
         }
@@ -100,7 +111,6 @@ import AppKit
     @objc var isRunning: Bool { tap != nil }
 
     private func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
         let flags = event.flags
         var mods: [String] = []
         if flags.contains(.maskShift)     { mods.append("shift") }
@@ -110,28 +120,70 @@ import AppKit
 
         let typeName: String
         switch type {
-        case .keyDown:      typeName = "keyDown"
-        case .keyUp:        typeName = "keyUp"
-        case .flagsChanged: typeName = "flagsChanged"
-        default:            typeName = "other"
+        case .keyDown:           typeName = "keyDown"
+        case .keyUp:             typeName = "keyUp"
+        case .flagsChanged:      typeName = "flagsChanged"
+        case .mouseMoved:        typeName = "mouseMoved"
+        case .leftMouseDown:     typeName = "leftMouseDown"
+        case .leftMouseUp:       typeName = "leftMouseUp"
+        case .rightMouseDown:    typeName = "rightMouseDown"
+        case .rightMouseUp:      typeName = "rightMouseUp"
+        case .otherMouseDown:    typeName = "otherMouseDown"
+        case .otherMouseUp:      typeName = "otherMouseUp"
+        case .leftMouseDragged:  typeName = "leftMouseDragged"
+        case .rightMouseDragged: typeName = "rightMouseDragged"
+        case .scrollWheel:       typeName = "scrollWheel"
+        default:                 typeName = "other"
         }
 
-        var chars = ""
-        let maxLen: Int = 4
-        var actualLen: Int = 0
-        var buf = [UniChar](repeating: 0, count: maxLen)
-        event.keyboardGetUnicodeString(maxStringLength: maxLen, actualStringLength: &actualLen, unicodeString: &buf)
-        if actualLen > 0 {
-            chars = String(utf16CodeUnits: buf, count: actualLen)
-        }
+        let jsEvent: [String: Any]
 
-        let jsEvent: [String: Any] = [
-            "type": typeName,
-            "keyCode": Int(keyCode),
-            "characters": chars,
-            "modifiers": mods,
-            "isRepeat": event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
-        ]
+        switch type {
+        case .mouseMoved, .leftMouseDown, .leftMouseUp,
+             .rightMouseDown, .rightMouseUp,
+             .otherMouseDown, .otherMouseUp,
+             .leftMouseDragged, .rightMouseDragged:
+            let loc = event.location
+            jsEvent = [
+                "type":      typeName,
+                "modifiers": mods,
+                "x":         loc.x,
+                "y":         loc.y,
+                "dx":        Int(event.getIntegerValueField(.mouseEventDeltaX)),
+                "dy":        Int(event.getIntegerValueField(.mouseEventDeltaY)),
+                "buttons":   Int(event.getIntegerValueField(.mouseEventButtonNumber)),
+            ]
+
+        case .scrollWheel:
+            let loc = event.location
+            jsEvent = [
+                "type":      typeName,
+                "modifiers": mods,
+                "x":         loc.x,
+                "y":         loc.y,
+                "scrollDy":  Int(event.getIntegerValueField(.scrollWheelEventDeltaAxis1)),
+                "scrollDx":  Int(event.getIntegerValueField(.scrollWheelEventDeltaAxis2)),
+            ]
+
+        default:
+            // Keyboard / flagsChanged / other — original keyboard fields
+            let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+            var chars = ""
+            let maxLen: Int = 4
+            var actualLen: Int = 0
+            var buf = [UniChar](repeating: 0, count: maxLen)
+            event.keyboardGetUnicodeString(maxStringLength: maxLen, actualStringLength: &actualLen, unicodeString: &buf)
+            if actualLen > 0 {
+                chars = String(utf16CodeUnits: buf, count: actualLen)
+            }
+            jsEvent = [
+                "type":       typeName,
+                "keyCode":    Int(keyCode),
+                "characters": chars,
+                "modifiers":  mods,
+                "isRepeat":   event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
+            ]
+        }
 
         let result = callback.callSafely(withArguments: [jsEvent], context: "hs.eventtap \(typeName)")
         let consume = result?.toBool() ?? false
