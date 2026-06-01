@@ -136,8 +136,12 @@ import AppKit
 
     @objc(setImage::) func setImage(_ base64PNG: String, _ opts: JSValue) -> HSMenubarItem {
         guard let button = statusItem?.button else { return self }
-        let cleaned = base64PNG.replacingOccurrences(of: "data:image/png;base64,", with: "")
-        guard let data = Data(base64Encoded: cleaned), let image = NSImage(data: data) else {
+        // Strip any `data:<mime>;base64,` prefix, then decode tolerantly — wrapped
+        // base64 (newlines every 76 chars) is common from CLI `base64` output.
+        var cleaned = base64PNG
+        if let r = cleaned.range(of: ";base64,") { cleaned = String(cleaned[r.upperBound...]) }
+        guard let data = Data(base64Encoded: cleaned, options: .ignoreUnknownCharacters),
+              let image = NSImage(data: data) else {
             AKWarning("hs.menubar setImage: could not decode base64 PNG")
             return self
         }
@@ -147,9 +151,16 @@ import AppKit
     }
 
     @objc func setCallback(_ fn: JSValue) -> HSMenubarItem {
-        clickCallback = fn.isObject ? fn : nil
-        statusItem?.button?.target = self
-        statusItem?.button?.action = #selector(handleClick(_:))
+        if fn.isObject {
+            clickCallback = fn
+            statusItem?.button?.target = self
+            statusItem?.button?.action = #selector(handleClick(_:))
+        } else {
+            // Nullish arg unregisters: drop the callback and make the button inert.
+            clickCallback = nil
+            statusItem?.button?.target = nil
+            statusItem?.button?.action = nil
+        }
         return self
     }
 
@@ -173,7 +184,9 @@ import AppKit
     }
 
     @objc private func handleClick(_ sender: Any?) {
-        _ = clickCallback?.call(withArguments: [])
+        // callSafely formats + logs any JS exception and clears it from the
+        // engine's exception slot (raw .call would leave it dangling).
+        _ = clickCallback?.callSafely(withArguments: [], context: "hs.menubar click")
     }
 
     // #rrggbb → NSColor (sRGB). Returns nil for malformed input.
