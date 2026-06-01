@@ -86,4 +86,16 @@ struct HSMenubarStructureTests {
         #expect(image != nil)
         #expect((image?.size.width ?? 0) > 0)
     }
+
+    // setSVG renders the icon as a TEMPLATE so macOS picks the color. A raw SVG
+    // NSImage ignores isTemplate (→ black); rasterizing to a bitmap template
+    // fixes it. Verify the helper yields a real, tintable template bitmap.
+    @Test("SVG rasterizes to a tintable template bitmap") @MainActor func testTemplateBitmap() {
+        let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"#000\" stroke-width=\"2\"/></svg>"
+        let svgImage = NSImage(data: svg.data(using: .utf8)!)!
+        let bmp = HSMenubarItem.templateBitmap(from: svgImage, size: 18)
+        #expect(bmp.isTemplate == true)            // → system tints it (adaptive)
+        #expect(bmp.size.width == 18)
+        #expect(bmp.representations.isEmpty == false) // actually rasterized content
+    }
 }

@@ -166,15 +166,42 @@ import AppKit
 
     @objc(setSVG::) func setSVG(_ svg: String, _ opts: JSValue) -> HSMenubarItem {
         guard let button = statusItem?.button else { return self }
-        guard let data = svg.data(using: .utf8), let image = NSImage(data: data) else {
+        guard let data = svg.data(using: .utf8), let svgImage = NSImage(data: data) else {
             AKWarning("hs.menubar setSVG: could not parse SVG")
             return self
         }
-        image.isTemplate = !(opts.isObject && opts.forProperty("template")?.toBool() == false)
+        let wantsTemplate = !(opts.isObject && opts.forProperty("template")?.toBool() == false)
         let size = (opts.isObject ? opts.forProperty("size")?.toNumber()?.doubleValue : nil) ?? 18
-        if size > 0 { image.size = NSSize(width: size, height: size) }
-        button.image = image
+        let dim = size > 0 ? size : 18
+        let target = NSSize(width: dim, height: dim)
+
+        if wantsTemplate {
+            button.image = HSMenubarItem.templateBitmap(from: svgImage, size: dim)
+        } else {
+            svgImage.size = target
+            svgImage.isTemplate = false
+            button.image = svgImage
+        }
         return self
+    }
+
+    /// Rasterize an (SVG-backed) NSImage into a bitmap and mark it a template.
+    ///
+    /// An NSImage backed by an SVG representation does NOT honor `isTemplate` in
+    /// a status button — it draws the SVG's literal colors (e.g. black), which is
+    /// invisible on a dark menu bar. Drawing into a bitmap and marking THAT a
+    /// template makes AppKit ignore the RGB and tint the alpha mask with the
+    /// system-decided menu-bar color (white on dark, black on light,
+    /// highlight-aware) — exactly like an SF Symbol template.
+    static func templateBitmap(from image: NSImage, size: CGFloat) -> NSImage {
+        let target = NSSize(width: size, height: size)
+        let bitmap = NSImage(size: target)
+        bitmap.lockFocus()
+        image.draw(in: NSRect(origin: .zero, size: target),
+                   from: .zero, operation: .sourceOver, fraction: 1.0)
+        bitmap.unlockFocus()
+        bitmap.isTemplate = true
+        return bitmap
     }
 
     @objc func setCallback(_ fn: JSValue) -> HSMenubarItem {
