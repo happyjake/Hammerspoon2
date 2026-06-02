@@ -42,3 +42,8 @@ docs/html/**
 
 # Claude
 .claude/settings.local.json
+
+# Local code-signing secret — holds your personal Apple Developer Team ID. NEVER COMMIT.
+# (build-local.sh and Signing.local.xcconfig.example are ID-free and ARE tracked.)
+Signing.local.xcconfig
+*.local.xcconfig

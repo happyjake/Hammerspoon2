@@ -1,0 +1,15 @@
+// Template for LOCAL code-signing — safe to commit (contains no personal IDs).
+//
+// To build a locally-signed app with your own Apple Developer identity:
+//   1. cp Signing.local.xcconfig.example Signing.local.xcconfig
+//   2. set DEVELOPMENT_TEAM below to your Apple Developer Team ID
+//      (find it with: security find-identity -v -p codesigning
+//       — it's the team your "Apple Development: <name>" cert belongs to,
+//       NOT the identifier shown in parentheses in the cert name)
+//   3. ./build-local.sh
+//
+// Signing.local.xcconfig is git-ignored, so your Team ID never gets committed.
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = Apple Development
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+PROVISIONING_PROFILE_SPECIFIER =
