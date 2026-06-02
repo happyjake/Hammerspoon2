@@ -27,8 +27,15 @@ struct ChooserView: View {
         .frame(maxWidth: .infinity)
         .chooserBackground()
         .onAppear { searchFocused = true }
-        .onChange(of: viewModel.filteredChoices.count) { _, count in
+        .onChange(of: viewModel.filteredChoices.count) { _, _ in
+            // Fallback height update for static-choices mode; dynamic mode is
+            // handled imperatively by callChoicesFunction().
             viewModel.onContentSizeChange?(viewModel.expectedHeight())
+        }
+        .onChange(of: searchFocused) { _, focused in
+            // The scroll view's underlying NSScrollView can capture first responder
+            // when the user clicks or scrolls. Re-assert TextField focus immediately.
+            if !focused { searchFocused = true }
         }
     }
 

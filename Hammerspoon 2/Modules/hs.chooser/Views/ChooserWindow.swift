@@ -48,6 +48,11 @@ final class ChooserPanel: NSPanel {
             onRightClick: onRightClick
         )
         let hosting = NSHostingView(rootView: view)
+        // Disable automatic window-resizing driven by SwiftUI content size.
+        // A LazyVStack inside a ScrollView reports its full content height as the
+        // fitting size, which would make the window expand to show every row.
+        // We manage the window frame exclusively via setHeight(_:).
+        hosting.sizingOptions = []
         self.contentView = hosting
         self.hostingView = hosting
     }
@@ -55,11 +60,11 @@ final class ChooserPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 
-    /// Position: horizontally centered on the screen, 35 % down from the top.
+    /// Position: horizontally centered on the screen, 25 % down from the top.
     static func initialFrame(on screen: NSScreen, width: CGFloat, height: CGFloat) -> CGRect {
         let screenFrame = screen.visibleFrame
         let x = screenFrame.midX - width / 2
-        let y = screenFrame.maxY - screenFrame.height * 0.35 - height
+        let y = screenFrame.maxY - screenFrame.height * 0.25 - height
         return CGRect(x: x, y: y, width: width, height: height)
     }
 

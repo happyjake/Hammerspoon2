@@ -235,6 +235,7 @@ import SwiftUI
 
     private var previouslyActiveWindow: NSWindow?
     private var keyEventMonitor: Any?
+    private var resignKeyObserver: NSObjectProtocol?
 
     // MARK: - query
 
@@ -356,7 +357,14 @@ import SwiftUI
 
         if !isStaticChoices { callChoicesFunction() }
 
+        // Size the window to the correct height before making it visible so there
+        // is no flash at the wrong size. callChoicesFunction / setChoices already
+        // called onContentSizeChange, but that only resizes when the panel is live;
+        // here we set it imperatively one more time to be sure.
+        window?.setHeight(viewModel.expectedHeight())
+
         startKeyMonitor()
+        startResignKeyObserver()
         window?.makeKeyAndOrderFront(nil)
         _ = _onShow?.call(withArguments: [])
         AKTrace("hs.chooser.show(): \(identifier)")
@@ -366,6 +374,7 @@ import SwiftUI
     @objc @discardableResult func hide() -> HSChooser {
         guard let w = window, w.isVisible else { return self }
         stopKeyMonitor()
+        stopResignKeyObserver()  // must be before orderOut — orderOut resigns key, which would re-fire the observer
         w.orderOut(nil)
 
         if let prev = previouslyActiveWindow, prev.isVisible {
@@ -380,6 +389,7 @@ import SwiftUI
 
     @objc func destroy() {
         stopKeyMonitor()
+        stopResignKeyObserver()
         _ = hide()
         window?.close()
         window = nil
@@ -430,6 +440,24 @@ import SwiftUI
         keyEventMonitor = nil
     }
 
+    private func startResignKeyObserver() {
+        // Remove any stale observer before adding a fresh one (guards against double-show).
+        stopResignKeyObserver()
+        resignKeyObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification,
+            object: window,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.handleSelection(nil) }
+        }
+    }
+
+    private func stopResignKeyObserver() {
+        guard let obs = resignKeyObserver else { return }
+        NotificationCenter.default.removeObserver(obs)
+        resignKeyObserver = nil
+    }
+
     private func interceptKeyCode(_ keyCode: UInt16) -> Bool {
         // Only intercept while our panel is the key window.
         guard let panel = window, panel.isKeyWindow else { return false }
@@ -470,12 +498,12 @@ import SwiftUI
         viewModel.onUserQueryChange = { [weak self] newQuery in
             guard let self else { return }
             self._storedQuery = newQuery
-            self.viewModel.filteredChoices = self.filteredChoices(for: newQuery)
             self.viewModel.selectedIndex = 0
-            self.viewModel.onContentSizeChange?(self.viewModel.expectedHeight())
             if self.isStaticChoices {
-                // local filtering already done above
+                self.viewModel.filteredChoices = self.filteredChoices(for: newQuery)
+                self.viewModel.onContentSizeChange?(self.viewModel.expectedHeight())
             } else {
+                // callChoicesFunction updates filteredChoices and calls onContentSizeChange.
                 self.callChoicesFunction()
             }
             _ = self._onQueryChange?.call(withArguments: [newQuery])
@@ -510,6 +538,7 @@ import SwiftUI
         allChoices = parseChoiceArray(result?.toArray())
         viewModel.filteredChoices = allChoices
         viewModel.selectedIndex = 0
+        viewModel.onContentSizeChange?(viewModel.expectedHeight())
     }
 
     private func filteredChoices(for query: String) -> [ChooserItem] {
