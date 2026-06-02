@@ -86,6 +86,15 @@ For async: `harness.registerCallback("name") { ... }` + `harness.waitFor(timeout
 
 Use the `/HSTests` skill when writing or reviewing tests.
 
+### Self-verifying a UI (snapshot to PNG — no Screen Recording permission)
+
+To check a UI build without a human at the screen, capture the window's own view tree to a PNG and `Read` it back. This renders the app's own `NSView` via `NSView.cacheDisplay` — it does **not** grab the screen, so **no Screen Recording / TCC permission is needed** (unlike `screencapture` / `CGWindowList`):
+
+- `hs.ui` window: `win.snapshotToPNG('/tmp/x.png')` — `HSUIWindow.snapshotToPNG`. Proven with the launcher's SwiftUI tree.
+- `hs.webview` window: `wv.snapshotToPNG('/tmp/x.png')` — `HSWebview.snapshotToPNG`.
+
+Open the window, snapshot, then `Read` the PNG to eyeball layout/tokens against a design. `cacheDisplay` reliably captures **in-process** content (SwiftUI / `NSHostingView`); for a webview (WKWebView renders in a separate web process) snapshot only **after** the page has painted (e.g. behind a short `hs.timer.doAfter`), and fall back to the `hs.ui` path if it returns blank. This is the headless way to visually verify a UI before a hardware/visual pass.
+
 ### Key Conventions
 
 - **Logging:** `AKTrace(...)`, `AKError(...)`, `AKWarning(...)` — never `print` in production code (the hash module's `deinit` is the exception to clean up).
