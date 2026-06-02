@@ -81,8 +81,16 @@ let xpcSessionHandler = { @Sendable (request: XPCListener.IncomingSessionRequest
     print("WARNING: Running without XPC peer checking. This is unsafe and should only be done in development.")
     xpcListener = try XPCListener(service: serviceName, incomingSessionHandler: xpcSessionHandler)
 #else
-    print("Enforcing XPC peer requirements.")
-    xpcListener = try XPCListener(service: serviceName, requirement: .isFromSameTeam(), incomingSessionHandler: xpcSessionHandler)
+    // The `requirement:` initializer and `XPCRequirement.isFromSameTeam()` are macOS 26.0+ only.
+    // The app's deployment target is 15.6, so guard the peer check at runtime and fall back to the
+    // plain initializer on older systems (which cannot enforce the requirement via this API surface).
+    if #available(macOS 26.0, *) {
+        print("Enforcing XPC peer requirements.")
+        xpcListener = try XPCListener(service: serviceName, requirement: .isFromSameTeam(), incomingSessionHandler: xpcSessionHandler)
+    } else {
+        print("WARNING: macOS < 26.0 — XPCListener peer-requirement API unavailable; no same-team requirement enforced.")
+        xpcListener = try XPCListener(service: serviceName, incomingSessionHandler: xpcSessionHandler)
+    }
 #endif
 
 dispatchMain()
