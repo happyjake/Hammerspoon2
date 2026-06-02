@@ -62,6 +62,7 @@ import AppKit
             case "otherMouseUp":      mask |= CGEventMask(1 << CGEventType.otherMouseUp.rawValue)
             case "leftMouseDragged":  mask |= CGEventMask(1 << CGEventType.leftMouseDragged.rawValue)
             case "rightMouseDragged": mask |= CGEventMask(1 << CGEventType.rightMouseDragged.rawValue)
+            case "otherMouseDragged": mask |= CGEventMask(1 << CGEventType.otherMouseDragged.rawValue)
             case "scrollWheel":       mask |= CGEventMask(1 << CGEventType.scrollWheel.rawValue)
             default: break
             }
@@ -132,6 +133,7 @@ import AppKit
         case .otherMouseUp:      typeName = "otherMouseUp"
         case .leftMouseDragged:  typeName = "leftMouseDragged"
         case .rightMouseDragged: typeName = "rightMouseDragged"
+        case .otherMouseDragged: typeName = "otherMouseDragged"
         case .scrollWheel:       typeName = "scrollWheel"
         default:                 typeName = "other"
         }
@@ -142,7 +144,7 @@ import AppKit
         case .mouseMoved, .leftMouseDown, .leftMouseUp,
              .rightMouseDown, .rightMouseUp,
              .otherMouseDown, .otherMouseUp,
-             .leftMouseDragged, .rightMouseDragged:
+             .leftMouseDragged, .rightMouseDragged, .otherMouseDragged:
             let loc = event.location
             jsEvent = [
                 "type":      typeName,
