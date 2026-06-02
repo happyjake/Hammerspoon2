@@ -291,6 +291,15 @@ content is bound.
      */
     static set(value: JSValue): void;
 
+    /**
+     * Encode the image to a base64 string.
+(maximum quality). Ignored when `format` is `"png"`.
+     * @param format `"jpeg"` or `"png"` (case-insensitive). Any other value is treated as `"png"`.
+     * @param quality JPEG compression quality in the range `0.0` (maximum compression) to `1.0`
+     * @returns A base64-encoded string of the encoded image data, or `null` if encoding failed.
+     */
+    static encode(format: string, quality: number): string | undefined;
+
 }
 
 /**
@@ -542,6 +551,16 @@ declare namespace hs.application {
      * @returns The application's filesystem path, or nil if it was not found
      */
     function pathForBundleID(bundleID: string): string | undefined;
+
+    /**
+     * Render the application's icon as a base64-encoded PNG string. Use the
+returned string as the body of a `data:image/png;base64,…` URL to render
+the icon in HTML/SwiftUI without exposing the underlying .icns path.
+Falls back to NSWorkspace's generic icon if no application is found.
+     * @param bundleID The application bundle identifier (e.g. "com.apple.Safari")
+     * @returns The base64-encoded PNG bytes, or null if the bundle could not be located
+     */
+    function iconForBundleID(bundleID: string): string | undefined;
 
     /**
      * Fetch filesystem paths for an application
@@ -1198,6 +1217,111 @@ declare class HSAXElement {
 }
 
 /**
+ * Module providing a single CoreBluetooth central for the CrossMac control relay.
+On the **target** Mac, this module attaches to the ESP32 "VoiceKB" peripheral that
+the OS is already BLE-bonded to for HID, discovers the custom relay GATT service,
+subscribes its notify characteristic (controller → target) and writes its write
+characteristic (target → controller). It never touches HID — the OS owns that.
+This is deliberately *not* a general GATT stack: one service, one notify char, one
+write char, on a device we are already bonded to.
+ */
+declare namespace hs.ble {
+    /**
+     * Create the BLE central used to attach to the bonded ESP32 relay service.
+Each call returns a fresh `HSBLECentral`; in practice one central is enough.
+All centrals are torn down when the module shuts down (JS reload).
+     * @returns an `HSBLECentral`.
+     */
+    function central(): HSBLECentral;
+
+}
+
+/**
+ * A CoreBluetooth central that attaches to the already-bonded ESP32 relay service.
+Obtain via `hs.ble.central()`. Register `onState`, then `connect(...)` to attach
+to the bonded peripheral and start the relay. The returned `HSBLEPeripheral`
+reports connection and notify events.
+ */
+declare class HSBLECentral {
+    /**
+     * Register a callback for CoreBluetooth manager state changes.
+Fires immediately with the current state if one is already known, then again
+on every change. Use it to wait for `"poweredOn"` before calling `connect`,
+and to surface `"unauthorized"` (missing Bluetooth permission) to the user.
+`"unauthorized"`, `"unsupported"`, `"resetting"`, `"unknown"`.
+     * @param cb `function(state)` — one of `"poweredOn"`, `"poweredOff"`,
+     * @returns self, for chaining.
+     */
+    static onState(cb: JSValue): HSBLECentral;
+
+    /**
+     * Attach to the bonded ESP32 relay peripheral and bring up the relay channel.
+Connection strategy (mirrors the proven helper): fast-attach via
+`retrievePeripherals` when a `peerUUID` is known, else
+`retrieveConnectedPeripherals`, else scan. Discovers the relay service,
+subscribes the notify characteristic, and fires the peripheral's
+`onConnect` once subscribed. Auto-reconnects on drop unless `autoReconnect`
+is `false`.
+`name` defaults to `"VoiceKB"`; the UUIDs default to the firmware relay
+UUIDs; `autoReconnect` defaults to `true`. Pass `peerUUID` (from a prior
+`peripheral.uuid`) for instant re-attach to the non-advertising bonded peer.
+     * @param config `{ name?, peerUUID?, service?, notifyChar?, writeChar?, autoReconnect? }`.
+     * @returns an `HSBLEPeripheral`.
+     */
+    static connect(config: Record<string, any>): HSBLEPeripheral;
+
+}
+
+/**
+ * A handle to the relay peripheral on the bonded ESP32.
+Returned by `HSBLECentral.connect(...)`. Register `onConnect` / `onDisconnect` /
+`onNotify`, and `write` lines to the controller. `onConnect` fires once the relay
+notify characteristic is subscribed (the channel is live).
+ */
+declare class HSBLEPeripheral {
+    /**
+     * Register a callback fired when the relay channel becomes live (notify subscribed).
+     * @param cb `function()`.
+     * @returns self, for chaining.
+     */
+    static onConnect(cb: JSValue): HSBLEPeripheral;
+
+    /**
+     * Register a callback fired when the peripheral disconnects.
+     * @param cb `function(reason)` — `reason` is the disconnect error text, or `"clean"`.
+     * @returns self, for chaining.
+     */
+    static onDisconnect(cb: JSValue): HSBLEPeripheral;
+
+    /**
+     * Register a callback fired for each notify payload from the controller.
+     * @param cb `function(line)` — `line` is the UTF-8 payload (a JSON string the relay layer parses).
+     * @returns self, for chaining.
+     */
+    static onNotify(cb: JSValue): HSBLEPeripheral;
+
+    /**
+     * Write a line to the relay write characteristic (target → controller), `.withoutResponse`.
+     * @param s the UTF-8 payload (caller-supplied JSON; keep it under the ATT MTU, ~240 B).
+     * @returns `true` if queued; `false` if not connected or the payload exceeds the MTU.
+     */
+    static write(s: string): boolean;
+
+    /**
+     * Disconnect the peripheral and stop auto-reconnect.
+     */
+    static disconnect(): void;
+
+    /**
+     * The peripheral's system UUID. Persist this (e.g. in your config) and pass it
+back as `connect({ peerUUID })` for instant re-attach to the non-advertising
+bonded peer. Empty until first connected.
+     */
+    uuid: string;
+
+}
+
+/**
  * Discover and publish Bonjour (mDNS / Zeroconf) network services.
 Use `newSearch()` to search the network for services advertised by other
 devices, and `advertise()` to advertise your own. The `networkServices()`
@@ -1694,7 +1818,7 @@ declare namespace hs.eventtap {
      * Create a new event tap for the specified event types.
 Call .start() on the returned object to begin receiving events.
 Requires Input Monitoring permission.
-     * @param eventTypes Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged'
+     * @param eventTypes Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'
      * @param callback Function called with an event object. Return true to consume (suppress) the event.
      * @returns An HSEventTap instance
      */
@@ -2637,6 +2761,208 @@ declare class HSLocationWatcher {
 is delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).
      */
     distanceFilter: number;
+
+}
+
+/**
+ */
+declare namespace hs.menubar {
+    /**
+     * Create a new status item in the macOS menu bar.
+     * @returns an `HSMenubarItem`. Chain `.setIcon(...)`, `.setTitle(...)`,
+     */
+    function new(): HSMenubarItem;
+
+}
+
+/**
+ */
+declare class HSMenubarItem {
+    /**
+     * Set the status-item title (e.g. a `mm:ss` countdown). Empty string clears it.
+     * @param text the string to display
+     * @param opts `{ color?: hex string, monospaced?: bool }` — both optional
+     * @returns self for chaining
+     */
+    static setTitle(text: string, opts: JSValue): HSMenubarItem;
+
+    /**
+     * Set the status-item icon from an SF Symbol name.
+When `color` is omitted the icon is a template (adapts to the menu bar).
+     * @param symbolName an SF Symbol name (e.g. `'eye'`, `'eye.slash'`)
+     * @param opts `{ pointSize?: number, color?: hex string, accessibilityLabel?: string }` — all optional.
+     * @returns self for chaining
+     */
+    static setIcon(symbolName: string, opts: JSValue): HSMenubarItem;
+
+    /**
+     * Set the status-item image from a base64-encoded PNG.
+     * @param base64PNG PNG bytes, base64-encoded (a leading `data:image/png;base64,` is tolerated)
+     * @param opts `{ template?: bool }` — template images adapt to light/dark menu bars (default true)
+     * @returns self for chaining
+     */
+    static setImage(base64PNG: string, opts: JSValue): HSMenubarItem;
+
+    /**
+     * Set the status-item image from an SVG document string. Rendered as a
+template by default so macOS draws it adaptively (white on the dark menu
+bar, black on light). Ideal for a vector glyph you regenerate over time
+(e.g. a progress ring).
+     * @param svg an SVG document string (should include an `xmlns`)
+     * @param opts `{ template?: bool, size?: number }` — template defaults true, size defaults 18 (pt)
+     * @returns self for chaining
+     */
+    static setSVG(svg: string, opts: JSValue): HSMenubarItem;
+
+    /**
+     * Register a function called (with no arguments) when the item is clicked.
+     * @param fn a JavaScript function
+     * @returns self for chaining
+     */
+    static setCallback(fn: JSValue): HSMenubarItem;
+
+    /**
+     * Highlight (or un-highlight) the status-item button background.
+     * @param on whether to draw the highlighted background
+     * @returns self for chaining
+     */
+    static highlight(on: boolean): HSMenubarItem;
+
+    /**
+     * The on-screen rect of the status-item button as `{x, y, w, h}`, in
+NSWindow (bottom-left origin) coordinates — the same convention as
+`hs.webview` `currentFrame()`/`setFrame()`, so a webview can be anchored
+to it. Returns null if the item has no realized on-screen button.
+     * @returns `{x, y, w, h}` or null
+     */
+    static frame(): Record<string, number> | undefined;
+
+    /**
+     * Remove the status item from the menu bar.
+     */
+    static remove(): void;
+
+}
+
+/**
+ * Module for controlling the mouse cursor
+ */
+declare namespace hs.mouse {
+    /**
+     * The current mouse cursor position in global screen coordinates (top-left origin, points).
+Coordinates match `hs.screen` convention: `(0,0)` is the top-left of the primary
+display and `y` increases downward.
+     * @returns An object `{ x, y }`.
+     */
+    function position(): Record<string, number>;
+
+    /**
+     * Move (warp) the cursor to a global screen position (top-left origin).
+Coordinates use the same convention as `hs.screen`: `(0,0)` is the top-left of
+the primary display.
+     * @param point An object `{ x, y }`.
+     * @returns true.
+     */
+    function setPosition(point: Record<string, number>): boolean;
+
+    /**
+     * Hide the system mouse cursor.
+     * @returns true on success.
+     */
+    function hideCursor(): boolean;
+
+    /**
+     * Show the system mouse cursor.
+     * @returns true on success.
+     */
+    function showCursor(): boolean;
+
+    /**
+     * Connect or disconnect physical mouse movement from the on-screen cursor.
+Pass `false` to decouple movement from the cursor position (useful for
+relative-delta capture, e.g. seamless hand-off to a remote machine).
+     * @param connected false to decouple movement from the cursor.
+     * @returns true.
+     */
+    function setAssociated(connected: boolean): boolean;
+
+}
+
+/**
+ * Module providing a best-effort MultipeerConnectivity data link.
+This is the CrossMac **data plane** (bulk clipboard / images) — the reliable
+**control plane** rides the ESP32 relay (`hs.serial` / `hs.ble`), never this.
+`MCSession` runs over AWDL / peer-to-peer Wi-Fi / infrastructure, so no shared
+router is required. Discovery uses Bonjour, so `NSBonjourServices` and
+`NSLocalNetworkUsageDescription` must be present in Info.plist.
+Recovery *policy* (when to `reset()`) lives in JavaScript; this module only
+exposes honest peer events plus `start` / `stop` / `reset`.
+ */
+declare namespace hs.multipeer {
+    /**
+     * Create a Multipeer session.
+`serviceType` defaults to `"voicekb-cs"` (≤15 chars, `[a-z0-9-]`);
+`displayName` defaults to this host's name; `context` (the shared invite
+secret both peers must match) defaults to `"voicekb-mpc-v1"`;
+`encryption` is `"required"` (default), `"optional"`, or `"none"`.
+     * @param config `{ serviceType?, displayName?, context?, encryption? }`.
+     * @returns an `HSMPCSession` (call `start()` to begin advertising + browsing).
+     */
+    function session(config: Record<string, any>): HSMPCSession;
+
+}
+
+/**
+ * A MultipeerConnectivity session — the CrossMac data plane.
+Obtain via `hs.multipeer.session(...)`. Call `start()` to advertise + browse;
+both peers advertise and browse, and whichever sees the other first invites,
+authenticated by the shared `context` string. Payloads cross the JS bridge as
+base64 strings (pairs with `HSImage.encode`).
+ */
+declare class HSMPCSession {
+    /**
+     * Start advertising and browsing for peers.
+     */
+    static start(): void;
+
+    /**
+     * Stop advertising/browsing and disconnect the session.
+     */
+    static stop(): void;
+
+    /**
+     * Tear down and recreate the underlying session/advertiser/browser, then
+resume if it was started. The JS watchdog calls this to clear a wedged
+AWDL/MPC state.
+     */
+    static reset(): void;
+
+    /**
+     * Register a callback for peer connection-state changes.
+     * @param cb `function(peerName, state)` — state is `"connected"`, `"connecting"`, or `"disconnected"`.
+     * @returns self, for chaining.
+     */
+    static onPeer(cb: JSValue): HSMPCSession;
+
+    /**
+     * Register a callback for received payloads.
+     * @param cb `function(base64, peerName)` — `base64` is the received bytes, base64-encoded.
+     * @returns self, for chaining.
+     */
+    static onReceive(cb: JSValue): HSMPCSession;
+
+    /**
+     * Send a payload to all connected peers.
+     * @param base64 the payload bytes, base64-encoded.
+     * @param opts `{ reliable }` — `reliable` defaults to `true`.
+     * @returns `true` if sent to at least one peer; `false` if there are no peers, the base64 is invalid, or send failed.
+     */
+    static send(base64: string, opts: JSValue): boolean;
+
+    /**
+     * The display names of all currently connected peers.
+     */
+    peers: string[];
 
 }
 
@@ -3612,6 +3938,74 @@ Assign a new absolute file path or `file://` URL string to change the wallpaper.
 }
 
 /**
+ * Module for enumerating and opening serial ports (e.g. a USB-attached ESP32).
+ */
+declare namespace hs.serial {
+    /**
+     * List available serial ports (devices matching `/dev/cu.*`).
+     * @returns An array of `{ path, name }` objects (empty if none are present).
+     */
+    function list(): [[String: String]];
+
+    /**
+     * Open a serial port by device path.
+     * @param path The device path, e.g. `/dev/cu.usbmodem1`.
+     * @returns An `HSSerialPort` object, or `null` if the port could not be opened.
+     */
+    function open(path: string): HSSerialPort | undefined;
+
+    /**
+     * Open the first serial port whose name contains the given string.
+     * @param match A substring to search for in each port's name.
+     * @returns An `HSSerialPort` object, or `null` if no matching port was found or could not be opened.
+     */
+    function openFirst(match: string): HSSerialPort | undefined;
+
+}
+
+/**
+ * An open serial port. Do not construct directly — use hs.serial.open().
+ */
+declare class HSSerialPort {
+    /**
+     * Close the port.
+     */
+    static close(): void;
+
+    /**
+     * Write a string to the port (caller includes any trailing "\n").
+     * @param s the bytes to write (UTF-8).
+     * @returns true if all bytes were written.
+     */
+    static write(s: string): boolean;
+
+    /**
+     * Register a callback invoked once per inbound line (newline/CR-delimited).
+     * @param cb a function called with each line string.
+     * @returns this port (chainable).
+     */
+    static onLine(cb: JSValue): HSSerialPort;
+
+    /**
+     * Register a callback invoked when the port closes.
+     * @param cb a function called when the port closes.
+     * @returns this port (chainable).
+     */
+    static onClose(cb: JSValue): HSSerialPort;
+
+    /**
+     * The device path this port was opened on.
+     */
+    path: string;
+
+    /**
+     * Whether the port is currently open.
+     */
+    isOpen: boolean;
+
+}
+
+/**
  */
 declare namespace hs.sqlite {
     /**
@@ -4514,6 +4908,26 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
     static text(content: JSValue): HSUIWindow;
 
     /**
+     * Add an inline multi-color text element. The content is an `HSString`
+whose value is a JSON-encoded array of `{ text, accent }` segments;
+segments render as one concatenated SwiftUI Text with per-segment
+color. Use for per-character match highlighting where some letters
+(the matched query chars) get the accent color.
+JSON segments. The segment shape is `[{ text: string, accent: bool }, …]`.
+     * @param content A plain JS string OR an `HSString` carrying the
+     * @returns Self for chaining (apply `.font()`, `.foregroundColor()` for
+     */
+    static attributedText(content: JSValue): HSUIWindow;
+
+    /**
+     * Set the accent color used for `accent: true` segments inside an
+`attributedText()` element. No effect on other elements.
+     * @param colorValue Color as hex string or HSColor
+     * @returns Self for chaining
+     */
+    static accentColor(colorValue: JSValue): HSUIWindow;
+
+    /**
      * Add an image element
      * @param imageValue Image as HSImage object or file path string
      * @returns Self for chaining (apply modifiers like `resizable()`, `aspectRatio()`, `frame()`)
@@ -5017,6 +5431,181 @@ declare class HSUITextPrompt {
      * Show the prompt dialog
      */
     static show(): void;
+
+}
+
+/**
+ */
+declare namespace hs.webview {
+    /**
+     * Create a new webview hosted in a borderless NSWindow.
+     * @param rect `{ x, y, w, h }` in NSWindow coordinates
+     * @returns an `HSWebview` configured to host a WKWebView. Chain
+     */
+    function new(rect: JSValue): HSWebview | undefined;
+
+}
+
+/**
+ */
+declare class HSWebview {
+    /**
+     * Load a URL into the webview. Accepts `https://`, `http://`, and `file://` URLs.
+File URLs must be absolute paths; tilde is expanded.
+     * @param urlString the URL to load
+     * @returns self for chaining
+     */
+    static url(urlString: string): HSWebview;
+
+    /**
+     * Load HTML source directly into the webview.
+     * @param html HTML source string
+     * @param baseURL optional base URL (string) for resolving relative refs; null to use about:blank
+     * @returns self for chaining
+     */
+    static html(html: string, baseURL: JSValue): HSWebview;
+
+    /**
+     * Reload the currently-loaded content.
+     * @returns self for chaining
+     */
+    static reload(): HSWebview;
+
+    /**
+     * Configure window chrome.
+`transparent: true` makes the NSWindow opaque-bg false so the page's own background shows through.
+     * @param opts `{ titled?, closable?, resizable?, miniaturizable?, transparent? }` — all optional booleans.
+     * @returns self for chaining
+     */
+    static windowStyle(opts: JSValue): HSWebview;
+
+    /**
+     * Set the window level by name. Same vocabulary as `hs.ui.window.level()`.
+     * @param name `'normal' | 'floating' | 'modal' | 'popup' | 'screensaver' | 'mainmenu' | 'status'`
+     * @returns self for chaining
+     */
+    static level(name: string): HSWebview;
+
+    /**
+     * Allow this window to become key (capture keyboard focus). Default true for webviews.
+     * @param value whether the window can become key
+     * @returns self for chaining
+     */
+    static canBecomeKey(value: boolean): HSWebview;
+
+    /**
+     * Center the window on the main screen on `show()`.
+     * @returns self for chaining
+     */
+    static center(): HSWebview;
+
+    /**
+     * Set window corner radius. Applied to the contentView (clipped) so the
+rounded shape is preserved when the window is transparent.
+     * @param radius pixel radius
+     * @returns self for chaining
+     */
+    static windowCornerRadius(radius: number): HSWebview;
+
+    /**
+     * Set the background color used by the host NSWindow and content wrapper.
+This color is what users see during the brief window between window
+creation and the page's own background painting — set it to match your
+page's body background to eliminate the "white flash" on open. Also
+disables the WKWebView's own opaque background so the window color is
+visible through any gaps before/around the page content.
+     * @param color hex string (e.g. `'#18181C'`) or an `HSColor`
+     * @returns self for chaining
+     */
+    static backgroundColor(color: JSValue): HSWebview;
+
+    /**
+     * Show the window. If already shown, brings it to front.
+     * @returns self for chaining
+     */
+    static show(): HSWebview;
+
+    /**
+     * Hide the window. Keeps the WKWebView and its loaded page in memory.
+     * @returns self for chaining
+     */
+    static hide(): HSWebview;
+
+    /**
+     * Close and destroy the window. Drops the WKWebView and frees handlers.
+     */
+    static close(): void;
+
+    /**
+     * Bring the window to the foreground without reordering across spaces.
+     * @returns self for chaining
+     */
+    static bringToFront(): HSWebview;
+
+    /**
+     * Return the current on-screen frame as `{x, y, w, h}`, or null if not shown.
+     */
+    static currentFrame(): Record<string, number> | undefined;
+
+    /**
+     * Resize and/or move the on-screen window.
+     * @param rect `{ x, y, w, h }` in NSWindow coordinates
+     * @returns self for chaining
+     */
+    static setFrame(rect: JSValue): HSWebview;
+
+    /**
+     * Render the webview's contentView to a PNG file at the given path.
+Uses `NSView.cacheDisplay`, so the bitmap is captured from the view's
+own drawing without requiring Screen Recording permission. Returns
+false if the window hasn't been shown.
+     * @param path absolute filesystem path to write
+     * @returns true on success
+     */
+    static snapshotToPNG(path: string): boolean;
+
+    /**
+     * Register a named handler for messages posted from JS.
+In the page, call `window.webkit.messageHandlers.<name>.postMessage(body)`.
+The Swift callback fires with the deserialized body (object/string/number).
+Pass `null` to unregister.
+     * @param name handler name (matches the page's `messageHandlers.<name>`)
+     * @param callback function to call with each message body, or null to remove
+     * @returns self for chaining
+     */
+    static setMessageHandler(name: string, callback: JSValue): HSWebview;
+
+    /**
+     * Inject JavaScript that runs at document-start, before the page's own scripts.
+Use to install a bridge client so postMessage calls work from page load.
+     * @param source JavaScript source
+     * @returns self for chaining
+     */
+    static injectUserScript(source: string): HSWebview;
+
+    /**
+     * Evaluate a JS expression inside the page. Optional callback receives
+`(result, errorMessage)` — result is the stringified JS value (null if
+not representable as JSON), errorMessage is null on success.
+     * @param script JS expression or block
+     * @param callback optional completion `(result, error) => void`
+     */
+    static evaluateJavaScript(script: string, callback: JSValue): void;
+
+    /**
+     * Register a callback for window lifecycle events. Currently fires with
+the string `'closing'` when the window is about to close.
+     * @param callback `(event) => void`
+     * @returns self for chaining
+     */
+    static windowCallback(callback: JSValue): HSWebview;
+
+    /**
+     * Enable Safari "Inspect Element" right-click for this webview. Off by default.
+     * @param enabled whether to enable
+     * @returns self for chaining
+     */
+    static developerExtras(enabled: boolean): HSWebview;
 
 }
 

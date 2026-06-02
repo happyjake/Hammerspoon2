@@ -19,6 +19,7 @@ import JavaScriptCoreExtras
     @objc var application: HSApplicationModule { get }
     @objc var audiodevice: HSAudioDeviceModule { get }
     @objc var ax: HSAXModule { get }
+    @objc var ble: HSBLEModule { get }
     @objc var bonjour: HSBonjourModule { get }
     @objc var camera: HSCameraModule { get }
     @objc var console: HSConsoleModule { get }
@@ -32,6 +33,7 @@ import JavaScriptCoreExtras
     @objc var location: HSLocationModule { get }
     @objc var menubar: HSMenubarModule { get }
     @objc var mouse: HSMouseModule { get }
+    @objc var multipeer: HSMultipeerModule { get }
     @objc var permissions: HSPermissionsModule { get }
     @objc var notify: HSNotifyModule { get }
     @objc var osascript: HSOSAScriptModule { get }
@@ -100,6 +102,7 @@ import JavaScriptCoreExtras
     @objc var application: HSApplicationModule { get { getOrCreate(name: "application", type: HSApplicationModule.self)}}
     @objc var audiodevice: HSAudioDeviceModule { get { getOrCreate(name: "audiodevice", type: HSAudioDeviceModule.self)}}
     @objc var ax: HSAXModule { get { getOrCreate(name: "ax", type: HSAXModule.self)}}
+    @objc var ble: HSBLEModule { get { getOrCreate(name: "ble", type: HSBLEModule.self)}}
     @objc var bonjour: HSBonjourModule { get { getOrCreate(name: "bonjour", type: HSBonjourModule.self)}}
     @objc var camera: HSCameraModule { get { getOrCreate(name: "camera", type: HSCameraModule.self)}}
     @objc var console: HSConsoleModule { get { getOrCreate(name: "console", type: HSConsoleModule.self)}}
@@ -113,6 +116,7 @@ import JavaScriptCoreExtras
     @objc var location: HSLocationModule { get { getOrCreate(name: "location", type: HSLocationModule.self)}}
     @objc var menubar: HSMenubarModule { get { getOrCreate(name: "menubar", type: HSMenubarModule.self)}}
     @objc var mouse: HSMouseModule { get { getOrCreate(name: "mouse", type: HSMouseModule.self)}}
+    @objc var multipeer: HSMultipeerModule { get { getOrCreate(name: "multipeer", type: HSMultipeerModule.self)}}
     @objc var notify: HSNotifyModule { get { getOrCreate(name: "notify", type: HSNotifyModule.self)}}
     @objc var permissions: HSPermissionsModule { get { getOrCreate(name: "permissions", type: HSPermissionsModule.self)}}
     @objc var osascript: HSOSAScriptModule { get { getOrCreate(name: "osascript", type: HSOSAScriptModule.self)}}

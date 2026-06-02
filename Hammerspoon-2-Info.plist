@@ -17,6 +17,13 @@
 	</array>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>Hammerspoon 2 requires accessibility permissions to control your Mac</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Hammerspoon 2 uses Bluetooth to connect to the CrossMac relay device (ESP32) for cross-Mac control.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_voicekb-cs._tcp</string>
+		<string>_voicekb-cs._udp</string>
+	</array>
 	<key>SUFeedURL</key>
 	<string>https://www.hammerspoon.org/appcast2.xml</string>
 </dict>

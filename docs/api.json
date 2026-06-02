@@ -2322,6 +2322,243 @@
       "rawDocumentation": "# Accessibility API Module\n\nThis module provides access to macOS's powerful **Accessibility API**, allowing you to:\n- Inspect UI elements in any application\n- Monitor window and element changes\n- Programmatically interact with UI elements\n\n## Basic Usage\n\n```js\n// Get the focused UI element\nconst element = hs.ax.focusedElement();\nconsole.log(element.role, element.title);\n\n// Watch for window creation events\nconst app = hs.application.frontmost();\nhs.ax.addWatcher(app, \"AXWindowCreated\", (notification, element) => {\n    console.log(\"New window:\", element.title);\n});\n```\n\n**Note:** Requires accessibility permissions in System Preferences."
     },
     {
+      "name": "hs.ble",
+      "methods": [
+        {
+          "name": "central",
+          "signature": "func central() -> HSBLECentral",
+          "rawDocumentation": "Create the BLE central used to attach to the bonded ESP32 relay service.\n\nEach call returns a fresh `HSBLECentral`; in practice one central is enough.\nAll centrals are torn down when the module shuts down (JS reload).\n- Returns: an `HSBLECentral`.\n- Example:\n```js\nconst c = hs.ble.central()\nc.onState(s => console.log('ble', s))\n```",
+          "description": "Create the BLE central used to attach to the bonded ESP32 relay service.\nEach call returns a fresh `HSBLECentral`; in practice one central is enough.\nAll centrals are torn down when the module shuts down (JS reload).",
+          "params": [],
+          "returns": {
+            "type": "HSBLECentral",
+            "description": "an `HSBLECentral`."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const c = hs.ble.central()\nc.onState(s => console.log('ble', s))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLEModule.swift",
+          "lineNumber": 31
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSBLECentralAPI",
+          "type": "typedef",
+          "rawDocumentation": "A CoreBluetooth central that attaches to the already-bonded ESP32 relay service.\n\nObtain via `hs.ble.central()`. Register `onState`, then `connect(...)` to attach\nto the bonded peripheral and start the relay. The returned `HSBLEPeripheral`\nreports connection and notify events.",
+          "description": "A CoreBluetooth central that attaches to the already-bonded ESP32 relay service.\nObtain via `hs.ble.central()`. Register `onState`, then `connect(...)` to attach\nto the bonded peripheral and start the relay. The returned `HSBLEPeripheral`\nreports connection and notify events.",
+          "methods": [
+            {
+              "name": "onState",
+              "signature": "func onState(_ cb: JSValue) -> HSBLECentral",
+              "rawDocumentation": "Register a callback for CoreBluetooth manager state changes.\n\nFires immediately with the current state if one is already known, then again\non every change. Use it to wait for `\"poweredOn\"` before calling `connect`,\nand to surface `\"unauthorized\"` (missing Bluetooth permission) to the user.\n- Parameter cb: `function(state)` — one of `\"poweredOn\"`, `\"poweredOff\"`,\n  `\"unauthorized\"`, `\"unsupported\"`, `\"resetting\"`, `\"unknown\"`.\n- Returns: self, for chaining.\n- Example:\n```js\nhs.ble.central().onState(s => { if (s === 'poweredOn') connect() })\n```",
+              "description": "Register a callback for CoreBluetooth manager state changes.\nFires immediately with the current state if one is already known, then again\non every change. Use it to wait for `\"poweredOn\"` before calling `connect`,\nand to surface `\"unauthorized\"` (missing Bluetooth permission) to the user.\n`\"unauthorized\"`, `\"unsupported\"`, `\"resetting\"`, `\"unknown\"`.",
+              "params": [
+                {
+                  "name": "cb",
+                  "type": "JSValue",
+                  "description": "`function(state)` — one of `\"poweredOn\"`, `\"poweredOff\"`,"
+                }
+              ],
+              "returns": {
+                "type": "HSBLECentral",
+                "description": "self, for chaining."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ble.central().onState(s => { if (s === 'poweredOn') connect() })"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLECentral.swift",
+              "lineNumber": 43
+            },
+            {
+              "name": "connect",
+              "signature": "func connect(_ config: [String: Any]) -> HSBLEPeripheral",
+              "rawDocumentation": "Attach to the bonded ESP32 relay peripheral and bring up the relay channel.\n\nConnection strategy (mirrors the proven helper): fast-attach via\n`retrievePeripherals` when a `peerUUID` is known, else\n`retrieveConnectedPeripherals`, else scan. Discovers the relay service,\nsubscribes the notify characteristic, and fires the peripheral's\n`onConnect` once subscribed. Auto-reconnects on drop unless `autoReconnect`\nis `false`.\n- Parameter config: `{ name?, peerUUID?, service?, notifyChar?, writeChar?, autoReconnect? }`.\n  `name` defaults to `\"VoiceKB\"`; the UUIDs default to the firmware relay\n  UUIDs; `autoReconnect` defaults to `true`. Pass `peerUUID` (from a prior\n  `peripheral.uuid`) for instant re-attach to the non-advertising bonded peer.\n- Returns: an `HSBLEPeripheral`.\n- Example:\n```js\nconst p = c.connect({ name: 'VoiceKB', peerUUID: saved, autoReconnect: true })\np.onNotify(line => relay.ingest(line))\n```",
+              "description": "Attach to the bonded ESP32 relay peripheral and bring up the relay channel.\nConnection strategy (mirrors the proven helper): fast-attach via\n`retrievePeripherals` when a `peerUUID` is known, else\n`retrieveConnectedPeripherals`, else scan. Discovers the relay service,\nsubscribes the notify characteristic, and fires the peripheral's\n`onConnect` once subscribed. Auto-reconnects on drop unless `autoReconnect`\nis `false`.\n`name` defaults to `\"VoiceKB\"`; the UUIDs default to the firmware relay\nUUIDs; `autoReconnect` defaults to `true`. Pass `peerUUID` (from a prior\n`peripheral.uuid`) for instant re-attach to the non-advertising bonded peer.",
+              "params": [
+                {
+                  "name": "config",
+                  "type": "[String: Any]",
+                  "description": "`{ name?, peerUUID?, service?, notifyChar?, writeChar?, autoReconnect? }`."
+                }
+              ],
+              "returns": {
+                "type": "HSBLEPeripheral",
+                "description": "an `HSBLEPeripheral`."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const p = c.connect({ name: 'VoiceKB', peerUUID: saved, autoReconnect: true })\np.onNotify(line => relay.ingest(line))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLECentral.swift",
+              "lineNumber": 63
+            }
+          ],
+          "properties": []
+        },
+        {
+          "name": "HSBLEPeripheralAPI",
+          "type": "typedef",
+          "rawDocumentation": "A handle to the relay peripheral on the bonded ESP32.\n\nReturned by `HSBLECentral.connect(...)`. Register `onConnect` / `onDisconnect` /\n`onNotify`, and `write` lines to the controller. `onConnect` fires once the relay\nnotify characteristic is subscribed (the channel is live).",
+          "description": "A handle to the relay peripheral on the bonded ESP32.\nReturned by `HSBLECentral.connect(...)`. Register `onConnect` / `onDisconnect` /\n`onNotify`, and `write` lines to the controller. `onConnect` fires once the relay\nnotify characteristic is subscribed (the channel is live).",
+          "methods": [
+            {
+              "name": "onConnect",
+              "signature": "func onConnect(_ cb: JSValue) -> HSBLEPeripheral",
+              "rawDocumentation": "Register a callback fired when the relay channel becomes live (notify subscribed).\n- Parameter cb: `function()`.\n- Returns: self, for chaining.\n- Example:\n```js\np.onConnect(() => console.log('relay up'))\n```",
+              "description": "Register a callback fired when the relay channel becomes live (notify subscribed).",
+              "params": [
+                {
+                  "name": "cb",
+                  "type": "JSValue",
+                  "description": "`function()`."
+                }
+              ],
+              "returns": {
+                "type": "HSBLEPeripheral",
+                "description": "self, for chaining."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "p.onConnect(() => console.log('relay up'))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLEPeripheral.swift",
+              "lineNumber": 37
+            },
+            {
+              "name": "onDisconnect",
+              "signature": "func onDisconnect(_ cb: JSValue) -> HSBLEPeripheral",
+              "rawDocumentation": "Register a callback fired when the peripheral disconnects.\n- Parameter cb: `function(reason)` — `reason` is the disconnect error text, or `\"clean\"`.\n- Returns: self, for chaining.\n- Example:\n```js\np.onDisconnect(reason => console.log('relay down:', reason))\n```",
+              "description": "Register a callback fired when the peripheral disconnects.",
+              "params": [
+                {
+                  "name": "cb",
+                  "type": "JSValue",
+                  "description": "`function(reason)` — `reason` is the disconnect error text, or `\"clean\"`."
+                }
+              ],
+              "returns": {
+                "type": "HSBLEPeripheral",
+                "description": "self, for chaining."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "p.onDisconnect(reason => console.log('relay down:', reason))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLEPeripheral.swift",
+              "lineNumber": 46
+            },
+            {
+              "name": "onNotify",
+              "signature": "func onNotify(_ cb: JSValue) -> HSBLEPeripheral",
+              "rawDocumentation": "Register a callback fired for each notify payload from the controller.\n- Parameter cb: `function(line)` — `line` is the UTF-8 payload (a JSON string the relay layer parses).\n- Returns: self, for chaining.\n- Example:\n```js\np.onNotify(line => { const msg = JSON.parse(line); /* ... */ })\n```",
+              "description": "Register a callback fired for each notify payload from the controller.",
+              "params": [
+                {
+                  "name": "cb",
+                  "type": "JSValue",
+                  "description": "`function(line)` — `line` is the UTF-8 payload (a JSON string the relay layer parses)."
+                }
+              ],
+              "returns": {
+                "type": "HSBLEPeripheral",
+                "description": "self, for chaining."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "p.onNotify(line => { const msg = JSON.parse(line); /* ... */ })"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLEPeripheral.swift",
+              "lineNumber": 55
+            },
+            {
+              "name": "write",
+              "signature": "func write(_ s: String) -> Bool",
+              "rawDocumentation": "Write a line to the relay write characteristic (target → controller), `.withoutResponse`.\n- Parameter s: the UTF-8 payload (caller-supplied JSON; keep it under the ATT MTU, ~240 B).\n- Returns: `true` if queued; `false` if not connected or the payload exceeds the MTU.\n- Example:\n```js\np.write(JSON.stringify({ clip: 'hello' }))\n```",
+              "description": "Write a line to the relay write characteristic (target → controller), `.withoutResponse`.",
+              "params": [
+                {
+                  "name": "s",
+                  "type": "String",
+                  "description": "the UTF-8 payload (caller-supplied JSON; keep it under the ATT MTU, ~240 B)."
+                }
+              ],
+              "returns": {
+                "type": "Bool",
+                "description": "`true` if queued; `false` if not connected or the payload exceeds the MTU."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "p.write(JSON.stringify({ clip: 'hello' }))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLEPeripheral.swift",
+              "lineNumber": 64
+            },
+            {
+              "name": "disconnect",
+              "signature": "func disconnect()",
+              "rawDocumentation": "Disconnect the peripheral and stop auto-reconnect.\n- Example:\n```js\np.disconnect()\n```",
+              "description": "Disconnect the peripheral and stop auto-reconnect.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "p.disconnect()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLEPeripheral.swift",
+              "lineNumber": 71
+            }
+          ],
+          "properties": [
+            {
+              "name": "uuid",
+              "signature": "var uuid: String { get }",
+              "rawDocumentation": "The peripheral's system UUID. Persist this (e.g. in your config) and pass it\nback as `connect({ peerUUID })` for instant re-attach to the non-advertising\nbonded peer. Empty until first connected.\n- Example:\n```js\np.onConnect(() => saveConfig({ peerUUID: p.uuid }))\n```",
+              "description": "The peripheral's system UUID. Persist this (e.g. in your config) and pass it\nback as `connect({ peerUUID })` for instant re-attach to the non-advertising\nbonded peer. Empty until first connected.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "p.onConnect(() => saveConfig({ peerUUID: p.uuid }))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ble/HSBLEPeripheral.swift",
+              "lineNumber": 28
+            }
+          ]
+        }
+      ],
+      "description": "Module providing a single CoreBluetooth central for the CrossMac control relay.\nOn the **target** Mac, this module attaches to the ESP32 \"VoiceKB\" peripheral that\nthe OS is already BLE-bonded to for HID, discovers the custom relay GATT service,\nsubscribes its notify characteristic (controller → target) and writes its write\ncharacteristic (target → controller). It never touches HID — the OS owns that.\nThis is deliberately *not* a general GATT stack: one service, one notify char, one\nwrite char, on a device we are already bonded to.",
+      "rawDocumentation": "Module providing a single CoreBluetooth central for the CrossMac control relay.\n\nOn the **target** Mac, this module attaches to the ESP32 \"VoiceKB\" peripheral that\nthe OS is already BLE-bonded to for HID, discovers the custom relay GATT service,\nsubscribes its notify characteristic (controller → target) and writes its write\ncharacteristic (target → controller). It never touches HID — the OS owns that.\n\nThis is deliberately *not* a general GATT stack: one service, one notify char, one\nwrite char, on a device we are already bonded to."
+    },
+    {
       "name": "hs.bonjour",
       "methods": [
         {
@@ -3415,13 +3652,13 @@
         {
           "name": "makeTap",
           "signature": "func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap",
-          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Input Monitoring permission.\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged'\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n```",
+          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Input Monitoring permission.\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n```",
           "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Input Monitoring permission.",
           "params": [
             {
               "name": "eventTypes",
               "type": "[String]",
-              "description": "Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged'"
+              "description": "Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'"
             },
             {
               "name": "callback",
@@ -6400,6 +6637,322 @@
       ]
     },
     {
+      "name": "hs.mouse",
+      "methods": [
+        {
+          "name": "position",
+          "signature": "func position() -> [String: Double]",
+          "rawDocumentation": "The current mouse cursor position in global screen coordinates (top-left origin, points).\n\nCoordinates match `hs.screen` convention: `(0,0)` is the top-left of the primary\ndisplay and `y` increases downward.\n- Returns: An object `{ x, y }`.\n- Example:\n```js\nconst p = hs.mouse.position(); console.log(p.x, p.y)\n```",
+          "description": "The current mouse cursor position in global screen coordinates (top-left origin, points).\nCoordinates match `hs.screen` convention: `(0,0)` is the top-left of the primary\ndisplay and `y` increases downward.",
+          "params": [],
+          "returns": {
+            "type": "[String: Double]",
+            "description": "An object `{ x, y }`."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const p = hs.mouse.position(); console.log(p.x, p.y)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.mouse/HSMouseModule.swift",
+          "lineNumber": 24
+        },
+        {
+          "name": "setPosition",
+          "signature": "func setPosition(_ point: [String: Double]) -> Bool",
+          "rawDocumentation": "Move (warp) the cursor to a global screen position (top-left origin).\n\nCoordinates use the same convention as `hs.screen`: `(0,0)` is the top-left of\nthe primary display.\n- Parameter point: An object `{ x, y }`.\n- Returns: true.\n- Example:\n```js\nhs.mouse.setPosition({ x: 200, y: 200 })\n```",
+          "description": "Move (warp) the cursor to a global screen position (top-left origin).\nCoordinates use the same convention as `hs.screen`: `(0,0)` is the top-left of\nthe primary display.",
+          "params": [
+            {
+              "name": "point",
+              "type": "[String: Double]",
+              "description": "An object `{ x, y }`."
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.mouse.setPosition({ x: 200, y: 200 })"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.mouse/HSMouseModule.swift",
+          "lineNumber": 36
+        },
+        {
+          "name": "hideCursor",
+          "signature": "func hideCursor() -> Bool",
+          "rawDocumentation": "Hide the system mouse cursor.\n- Returns: true on success.\n- Example:\n```js\nhs.mouse.hideCursor()\n```",
+          "description": "Hide the system mouse cursor.",
+          "params": [],
+          "returns": {
+            "type": "Bool",
+            "description": "true on success."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.mouse.hideCursor()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.mouse/HSMouseModule.swift",
+          "lineNumber": 44
+        },
+        {
+          "name": "showCursor",
+          "signature": "func showCursor() -> Bool",
+          "rawDocumentation": "Show the system mouse cursor.\n- Returns: true on success.\n- Example:\n```js\nhs.mouse.showCursor()\n```",
+          "description": "Show the system mouse cursor.",
+          "params": [],
+          "returns": {
+            "type": "Bool",
+            "description": "true on success."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.mouse.showCursor()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.mouse/HSMouseModule.swift",
+          "lineNumber": 52
+        },
+        {
+          "name": "setAssociated",
+          "signature": "func setAssociated(_ connected: Bool) -> Bool",
+          "rawDocumentation": "Connect or disconnect physical mouse movement from the on-screen cursor.\n\nPass `false` to decouple movement from the cursor position (useful for\nrelative-delta capture, e.g. seamless hand-off to a remote machine).\n- Parameter connected: false to decouple movement from the cursor.\n- Returns: true.\n- Example:\n```js\nhs.mouse.setAssociated(false)\n```",
+          "description": "Connect or disconnect physical mouse movement from the on-screen cursor.\nPass `false` to decouple movement from the cursor position (useful for\nrelative-delta capture, e.g. seamless hand-off to a remote machine).",
+          "params": [
+            {
+              "name": "connected",
+              "type": "Bool",
+              "description": "false to decouple movement from the cursor."
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.mouse.setAssociated(false)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.mouse/HSMouseModule.swift",
+          "lineNumber": 64
+        }
+      ],
+      "properties": [],
+      "types": [],
+      "description": "Module for controlling the mouse cursor",
+      "rawDocumentation": "Module for controlling the mouse cursor"
+    },
+    {
+      "name": "hs.multipeer",
+      "methods": [
+        {
+          "name": "session",
+          "signature": "func session(_ config: [String: Any]) -> HSMPCSession",
+          "rawDocumentation": "Create a Multipeer session.\n- Parameter config: `{ serviceType?, displayName?, context?, encryption? }`.\n  `serviceType` defaults to `\"voicekb-cs\"` (≤15 chars, `[a-z0-9-]`);\n  `displayName` defaults to this host's name; `context` (the shared invite\n  secret both peers must match) defaults to `\"voicekb-mpc-v1\"`;\n  `encryption` is `\"required\"` (default), `\"optional\"`, or `\"none\"`.\n- Returns: an `HSMPCSession` (call `start()` to begin advertising + browsing).\n- Example:\n```js\nconst s = hs.multipeer.session({ displayName: 'MacA-' + hs.appinfo.pid })\ns.onPeer((peer, state) => console.log(peer, state)).start()\n```",
+          "description": "Create a Multipeer session.\n`serviceType` defaults to `\"voicekb-cs\"` (≤15 chars, `[a-z0-9-]`);\n`displayName` defaults to this host's name; `context` (the shared invite\nsecret both peers must match) defaults to `\"voicekb-mpc-v1\"`;\n`encryption` is `\"required\"` (default), `\"optional\"`, or `\"none\"`.",
+          "params": [
+            {
+              "name": "config",
+              "type": "[String: Any]",
+              "description": "`{ serviceType?, displayName?, context?, encryption? }`."
+            }
+          ],
+          "returns": {
+            "type": "HSMPCSession",
+            "description": "an `HSMPCSession` (call `start()` to begin advertising + browsing)."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const s = hs.multipeer.session({ displayName: 'MacA-' + hs.appinfo.pid })\ns.onPeer((peer, state) => console.log(peer, state)).start()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMultipeerModule.swift",
+          "lineNumber": 35
+        }
+      ],
+      "properties": [],
+      "types": [
+        {
+          "name": "HSMPCSessionAPI",
+          "type": "typedef",
+          "rawDocumentation": "A MultipeerConnectivity session — the CrossMac data plane.\n\nObtain via `hs.multipeer.session(...)`. Call `start()` to advertise + browse;\nboth peers advertise and browse, and whichever sees the other first invites,\nauthenticated by the shared `context` string. Payloads cross the JS bridge as\nbase64 strings (pairs with `HSImage.encode`).",
+          "description": "A MultipeerConnectivity session — the CrossMac data plane.\nObtain via `hs.multipeer.session(...)`. Call `start()` to advertise + browse;\nboth peers advertise and browse, and whichever sees the other first invites,\nauthenticated by the shared `context` string. Payloads cross the JS bridge as\nbase64 strings (pairs with `HSImage.encode`).",
+          "methods": [
+            {
+              "name": "start",
+              "signature": "func start()",
+              "rawDocumentation": "Start advertising and browsing for peers.\n- Example:\n```js\ns.start()\n```",
+              "description": "Start advertising and browsing for peers.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "s.start()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift",
+              "lineNumber": 38
+            },
+            {
+              "name": "stop",
+              "signature": "func stop()",
+              "rawDocumentation": "Stop advertising/browsing and disconnect the session.\n- Example:\n```js\ns.stop()\n```",
+              "description": "Stop advertising/browsing and disconnect the session.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "s.stop()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift",
+              "lineNumber": 45
+            },
+            {
+              "name": "reset",
+              "signature": "func reset()",
+              "rawDocumentation": "Tear down and recreate the underlying session/advertiser/browser, then\nresume if it was started. The JS watchdog calls this to clear a wedged\nAWDL/MPC state.\n- Example:\n```js\nif (peerlessForTooLong) s.reset()\n```",
+              "description": "Tear down and recreate the underlying session/advertiser/browser, then\nresume if it was started. The JS watchdog calls this to clear a wedged\nAWDL/MPC state.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (peerlessForTooLong) s.reset()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift",
+              "lineNumber": 54
+            },
+            {
+              "name": "onPeer",
+              "signature": "func onPeer(_ cb: JSValue) -> HSMPCSession",
+              "rawDocumentation": "Register a callback for peer connection-state changes.\n- Parameter cb: `function(peerName, state)` — state is `\"connected\"`, `\"connecting\"`, or `\"disconnected\"`.\n- Returns: self, for chaining.\n- Example:\n```js\ns.onPeer((peer, state) => console.log(peer, state))\n```",
+              "description": "Register a callback for peer connection-state changes.",
+              "params": [
+                {
+                  "name": "cb",
+                  "type": "JSValue",
+                  "description": "`function(peerName, state)` — state is `\"connected\"`, `\"connecting\"`, or `\"disconnected\"`."
+                }
+              ],
+              "returns": {
+                "type": "HSMPCSession",
+                "description": "self, for chaining."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "s.onPeer((peer, state) => console.log(peer, state))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift",
+              "lineNumber": 63
+            },
+            {
+              "name": "onReceive",
+              "signature": "func onReceive(_ cb: JSValue) -> HSMPCSession",
+              "rawDocumentation": "Register a callback for received payloads.\n- Parameter cb: `function(base64, peerName)` — `base64` is the received bytes, base64-encoded.\n- Returns: self, for chaining.\n- Example:\n```js\ns.onReceive((b64, peer) => { /* decode + use */ })\n```",
+              "description": "Register a callback for received payloads.",
+              "params": [
+                {
+                  "name": "cb",
+                  "type": "JSValue",
+                  "description": "`function(base64, peerName)` — `base64` is the received bytes, base64-encoded."
+                }
+              ],
+              "returns": {
+                "type": "HSMPCSession",
+                "description": "self, for chaining."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "s.onReceive((b64, peer) => { /* decode + use */ })"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift",
+              "lineNumber": 72
+            },
+            {
+              "name": "send",
+              "signature": "func send(_ base64: String, _ opts: JSValue) -> Bool",
+              "rawDocumentation": "Send a payload to all connected peers.\n- Parameter base64: the payload bytes, base64-encoded.\n- Parameter opts: `{ reliable }` — `reliable` defaults to `true`.\n- Returns: `true` if sent to at least one peer; `false` if there are no peers, the base64 is invalid, or send failed.\n- Example:\n```js\ns.send(img.encode('jpeg', 0.8), { reliable: true })\n```",
+              "description": "Send a payload to all connected peers.",
+              "params": [
+                {
+                  "name": "base64",
+                  "type": "String",
+                  "description": "the payload bytes, base64-encoded."
+                },
+                {
+                  "name": "opts",
+                  "type": "JSValue",
+                  "description": "`{ reliable }` — `reliable` defaults to `true`."
+                }
+              ],
+              "returns": {
+                "type": "Bool",
+                "description": "`true` if sent to at least one peer; `false` if there are no peers, the base64 is invalid, or send failed."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "s.send(img.encode('jpeg', 0.8), { reliable: true })"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift",
+              "lineNumber": 82
+            }
+          ],
+          "properties": [
+            {
+              "name": "peers",
+              "signature": "var peers: [String] { get }",
+              "rawDocumentation": "The display names of all currently connected peers.\n- Example:\n```js\nconsole.log('peers:', s.peers.join(', '))\n```",
+              "description": "The display names of all currently connected peers.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log('peers:', s.peers.join(', '))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift",
+              "lineNumber": 89
+            }
+          ]
+        }
+      ],
+      "description": "Module providing a best-effort MultipeerConnectivity data link.\nThis is the CrossMac **data plane** (bulk clipboard / images) — the reliable\n**control plane** rides the ESP32 relay (`hs.serial` / `hs.ble`), never this.\n`MCSession` runs over AWDL / peer-to-peer Wi-Fi / infrastructure, so no shared\nrouter is required. Discovery uses Bonjour, so `NSBonjourServices` and\n`NSLocalNetworkUsageDescription` must be present in Info.plist.\nRecovery *policy* (when to `reset()`) lives in JavaScript; this module only\nexposes honest peer events plus `start` / `stop` / `reset`.",
+      "rawDocumentation": "Module providing a best-effort MultipeerConnectivity data link.\n\nThis is the CrossMac **data plane** (bulk clipboard / images) — the reliable\n**control plane** rides the ESP32 relay (`hs.serial` / `hs.ble`), never this.\n`MCSession` runs over AWDL / peer-to-peer Wi-Fi / infrastructure, so no shared\nrouter is required. Discovery uses Bonjour, so `NSBonjourServices` and\n`NSLocalNetworkUsageDescription` must be present in Info.plist.\n\nRecovery *policy* (when to `reset()`) lives in JavaScript; this module only\nexposes honest peer events plus `start` / `stop` / `reset`."
+    },
+    {
       "name": "hs.notify",
       "methods": [
         {
@@ -8600,14 +9153,14 @@
             {
               "name": "close",
               "signature": "func close()",
-              "rawDocumentation": "Close the port.\n- Example:\n```js\np.close()\n```",
+              "rawDocumentation": "Close the port.\n- Example:\n```js\nconst p = hs.serial.open('/dev/cu.usbmodem1'); p.close()\n```",
               "description": "Close the port.",
               "params": [],
               "returns": null,
               "examples": [
                 {
                   "lang": "js",
-                  "code": "p.close()"
+                  "code": "const p = hs.serial.open('/dev/cu.usbmodem1'); p.close()"
                 }
               ],
               "source": "swift",
@@ -13871,6 +14424,37 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
           "lineNumber": 150
+        },
+        {
+          "name": "encode",
+          "signature": "func encode(_ format: String, _ quality: Double) -> String?",
+          "rawDocumentation": "Encode the image to a base64 string.\n- Parameters:\n  - format: `\"jpeg\"` or `\"png\"` (case-insensitive). Any other value is treated as `\"png\"`.\n  - quality: JPEG compression quality in the range `0.0` (maximum compression) to `1.0`\n    (maximum quality). Ignored when `format` is `\"png\"`.\n- Returns: A base64-encoded string of the encoded image data, or `null` if encoding failed.\n- Example:\n```js\nconst b64 = img.encode('jpeg', 0.8)\n```",
+          "description": "Encode the image to a base64 string.\n(maximum quality). Ignored when `format` is `\"png\"`.",
+          "params": [
+            {
+              "name": "format",
+              "type": "String",
+              "description": "`\"jpeg\"` or `\"png\"` (case-insensitive). Any other value is treated as `\"png\"`."
+            },
+            {
+              "name": "quality",
+              "type": "Double",
+              "description": "JPEG compression quality in the range `0.0` (maximum compression) to `1.0`"
+            }
+          ],
+          "returns": {
+            "type": "String?",
+            "description": "A base64-encoded string of the encoded image data, or `null` if encoding failed."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const b64 = img.encode('jpeg', 0.8)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
+          "lineNumber": 162
         }
       ],
       "properties": [],
@@ -14128,5 +14712,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-01T12:25:05.937Z"
+  "generatedAt": "2026-06-02T00:40:41.818Z"
 }
