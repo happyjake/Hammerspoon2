@@ -66,7 +66,9 @@ import Darwin
     @objc var isOpen: Bool { fd >= 0 }
     var rawFD: Int32 { fd }        // for later tasks (read/write)
 
-    private var fileHandle: FileHandle?
+    private static let readQueue = DispatchQueue(
+        label: "net.tenshu.Hammerspoon-2.serial.read", qos: .utility, attributes: .concurrent)
+    private var readSource: DispatchSourceRead?
     private var buffer = [UInt8]()
     private var lineCb: JSValue?
     private var closeCb: JSValue?
@@ -92,13 +94,31 @@ import Darwin
     }
 
     private func startReadLoop() {
-        let fh = FileHandle(fileDescriptor: fd, closeOnDealloc: false)
-        fileHandle = fh
-        fh.readabilityHandler = { [weak self] handle in
-            let data = handle.availableData          // Data is Sendable → hop to main actor
-            if data.isEmpty { return }
-            Task { @MainActor in self?.ingest(data) }
+        // NSFileHandle.availableData raises an uncatchable ObjC exception on a read
+        // error or EAGAIN — fatal on our non-blocking fd. Use a DispatchSource + raw
+        // read() instead, so EAGAIN/EOF/errors can be handled explicitly.
+        let portFD = fd
+        let src = DispatchSource.makeReadSource(fileDescriptor: portFD, queue: HSSerialPort.readQueue)
+        src.setEventHandler { [weak self] in
+            var tmp = [UInt8](repeating: 0, count: 4096)
+            let n = Darwin.read(portFD, &tmp, tmp.count)
+            if n > 0 {
+                let data = Data(tmp[0..<n])          // Data is Sendable → hop to main actor
+                Task { @MainActor in self?.ingest(data) }
+            } else if n == 0 {
+                Task { @MainActor in self?.close() } // EOF: device/peer closed
+            } else {
+                switch errno {
+                case EAGAIN, EWOULDBLOCK, EINTR:
+                    break                            // transient: await the next readable event
+                default:
+                    Task { @MainActor in self?.close() } // real error (e.g. unplugged)
+                }
+            }
         }
+        src.setCancelHandler { Darwin.close(portFD) }
+        readSource = src
+        src.resume()
     }
 
     @MainActor private func ingest(_ data: Data) {
@@ -124,9 +144,24 @@ import Darwin
 
     @objc func close() {
         guard fd >= 0 else { return }
-        fileHandle?.readabilityHandler = nil
-        fileHandle = nil
-        Darwin.close(fd); fd = -1
+        let f = fd
+        fd = -1                            // mark closed for write()/isOpen
+        if let src = readSource {
+            readSource = nil
+            src.cancel()                   // cancel handler performs Darwin.close(f)
+        } else {
+            Darwin.close(f)                // defensive: no read source to cancel
+        }
         _ = closeCb?.callSafely(withArguments: ["closed"], context: "hs.serial")
+    }
+
+    deinit {
+        // Release the fd even if close() was never called. Cancel (don't just release)
+        // the source so its cancel handler closes the fd; no JS callbacks from deinit.
+        if let src = readSource {
+            src.cancel()
+        } else if fd >= 0 {
+            Darwin.close(fd)
+        }
     }
 }
