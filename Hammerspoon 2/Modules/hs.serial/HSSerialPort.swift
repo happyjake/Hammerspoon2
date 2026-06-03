@@ -66,8 +66,6 @@ import Darwin
     @objc var isOpen: Bool { fd >= 0 }
     var rawFD: Int32 { fd }        // for later tasks (read/write)
 
-    private static let readQueue = DispatchQueue(
-        label: "net.tenshu.Hammerspoon-2.serial.read", qos: .utility, attributes: .concurrent)
     private var readSource: DispatchSourceRead?
     private var buffer = [UInt8]()
     private var lineCb: JSValue?
@@ -94,26 +92,29 @@ import Darwin
     }
 
     private func startReadLoop() {
-        // NSFileHandle.availableData raises an uncatchable ObjC exception on a read
-        // error or EAGAIN — fatal on our non-blocking fd. Use a DispatchSource + raw
-        // read() instead, so EAGAIN/EOF/errors can be handled explicitly.
+        // Read via a DispatchSource + raw read(): NSFileHandle.availableData raises an
+        // uncatchable ObjC exception on EAGAIN/errors on a non-blocking fd. Run on the
+        // MAIN queue — this class is main-actor-isolated (SWIFT_DEFAULT_ACTOR_ISOLATION
+        // = MainActor) and serial volume is low, so staying on the main actor avoids a
+        // cross-actor hop and data races on `buffer`/callbacks. A background queue here
+        // would make the (main-actor) handler trap the executor-isolation assertion.
         let portFD = fd
-        let src = DispatchSource.makeReadSource(fileDescriptor: portFD, queue: HSSerialPort.readQueue)
+        let src = DispatchSource.makeReadSource(fileDescriptor: portFD, queue: .main)
         src.setEventHandler { [weak self] in
             var tmp = [UInt8](repeating: 0, count: 4096)
             let n = Darwin.read(portFD, &tmp, tmp.count)
-            if n > 0 {
-                let data = Data(tmp[0..<n])          // Data is Sendable → hop to main actor
-                Task { @MainActor in self?.ingest(data) }
-            } else if n == 0 {
-                Task { @MainActor in self?.close() } // EOF: device/peer closed
-            } else {
-                switch errno {
-                case EAGAIN, EWOULDBLOCK, EINTR:
-                    break                            // transient: await the next readable event
-                default:
-                    Task { @MainActor in self?.close() } // real error (e.g. unplugged)
+            let err = n < 0 ? errno : 0
+            guard let self else { return }
+            // Invoked on the main queue, so we are genuinely on the main actor here.
+            MainActor.assumeIsolated {
+                if n > 0 {
+                    self.ingest(Data(tmp[0..<n]))
+                } else if n == 0 {
+                    self.close()                     // EOF: device/peer closed
+                } else if err != EAGAIN && err != EWOULDBLOCK && err != EINTR {
+                    self.close()                     // real error (e.g. unplugged)
                 }
+                // EAGAIN/EWOULDBLOCK/EINTR: transient — await the next readable event
             }
         }
         src.setCancelHandler { Darwin.close(portFD) }
