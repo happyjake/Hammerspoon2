@@ -27,14 +27,19 @@ import CoreGraphics
     /// ```
     @objc(make::) func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap
 
-    /// Synthesise a key stroke (M1 stub — lands in M3/M4).
+    /// Synthesise a key stroke: press the modifiers + key, hold, then release.
     /// - Parameter mods: Array of modifier strings, e.g. ['cmd']
     /// - Parameter key: Key name, e.g. 'v'
+    /// - Parameter delay: Optional number of microseconds the key is held between keyDown
+    ///   and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's
+    ///   `hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target
+    ///   app — the clipboard gets set but the paste never lands.
     /// - Example:
     /// ```js
-    /// hs.eventtap.keyStroke(['cmd'], 'v')
+    /// hs.eventtap.keyStroke(['cmd'], 'v')          // 200 ms default hold
+    /// hs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold
     /// ```
-    @objc(keyStroke::) func keyStroke(_ mods: [String], _ key: String)
+    @objc(keyStroke:::) func keyStroke(_ mods: [String], _ key: String, _ delay: JSValue)
 
     /// Type a string by synthesising key events (M1 stub — lands in M4).
     /// - Parameter text: Text to type
@@ -81,7 +86,7 @@ import CoreGraphics
         return t
     }
 
-    @objc(keyStroke::) func keyStroke(_ mods: [String], _ key: String) {
+    @objc(keyStroke:::) func keyStroke(_ mods: [String], _ key: String, _ delay: JSValue) {
         guard let keyCode = HSEventTapModule.keyCode(for: key) else {
             AKError("hs.eventtap.keyStroke: unknown key '\(key)'")
             return
@@ -108,7 +113,18 @@ import CoreGraphics
         }
         down.flags = flags
         up.flags = flags
+
+        // Microseconds to hold the key between keyDown and keyUp, inserted with usleep —
+        // matching upstream Hammerspoon's hs.eventtap.keyStroke (default 200000). A zero/
+        // too-short hold is frequently dropped by the target app: the clipboard gets set
+        // but the paste never lands. Clamped to [0, 5s].
+        var hold: useconds_t = 200000
+        if delay.isNumber {
+            let v = delay.toDouble()
+            if v.isFinite && v >= 0 { hold = useconds_t(min(v, 5_000_000)) }
+        }
         down.post(tap: .cghidEventTap)
+        if hold > 0 { usleep(hold) }
         up.post(tap: .cghidEventTap)
     }
 
