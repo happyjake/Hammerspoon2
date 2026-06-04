@@ -59,7 +59,8 @@ import AppKit
     @objc func debugState() -> [String: Any]?
 
     /// Programmatically move the current session's selection (no UI events).
-    /// `axis` is 'app' or 'window'; `delta` is +1 / -1.
+    /// - Parameter axis: `'app'` to move between app columns, `'window'` to move between windows within an app
+    /// - Parameter delta: direction to move — `+1` for forward, `-1` for backward
     /// - Returns: true if a session was active to move.
     @objc func debugMove(_ axis: String, _ delta: Int) -> Bool
 
@@ -67,6 +68,7 @@ import AppKit
     /// Returns a dict with `frontmostBefore`, `targetApp`, `targetPid`,
     /// `committed` (bool), and the caller can poll `frontmostAfter` via
     /// `hs.application.frontmost()` shortly after.
+    /// - Returns: `{ frontmostBefore, targetApp, targetPid, committed }` describing the commit outcome
     @objc func debugCommit() -> [String: Any]
 }
 

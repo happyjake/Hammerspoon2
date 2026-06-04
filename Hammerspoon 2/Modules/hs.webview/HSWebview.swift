@@ -17,6 +17,9 @@ import AppKit
 import SwiftUI
 import WebKit
 
+/// A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.
+/// Provides a builder-style API for loading URLs or HTML, styling the window,
+/// registering JS message handlers, evaluating JavaScript, and managing the window lifecycle.
 @objc protocol HSWebviewAPI: HSTypeAPI, JSExport {
 
     // MARK: - Content loading
@@ -110,6 +113,7 @@ import WebKit
     @objc func bringToFront() -> HSWebview
 
     /// Return the current on-screen frame as `{x, y, w, h}`, or null if not shown.
+    /// - Returns: `{x, y, w, h}` in NSWindow (bottom-left origin) coordinates, or null if not shown
     @objc func currentFrame() -> [String: Double]?
 
     /// Resize and/or move the on-screen window.

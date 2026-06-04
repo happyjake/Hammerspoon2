@@ -19,6 +19,9 @@ private let SQLITE_TRANSIENT = unsafeBitCast(
     to: sqlite3_destructor_type.self
 )
 
+/// A per-connection SQLite database object returned by `hs.sqlite.open()`.
+/// Wraps a sqlite3 handle and exposes synchronous exec, parameterized run/query,
+/// and transaction helpers to JavaScript.
 @objc protocol HSSqliteDBAPI: HSTypeAPI, JSExport {
     /// The filesystem path of the database.
     @objc var path: String { get }

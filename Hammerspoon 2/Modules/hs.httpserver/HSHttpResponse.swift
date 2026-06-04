@@ -35,13 +35,22 @@ import JavaScriptCore
     /// Factory equivalent to `new Response(body, init)`. The JS wrapper in
     /// `hs.httpserver.js` delegates here so users can write the canonical
     /// `new Response('hi', { status: 200 })` form.
+    /// - Parameter body: response body string (or null/undefined for an empty body)
+    /// - Parameter init_: response init object with optional `status`, `statusText`, and `headers`
+    /// - Returns: a new HSHttpResponse
     @objc(make::) static func make(_ body: JSValue, _ init_: JSValue) -> HSHttpResponse
 
     /// JSON convenience: `Response.json({ok: true})` → JSON-stringified body
     /// with `Content-Type: application/json`.
+    /// - Parameter value: JS value to JSON-stringify as the response body
+    /// - Parameter init_: optional response init object with `status`, `statusText`, and `headers`
+    /// - Returns: a new HSHttpResponse with JSON body and `Content-Type: application/json`
     @objc(json::) static func json(_ value: JSValue, _ init_: JSValue?) -> HSHttpResponse
 
     /// Redirect: sets `Location` header and a 3xx status (default 302).
+    /// - Parameter url: the URL to redirect to (set as the `Location` header)
+    /// - Parameter status: HTTP status code (default 302); must be a 3xx redirect code
+    /// - Returns: a new HSHttpResponse with the Location header set
     @objc(redirect::) static func redirect(_ url: String, _ status: NSNumber?) -> HSHttpResponse
 }
 

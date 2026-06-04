@@ -12,6 +12,9 @@ import Foundation
 import JavaScriptCore
 import AppKit
 
+/// A single status item in the macOS menu bar, created via `hs.menubar.new()`.
+/// Provides a builder-style API for setting an icon, title, click callback, and
+/// querying the on-screen frame so callers can anchor a popover beneath it.
 @objc protocol HSMenubarItemAPI: HSTypeAPI, JSExport {
     /// Set the status-item title (e.g. a `mm:ss` countdown). Empty string clears it.
     /// - Parameters:

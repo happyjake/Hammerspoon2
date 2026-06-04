@@ -28,27 +28,39 @@ import JavaScriptCore
 
     /// Get the combined value for a header name (case-insensitive). Multi-value
     /// headers are joined with `, ` per RFC 7230 §3.2.2.
+    /// - Parameter name: the header name to look up (case-insensitive)
+    /// - Returns: the combined header value, or null if the header is not present
     @objc func get(_ name: String) -> String?
 
     /// Set a header to a single value, replacing any prior value(s).
+    /// - Parameter name: the header name (case-insensitive)
+    /// - Parameter value: the value to set
     @objc func set(_ name: String, _ value: String)
 
     /// True if the header is present.
+    /// - Parameter name: the header name to test (case-insensitive)
+    /// - Returns: true if the header is present
     @objc func has(_ name: String) -> Bool
 
     /// Remove a header.
+    /// - Parameter name: the header name to remove (case-insensitive)
     @objc(delete:) func deleteHeader(_ name: String)
 
     /// Append a value to a header; the prior value(s) are kept.
+    /// - Parameter name: the header name (case-insensitive)
+    /// - Parameter value: the value to append
     @objc func append(_ name: String, _ value: String)
 
     /// All header names (lower-cased).
+    /// - Returns: all header names, lower-cased
     @objc func keys() -> [String]
 
     /// All header values, in the same order as `keys()`.
+    /// - Returns: all header values, in the same order as `keys()`
     @objc func values() -> [String]
 
     /// `[[name, value], …]` pairs.
+    /// - Returns: `[[name, value], …]` pairs of every header
     @objc func entries() -> [[String]]
 }
 

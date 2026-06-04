@@ -23,8 +23,13 @@ import JavaScriptCore
 /// creation; call `stop()` to shut it down. Each accepted connection
 /// dispatches to the user-supplied `fetch` handler.
 @objc protocol HSHttpServerAPI: HSTypeAPI, JSExport {
+    /// Hostname the server is bound to (e.g. `"127.0.0.1"` or `"0.0.0.0"`).
     @objc var hostname: String { get }
+
+    /// TCP port the server is listening on.
     @objc var port: Int { get }
+
+    /// Base URL of the server (e.g. `"http://127.0.0.1:9876/"`).
     @objc var url: String { get }
 
     /// Stop the server. Idempotent.

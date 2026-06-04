@@ -16,11 +16,22 @@ import JavaScriptCore
 /// and a body-as-string/json accessor. Passed to the user's `fetch`
 /// handler to produce a Response.
 @objc protocol HSHttpRequestAPI: HSTypeAPI, JSExport {
+    /// HTTP method, upper-cased (e.g. `"GET"`, `"POST"`).
     @objc var method: String { get }
+
+    /// Absolute URL of the request (e.g. `"http://127.0.0.1:9876/path?q=1"`).
     @objc var url: String { get }
+
+    /// Path component of the URL, without query string (e.g. `"/path"`).
     @objc var pathname: String { get }
+
+    /// Request headers.
     @objc var headers: HSHttpHeaders { get }
+
+    /// Remote IP address of the client (e.g. `"127.0.0.1"`).
     @objc var remoteAddress: String { get }
+
+    /// True if the body has already been consumed by `text()` or `json()`.
     @objc var bodyUsed: Bool { get }
 
     /// Decode the request body as UTF-8 text.
@@ -32,10 +43,8 @@ import JavaScriptCore
     /// - Returns: {Promise<any>} A Promise resolving to the parsed JSON value.
     @objc func json() -> JSPromise?
 
-    /// URLSearchParams for the URL's query string — exposed via the JS-side
-    /// polyfill (hs.httpserver.js). Returns the raw query string here; the JS
-    /// shim wraps it.
-    /// - Returns: query string (without leading '?'), or empty
+    /// Raw query string from the URL (without leading `?`), or empty string.
+    /// The JS-side shim in `hs.httpserver.js` wraps this as `URLSearchParams`.
     @objc var search: String { get }
 }
 

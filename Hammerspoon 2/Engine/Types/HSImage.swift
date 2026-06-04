@@ -88,6 +88,7 @@ import Observation
     /// "gearshape", "terminal", "arrow.up.right.square"). Returns nil if
     /// the symbol name is not recognised by the system.
     /// - Parameter name: SF Symbol identifier
+    /// - Returns: An HSImage wrapping the SF Symbol, or nil if the symbol name is not found
     /// - Example:
     /// ```js
     /// const img = HSImage.fromSymbol('magnifyingglass')
