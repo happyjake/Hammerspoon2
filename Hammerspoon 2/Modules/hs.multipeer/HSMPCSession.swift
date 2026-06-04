@@ -106,6 +106,7 @@ import MultipeerConnectivity
     private let myPeerID: MCPeerID
     private let encPref: MCEncryptionPreference
     private let serviceType: String
+    private let allowPeers: [String]   // displayName prefixes we'll pair with; empty = any peer
     private var advertiser: MCNearbyServiceAdvertiser
     private var browser: MCNearbyServiceBrowser
     private var started = false
@@ -113,9 +114,10 @@ import MultipeerConnectivity
     private var peerCb: JSValue?
     private var receiveCb: JSValue?
 
-    init(serviceType: String, displayName: String, context: String, encryption: String) {
+    init(serviceType: String, displayName: String, context: String, encryption: String, allowPeers: [String] = []) {
         let dn = displayName.isEmpty ? "Mac" : displayName
         self.serviceType = serviceType
+        self.allowPeers = allowPeers
         self.myDisplayName = dn
         self.inviteContext = context.data(using: .utf8) ?? Data()
         let enc: MCEncryptionPreference
@@ -204,6 +206,16 @@ import MultipeerConnectivity
         _ = receiveCb?.callSafely(withArguments: [base64, name], context: "hs.multipeer")
     }
 
+    // A peer is acceptable iff its displayName has one of the allowPeers prefixes — or the list
+    // is empty (= pair with anyone on this service+context). Lets a caller (e.g. CrossMac) pair
+    // only with its intended counterpart and ignore other advertisers (an unrelated Mac/VM) that
+    // happen to share the serviceType + context on the LAN.
+    private nonisolated func isAllowedPeer(_ peerID: MCPeerID) -> Bool {
+        if allowPeers.isEmpty { return true }
+        let name = peerID.displayName
+        return allowPeers.contains { !$0.isEmpty && name.hasPrefix($0) }
+    }
+
     // MARK: - MCSessionDelegate (private queue → hop to main)
 
     nonisolated func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
@@ -233,7 +245,7 @@ import MultipeerConnectivity
 
     nonisolated func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID,
                                 withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
-        let ok = (context == inviteContext)
+        let ok = (context == inviteContext) && isAllowedPeer(peerID)
         // Accept synchronously on the MPC queue (allowed by MPC) into the current session.
         unsafe invitationHandler(ok, ok ? session : nil)
     }
@@ -248,6 +260,7 @@ import MultipeerConnectivity
     nonisolated func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
         if peerID.displayName == myDisplayName { return }
         if unsafe session.connectedPeers.contains(peerID) { return }
+        guard isAllowedPeer(peerID) else { return }   // ignore advertisers that aren't our counterpart
         // Tiebreaker: avoid a symmetric-invite race. If both peers invite each other into
         // their own sessions, MCSession resolves the "glare" unreliably and often never
         // reaches .connected. Make invitation one-directional — only the peer with the

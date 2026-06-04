@@ -6768,13 +6768,13 @@
         {
           "name": "session",
           "signature": "func session(_ config: [String: Any]) -> HSMPCSession",
-          "rawDocumentation": "Create a Multipeer session.\n- Parameter config: `{ serviceType?, displayName?, context?, encryption? }`.\n  `serviceType` defaults to `\"voicekb-cs\"` (≤15 chars, `[a-z0-9-]`);\n  `displayName` defaults to this host's name; `context` (the shared invite\n  secret both peers must match) defaults to `\"voicekb-mpc-v1\"`;\n  `encryption` is `\"required\"` (default), `\"optional\"`, or `\"none\"`.\n- Returns: an `HSMPCSession` (call `start()` to begin advertising + browsing).\n- Example:\n```js\nconst s = hs.multipeer.session({ displayName: 'MacA-' + hs.appinfo.pid })\ns.onPeer((peer, state) => console.log(peer, state)).start()\n```",
-          "description": "Create a Multipeer session.\n`serviceType` defaults to `\"voicekb-cs\"` (≤15 chars, `[a-z0-9-]`);\n`displayName` defaults to this host's name; `context` (the shared invite\nsecret both peers must match) defaults to `\"voicekb-mpc-v1\"`;\n`encryption` is `\"required\"` (default), `\"optional\"`, or `\"none\"`.",
+          "rawDocumentation": "Create a Multipeer session.\n- Parameter config: `{ serviceType?, displayName?, context?, encryption?, allowPeers? }`.\n  `serviceType` defaults to `\"voicekb-cs\"` (≤15 chars, `[a-z0-9-]`);\n  `displayName` defaults to this host's name; `context` (the shared invite\n  secret both peers must match) defaults to `\"voicekb-mpc-v1\"`;\n  `encryption` is `\"required\"` (default), `\"optional\"`, or `\"none\"`.\n  `allowPeers` (optional `[String]`) restricts pairing to peers whose displayName\n  begins with one of these prefixes — others sharing the service+context are ignored.\n- Returns: an `HSMPCSession` (call `start()` to begin advertising + browsing).\n- Example:\n```js\nconst s = hs.multipeer.session({ displayName: 'MacA-' + hs.appinfo.pid })\ns.onPeer((peer, state) => console.log(peer, state)).start()\n```",
+          "description": "Create a Multipeer session.\n`serviceType` defaults to `\"voicekb-cs\"` (≤15 chars, `[a-z0-9-]`);\n`displayName` defaults to this host's name; `context` (the shared invite\nsecret both peers must match) defaults to `\"voicekb-mpc-v1\"`;\n`encryption` is `\"required\"` (default), `\"optional\"`, or `\"none\"`.\n`allowPeers` (optional `[String]`) restricts pairing to peers whose displayName\nbegins with one of these prefixes — others sharing the service+context are ignored.",
           "params": [
             {
               "name": "config",
               "type": "[String: Any]",
-              "description": "`{ serviceType?, displayName?, context?, encryption? }`."
+              "description": "`{ serviceType?, displayName?, context?, encryption?, allowPeers? }`."
             }
           ],
           "returns": {
@@ -6789,7 +6789,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.multipeer/HSMultipeerModule.swift",
-          "lineNumber": 35
+          "lineNumber": 37
         }
       ],
       "properties": [],
@@ -14717,5 +14717,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-04T09:55:43.701Z"
+  "generatedAt": "2026-06-04T10:43:20.163Z"
 }

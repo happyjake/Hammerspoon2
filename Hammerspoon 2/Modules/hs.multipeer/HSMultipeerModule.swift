@@ -21,11 +21,13 @@ import MultipeerConnectivity
 /// exposes honest peer events plus `start` / `stop` / `reset`.
 @objc protocol HSMultipeerModuleAPI: JSExport {
     /// Create a Multipeer session.
-    /// - Parameter config: `{ serviceType?, displayName?, context?, encryption? }`.
+    /// - Parameter config: `{ serviceType?, displayName?, context?, encryption?, allowPeers? }`.
     ///   `serviceType` defaults to `"voicekb-cs"` (≤15 chars, `[a-z0-9-]`);
     ///   `displayName` defaults to this host's name; `context` (the shared invite
     ///   secret both peers must match) defaults to `"voicekb-mpc-v1"`;
     ///   `encryption` is `"required"` (default), `"optional"`, or `"none"`.
+    ///   `allowPeers` (optional `[String]`) restricts pairing to peers whose displayName
+    ///   begins with one of these prefixes — others sharing the service+context are ignored.
     /// - Returns: an `HSMPCSession` (call `start()` to begin advertising + browsing).
     /// - Example:
     /// ```js
@@ -65,7 +67,8 @@ import MultipeerConnectivity
             serviceType: (config["serviceType"] as? String) ?? "voicekb-cs",
             displayName: (config["displayName"] as? String) ?? (Host.current().localizedName ?? "Mac"),
             context: (config["context"] as? String) ?? "voicekb-mpc-v1",
-            encryption: (config["encryption"] as? String) ?? "required")
+            encryption: (config["encryption"] as? String) ?? "required",
+            allowPeers: (config["allowPeers"] as? [String]) ?? [])
         sessions.append(s)
         return s
     }

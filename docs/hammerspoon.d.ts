@@ -2909,7 +2909,9 @@ declare namespace hs.multipeer {
 `displayName` defaults to this host's name; `context` (the shared invite
 secret both peers must match) defaults to `"voicekb-mpc-v1"`;
 `encryption` is `"required"` (default), `"optional"`, or `"none"`.
-     * @param config `{ serviceType?, displayName?, context?, encryption? }`.
+`allowPeers` (optional `[String]`) restricts pairing to peers whose displayName
+begins with one of these prefixes — others sharing the service+context are ignored.
+     * @param config `{ serviceType?, displayName?, context?, encryption?, allowPeers? }`.
      * @returns an `HSMPCSession` (call `start()` to begin advertising + browsing).
      */
     function session(config: Record<string, any>): HSMPCSession;
