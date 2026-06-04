@@ -75,7 +75,7 @@ final class HSSwitcherKeyHandler {
             callback: cb,
             userInfo: opaqueSelf
         ) else {
-            AKError("HSSwitcherKeyHandler: CGEvent.tapCreate failed — Input Monitoring permission missing?")
+            AKError("HSSwitcherKeyHandler: CGEvent.tapCreate failed — grant Accessibility permission (active event taps require Accessibility).")
             return false
         }
         self.tap = t

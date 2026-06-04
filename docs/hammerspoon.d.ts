@@ -1817,7 +1817,7 @@ declare namespace hs.eventtap {
     /**
      * Create a new event tap for the specified event types.
 Call .start() on the returned object to begin receiving events.
-Requires Input Monitoring permission.
+Requires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).
      * @param eventTypes Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'
      * @param callback Function called with an event object. Return true to consume (suppress) the event.
      * @returns An HSEventTap instance
@@ -1825,11 +1825,15 @@ Requires Input Monitoring permission.
     function makeTap(eventTypes: string[], callback: JSValue): HSEventTap;
 
     /**
-     * Synthesise a key stroke (M1 stub — lands in M3/M4).
+     * Synthesise a key stroke: press the modifiers + key, hold, then release.
+and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's
+`hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target
+app — the clipboard gets set but the paste never lands.
      * @param mods Array of modifier strings, e.g. ['cmd']
      * @param key Key name, e.g. 'v'
+     * @param delay Optional number of microseconds the key is held between keyDown
      */
-    function keyStroke(mods: string[], key: string): void;
+    function keyStroke(mods: string[], key: string, delay: JSValue): void;
 
     /**
      * Type a string by synthesising key events (M1 stub — lands in M4).
@@ -1845,7 +1849,7 @@ Requires Input Monitoring permission.
 declare class HSEventTap {
     /**
      * Start the event tap. Returns true on success.
-Requires Input Monitoring permission. Returns false if permission is missing.
+Requires Accessibility permission (active event taps). Returns false if permission is missing.
      * @returns true if the tap was started successfully
      */
     static start(): boolean;

@@ -80,7 +80,7 @@ struct SettingsPermissionsView: View {
             Spacer()
             VStack {
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 12) {
-                    ForEach(PermissionsType.allCases, id: \.self) { permType in
+                    ForEach(PermissionsType.panel, id: \.self) { permType in
                         PermissionRowView(
                             permType: permType,
                             state: permissionStates[permType] ?? .unknown
@@ -104,7 +104,7 @@ struct SettingsPermissionsView: View {
     }
 
     private func refreshPermissions() {
-        for permType in PermissionsType.allCases {
+        for permType in PermissionsType.panel {
             permissionStates[permType] = PermissionsManager.shared.state(permType)
         }
     }

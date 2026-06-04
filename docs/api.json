@@ -3652,8 +3652,8 @@
         {
           "name": "makeTap",
           "signature": "func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap",
-          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Input Monitoring permission.\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n```",
-          "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Input Monitoring permission.",
+          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n```",
+          "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).",
           "params": [
             {
               "name": "eventTypes",
@@ -3682,9 +3682,9 @@
         },
         {
           "name": "keyStroke",
-          "signature": "func keyStroke(_ mods: [String], _ key: String)",
-          "rawDocumentation": "Synthesise a key stroke (M1 stub — lands in M3/M4).\n- Parameter mods: Array of modifier strings, e.g. ['cmd']\n- Parameter key: Key name, e.g. 'v'\n- Example:\n```js\nhs.eventtap.keyStroke(['cmd'], 'v')\n```",
-          "description": "Synthesise a key stroke (M1 stub — lands in M3/M4).",
+          "signature": "func keyStroke(_ mods: [String], _ key: String, _ delay: JSValue)",
+          "rawDocumentation": "Synthesise a key stroke: press the modifiers + key, hold, then release.\n- Parameter mods: Array of modifier strings, e.g. ['cmd']\n- Parameter key: Key name, e.g. 'v'\n- Parameter delay: Optional number of microseconds the key is held between keyDown\n  and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n  `hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\n  app — the clipboard gets set but the paste never lands.\n- Example:\n```js\nhs.eventtap.keyStroke(['cmd'], 'v')          // 200 ms default hold\nhs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold\n```",
+          "description": "Synthesise a key stroke: press the modifiers + key, hold, then release.\nand keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n`hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\napp — the clipboard gets set but the paste never lands.",
           "params": [
             {
               "name": "mods",
@@ -3695,18 +3695,23 @@
               "name": "key",
               "type": "String",
               "description": "Key name, e.g. 'v'"
+            },
+            {
+              "name": "delay",
+              "type": "JSValue",
+              "description": "Optional number of microseconds the key is held between keyDown"
             }
           ],
           "returns": null,
           "examples": [
             {
               "lang": "js",
-              "code": "hs.eventtap.keyStroke(['cmd'], 'v')"
+              "code": "hs.eventtap.keyStroke(['cmd'], 'v')          // 200 ms default hold\nhs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold"
             }
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 37
+          "lineNumber": 42
         },
         {
           "name": "typeText",
@@ -3729,7 +3734,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 45
+          "lineNumber": 50
         }
       ],
       "properties": [],
@@ -3743,8 +3748,8 @@
             {
               "name": "start",
               "signature": "func start() -> Bool",
-              "rawDocumentation": "Start the event tap. Returns true on success.\nRequires Input Monitoring permission. Returns false if permission is missing.\n- Returns: true if the tap was started successfully\n- Example:\n```js\nconst tap = hs.eventtap.new(['keyDown'], e => false)\ntap.start()\n```",
-              "description": "Start the event tap. Returns true on success.\nRequires Input Monitoring permission. Returns false if permission is missing.",
+              "rawDocumentation": "Start the event tap. Returns true on success.\nRequires Accessibility permission (active event taps). Returns false if permission is missing.\n- Returns: true if the tap was started successfully\n- Example:\n```js\nconst tap = hs.eventtap.new(['keyDown'], e => false)\ntap.start()\n```",
+              "description": "Start the event tap. Returns true on success.\nRequires Accessibility permission (active event taps). Returns false if permission is missing.",
               "params": [],
               "returns": {
                 "type": "Bool",
@@ -14712,5 +14717,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-02T00:40:41.818Z"
+  "generatedAt": "2026-06-04T09:55:43.701Z"
 }

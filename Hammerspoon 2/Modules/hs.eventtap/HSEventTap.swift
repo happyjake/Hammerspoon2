@@ -10,7 +10,7 @@ import AppKit
 /// Object representing a CGEventTap-based global key event tap.
 @objc protocol HSEventTapAPI: HSTypeAPI, JSExport {
     /// Start the event tap. Returns true on success.
-    /// Requires Input Monitoring permission. Returns false if permission is missing.
+    /// Requires Accessibility permission (active event taps). Returns false if permission is missing.
     /// - Returns: true if the tap was started successfully
     /// - Example:
     /// ```js
@@ -87,7 +87,7 @@ import AppKit
             callback: cb,
             userInfo: opaqueSelf
         ) else {
-            AKError("HSEventTap.start(): CGEvent.tapCreate returned nil. Check Input Monitoring permission.")
+            AKError("HSEventTap.start(): CGEvent.tapCreate returned nil. Grant Accessibility permission (active event taps require Accessibility; keyboard monitoring may also need Input Monitoring).")
             return false
         }
         self.tap = t

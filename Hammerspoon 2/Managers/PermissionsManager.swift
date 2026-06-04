@@ -10,6 +10,7 @@ import Foundation
 import AVFoundation
 import CoreLocation
 import UserNotifications
+import IOKit.hid
 
 @_documentation(visibility: private)
 enum PermissionsState: Int {
@@ -26,6 +27,12 @@ enum PermissionsType: Int, CaseIterable {
     case notifications
     case screencapture
     case location
+    case inputMonitoring   // appended last so existing raw values don't shift
+
+    /// The subset shown in Settings → Permissions, in display order. The enum still carries
+    /// every permission the hs.permissions JS module can query (camera/microphone/screen/
+    /// location); the panel intentionally lists only what this build's features actually need.
+    static let panel: [PermissionsType] = [.accessibility, .inputMonitoring, .notifications]
 
     var displayName: String {
         switch self {
@@ -35,6 +42,7 @@ enum PermissionsType: Int, CaseIterable {
         case .notifications:  return "Notifications"
         case .screencapture:  return "Screen Recording"
         case .location:       return "Location"
+        case .inputMonitoring: return "Input Monitoring"
         }
     }
 
@@ -46,6 +54,7 @@ enum PermissionsType: Int, CaseIterable {
         case .notifications:  return "Allows displaying system notifications"
         case .screencapture:  return "Allows capturing screen content"
         case .location:       return "Allows accessing this computer's location"
+        case .inputMonitoring: return "Allows monitoring keyboard and other input devices (required for global hotkeys/eventtaps that consume keys)"
         }
     }
 
@@ -58,6 +67,7 @@ enum PermissionsType: Int, CaseIterable {
         case .notifications:  return URL(string: "x-apple.systempreferences:com.apple.preference.notifications")!
         case .screencapture:  path = "Privacy_ScreenCapture"
         case .location:       path = "Privacy_LocationServices"
+        case .inputMonitoring: path = "Privacy_ListenEvent"
         }
         // swiftlint:disable:next force_unwrapping
         return URL(string: "x-apple.systempreferences:com.apple.preference.security?\(path)")!
@@ -118,6 +128,8 @@ class PermissionsManager: NSObject {
             case .notDetermined:                 return .unknown
             default:                             return .notTrusted
             }
+        case .inputMonitoring:
+            return IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted ? .trusted : .notTrusted
         }
     }
 
@@ -137,6 +149,8 @@ class PermissionsManager: NSObject {
         case .location:
             let status = CLLocationManager().authorizationStatus
             return status == .authorized || status == .authorizedAlways
+        case .inputMonitoring:
+            return IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
         }
     }
 
@@ -195,6 +209,11 @@ class PermissionsManager: NSObject {
             default:
                 callback?(false)
             }
+        case .inputMonitoring:
+            // IOHIDRequestAccess adds us to the Input Monitoring list and prompts; the grant
+            // typically takes effect on next launch, so the returned value may be false now.
+            let granted = IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
+            callback?(granted)
         }
     }
 }

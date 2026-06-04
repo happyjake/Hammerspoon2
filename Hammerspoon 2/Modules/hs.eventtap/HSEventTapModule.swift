@@ -13,7 +13,7 @@ import CoreGraphics
 @objc protocol HSEventTapModuleAPI: JSExport {
     /// Create a new event tap for the specified event types.
     /// Call .start() on the returned object to begin receiving events.
-    /// Requires Input Monitoring permission.
+    /// Requires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).
     /// - Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'
     /// - Parameter callback: Function called with an event object. Return true to consume (suppress) the event.
     /// - Returns: An HSEventTap instance
