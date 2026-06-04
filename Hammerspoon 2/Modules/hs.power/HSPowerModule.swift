@@ -422,15 +422,27 @@ import IOKit.pwr_mgt
     }
 
     func lockScreen() {
-        let cgSession = "/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession"
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: cgSession)
-        process.arguments = ["-suspend"]
-        do {
-            try process.run()
-            AKTrace("hs.power.lockScreen: CGSession -suspend launched")
-        } catch {
-            AKError("hs.power.lockScreen: failed to launch CGSession: \(error)")
+        // SACLockScreenImmediate() from the private login.framework — the lock mechanism modern
+        // macOS uses (matches Hammerspoon 1's hs.caffeinate.lockScreen). The old CGSession
+        // "-suspend" binary under /System/Library/CoreServices/Menu Extras/ was removed from
+        // macOS (gone as of macOS 26), so launching it silently failed and nothing locked.
+        let loginFramework = "/System/Library/PrivateFrameworks/login.framework/login"
+        guard let handle = unsafe dlopen(loginFramework, RTLD_NOW) else {
+            AKError("hs.power.lockScreen: could not load login.framework")
+            return
+        }
+        defer { unsafe dlclose(handle) }
+        guard let sym = unsafe dlsym(handle, "SACLockScreenImmediate") else {
+            AKError("hs.power.lockScreen: SACLockScreenImmediate unavailable")
+            return
+        }
+        typealias LockScreenFn = @convention(c) () -> Int32
+        let lockScreenImmediate = unsafe unsafeBitCast(sym, to: LockScreenFn.self)
+        let rc = unsafe lockScreenImmediate()
+        if rc == 0 {
+            AKTrace("hs.power.lockScreen: SACLockScreenImmediate ok")
+        } else {
+            AKWarning("hs.power.lockScreen: SACLockScreenImmediate returned \(rc)")
         }
     }
 
