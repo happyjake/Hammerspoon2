@@ -24,6 +24,8 @@
 		<string>_voicekb-cs._tcp</string>
 		<string>_voicekb-cs._udp</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Hammerspoon 2 uses the local network to sync the clipboard and transfer data between your Macs for the CrossMac feature.</string>
 	<key>SUFeedURL</key>
 	<string>https://www.hammerspoon.org/appcast2.xml</string>
 </dict>

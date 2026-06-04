@@ -248,6 +248,11 @@ import MultipeerConnectivity
     nonisolated func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
         if peerID.displayName == myDisplayName { return }
         if unsafe session.connectedPeers.contains(peerID) { return }
+        // Tiebreaker: avoid a symmetric-invite race. If both peers invite each other into
+        // their own sessions, MCSession resolves the "glare" unreliably and often never
+        // reaches .connected. Make invitation one-directional — only the peer with the
+        // greater displayName initiates; the other only advertises and accepts the invite.
+        guard myDisplayName > peerID.displayName else { return }
         unsafe browser.invitePeer(peerID, to: session, withContext: inviteContext, timeout: 30)
     }
 
