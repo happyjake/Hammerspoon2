@@ -5401,153 +5401,153 @@
             {
               "name": "get",
               "signature": "func get(_ name: String) -> String?",
-              "rawDocumentation": "Get the combined value for a header name (case-insensitive). Multi-value\nheaders are joined with `, ` per RFC 7230 §3.2.2.",
+              "rawDocumentation": "Get the combined value for a header name (case-insensitive). Multi-value\nheaders are joined with `, ` per RFC 7230 §3.2.2.\n- Parameter name: the header name to look up (case-insensitive)\n- Returns: the combined header value, or null if the header is not present",
               "description": "Get the combined value for a header name (case-insensitive). Multi-value\nheaders are joined with `, ` per RFC 7230 §3.2.2.",
               "params": [
                 {
                   "name": "name",
                   "type": "String",
-                  "description": ""
+                  "description": "the header name to look up (case-insensitive)"
                 }
               ],
               "returns": {
                 "type": "String?",
-                "description": ""
+                "description": "the combined header value, or null if the header is not present"
               },
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 31
+              "lineNumber": 33
             },
             {
               "name": "set",
               "signature": "func set(_ name: String, _ value: String)",
-              "rawDocumentation": "Set a header to a single value, replacing any prior value(s).",
+              "rawDocumentation": "Set a header to a single value, replacing any prior value(s).\n- Parameter name: the header name (case-insensitive)\n- Parameter value: the value to set",
               "description": "Set a header to a single value, replacing any prior value(s).",
               "params": [
                 {
                   "name": "name",
                   "type": "String",
-                  "description": ""
+                  "description": "the header name (case-insensitive)"
                 },
                 {
                   "name": "value",
                   "type": "String",
-                  "description": ""
+                  "description": "the value to set"
                 }
               ],
               "returns": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 34
+              "lineNumber": 38
             },
             {
               "name": "has",
               "signature": "func has(_ name: String) -> Bool",
-              "rawDocumentation": "True if the header is present.",
+              "rawDocumentation": "True if the header is present.\n- Parameter name: the header name to test (case-insensitive)\n- Returns: true if the header is present",
               "description": "True if the header is present.",
               "params": [
                 {
                   "name": "name",
                   "type": "String",
-                  "description": ""
+                  "description": "the header name to test (case-insensitive)"
                 }
               ],
               "returns": {
                 "type": "Bool",
-                "description": ""
+                "description": "true if the header is present"
               },
-              "examples": [],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 37
-            },
-            {
-              "name": "deleteHeader",
-              "signature": "func deleteHeader(_ name: String)",
-              "rawDocumentation": "Remove a header.",
-              "description": "Remove a header.",
-              "params": [
-                {
-                  "name": "name",
-                  "type": "String",
-                  "description": ""
-                }
-              ],
-              "returns": null,
-              "examples": [],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 40
-            },
-            {
-              "name": "append",
-              "signature": "func append(_ name: String, _ value: String)",
-              "rawDocumentation": "Append a value to a header; the prior value(s) are kept.",
-              "description": "Append a value to a header; the prior value(s) are kept.",
-              "params": [
-                {
-                  "name": "name",
-                  "type": "String",
-                  "description": ""
-                },
-                {
-                  "name": "value",
-                  "type": "String",
-                  "description": ""
-                }
-              ],
-              "returns": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
               "lineNumber": 43
             },
             {
-              "name": "keys",
-              "signature": "func keys() -> [String]",
-              "rawDocumentation": "All header names (lower-cased).",
-              "description": "All header names (lower-cased).",
-              "params": [],
-              "returns": {
-                "type": "[String]",
-                "description": ""
-              },
+              "name": "deleteHeader",
+              "signature": "func deleteHeader(_ name: String)",
+              "rawDocumentation": "Remove a header.\n- Parameter name: the header name to remove (case-insensitive)",
+              "description": "Remove a header.",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": "the header name to remove (case-insensitive)"
+                }
+              ],
+              "returns": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 46
+              "lineNumber": 47
             },
             {
-              "name": "values",
-              "signature": "func values() -> [String]",
-              "rawDocumentation": "All header values, in the same order as `keys()`.",
-              "description": "All header values, in the same order as `keys()`.",
-              "params": [],
-              "returns": {
-                "type": "[String]",
-                "description": ""
-              },
-              "examples": [],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
-              "lineNumber": 49
-            },
-            {
-              "name": "entries",
-              "signature": "func entries() -> [[String]]",
-              "rawDocumentation": "`[[name, value], …]` pairs.",
-              "description": "`[[name, value], …]` pairs.",
-              "params": [],
-              "returns": {
-                "type": "[[String]]",
-                "description": ""
-              },
+              "name": "append",
+              "signature": "func append(_ name: String, _ value: String)",
+              "rawDocumentation": "Append a value to a header; the prior value(s) are kept.\n- Parameter name: the header name (case-insensitive)\n- Parameter value: the value to append",
+              "description": "Append a value to a header; the prior value(s) are kept.",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": "the header name (case-insensitive)"
+                },
+                {
+                  "name": "value",
+                  "type": "String",
+                  "description": "the value to append"
+                }
+              ],
+              "returns": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
               "lineNumber": 52
+            },
+            {
+              "name": "keys",
+              "signature": "func keys() -> [String]",
+              "rawDocumentation": "All header names (lower-cased).\n- Returns: all header names, lower-cased",
+              "description": "All header names (lower-cased).",
+              "params": [],
+              "returns": {
+                "type": "[String]",
+                "description": "all header names, lower-cased"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 56
+            },
+            {
+              "name": "values",
+              "signature": "func values() -> [String]",
+              "rawDocumentation": "All header values, in the same order as `keys()`.\n- Returns: all header values, in the same order as `keys()`",
+              "description": "All header values, in the same order as `keys()`.",
+              "params": [],
+              "returns": {
+                "type": "[String]",
+                "description": "all header values, in the same order as `keys()`"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 60
+            },
+            {
+              "name": "entries",
+              "signature": "func entries() -> [[String]]",
+              "rawDocumentation": "`[[name, value], …]` pairs.\n- Returns: `[[name, value], …]` pairs of every header",
+              "description": "`[[name, value], …]` pairs.",
+              "params": [],
+              "returns": {
+                "type": "[[String]]",
+                "description": "`[[name, value], …]` pairs of every header"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift",
+              "lineNumber": 64
             }
           ],
           "properties": []
@@ -5572,7 +5572,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 29
+              "lineNumber": 40
             },
             {
               "name": "json",
@@ -5588,79 +5588,79 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 33
+              "lineNumber": 44
             }
           ],
           "properties": [
             {
               "name": "method",
               "signature": "var method: String { get }",
-              "rawDocumentation": "",
-              "description": "",
-              "examples": [],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 19
-            },
-            {
-              "name": "url",
-              "signature": "var url: String { get }",
-              "rawDocumentation": "",
-              "description": "",
+              "rawDocumentation": "HTTP method, upper-cased (e.g. `\"GET\"`, `\"POST\"`).",
+              "description": "HTTP method, upper-cased (e.g. `\"GET\"`, `\"POST\"`).",
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
               "lineNumber": 20
             },
             {
-              "name": "pathname",
-              "signature": "var pathname: String { get }",
-              "rawDocumentation": "",
-              "description": "",
-              "examples": [],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 21
-            },
-            {
-              "name": "headers",
-              "signature": "var headers: HSHttpHeaders { get }",
-              "rawDocumentation": "",
-              "description": "",
-              "examples": [],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 22
-            },
-            {
-              "name": "remoteAddress",
-              "signature": "var remoteAddress: String { get }",
-              "rawDocumentation": "",
-              "description": "",
+              "name": "url",
+              "signature": "var url: String { get }",
+              "rawDocumentation": "Absolute URL of the request (e.g. `\"http://127.0.0.1:9876/path?q=1\"`).",
+              "description": "Absolute URL of the request (e.g. `\"http://127.0.0.1:9876/path?q=1\"`).",
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
               "lineNumber": 23
             },
             {
-              "name": "bodyUsed",
-              "signature": "var bodyUsed: Bool { get }",
-              "rawDocumentation": "",
-              "description": "",
+              "name": "pathname",
+              "signature": "var pathname: String { get }",
+              "rawDocumentation": "Path component of the URL, without query string (e.g. `\"/path\"`).",
+              "description": "Path component of the URL, without query string (e.g. `\"/path\"`).",
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 24
+              "lineNumber": 26
+            },
+            {
+              "name": "headers",
+              "signature": "var headers: HSHttpHeaders { get }",
+              "rawDocumentation": "Request headers.",
+              "description": "Request headers.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 29
+            },
+            {
+              "name": "remoteAddress",
+              "signature": "var remoteAddress: String { get }",
+              "rawDocumentation": "Remote IP address of the client (e.g. `\"127.0.0.1\"`).",
+              "description": "Remote IP address of the client (e.g. `\"127.0.0.1\"`).",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 32
+            },
+            {
+              "name": "bodyUsed",
+              "signature": "var bodyUsed: Bool { get }",
+              "rawDocumentation": "True if the body has already been consumed by `text()` or `json()`.",
+              "description": "True if the body has already been consumed by `text()` or `json()`.",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
+              "lineNumber": 35
             },
             {
               "name": "search",
               "signature": "var search: String { get }",
-              "rawDocumentation": "URLSearchParams for the URL's query string — exposed via the JS-side\npolyfill (hs.httpserver.js). Returns the raw query string here; the JS\nshim wraps it.\n- Returns: query string (without leading '?'), or empty",
-              "description": "URLSearchParams for the URL's query string — exposed via the JS-side\npolyfill (hs.httpserver.js). Returns the raw query string here; the JS\nshim wraps it.",
+              "rawDocumentation": "Raw query string from the URL (without leading `?`), or empty string.\nThe JS-side shim in `hs.httpserver.js` wraps this as `URLSearchParams`.",
+              "description": "Raw query string from the URL (without leading `?`), or empty string.\nThe JS-side shim in `hs.httpserver.js` wraps this as `URLSearchParams`.",
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpRequest.swift",
-              "lineNumber": 39
+              "lineNumber": 48
             }
           ]
         },
@@ -5673,80 +5673,80 @@
             {
               "name": "make",
               "signature": "static func make(_ body: JSValue, _ init_: JSValue) -> HSHttpResponse",
-              "rawDocumentation": "Factory equivalent to `new Response(body, init)`. The JS wrapper in\n`hs.httpserver.js` delegates here so users can write the canonical\n`new Response('hi', { status: 200 })` form.",
+              "rawDocumentation": "Factory equivalent to `new Response(body, init)`. The JS wrapper in\n`hs.httpserver.js` delegates here so users can write the canonical\n`new Response('hi', { status: 200 })` form.\n- Parameter body: response body string (or null/undefined for an empty body)\n- Parameter init_: response init object with optional `status`, `statusText`, and `headers`\n- Returns: a new HSHttpResponse",
               "description": "Factory equivalent to `new Response(body, init)`. The JS wrapper in\n`hs.httpserver.js` delegates here so users can write the canonical\n`new Response('hi', { status: 200 })` form.",
               "params": [
                 {
                   "name": "body",
                   "type": "JSValue",
-                  "description": ""
+                  "description": "response body string (or null/undefined for an empty body)"
                 },
                 {
                   "name": "init_",
                   "type": "JSValue",
-                  "description": ""
+                  "description": "response init object with optional `status`, `statusText`, and `headers`"
                 }
               ],
               "returns": {
                 "type": "HSHttpResponse",
-                "description": ""
+                "description": "a new HSHttpResponse"
               },
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 38
+              "lineNumber": 41
             },
             {
               "name": "json",
               "signature": "static func json(_ value: JSValue, _ init_: JSValue?) -> HSHttpResponse",
-              "rawDocumentation": "JSON convenience: `Response.json({ok: true})` → JSON-stringified body\nwith `Content-Type: application/json`.",
+              "rawDocumentation": "JSON convenience: `Response.json({ok: true})` → JSON-stringified body\nwith `Content-Type: application/json`.\n- Parameter value: JS value to JSON-stringify as the response body\n- Parameter init_: optional response init object with `status`, `statusText`, and `headers`\n- Returns: a new HSHttpResponse with JSON body and `Content-Type: application/json`",
               "description": "JSON convenience: `Response.json({ok: true})` → JSON-stringified body\nwith `Content-Type: application/json`.",
               "params": [
                 {
                   "name": "value",
                   "type": "JSValue",
-                  "description": ""
+                  "description": "JS value to JSON-stringify as the response body"
                 },
                 {
                   "name": "init_",
                   "type": "JSValue?",
-                  "description": ""
+                  "description": "optional response init object with `status`, `statusText`, and `headers`"
                 }
               ],
               "returns": {
                 "type": "HSHttpResponse",
-                "description": ""
+                "description": "a new HSHttpResponse with JSON body and `Content-Type: application/json`"
               },
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 42
+              "lineNumber": 48
             },
             {
               "name": "redirect",
               "signature": "static func redirect(_ url: String, _ status: NSNumber?) -> HSHttpResponse",
-              "rawDocumentation": "Redirect: sets `Location` header and a 3xx status (default 302).",
+              "rawDocumentation": "Redirect: sets `Location` header and a 3xx status (default 302).\n- Parameter url: the URL to redirect to (set as the `Location` header)\n- Parameter status: HTTP status code (default 302); must be a 3xx redirect code\n- Returns: a new HSHttpResponse with the Location header set",
               "description": "Redirect: sets `Location` header and a 3xx status (default 302).",
               "params": [
                 {
                   "name": "url",
                   "type": "String",
-                  "description": ""
+                  "description": "the URL to redirect to (set as the `Location` header)"
                 },
                 {
                   "name": "status",
                   "type": "NSNumber?",
-                  "description": ""
+                  "description": "HTTP status code (default 302); must be a 3xx redirect code"
                 }
               ],
               "returns": {
                 "type": "HSHttpResponse",
-                "description": ""
+                "description": "a new HSHttpResponse with the Location header set"
               },
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpResponse.swift",
-              "lineNumber": 45
+              "lineNumber": 54
             }
           ],
           "properties": [
@@ -5803,39 +5803,39 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
-              "lineNumber": 35
+              "lineNumber": 40
             }
           ],
           "properties": [
             {
               "name": "hostname",
               "signature": "var hostname: String { get }",
-              "rawDocumentation": "",
-              "description": "",
-              "examples": [],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
-              "lineNumber": 26
-            },
-            {
-              "name": "port",
-              "signature": "var port: Int { get }",
-              "rawDocumentation": "",
-              "description": "",
+              "rawDocumentation": "Hostname the server is bound to (e.g. `\"127.0.0.1\"` or `\"0.0.0.0\"`).",
+              "description": "Hostname the server is bound to (e.g. `\"127.0.0.1\"` or `\"0.0.0.0\"`).",
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
               "lineNumber": 27
             },
             {
-              "name": "url",
-              "signature": "var url: String { get }",
-              "rawDocumentation": "",
-              "description": "",
+              "name": "port",
+              "signature": "var port: Int { get }",
+              "rawDocumentation": "TCP port the server is listening on.",
+              "description": "TCP port the server is listening on.",
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
-              "lineNumber": 28
+              "lineNumber": 30
+            },
+            {
+              "name": "url",
+              "signature": "var url: String { get }",
+              "rawDocumentation": "Base URL of the server (e.g. `\"http://127.0.0.1:9876/\"`).",
+              "description": "Base URL of the server (e.g. `\"http://127.0.0.1:9876/\"`).",
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
+              "lineNumber": 33
             }
           ]
         }
@@ -6420,8 +6420,8 @@
         {
           "name": "HSMenubarItemAPI",
           "type": "typedef",
-          "rawDocumentation": "",
-          "description": "",
+          "rawDocumentation": "A single status item in the macOS menu bar, created via `hs.menubar.new()`.\nProvides a builder-style API for setting an icon, title, click callback, and\nquerying the on-screen frame so callers can anchor a popover beneath it.",
+          "description": "A single status item in the macOS menu bar, created via `hs.menubar.new()`.\nProvides a builder-style API for setting an icon, title, click callback, and\nquerying the on-screen frame so callers can anchor a popover beneath it.",
           "methods": [
             {
               "name": "setTitle",
@@ -6452,7 +6452,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
-              "lineNumber": 25
+              "lineNumber": 28
             },
             {
               "name": "setIcon",
@@ -6483,7 +6483,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
-              "lineNumber": 37
+              "lineNumber": 40
             },
             {
               "name": "setImage",
@@ -6514,7 +6514,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
-              "lineNumber": 48
+              "lineNumber": 51
             },
             {
               "name": "setSVG",
@@ -6545,7 +6545,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
-              "lineNumber": 62
+              "lineNumber": 65
             },
             {
               "name": "setCallback",
@@ -6571,7 +6571,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
-              "lineNumber": 71
+              "lineNumber": 74
             },
             {
               "name": "highlight",
@@ -6597,7 +6597,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
-              "lineNumber": 80
+              "lineNumber": 83
             },
             {
               "name": "frame",
@@ -6617,7 +6617,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
-              "lineNumber": 91
+              "lineNumber": 94
             },
             {
               "name": "remove",
@@ -6634,12 +6634,14 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenubarItem.swift",
-              "lineNumber": 98
+              "lineNumber": 101
             }
           ],
           "properties": []
         }
-      ]
+      ],
+      "description": "A single status item in the macOS menu bar, created via `hs.menubar.new()`.\nProvides a builder-style API for setting an icon, title, click callback, and\nquerying the on-screen frame so callers can anchor a popover beneath it.",
+      "rawDocumentation": "A single status item in the macOS menu bar, created via `hs.menubar.new()`.\nProvides a builder-style API for setting an icon, title, click callback, and\nquerying the on-screen frame so callers can anchor a popover beneath it."
     },
     {
       "name": "hs.mouse",
@@ -9323,8 +9325,8 @@
         {
           "name": "HSSqliteDBAPI",
           "type": "typedef",
-          "rawDocumentation": "",
-          "description": "",
+          "rawDocumentation": "A per-connection SQLite database object returned by `hs.sqlite.open()`.\nWraps a sqlite3 handle and exposes synchronous exec, parameterized run/query,\nand transaction helpers to JavaScript.",
+          "description": "A per-connection SQLite database object returned by `hs.sqlite.open()`.\nWraps a sqlite3 handle and exposes synchronous exec, parameterized run/query,\nand transaction helpers to JavaScript.",
           "methods": [
             {
               "name": "exec",
@@ -9350,7 +9352,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
-              "lineNumber": 38
+              "lineNumber": 41
             },
             {
               "name": "run",
@@ -9381,7 +9383,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
-              "lineNumber": 49
+              "lineNumber": 52
             },
             {
               "name": "query",
@@ -9412,7 +9414,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
-              "lineNumber": 60
+              "lineNumber": 63
             },
             {
               "name": "transaction",
@@ -9438,7 +9440,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
-              "lineNumber": 75
+              "lineNumber": 78
             },
             {
               "name": "close",
@@ -9455,7 +9457,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
-              "lineNumber": 83
+              "lineNumber": 86
             }
           ],
           "properties": [
@@ -9467,7 +9469,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
-              "lineNumber": 24
+              "lineNumber": 27
             },
             {
               "name": "isOpen",
@@ -9477,11 +9479,13 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.sqlite/HSSqliteDB.swift",
-              "lineNumber": 27
+              "lineNumber": 30
             }
           ]
         }
-      ]
+      ],
+      "description": "A per-connection SQLite database object returned by `hs.sqlite.open()`.\nWraps a sqlite3 handle and exposes synchronous exec, parameterized run/query,\nand transaction helpers to JavaScript.",
+      "rawDocumentation": "A per-connection SQLite database object returned by `hs.sqlite.open()`.\nWraps a sqlite3 handle and exposes synchronous exec, parameterized run/query,\nand transaction helpers to JavaScript."
     },
     {
       "name": "hs.switcher",
@@ -9555,18 +9559,18 @@
         {
           "name": "debugMove",
           "signature": "func debugMove(_ axis: String, _ delta: Int) -> Bool",
-          "rawDocumentation": "Programmatically move the current session's selection (no UI events).\n`axis` is 'app' or 'window'; `delta` is +1 / -1.\n- Returns: true if a session was active to move.",
-          "description": "Programmatically move the current session's selection (no UI events).\n`axis` is 'app' or 'window'; `delta` is +1 / -1.",
+          "rawDocumentation": "Programmatically move the current session's selection (no UI events).\n- Parameter axis: `'app'` to move between app columns, `'window'` to move between windows within an app\n- Parameter delta: direction to move — `+1` for forward, `-1` for backward\n- Returns: true if a session was active to move.",
+          "description": "Programmatically move the current session's selection (no UI events).",
           "params": [
             {
               "name": "axis",
               "type": "String",
-              "description": ""
+              "description": "`'app'` to move between app columns, `'window'` to move between windows within an app"
             },
             {
               "name": "delta",
               "type": "Int",
-              "description": ""
+              "description": "direction to move — `+1` for forward, `-1` for backward"
             }
           ],
           "returns": {
@@ -9576,22 +9580,22 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 64
+          "lineNumber": 65
         },
         {
           "name": "debugCommit",
           "signature": "func debugCommit() -> [String: Any]",
-          "rawDocumentation": "Programmatically commit the current selection (same path as Enter).\nReturns a dict with `frontmostBefore`, `targetApp`, `targetPid`,\n`committed` (bool), and the caller can poll `frontmostAfter` via\n`hs.application.frontmost()` shortly after.",
+          "rawDocumentation": "Programmatically commit the current selection (same path as Enter).\nReturns a dict with `frontmostBefore`, `targetApp`, `targetPid`,\n`committed` (bool), and the caller can poll `frontmostAfter` via\n`hs.application.frontmost()` shortly after.\n- Returns: `{ frontmostBefore, targetApp, targetPid, committed }` describing the commit outcome",
           "description": "Programmatically commit the current selection (same path as Enter).\nReturns a dict with `frontmostBefore`, `targetApp`, `targetPid`,\n`committed` (bool), and the caller can poll `frontmostAfter` via\n`hs.application.frontmost()` shortly after.",
           "params": [],
           "returns": {
             "type": "[String: Any]",
-            "description": ""
+            "description": "`{ frontmostBefore, targetApp, targetPid, committed }` describing the commit outcome"
           },
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 70
+          "lineNumber": 72
         }
       ],
       "properties": [],
@@ -11107,17 +11111,17 @@
             {
               "name": "currentFrame",
               "signature": "func currentFrame() -> [String: Double]?",
-              "rawDocumentation": "Return the window's actual on-screen frame after show(), as\n`{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null\nif the window has not been shown. For debugging/testing only.",
+              "rawDocumentation": "Return the window's actual on-screen frame after show(), as\n`{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null\nif the window has not been shown. For debugging/testing only.\n- Returns: `{x, y, w, h}` on-screen frame in NSWindow coordinates, or null if not shown",
               "description": "Return the window's actual on-screen frame after show(), as\n`{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null\nif the window has not been shown. For debugging/testing only.",
               "params": [],
               "returns": {
                 "type": "[String: Double]?",
-                "description": ""
+                "description": "`{x, y, w, h}` on-screen frame in NSWindow coordinates, or null if not shown"
               },
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 84
+              "lineNumber": 85
             },
             {
               "name": "snapshotToPNG",
@@ -11138,7 +11142,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 92
+              "lineNumber": 93
             },
             {
               "name": "backgroundColor",
@@ -11159,7 +11163,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 99
+              "lineNumber": 100
             },
             {
               "name": "rectangle",
@@ -11174,7 +11178,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 105
+              "lineNumber": 106
             },
             {
               "name": "circle",
@@ -11189,7 +11193,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 109
+              "lineNumber": 110
             },
             {
               "name": "text",
@@ -11210,7 +11214,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 115
+              "lineNumber": 116
             },
             {
               "name": "attributedText",
@@ -11236,7 +11240,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 139
+              "lineNumber": 140
             },
             {
               "name": "accentColor",
@@ -11257,7 +11261,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 145
+              "lineNumber": 146
             },
             {
               "name": "image",
@@ -11278,7 +11282,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 150
+              "lineNumber": 151
             },
             {
               "name": "button",
@@ -11299,7 +11303,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 157
+              "lineNumber": 158
             },
             {
               "name": "textField",
@@ -11325,7 +11329,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 177
+              "lineNumber": 178
             },
             {
               "name": "placeholder",
@@ -11346,7 +11350,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 182
+              "lineNumber": 183
             },
             {
               "name": "focused",
@@ -11367,7 +11371,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 188
+              "lineNumber": 189
             },
             {
               "name": "onChange",
@@ -11388,7 +11392,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 194
+              "lineNumber": 195
             },
             {
               "name": "onSubmit",
@@ -11409,7 +11413,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 200
+              "lineNumber": 201
             },
             {
               "name": "vstack",
@@ -11424,7 +11428,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 206
+              "lineNumber": 207
             },
             {
               "name": "hstack",
@@ -11439,7 +11443,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 210
+              "lineNumber": 211
             },
             {
               "name": "zstack",
@@ -11454,7 +11458,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 214
+              "lineNumber": 215
             },
             {
               "name": "spacer",
@@ -11469,7 +11473,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 218
+              "lineNumber": 219
             },
             {
               "name": "end",
@@ -11484,7 +11488,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 222
+              "lineNumber": 223
             },
             {
               "name": "fill",
@@ -11505,7 +11509,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 229
+              "lineNumber": 230
             },
             {
               "name": "stroke",
@@ -11526,7 +11530,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 234
+              "lineNumber": 235
             },
             {
               "name": "strokeWidth",
@@ -11547,7 +11551,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 239
+              "lineNumber": 240
             },
             {
               "name": "cornerRadius",
@@ -11568,7 +11572,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 244
+              "lineNumber": 245
             },
             {
               "name": "frame",
@@ -11589,7 +11593,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 249
+              "lineNumber": 250
             },
             {
               "name": "opacity",
@@ -11610,7 +11614,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 254
+              "lineNumber": 255
             },
             {
               "name": "font",
@@ -11631,7 +11635,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 261
+              "lineNumber": 262
             },
             {
               "name": "foregroundColor",
@@ -11652,7 +11656,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 266
+              "lineNumber": 267
             },
             {
               "name": "resizable",
@@ -11667,7 +11671,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 272
+              "lineNumber": 273
             },
             {
               "name": "aspectRatio",
@@ -11688,7 +11692,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 277
+              "lineNumber": 278
             },
             {
               "name": "padding",
@@ -11709,7 +11713,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 284
+              "lineNumber": 285
             },
             {
               "name": "spacing",
@@ -11730,7 +11734,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 289
+              "lineNumber": 290
             },
             {
               "name": "onClick",
@@ -11751,7 +11755,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 296
+              "lineNumber": 297
             },
             {
               "name": "onHover",
@@ -11772,7 +11776,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 301
+              "lineNumber": 302
             },
             {
               "name": "borderless",
@@ -11792,7 +11796,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 311
+              "lineNumber": 312
             },
             {
               "name": "level",
@@ -11818,7 +11822,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 320
+              "lineNumber": 321
             },
             {
               "name": "center",
@@ -11838,7 +11842,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 328
+              "lineNumber": 329
             },
             {
               "name": "canBecomeKey",
@@ -11864,7 +11868,33 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 337
+              "lineNumber": 338
+            },
+            {
+              "name": "ignoresMouseEvents",
+              "signature": "func ignoresMouseEvents(_ enabled: Bool) -> HSUIWindow",
+              "rawDocumentation": "Make the window click-through: mouse events pass straight to whatever is beneath it.\nEssential for a transparent full-screen overlay (otherwise it would swallow every click).\n- Parameter enabled: true to ignore mouse events (overlay/HUD); false for a normal window\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().borderless().ignoresMouseEvents(true).show()\n```",
+              "description": "Make the window click-through: mouse events pass straight to whatever is beneath it.\nEssential for a transparent full-screen overlay (otherwise it would swallow every click).",
+              "params": [
+                {
+                  "name": "enabled",
+                  "type": "Bool",
+                  "description": "true to ignore mouse events (overlay/HUD); false for a normal window"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().borderless().ignoresMouseEvents(true).show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 348
             },
             {
               "name": "onKey",
@@ -11890,7 +11920,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 347
+              "lineNumber": 358
             },
             {
               "name": "onBlur",
@@ -11916,7 +11946,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 356
+              "lineNumber": 367
             },
             {
               "name": "windowCornerRadius",
@@ -11942,7 +11972,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 368
+              "lineNumber": 379
             }
           ],
           "properties": []
@@ -12650,8 +12680,8 @@
         {
           "name": "HSWebviewAPI",
           "type": "typedef",
-          "rawDocumentation": "",
-          "description": "",
+          "rawDocumentation": "A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.\nProvides a builder-style API for loading URLs or HTML, styling the window,\nregistering JS message handlers, evaluating JavaScript, and managing the window lifecycle.",
+          "description": "A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.\nProvides a builder-style API for loading URLs or HTML, styling the window,\nregistering JS message handlers, evaluating JavaScript, and managing the window lifecycle.",
           "methods": [
             {
               "name": "url",
@@ -12677,7 +12707,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 32
+              "lineNumber": 35
             },
             {
               "name": "html",
@@ -12708,7 +12738,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 43
+              "lineNumber": 46
             },
             {
               "name": "reload",
@@ -12723,7 +12753,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 47
+              "lineNumber": 50
             },
             {
               "name": "windowStyle",
@@ -12749,7 +12779,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 59
+              "lineNumber": 62
             },
             {
               "name": "level",
@@ -12770,7 +12800,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 64
+              "lineNumber": 67
             },
             {
               "name": "canBecomeKey",
@@ -12791,7 +12821,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 69
+              "lineNumber": 72
             },
             {
               "name": "center",
@@ -12806,7 +12836,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 73
+              "lineNumber": 76
             },
             {
               "name": "windowCornerRadius",
@@ -12827,7 +12857,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 79
+              "lineNumber": 82
             },
             {
               "name": "backgroundColor",
@@ -12853,7 +12883,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 93
+              "lineNumber": 96
             },
             {
               "name": "show",
@@ -12868,7 +12898,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 99
+              "lineNumber": 102
             },
             {
               "name": "hide",
@@ -12883,7 +12913,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 103
+              "lineNumber": 106
             },
             {
               "name": "close",
@@ -12895,7 +12925,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 106
+              "lineNumber": 109
             },
             {
               "name": "bringToFront",
@@ -12910,22 +12940,22 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 110
+              "lineNumber": 113
             },
             {
               "name": "currentFrame",
               "signature": "func currentFrame() -> [String: Double]?",
-              "rawDocumentation": "Return the current on-screen frame as `{x, y, w, h}`, or null if not shown.",
+              "rawDocumentation": "Return the current on-screen frame as `{x, y, w, h}`, or null if not shown.\n- Returns: `{x, y, w, h}` in NSWindow (bottom-left origin) coordinates, or null if not shown",
               "description": "Return the current on-screen frame as `{x, y, w, h}`, or null if not shown.",
               "params": [],
               "returns": {
                 "type": "[String: Double]?",
-                "description": ""
+                "description": "`{x, y, w, h}` in NSWindow (bottom-left origin) coordinates, or null if not shown"
               },
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 113
+              "lineNumber": 117
             },
             {
               "name": "setFrame",
@@ -12946,7 +12976,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 118
+              "lineNumber": 122
             },
             {
               "name": "snapshotToPNG",
@@ -12967,7 +12997,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 126
+              "lineNumber": 130
             },
             {
               "name": "setMessageHandler",
@@ -12998,7 +13028,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 146
+              "lineNumber": 150
             },
             {
               "name": "injectUserScript",
@@ -13019,7 +13049,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 152
+              "lineNumber": 156
             },
             {
               "name": "evaluateJavaScript",
@@ -13042,7 +13072,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 160
+              "lineNumber": 164
             },
             {
               "name": "windowCallback",
@@ -13063,7 +13093,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 166
+              "lineNumber": 170
             },
             {
               "name": "developerExtras",
@@ -13084,12 +13114,14 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 171
+              "lineNumber": 175
             }
           ],
           "properties": []
         }
-      ]
+      ],
+      "description": "A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.\nProvides a builder-style API for loading URLs or HTML, styling the window,\nregistering JS message handlers, evaluating JavaScript, and managing the window lifecycle.",
+      "rawDocumentation": "A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.\nProvides a builder-style API for loading URLs or HTML, styling the window,\nregistering JS message handlers, evaluating JavaScript, and managing the window lifecycle."
     },
     {
       "name": "hs.window",
@@ -14201,7 +14233,7 @@
         {
           "name": "fromSymbol",
           "signature": "static func fromSymbol(_ name: String) -> HSImage?",
-          "rawDocumentation": "Create an image from an SF Symbol name (e.g. \"magnifyingglass\",\n\"gearshape\", \"terminal\", \"arrow.up.right.square\"). Returns nil if\nthe symbol name is not recognised by the system.\n- Parameter name: SF Symbol identifier\n- Example:\n```js\nconst img = HSImage.fromSymbol('magnifyingglass')\n```",
+          "rawDocumentation": "Create an image from an SF Symbol name (e.g. \"magnifyingglass\",\n\"gearshape\", \"terminal\", \"arrow.up.right.square\"). Returns nil if\nthe symbol name is not recognised by the system.\n- Parameter name: SF Symbol identifier\n- Returns: An HSImage wrapping the SF Symbol, or nil if the symbol name is not found\n- Example:\n```js\nconst img = HSImage.fromSymbol('magnifyingglass')\n```",
           "description": "Create an image from an SF Symbol name (e.g. \"magnifyingglass\",\n\"gearshape\", \"terminal\", \"arrow.up.right.square\"). Returns nil if\nthe symbol name is not recognised by the system.",
           "params": [
             {
@@ -14212,7 +14244,7 @@
           ],
           "returns": {
             "type": "HSImage?",
-            "description": ""
+            "description": "An HSImage wrapping the SF Symbol, or nil if the symbol name is not found"
           },
           "examples": [
             {
@@ -14222,7 +14254,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 95
+          "lineNumber": 96
         },
         {
           "name": "empty",
@@ -14242,7 +14274,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 105
+          "lineNumber": 106
         },
         {
           "name": "fromURL",
@@ -14264,7 +14296,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 110
+          "lineNumber": 111
         },
         {
           "name": "size",
@@ -14285,7 +14317,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 115
+          "lineNumber": 116
         },
         {
           "name": "name",
@@ -14306,7 +14338,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 120
+          "lineNumber": 121
         },
         {
           "name": "setSize",
@@ -14332,7 +14364,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 127
+          "lineNumber": 128
         },
         {
           "name": "copyImage",
@@ -14347,7 +14379,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 131
+          "lineNumber": 132
         },
         {
           "name": "croppedCopy",
@@ -14368,7 +14400,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 136
+          "lineNumber": 137
         },
         {
           "name": "saveToFile",
@@ -14389,7 +14421,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 141
+          "lineNumber": 142
         },
         {
           "name": "template",
@@ -14410,7 +14442,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 146
+          "lineNumber": 147
         },
         {
           "name": "set",
@@ -14428,7 +14460,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 150
+          "lineNumber": 151
         },
         {
           "name": "encode",
@@ -14459,7 +14491,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 162
+          "lineNumber": 163
         }
       ],
       "properties": [],
@@ -14717,5 +14749,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-04T10:43:20.163Z"
+  "generatedAt": "2026-06-04T18:01:18.446Z"
 }

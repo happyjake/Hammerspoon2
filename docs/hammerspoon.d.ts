@@ -218,6 +218,7 @@ declare class HSImage {
 "gearshape", "terminal", "arrow.up.right.square"). Returns nil if
 the symbol name is not recognised by the system.
      * @param name SF Symbol identifier
+     * @returns An HSImage wrapping the SF Symbol, or nil if the symbol name is not found
      */
     static fromSymbol(name: string): HSImage | undefined;
 
@@ -2398,48 +2399,53 @@ declare class HSHttpHeaders {
     /**
      * Get the combined value for a header name (case-insensitive). Multi-value
 headers are joined with `, ` per RFC 7230 §3.2.2.
-     * @param name
+     * @param name the header name to look up (case-insensitive)
+     * @returns the combined header value, or null if the header is not present
      */
     static get(name: string): string | undefined;
 
     /**
      * Set a header to a single value, replacing any prior value(s).
-     * @param name
-     * @param value
+     * @param name the header name (case-insensitive)
+     * @param value the value to set
      */
     static set(name: string, value: string): void;
 
     /**
      * True if the header is present.
-     * @param name
+     * @param name the header name to test (case-insensitive)
+     * @returns true if the header is present
      */
     static has(name: string): boolean;
 
     /**
      * Remove a header.
-     * @param name
+     * @param name the header name to remove (case-insensitive)
      */
     static deleteHeader(name: string): void;
 
     /**
      * Append a value to a header; the prior value(s) are kept.
-     * @param name
-     * @param value
+     * @param name the header name (case-insensitive)
+     * @param value the value to append
      */
     static append(name: string, value: string): void;
 
     /**
      * All header names (lower-cased).
+     * @returns all header names, lower-cased
      */
     static keys(): string[];
 
     /**
      * All header values, in the same order as `keys()`.
+     * @returns all header values, in the same order as `keys()`
      */
     static values(): string[];
 
     /**
      * `[[name, value], …]` pairs.
+     * @returns `[[name, value], …]` pairs of every header
      */
     static entries(): [[String]];
 
@@ -2465,33 +2471,38 @@ declare class HSHttpRequest {
     static json(): Promise<any>;
 
     /**
+     * HTTP method, upper-cased (e.g. `"GET"`, `"POST"`).
      */
     method: string;
 
     /**
+     * Absolute URL of the request (e.g. `"http://127.0.0.1:9876/path?q=1"`).
      */
     url: string;
 
     /**
+     * Path component of the URL, without query string (e.g. `"/path"`).
      */
     pathname: string;
 
     /**
+     * Request headers.
      */
     headers: HSHttpHeaders;
 
     /**
+     * Remote IP address of the client (e.g. `"127.0.0.1"`).
      */
     remoteAddress: string;
 
     /**
+     * True if the body has already been consumed by `text()` or `json()`.
      */
     bodyUsed: boolean;
 
     /**
-     * URLSearchParams for the URL's query string — exposed via the JS-side
-polyfill (hs.httpserver.js). Returns the raw query string here; the JS
-shim wraps it.
+     * Raw query string from the URL (without leading `?`), or empty string.
+The JS-side shim in `hs.httpserver.js` wraps this as `URLSearchParams`.
      */
     search: string;
 
@@ -2506,23 +2517,26 @@ declare class HSHttpResponse {
      * Factory equivalent to `new Response(body, init)`. The JS wrapper in
 `hs.httpserver.js` delegates here so users can write the canonical
 `new Response('hi', { status: 200 })` form.
-     * @param body
-     * @param init_
+     * @param body response body string (or null/undefined for an empty body)
+     * @param init_ response init object with optional `status`, `statusText`, and `headers`
+     * @returns a new HSHttpResponse
      */
     static make(body: JSValue, init_: JSValue): HSHttpResponse;
 
     /**
      * JSON convenience: `Response.json({ok: true})` → JSON-stringified body
 with `Content-Type: application/json`.
-     * @param value
-     * @param init_
+     * @param value JS value to JSON-stringify as the response body
+     * @param init_ optional response init object with `status`, `statusText`, and `headers`
+     * @returns a new HSHttpResponse with JSON body and `Content-Type: application/json`
      */
     static json(value: JSValue, init_: JSValue | undefined): HSHttpResponse;
 
     /**
      * Redirect: sets `Location` header and a 3xx status (default 302).
-     * @param url
-     * @param status
+     * @param url the URL to redirect to (set as the `Location` header)
+     * @param status HTTP status code (default 302); must be a 3xx redirect code
+     * @returns a new HSHttpResponse with the Location header set
      */
     static redirect(url: string, status: NSNumber | undefined): HSHttpResponse;
 
@@ -2556,14 +2570,17 @@ declare class HSHttpServer {
     static stop(): void;
 
     /**
+     * Hostname the server is bound to (e.g. `"127.0.0.1"` or `"0.0.0.0"`).
      */
     hostname: string;
 
     /**
+     * TCP port the server is listening on.
      */
     port: number;
 
     /**
+     * Base URL of the server (e.g. `"http://127.0.0.1:9876/"`).
      */
     url: string;
 
@@ -2769,6 +2786,9 @@ is delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).
 }
 
 /**
+ * A single status item in the macOS menu bar, created via `hs.menubar.new()`.
+Provides a builder-style API for setting an icon, title, click callback, and
+querying the on-screen frame so callers can anchor a popover beneath it.
  */
 declare namespace hs.menubar {
     /**
@@ -2780,6 +2800,9 @@ declare namespace hs.menubar {
 }
 
 /**
+ * A single status item in the macOS menu bar, created via `hs.menubar.new()`.
+Provides a builder-style API for setting an icon, title, click callback, and
+querying the on-screen frame so callers can anchor a popover beneath it.
  */
 declare class HSMenubarItem {
     /**
@@ -4012,6 +4035,9 @@ declare class HSSerialPort {
 }
 
 /**
+ * A per-connection SQLite database object returned by `hs.sqlite.open()`.
+Wraps a sqlite3 handle and exposes synchronous exec, parameterized run/query,
+and transaction helpers to JavaScript.
  */
 declare namespace hs.sqlite {
     /**
@@ -4025,6 +4051,9 @@ declare namespace hs.sqlite {
 }
 
 /**
+ * A per-connection SQLite database object returned by `hs.sqlite.open()`.
+Wraps a sqlite3 handle and exposes synchronous exec, parameterized run/query,
+and transaction helpers to JavaScript.
  */
 declare class HSSqliteDB {
     /**
@@ -4114,9 +4143,8 @@ Returns null if no session is active.
 
     /**
      * Programmatically move the current session's selection (no UI events).
-`axis` is 'app' or 'window'; `delta` is +1 / -1.
-     * @param axis
-     * @param delta
+     * @param axis `'app'` to move between app columns, `'window'` to move between windows within an app
+     * @param delta direction to move — `+1` for forward, `-1` for backward
      * @returns true if a session was active to move.
      */
     function debugMove(axis: string, delta: number): boolean;
@@ -4126,6 +4154,7 @@ Returns null if no session is active.
 Returns a dict with `frontmostBefore`, `targetApp`, `targetPid`,
 `committed` (bool), and the caller can poll `frontmostAfter` via
 `hs.application.frontmost()` shortly after.
+     * @returns `{ frontmostBefore, targetApp, targetPid, committed }` describing the commit outcome
      */
     function debugCommit(): Record<string, any>;
 
@@ -4873,6 +4902,7 @@ declare class HSUIWindow {
      * Return the window's actual on-screen frame after show(), as
 `{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null
 if the window has not been shown. For debugging/testing only.
+     * @returns `{x, y, w, h}` on-screen frame in NSWindow coordinates, or null if not shown
      */
     static currentFrame(): Record<string, number> | undefined;
 
@@ -5140,6 +5170,14 @@ and not consumed by `onKey`). Called with the current value.
      * @returns Self for chaining
      */
     static canBecomeKey(enabled: boolean): HSUIWindow;
+
+    /**
+     * Make the window click-through: mouse events pass straight to whatever is beneath it.
+Essential for a transparent full-screen overlay (otherwise it would swallow every click).
+     * @param enabled true to ignore mouse events (overlay/HUD); false for a normal window
+     * @returns Self for chaining
+     */
+    static ignoresMouseEvents(enabled: boolean): HSUIWindow;
 
     /**
      * Register a callback that fires on local key events while this window is key.
@@ -5441,6 +5479,9 @@ declare class HSUITextPrompt {
 }
 
 /**
+ * A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.
+Provides a builder-style API for loading URLs or HTML, styling the window,
+registering JS message handlers, evaluating JavaScript, and managing the window lifecycle.
  */
 declare namespace hs.webview {
     /**
@@ -5453,6 +5494,9 @@ declare namespace hs.webview {
 }
 
 /**
+ * A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.
+Provides a builder-style API for loading URLs or HTML, styling the window,
+registering JS message handlers, evaluating JavaScript, and managing the window lifecycle.
  */
 declare class HSWebview {
     /**
@@ -5550,6 +5594,7 @@ visible through any gaps before/around the page content.
 
     /**
      * Return the current on-screen frame as `{x, y, w, h}`, or null if not shown.
+     * @returns `{x, y, w, h}` in NSWindow (bottom-left origin) coordinates, or null if not shown
      */
     static currentFrame(): Record<string, number> | undefined;
 

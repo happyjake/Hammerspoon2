@@ -81,6 +81,7 @@ import SwiftUI
     /// Return the window's actual on-screen frame after show(), as
     /// `{x, y, w, h}` in bottom-origin (NSWindow) coordinates. Returns null
     /// if the window has not been shown. For debugging/testing only.
+    /// - Returns: `{x, y, w, h}` on-screen frame in NSWindow coordinates, or null if not shown
     @objc func currentFrame() -> [String: Double]?
 
     /// Render this window's content view to a PNG file at the given path.
@@ -336,6 +337,16 @@ import SwiftUI
     /// ```
     @objc func canBecomeKey(_ enabled: Bool) -> HSUIWindow
 
+    /// Make the window click-through: mouse events pass straight to whatever is beneath it.
+    /// Essential for a transparent full-screen overlay (otherwise it would swallow every click).
+    /// - Parameter enabled: true to ignore mouse events (overlay/HUD); false for a normal window
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().borderless().ignoresMouseEvents(true).show()
+    /// ```
+    @objc func ignoresMouseEvents(_ enabled: Bool) -> HSUIWindow
+
     /// Register a callback that fires on local key events while this window is key.
     /// - Parameter callback: Function called with (key, modifiers) where key is a character string
     ///   and modifiers is an array of strings like 'shift', 'cmd', etc.
@@ -389,6 +400,7 @@ import SwiftUI
     private var windowLevel: NSWindow.Level = .floating  // default: floating (matches existing behaviour)
     private var shouldCenter: Bool = false
     private var canBecomeKeyOverride: Bool = false
+    private var ignoresMouseEventsValue: Bool = false
     private var windowCornerRadiusValue: CGFloat = 0
     private var keyCallback: JSValue?
     private var blurCallback: JSValue?
@@ -461,6 +473,7 @@ import SwiftUI
             window.backgroundColor = NSColor(windowBackgroundColor)
         }
         window.level = windowLevel
+        window.ignoresMouseEvents = ignoresMouseEventsValue
         window.isReleasedWhenClosed = false
         window.delegate = self
 
@@ -906,6 +919,11 @@ import SwiftUI
 
     @objc func canBecomeKey(_ enabled: Bool) -> HSUIWindow {
         canBecomeKeyOverride = enabled
+        return self
+    }
+
+    @objc func ignoresMouseEvents(_ enabled: Bool) -> HSUIWindow {
+        ignoresMouseEventsValue = enabled
         return self
     }
 
