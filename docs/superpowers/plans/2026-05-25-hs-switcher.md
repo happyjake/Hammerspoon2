@@ -18,8 +18,8 @@
 - `Hammerspoon 2/Modules/hs.window/HSWindowModule.swift` — apply AX timeout in `getWindowElements`; add `snapshot()` and registry wiring
 - `Hammerspoon 2/Modules/hs.window/hs.window.js` — no changes needed (snapshot exposed via Swift)
 - `Hammerspoon 2/Engine/ModuleRoot.swift` — register `hs.switcher`
-- `/Users/dev/code/vibecast/features/windows/index.js` — swap `openSwitcher` for `hs.switcher.enable(cfg)`
-- `/Users/dev/code/vibecast/features/windows/switcher.js` — quick-fix eventtap behavior in Phase 1; deleted in Phase 4
+- `~/code/vibecast/features/windows/index.js` — swap `openSwitcher` for `hs.switcher.enable(cfg)`
+- `~/code/vibecast/features/windows/switcher.js` — quick-fix eventtap behavior in Phase 1; deleted in Phase 4
 
 **Create (Swift):**
 - `Hammerspoon 2/Modules/hs.window/HSWindowRegistry.swift` — live MRU cache, NSWorkspace+AXObserver maintenance
@@ -136,7 +136,7 @@ Expected: all green.
 - [ ] **Step 6: Run docs pipeline**
 
 ```
-cd /Users/dev/code/Hammerspoon2 && npm run docs:generate
+cd ~/code/Hammerspoon2 && npm run docs:generate
 ```
 
 Expected: no errors.
@@ -155,11 +155,11 @@ default 6s AX timeout, blocking key input. Cap per-element timeout at
 ## Task 1.2: Fix vibecast switcher.js eventtap behavior
 
 **Files:**
-- Modify: `/Users/dev/code/vibecast/features/windows/switcher.js`
+- Modify: `~/code/vibecast/features/windows/switcher.js`
 
 - [ ] **Step 1: Replace eventtap callback to only consume handled keys + add safety auto-cleanup**
 
-Edit `/Users/dev/code/vibecast/features/windows/switcher.js`, replace the body of `openSwitcher` (starting at the `eventtapFactory` line through `tap.start()`) with:
+Edit `~/code/vibecast/features/windows/switcher.js`, replace the body of `openSwitcher` (starting at the `eventtapFactory` line through `tap.start()`) with:
 
 ```js
   // Safety: auto-cleanup after 15s in case something weird happens (popup not
@@ -221,7 +221,7 @@ Then trigger ctrl×2. Expected:
 - [ ] **Step 3: Commit (in vibecast repo)**
 
 ```
-cd /Users/dev/code/vibecast
+cd ~/code/vibecast
 git add features/windows/switcher.js
 git commit -m "fix(switcher): only consume handled keys; add 15s safety cleanup
 
@@ -822,7 +822,7 @@ Expected: PASS.
 - [ ] **Step 7: Run docs pipeline**
 
 ```
-cd /Users/dev/code/Hammerspoon2 && npm run docs:generate
+cd ~/code/Hammerspoon2 && npm run docs:generate
 ```
 
 - [ ] **Step 8: Commit**
@@ -2079,7 +2079,7 @@ Expected: PASS for `testEnableShape`, `testDisable`, `testRobustToBadConfig`. On
 - [ ] **Step 3: Run docs pipeline**
 
 ```
-cd /Users/dev/code/Hammerspoon2 && npm run docs:generate
+cd ~/code/Hammerspoon2 && npm run docs:generate
 ```
 
 - [ ] **Step 4: Commit**
@@ -2098,12 +2098,12 @@ Goal: replace vibecast's switcher with `hs.switcher.enable()`. Verify by actuall
 ## Task 4.1: Replace vibecast switcher integration
 
 **Files:**
-- Modify: `/Users/dev/code/vibecast/features/windows/index.js`
-- Delete: `/Users/dev/code/vibecast/features/windows/switcher.js`
+- Modify: `~/code/vibecast/features/windows/index.js`
+- Delete: `~/code/vibecast/features/windows/switcher.js`
 
 - [ ] **Step 1: Update `index.js`**
 
-In `/Users/dev/code/vibecast/features/windows/index.js`, remove the `const { openSwitcher } = require('./switcher')` line. Remove the `ctrlHotkey = hs.hotkey?.bindDoubleTap?.('ctrl', () => openSwitcher())` block and the corresponding teardown. Replace with:
+In `~/code/vibecast/features/windows/index.js`, remove the `const { openSwitcher } = require('./switcher')` line. Remove the `ctrlHotkey = hs.hotkey?.bindDoubleTap?.('ctrl', () => openSwitcher())` block and the corresponding teardown. Replace with:
 
 ```js
   // ctrl×2 → built-in production switcher (Swift-driven, observer-backed cache)
@@ -2126,27 +2126,27 @@ In `/Users/dev/code/vibecast/features/windows/index.js`, remove the `const { ope
 - [ ] **Step 2: Delete the old switcher.js**
 
 ```
-rm /Users/dev/code/vibecast/features/windows/switcher.js
+rm ~/code/vibecast/features/windows/switcher.js
 ```
 
 Also remove any reference to it in the test directory if present:
 ```
-ls /Users/dev/code/vibecast/tests/unit/features/windows/ 2>/dev/null
+ls ~/code/vibecast/tests/unit/features/windows/ 2>/dev/null
 ```
 
 If `switcher.test.js` exists, delete it too:
 ```
-rm /Users/dev/code/vibecast/tests/unit/features/windows/switcher.test.js 2>/dev/null
+rm ~/code/vibecast/tests/unit/features/windows/switcher.test.js 2>/dev/null
 ```
 
 - [ ] **Step 3: Update the existing index.test.js if it imports `./switcher`**
 
-Look for `require('./switcher')` in `/Users/dev/code/vibecast/tests/unit/features/windows/index.test.js` and remove if present. If the test calls `openSwitcher` directly, the corresponding test sections need to be deleted.
+Look for `require('./switcher')` in `~/code/vibecast/tests/unit/features/windows/index.test.js` and remove if present. If the test calls `openSwitcher` directly, the corresponding test sections need to be deleted.
 
 - [ ] **Step 4: Commit (in vibecast repo)**
 
 ```
-cd /Users/dev/code/vibecast
+cd ~/code/vibecast
 git add -A features/windows tests/unit/features/windows
 git commit -m "feat(windows): swap custom switcher for built-in hs.switcher
 
@@ -2161,7 +2161,7 @@ These cannot be automated (require real keyboard, real apps, real Accessibility/
 - [ ] **Step 1: Build the latest Hammerspoon 2 and launch it**
 
 ```
-cd /Users/dev/code/Hammerspoon2
+cd ~/code/Hammerspoon2
 xcodebuild build -target "Hammerspoon 2" -scheme "Development" -destination 'platform=macOS'
 ```
 
