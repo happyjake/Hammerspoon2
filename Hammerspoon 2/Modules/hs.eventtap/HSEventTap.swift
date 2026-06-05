@@ -112,6 +112,16 @@ import AppKit
     @objc var isRunning: Bool { tap != nil }
 
     private func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        // macOS auto-disables a tap that runs slow OR when the user out-types it
+        // (kCGEventTapDisabledByUserInput — e.g. panic key-mashing). If we don't re-enable it the
+        // tap goes silently dead: events stop flowing, so anything riding this tap (most critically
+        // a panic-escape gesture in a remote-control/forwarding mode) becomes impossible. These two
+        // lifecycle events are delivered to the callback regardless of the event mask. (Mirrors
+        // HSSwitcherKeyHandler's re-enable.)
+        if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+            if let t = tap { CGEvent.tapEnable(tap: t, enable: true) }
+            return Unmanaged.passUnretained(event)
+        }
         let flags = event.flags
         var mods: [String] = []
         if flags.contains(.maskShift)     { mods.append("shift") }
