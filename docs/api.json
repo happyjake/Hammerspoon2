@@ -12824,6 +12824,48 @@
               "lineNumber": 72
             },
             {
+              "name": "ignoresMouseEvents",
+              "signature": "func ignoresMouseEvents(_ value: Bool) -> HSWebview",
+              "rawDocumentation": "Make the window click-through: mouse events pass to whatever is beneath it. Essential for a\ntransparent, screen-covering HUD overlay so it never steals the user's input.\n- Parameter value: true to ignore mouse events\n- Returns: self for chaining",
+              "description": "Make the window click-through: mouse events pass to whatever is beneath it. Essential for a\ntransparent, screen-covering HUD overlay so it never steals the user's input.",
+              "params": [
+                {
+                  "name": "value",
+                  "type": "Bool",
+                  "description": "true to ignore mouse events"
+                }
+              ],
+              "returns": {
+                "type": "HSWebview",
+                "description": "self for chaining"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
+              "lineNumber": 78
+            },
+            {
+              "name": "canJoinAllSpaces",
+              "signature": "func canJoinAllSpaces(_ value: Bool) -> HSWebview",
+              "rawDocumentation": "Make the window appear on every Space and stay put across Space switches (HUD overlay).\n- Parameter value: true to join all Spaces (canJoinAllSpaces + stationary)\n- Returns: self for chaining",
+              "description": "Make the window appear on every Space and stay put across Space switches (HUD overlay).",
+              "params": [
+                {
+                  "name": "value",
+                  "type": "Bool",
+                  "description": "true to join all Spaces (canJoinAllSpaces + stationary)"
+                }
+              ],
+              "returns": {
+                "type": "HSWebview",
+                "description": "self for chaining"
+              },
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
+              "lineNumber": 83
+            },
+            {
               "name": "center",
               "signature": "func center() -> HSWebview",
               "rawDocumentation": "Center the window on the main screen on `show()`.\n- Returns: self for chaining",
@@ -12836,7 +12878,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 76
+              "lineNumber": 87
             },
             {
               "name": "windowCornerRadius",
@@ -12857,7 +12899,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 82
+              "lineNumber": 93
             },
             {
               "name": "backgroundColor",
@@ -12883,7 +12925,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 96
+              "lineNumber": 107
             },
             {
               "name": "show",
@@ -12898,7 +12940,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 102
+              "lineNumber": 113
             },
             {
               "name": "hide",
@@ -12913,7 +12955,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 106
+              "lineNumber": 117
             },
             {
               "name": "close",
@@ -12925,7 +12967,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 109
+              "lineNumber": 120
             },
             {
               "name": "bringToFront",
@@ -12940,7 +12982,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 113
+              "lineNumber": 124
             },
             {
               "name": "currentFrame",
@@ -12955,7 +12997,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 117
+              "lineNumber": 128
             },
             {
               "name": "setFrame",
@@ -12976,7 +13018,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 122
+              "lineNumber": 133
             },
             {
               "name": "snapshotToPNG",
@@ -12997,7 +13039,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 130
+              "lineNumber": 141
             },
             {
               "name": "setMessageHandler",
@@ -13028,7 +13070,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 150
+              "lineNumber": 161
             },
             {
               "name": "injectUserScript",
@@ -13049,7 +13091,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 156
+              "lineNumber": 167
             },
             {
               "name": "evaluateJavaScript",
@@ -13072,7 +13114,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 164
+              "lineNumber": 175
             },
             {
               "name": "windowCallback",
@@ -13093,7 +13135,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 170
+              "lineNumber": 181
             },
             {
               "name": "developerExtras",
@@ -13114,7 +13156,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 175
+              "lineNumber": 186
             }
           ],
           "properties": []
@@ -14749,5 +14791,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-05T04:39:17.222Z"
+  "generatedAt": "2026-06-05T05:08:32.093Z"
 }

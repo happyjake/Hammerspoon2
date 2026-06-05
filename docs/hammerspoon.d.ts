@@ -5553,6 +5553,21 @@ File URLs must be absolute paths; tilde is expanded.
     static canBecomeKey(value: boolean): HSWebview;
 
     /**
+     * Make the window click-through: mouse events pass to whatever is beneath it. Essential for a
+transparent, screen-covering HUD overlay so it never steals the user's input.
+     * @param value true to ignore mouse events
+     * @returns self for chaining
+     */
+    static ignoresMouseEvents(value: boolean): HSWebview;
+
+    /**
+     * Make the window appear on every Space and stay put across Space switches (HUD overlay).
+     * @param value true to join all Spaces (canJoinAllSpaces + stationary)
+     * @returns self for chaining
+     */
+    static canJoinAllSpaces(value: boolean): HSWebview;
+
+    /**
      * Center the window on the main screen on `show()`.
      * @returns self for chaining
      */

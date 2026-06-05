@@ -71,6 +71,17 @@ import WebKit
     /// - Returns: self for chaining
     @objc func canBecomeKey(_ value: Bool) -> HSWebview
 
+    /// Make the window click-through: mouse events pass to whatever is beneath it. Essential for a
+    /// transparent, screen-covering HUD overlay so it never steals the user's input.
+    /// - Parameter value: true to ignore mouse events
+    /// - Returns: self for chaining
+    @objc func ignoresMouseEvents(_ value: Bool) -> HSWebview
+
+    /// Make the window appear on every Space and stay put across Space switches (HUD overlay).
+    /// - Parameter value: true to join all Spaces (canJoinAllSpaces + stationary)
+    /// - Returns: self for chaining
+    @objc func canJoinAllSpaces(_ value: Bool) -> HSWebview
+
     /// Center the window on the main screen on `show()`.
     /// - Returns: self for chaining
     @objc func center() -> HSWebview
@@ -200,6 +211,8 @@ import WebKit
     private var isTransparent: Bool = false
     private var windowLevel: NSWindow.Level = .floating
     private var canBecomeKeyOverride: Bool = true
+    private var ignoresMouseEventsValue: Bool = false
+    private var joinAllSpaces: Bool = false
     private var shouldCenter: Bool = false
     private var cornerRadius: CGFloat = 0
     private var developerExtrasEnabled: Bool = false
@@ -307,6 +320,16 @@ import WebKit
         return self
     }
 
+    @objc func ignoresMouseEvents(_ value: Bool) -> HSWebview {
+        ignoresMouseEventsValue = value
+        return self
+    }
+
+    @objc func canJoinAllSpaces(_ value: Bool) -> HSWebview {
+        joinAllSpaces = value
+        return self
+    }
+
     @objc func center() -> HSWebview {
         shouldCenter = true
         return self
@@ -407,6 +430,8 @@ import WebKit
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.level = windowLevel
+        window.ignoresMouseEvents = ignoresMouseEventsValue
+        if joinAllSpaces { window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle] }
 
         // Host view = a wrapper that contains the WKWebView. We need a wrapper
         // when applying corner radius so the webview's own layer doesn't fight us.
