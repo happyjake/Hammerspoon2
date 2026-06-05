@@ -134,8 +134,10 @@ import UniformTypeIdentifiers
 
     /// Enumerate every `.app` bundle under the standard application roots,
     /// plus any caller-supplied extra roots. Results are cached for 30 seconds
-    /// per unique `extraRoots` argument; call `invalidateInstalledAppsCache()`
-    /// to force a rescan.
+    /// per unique `extraRoots` argument; the cache is dropped automatically
+    /// when the contents of any scanned root change (an app is installed or
+    /// deleted), so changes are visible on the next call. Call
+    /// `invalidateInstalledAppsCache()` to force a rescan by hand.
     ///
     /// Roots scanned in order (dedup by bundleID — first wins):
     ///   1. /Applications
@@ -144,10 +146,18 @@ import UniformTypeIdentifiers
     ///   4. /System/Applications/Utilities
     ///   5. Any caller-supplied extra roots
     ///
+    /// Both bundle layouts are understood: regular macOS bundles
+    /// (`Contents/Info.plist`) and the wrapper layout the App Store uses for
+    /// iPhone/iPad apps on Apple silicon (`Foo.app/Wrapper/<Inner>.app/`).
+    /// Wrapper apps report the inner bundle's metadata (that's where the
+    /// localized `displayName` lives) with `path` pointing at the outer
+    /// `.app` — the thing you launch or reveal in Finder.
+    ///
     /// Bundles with `LSBackgroundOnly = true` (true daemons with no UI) are
     /// skipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,
     /// Bartender, ClipMenu) are included because users still launch them.
-    /// Icons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.
+    /// `iconPath`, when non-null, points at the bundle's primary icon on disk
+    /// (`.icns` for macOS bundles, the app-icon `.png` for iOS wrapper apps).
     ///
     /// - Parameter extraRoots: Optional array of additional directories to scan.
     /// - Returns: Array of `{name, displayName, bundleID, path, iconPath, version}`
@@ -246,6 +256,72 @@ private struct InstalledAppsCacheEntry {
     let timestamp: TimeInterval
 }
 
+/// Watches application root directories (e.g. /Applications) and flips a
+/// thread-safe dirty flag when any of them changes, so `installedApps()` can
+/// drop its cache and reflect installs/deletes immediately instead of waiting
+/// out the TTL.
+///
+/// Explicitly `nonisolated`: this project compiles with MainActor as the
+/// default isolation, which would otherwise make this class — and the
+/// DispatchSource event handler closures formed inside it — @MainActor.
+/// Those handlers run on a private background queue, where a @MainActor
+/// closure traps (EXC_BREAKPOINT in dispatch_assert_queue). All mutable
+/// state is guarded by a lock instead; the MainActor module only calls
+/// `watch`/`consumeDirty`/`cancelAll`.
+private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
+    private let lock = NSLock()
+    private var watchedRoots = Set<String>()
+    private var sources: [DispatchSourceFileSystemObject] = []
+    private var dirty = false
+    private let queue = DispatchQueue(label: "hs.application.installedApps.rootwatch")
+
+    /// Start watching a directory if it exists and isn't watched yet.
+    /// Missing roots are retried on the next call (they may be created later).
+    func watch(_ root: String) {
+        lock.lock()
+        let alreadyWatched = watchedRoots.contains(root)
+        lock.unlock()
+        if alreadyWatched { return }
+
+        let fd = open(root, O_EVTONLY)
+        guard fd >= 0 else { return }
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .link, .rename, .delete],
+            queue: queue)
+        source.setEventHandler { [weak self] in
+            guard let self else { return }
+            self.lock.lock()
+            self.dirty = true
+            self.lock.unlock()
+        }
+        source.setCancelHandler { close(fd) }
+        lock.lock()
+        watchedRoots.insert(root)
+        sources.append(source)
+        lock.unlock()
+        source.activate()
+    }
+
+    /// Returns true (once) if any watched root changed since the last call.
+    func consumeDirty() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        let wasDirty = dirty
+        dirty = false
+        return wasDirty
+    }
+
+    func cancelAll() {
+        lock.lock()
+        let toCancel = sources
+        sources = []
+        watchedRoots = []
+        lock.unlock()
+        toCancel.forEach { $0.cancel() }
+    }
+}
+
 @_documentation(visibility: private)
 @MainActor
 @objc class HSApplicationModule: NSObject, HSModuleAPI, HSApplicationModuleAPI {
@@ -256,6 +332,7 @@ private struct InstalledAppsCacheEntry {
     // installedApps() cache: keyed by the joined extraRoots string.
     private var installedAppsCache: [String: InstalledAppsCacheEntry] = [:]
     private let installedAppsCacheTTL: TimeInterval = 30
+    private let installedAppsRootWatcher = InstalledAppsRootWatcher()
 
     // Swift-retained storage for the JS-defined ApplicationModuleWatcherEmitter instance
     @objc var _watcherEmitter: JSValue? = nil
@@ -269,6 +346,7 @@ private struct InstalledAppsCacheEntry {
 
     func shutdown() {
         _removeWatcher()
+        installedAppsRootWatcher.cancelAll()
     }
 
     isolated deinit {
@@ -415,6 +493,11 @@ private struct InstalledAppsCacheEntry {
     @objc(installedApps:) func installedApps(_ extraRoots: JSValue) -> [[String: Any]] {
         let extras = extractExtraRoots(extraRoots)
         let cacheKey = extras.joined(separator: "\n")
+        // An install/delete in any watched root drops the whole cache so the
+        // change is visible on the very next call, not after the TTL.
+        if installedAppsRootWatcher.consumeDirty() {
+            installedAppsCache.removeAll()
+        }
         let now = Date().timeIntervalSince1970
         if let entry = installedAppsCache[cacheKey],
            now - entry.timestamp < installedAppsCacheTTL {
@@ -432,8 +515,11 @@ private struct InstalledAppsCacheEntry {
         var seen = Set<String>()
         var result: [[String: Any]] = []
         for root in allRoots {
+            // Watch before scanning so a change racing the scan still marks
+            // the cache dirty for the next call.
+            installedAppsRootWatcher.watch(root)
             for url in scanForApps(in: root) {
-                guard let info = readInfoPlist(at: url),
+                guard let (info, innerBundle) = readAppInfo(at: url),
                       let bundleID = info["CFBundleIdentifier"] as? String else { continue }
                 if seen.contains(bundleID) { continue }
                 // Exclude only true daemons (`LSBackgroundOnly = true` — no UI
@@ -453,7 +539,7 @@ private struct InstalledAppsCacheEntry {
                     "displayName": displayName,
                     "bundleID":    bundleID,
                     "path":        url.path,
-                    "iconPath":    iconPathFromBundle(info: info, appPath: url.path) as Any,
+                    "iconPath":    iconPathFromBundle(info: info, appPath: url.path, innerBundle: innerBundle) as Any,
                     "version":     info["CFBundleShortVersionString"] as? String ?? "",
                 ])
             }
@@ -521,10 +607,52 @@ private struct InstalledAppsCacheEntry {
         return found
     }
 
-    private func readInfoPlist(at appURL: URL) -> [String: Any]? {
-        let plistURL = appURL.appendingPathComponent("Contents/Info.plist")
-        guard let data = try? Data(contentsOf: plistURL) else { return nil }
+    /// Reads an app's Info.plist, understanding both bundle layouts:
+    ///   - macOS:       Foo.app/Contents/Info.plist
+    ///   - iOS wrapper: Foo.app/Wrapper/<Inner>.app/Info.plist — the flat iOS
+    ///     bundle layout the App Store uses when installing iPhone/iPad apps
+    ///     on Apple silicon.
+    /// Returns the plist plus the inner bundle URL for wrapper apps (nil for
+    /// regular macOS bundles) so icon resolution can look in the right place.
+    private func readAppInfo(at appURL: URL) -> (info: [String: Any], innerBundle: URL?)? {
+        if let info = plistDictionary(at: appURL.appendingPathComponent("Contents/Info.plist")) {
+            return (info, nil)
+        }
+        if let inner = wrappedBundleURL(at: appURL),
+           let info = plistDictionary(at: inner.appendingPathComponent("Info.plist")) {
+            return (info, inner)
+        }
+        return nil
+    }
+
+    private func plistDictionary(at url: URL) -> [String: Any]? {
+        guard let data = try? Data(contentsOf: url) else { return nil }
         return try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+    }
+
+    /// Resolves the inner bundle of an iOS wrapper app: prefer the
+    /// `WrappedBundle` symlink the App Store creates, fall back to the first
+    /// `Wrapper/*.app` entry that carries an Info.plist.
+    private func wrappedBundleURL(at appURL: URL) -> URL? {
+        let fm = FileManager.default
+        let linkPath = appURL.appendingPathComponent("WrappedBundle").path
+        if let dest = try? fm.destinationOfSymbolicLink(atPath: linkPath) {
+            let resolved = dest.hasPrefix("/")
+                ? URL(fileURLWithPath: dest)
+                : appURL.appendingPathComponent(dest).standardizedFileURL
+            if fm.fileExists(atPath: resolved.appendingPathComponent("Info.plist").path) {
+                return resolved
+            }
+        }
+        let wrapper = appURL.appendingPathComponent("Wrapper")
+        if let entries = try? fm.contentsOfDirectory(at: wrapper, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) {
+            for entry in entries where entry.pathExtension == "app" {
+                if fm.fileExists(atPath: entry.appendingPathComponent("Info.plist").path) {
+                    return entry
+                }
+            }
+        }
+        return nil
     }
 
     @objc func iconForBundleID(_ bundleID: String) -> String? {
@@ -558,12 +686,13 @@ private struct InstalledAppsCacheEntry {
         return png.base64EncodedString()
     }
 
-    /// Resolves the path of the bundle's primary icon (.icns) without any image
-    /// processing. macOS / SwiftUI both render `.icns` files natively, so callers
-    /// can hand this path directly to `hs.image.fromPath()` or pass it through to
-    /// SwiftUI without converting. Returns nil if the bundle doesn't declare an
-    /// icon or the file doesn't exist on disk.
-    private func iconPathFromBundle(info: [String: Any], appPath: String) -> String? {
+    /// Resolves the path of the bundle's primary icon without any image
+    /// processing — `.icns` for macOS bundles, the app-icon PNG for iOS
+    /// wrapper bundles. macOS / SwiftUI render both natively, so callers can
+    /// hand this path directly to `hs.image.fromPath()` or pass it through to
+    /// SwiftUI without converting. Returns nil if the bundle doesn't declare
+    /// an icon or the file doesn't exist on disk.
+    private func iconPathFromBundle(info: [String: Any], appPath: String, innerBundle: URL? = nil) -> String? {
         var iconName: String?
 
         // Modern (iOS/macOS): CFBundleIcons → CFBundlePrimaryIcon → CFBundleIconFile / IconFiles
@@ -581,6 +710,21 @@ private struct InstalledAppsCacheEntry {
         }
 
         guard var name = iconName else { return nil }
+
+        if let innerBundle {
+            // iOS wrapper bundle: icons are PNGs at the inner bundle root,
+            // named like AppIcon60x60@2x.png — try the common scale/idiom
+            // suffixes in quality order.
+            let base = (name as NSString).pathExtension.isEmpty
+                ? name
+                : (name as NSString).deletingPathExtension
+            for suffix in ["@3x.png", "@2x.png", ".png", "@2x~ipad.png", "~ipad.png"] {
+                let candidate = innerBundle.appendingPathComponent(base + suffix).path
+                if FileManager.default.fileExists(atPath: candidate) { return candidate }
+            }
+            return nil
+        }
+
         if (name as NSString).pathExtension.isEmpty {
             name += ".icns"
         }

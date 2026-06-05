@@ -594,17 +594,26 @@ Falls back to NSWorkspace's generic icon if no application is found.
     /**
      * Enumerate every `.app` bundle under the standard application roots,
 plus any caller-supplied extra roots. Results are cached for 30 seconds
-per unique `extraRoots` argument; call `invalidateInstalledAppsCache()`
-to force a rescan.
+per unique `extraRoots` argument; the cache is dropped automatically
+when the contents of any scanned root change (an app is installed or
+deleted), so changes are visible on the next call. Call
+`invalidateInstalledAppsCache()` to force a rescan by hand.
 1. /Applications
 2. ~/Applications
 3. /System/Applications
 4. /System/Applications/Utilities
 5. Any caller-supplied extra roots
+Both bundle layouts are understood: regular macOS bundles
+(`Contents/Info.plist`) and the wrapper layout the App Store uses for
+iPhone/iPad apps on Apple silicon (`Foo.app/Wrapper/<Inner>.app/`).
+Wrapper apps report the inner bundle's metadata (that's where the
+localized `displayName` lives) with `path` pointing at the outer
+`.app` — the thing you launch or reveal in Finder.
 Bundles with `LSBackgroundOnly = true` (true daemons with no UI) are
 skipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,
 Bartender, ClipMenu) are included because users still launch them.
-Icons are extracted on first scan to `~/Library/Caches/Hammerspoon2/app-icons/`.
+`iconPath`, when non-null, points at the bundle's primary icon on disk
+(`.icns` for macOS bundles, the app-icon `.png` for iOS wrapper apps).
      * @param extraRoots Optional array of additional directories to scan.
      * @returns Array of `{name, displayName, bundleID, path, iconPath, version}`
      */
