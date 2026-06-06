@@ -5594,6 +5594,18 @@ visible through any gaps before/around the page content.
     static backgroundColor(color: JSValue): HSWebview;
 
     /**
+     * Keep the page rendering even when the window is inactive or considered
+not visible. By default WebKit suspends a page whose window is non-key /
+occluded — for a transparent, click-through HUD overlay (which can never
+become key) the compositor parks after a few seconds and JS-driven UI
+changes stop painting. Pass `true` BEFORE `show()` to opt the page out
+of that suspension (`WKPreferences.inactiveSchedulingPolicy = .none`).
+     * @param value whether to keep rendering while inactive
+     * @returns self for chaining
+     */
+    static keepsRenderingWhenInactive(value: boolean): HSWebview;
+
+    /**
      * Show the window. If already shown, brings it to front.
      * @returns self for chaining
      */
@@ -5630,14 +5642,17 @@ visible through any gaps before/around the page content.
     static setFrame(rect: JSValue): HSWebview;
 
     /**
-     * Render the webview's contentView to a PNG file at the given path.
-Uses `NSView.cacheDisplay`, so the bitmap is captured from the view's
-own drawing without requiring Screen Recording permission. Returns
-false if the window hasn't been shown.
+     * Render the page to a PNG file at the given path. Uses WKWebView's own
+`takeSnapshot`, which renders in the web content process — so it sees the
+real page even when WebKit composites it out-of-process (GPU-accelerated
+layers), where an AppKit `cacheDisplay` capture intermittently came back
+blank/white. No Screen Recording permission is required. The capture is
+asynchronous: pass a callback to learn when the file is written.
+written; on failure `errorMessage` describes why. Pass `null` to skip.
      * @param path absolute filesystem path to write
-     * @returns true on success
+     * @param callback optional `(ok, errorMessage)` — `ok` is true once the PNG is
      */
-    static snapshotToPNG(path: string): boolean;
+    static snapshotToPNG(path: string, callback: JSValue): void;
 
     /**
      * Register a named handler for messages posted from JS.

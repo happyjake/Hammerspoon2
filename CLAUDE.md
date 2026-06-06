@@ -88,12 +88,14 @@ Use the `/HSTests` skill when writing or reviewing tests.
 
 ### Self-verifying a UI (snapshot to PNG — no Screen Recording permission)
 
-To check a UI build without a human at the screen, capture the window's own view tree to a PNG and `Read` it back. This renders the app's own `NSView` via `NSView.cacheDisplay` — it does **not** grab the screen, so **no Screen Recording / TCC permission is needed** (unlike `screencapture` / `CGWindowList`):
+To check a UI build without a human at the screen, capture the window's content to a PNG and `Read` it back. Neither path grabs the screen, so **no Screen Recording / TCC permission is needed** (unlike `screencapture` / `CGWindowList`):
 
-- `hs.ui` window: `win.snapshotToPNG('/tmp/x.png')` — `HSUIWindow.snapshotToPNG`. Proven with the launcher's SwiftUI tree.
-- `hs.webview` window: `wv.snapshotToPNG('/tmp/x.png')` — `HSWebview.snapshotToPNG`.
+- `hs.ui` window: `win.snapshotToPNG('/tmp/x.png')` — `HSUIWindow.snapshotToPNG` (sync; `NSView.cacheDisplay` is reliable for in-process SwiftUI). Proven with the launcher's SwiftUI tree.
+- `hs.webview` window: `wv.snapshotToPNG('/tmp/x.png', (ok, err) => ...)` — `HSWebview.snapshotToPNG` (async; renders via `WKWebView.takeSnapshot` in the web process. An AppKit `cacheDisplay` of a WKWebView intermittently captured blank/white once WebKit composited the page out-of-process — don't reintroduce it).
 
-Open the window, snapshot, then `Read` the PNG to eyeball layout/tokens against a design. `cacheDisplay` reliably captures **in-process** content (SwiftUI / `NSHostingView`); for a webview (WKWebView renders in a separate web process) snapshot only **after** the page has painted (e.g. behind a short `hs.timer.doAfter`), and fall back to the `hs.ui` path if it returns blank. This is the headless way to visually verify a UI before a hardware/visual pass.
+Open the window, snapshot **after** the page has painted (e.g. behind a short `hs.timer.doAfter`), then `Read` the PNG to eyeball layout/tokens against a design. This is the headless way to visually verify a UI before a hardware/visual pass.
+
+**Transparent always-on-top HUD webviews** (overlay windows that are fully transparent when idle): the window server drops fully-clear surfaces from its visible set, `NSApp.occlusionState` loses `.visible`, and WebKit **suspends the page** — JS keeps executing but nothing paints (`visibilityState` stuck at `hidden`, `requestAnimationFrame` parked), so the HUD engages invisibly and snapshots come back blank. Chain `.keepsRenderingWhenInactive(true)` on such webviews to opt the page out of suspension.
 
 ### Key Conventions
 

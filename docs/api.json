@@ -12928,6 +12928,32 @@
               "lineNumber": 107
             },
             {
+              "name": "keepsRenderingWhenInactive",
+              "signature": "func keepsRenderingWhenInactive(_ value: Bool) -> HSWebview",
+              "rawDocumentation": "Keep the page rendering even when the window is inactive or considered\nnot visible. By default WebKit suspends a page whose window is non-key /\noccluded — for a transparent, click-through HUD overlay (which can never\nbecome key) the compositor parks after a few seconds and JS-driven UI\nchanges stop painting. Pass `true` BEFORE `show()` to opt the page out\nof that suspension (`WKPreferences.inactiveSchedulingPolicy = .none`).\n- Parameter value: whether to keep rendering while inactive\n- Returns: self for chaining\n- Example:\n```js\nconst hud = hs.webview.new({x:0, y:0, w:800, h:600})\n  .windowStyle({ transparent: true })\n  .ignoresMouseEvents(true)\n  .keepsRenderingWhenInactive(true)\n```",
+              "description": "Keep the page rendering even when the window is inactive or considered\nnot visible. By default WebKit suspends a page whose window is non-key /\noccluded — for a transparent, click-through HUD overlay (which can never\nbecome key) the compositor parks after a few seconds and JS-driven UI\nchanges stop painting. Pass `true` BEFORE `show()` to opt the page out\nof that suspension (`WKPreferences.inactiveSchedulingPolicy = .none`).",
+              "params": [
+                {
+                  "name": "value",
+                  "type": "Bool",
+                  "description": "whether to keep rendering while inactive"
+                }
+              ],
+              "returns": {
+                "type": "HSWebview",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const hud = hs.webview.new({x:0, y:0, w:800, h:600})\n  .windowStyle({ transparent: true })\n  .ignoresMouseEvents(true)\n  .keepsRenderingWhenInactive(true)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
+              "lineNumber": 126
+            },
+            {
               "name": "show",
               "signature": "func show() -> HSWebview",
               "rawDocumentation": "Show the window. If already shown, brings it to front.\n- Returns: self for chaining",
@@ -12940,7 +12966,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 113
+              "lineNumber": 130
             },
             {
               "name": "hide",
@@ -12955,7 +12981,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 117
+              "lineNumber": 134
             },
             {
               "name": "close",
@@ -12967,7 +12993,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 120
+              "lineNumber": 137
             },
             {
               "name": "bringToFront",
@@ -12982,7 +13008,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 124
+              "lineNumber": 141
             },
             {
               "name": "currentFrame",
@@ -12997,7 +13023,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 128
+              "lineNumber": 145
             },
             {
               "name": "setFrame",
@@ -13018,28 +13044,35 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 133
+              "lineNumber": 150
             },
             {
               "name": "snapshotToPNG",
-              "signature": "func snapshotToPNG(_ path: String) -> Bool",
-              "rawDocumentation": "Render the webview's contentView to a PNG file at the given path.\nUses `NSView.cacheDisplay`, so the bitmap is captured from the view's\nown drawing without requiring Screen Recording permission. Returns\nfalse if the window hasn't been shown.\n- Parameter path: absolute filesystem path to write\n- Returns: true on success",
-              "description": "Render the webview's contentView to a PNG file at the given path.\nUses `NSView.cacheDisplay`, so the bitmap is captured from the view's\nown drawing without requiring Screen Recording permission. Returns\nfalse if the window hasn't been shown.",
+              "signature": "func snapshotToPNG(_ path: String, _ callback: JSValue)",
+              "rawDocumentation": "Render the page to a PNG file at the given path. Uses WKWebView's own\n`takeSnapshot`, which renders in the web content process — so it sees the\nreal page even when WebKit composites it out-of-process (GPU-accelerated\nlayers), where an AppKit `cacheDisplay` capture intermittently came back\nblank/white. No Screen Recording permission is required. The capture is\nasynchronous: pass a callback to learn when the file is written.\n- Parameters:\n  - path: absolute filesystem path to write\n  - callback: optional `(ok, errorMessage)` — `ok` is true once the PNG is\n    written; on failure `errorMessage` describes why. Pass `null` to skip.\n- Example:\n```js\nwv.snapshotToPNG('/tmp/page.png', (ok, err) => console.log('snapshot: ' + (ok ? 'ok' : err)))\n```",
+              "description": "Render the page to a PNG file at the given path. Uses WKWebView's own\n`takeSnapshot`, which renders in the web content process — so it sees the\nreal page even when WebKit composites it out-of-process (GPU-accelerated\nlayers), where an AppKit `cacheDisplay` capture intermittently came back\nblank/white. No Screen Recording permission is required. The capture is\nasynchronous: pass a callback to learn when the file is written.\nwritten; on failure `errorMessage` describes why. Pass `null` to skip.",
               "params": [
                 {
                   "name": "path",
                   "type": "String",
                   "description": "absolute filesystem path to write"
+                },
+                {
+                  "name": "callback",
+                  "type": "JSValue",
+                  "description": "optional `(ok, errorMessage)` — `ok` is true once the PNG is"
                 }
               ],
-              "returns": {
-                "type": "Bool",
-                "description": "true on success"
-              },
-              "examples": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "wv.snapshotToPNG('/tmp/page.png', (ok, err) => console.log('snapshot: ' + (ok ? 'ok' : err)))"
+                }
+              ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 141
+              "lineNumber": 166
             },
             {
               "name": "setMessageHandler",
@@ -13070,7 +13103,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 161
+              "lineNumber": 186
             },
             {
               "name": "injectUserScript",
@@ -13091,7 +13124,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 167
+              "lineNumber": 192
             },
             {
               "name": "evaluateJavaScript",
@@ -13114,7 +13147,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 175
+              "lineNumber": 200
             },
             {
               "name": "windowCallback",
@@ -13135,7 +13168,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 181
+              "lineNumber": 206
             },
             {
               "name": "developerExtras",
@@ -13156,7 +13189,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 186
+              "lineNumber": 211
             }
           ],
           "properties": []
@@ -14791,5 +14824,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-05T07:10:39.883Z"
+  "generatedAt": "2026-06-06T20:54:14.827Z"
 }

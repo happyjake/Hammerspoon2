@@ -108,6 +108,23 @@ import WebKit
 
     // MARK: - Lifecycle
 
+    /// Keep the page rendering even when the window is inactive or considered
+    /// not visible. By default WebKit suspends a page whose window is non-key /
+    /// occluded — for a transparent, click-through HUD overlay (which can never
+    /// become key) the compositor parks after a few seconds and JS-driven UI
+    /// changes stop painting. Pass `true` BEFORE `show()` to opt the page out
+    /// of that suspension (`WKPreferences.inactiveSchedulingPolicy = .none`).
+    /// - Parameter value: whether to keep rendering while inactive
+    /// - Returns: self for chaining
+    /// - Example:
+    /// ```js
+    /// const hud = hs.webview.new({x:0, y:0, w:800, h:600})
+    ///   .windowStyle({ transparent: true })
+    ///   .ignoresMouseEvents(true)
+    ///   .keepsRenderingWhenInactive(true)
+    /// ```
+    @objc func keepsRenderingWhenInactive(_ value: Bool) -> HSWebview
+
     /// Show the window. If already shown, brings it to front.
     /// - Returns: self for chaining
     @objc func show() -> HSWebview
@@ -132,13 +149,21 @@ import WebKit
     /// - Returns: self for chaining
     @objc func setFrame(_ rect: JSValue) -> HSWebview
 
-    /// Render the webview's contentView to a PNG file at the given path.
-    /// Uses `NSView.cacheDisplay`, so the bitmap is captured from the view's
-    /// own drawing without requiring Screen Recording permission. Returns
-    /// false if the window hasn't been shown.
-    /// - Parameter path: absolute filesystem path to write
-    /// - Returns: true on success
-    @objc func snapshotToPNG(_ path: String) -> Bool
+    /// Render the page to a PNG file at the given path. Uses WKWebView's own
+    /// `takeSnapshot`, which renders in the web content process — so it sees the
+    /// real page even when WebKit composites it out-of-process (GPU-accelerated
+    /// layers), where an AppKit `cacheDisplay` capture intermittently came back
+    /// blank/white. No Screen Recording permission is required. The capture is
+    /// asynchronous: pass a callback to learn when the file is written.
+    /// - Parameters:
+    ///   - path: absolute filesystem path to write
+    ///   - callback: optional `(ok, errorMessage)` — `ok` is true once the PNG is
+    ///     written; on failure `errorMessage` describes why. Pass `null` to skip.
+    /// - Example:
+    /// ```js
+    /// wv.snapshotToPNG('/tmp/page.png', (ok, err) => console.log('snapshot: ' + (ok ? 'ok' : err)))
+    /// ```
+    @objc(snapshotToPNG::) func snapshotToPNG(_ path: String, _ callback: JSValue)
 
     // MARK: - Bridge
 
@@ -212,6 +237,7 @@ import WebKit
     private var windowLevel: NSWindow.Level = .floating
     private var canBecomeKeyOverride: Bool = true
     private var ignoresMouseEventsValue: Bool = false
+    private var keepsRenderingInactive: Bool = false
     private var joinAllSpaces: Bool = false
     private var shouldCenter: Bool = false
     private var cornerRadius: CGFloat = 0
@@ -385,11 +411,41 @@ import WebKit
 
     // MARK: - Lifecycle
 
+    @objc func keepsRenderingWhenInactive(_ value: Bool) -> HSWebview {
+        keepsRenderingInactive = value
+        // Applies to the WKWebView built in show(); set live too if already up.
+        configuration.preferences.inactiveSchedulingPolicy = value ? .none : .suspend
+        if let wv = webView { applyOcclusionOptOut(wv) }
+        return self
+    }
+
+    /// WebKit suspends a page whose window it deems not visible — and an always-on-top
+    /// transparent HUD usually IS "not visible": the window server drops fully-clear
+    /// surfaces from its visible set, so `NSApp.occlusionState` lacks `.visible` for a
+    /// menu-bar app whose only window is the HUD. The page then parks (visibilityState
+    /// 'hidden', rAF stopped) and JS-driven UI changes execute but never paint.
+    /// `inactiveSchedulingPolicy` does NOT cover this case (measured); the only switch is
+    /// WebKit's occlusion-detection SPI — the same private-KVC family as the long-standing
+    /// `drawsBackground` above. Guarded by responds(to:): a future WebKit that removes the
+    /// SPI degrades to the old (suspending) behavior instead of crashing on KVC.
+    private func applyOcclusionOptOut(_ wv: WKWebView) {
+        guard keepsRenderingInactive else { return }
+        if wv.responds(to: NSSelectorFromString("_setWindowOcclusionDetectionEnabled:")) {
+            wv.setValue(false, forKey: "windowOcclusionDetectionEnabled")
+        } else {
+            AKWarning("hs.webview.keepsRenderingWhenInactive: occlusion-detection SPI unavailable — page may suspend while the window is considered not visible")
+        }
+    }
+
     @objc func show() -> HSWebview {
         if nsWindow != nil {
             // Already shown — just bring forward.
             return bringToFront()
         }
+        if keepsRenderingInactive {
+            configuration.preferences.inactiveSchedulingPolicy = .none
+        }
+        defer { if let wv = webView { applyOcclusionOptOut(wv) } }
 
         // Install the user content controller + any pending handlers.
         let ucc = WKUserContentController()
@@ -553,18 +609,37 @@ import WebKit
         return self
     }
 
-    @objc func snapshotToPNG(_ path: String) -> Bool {
-        guard let win = nsWindow, let view = win.contentView else { return false }
-        let bounds = view.bounds
-        view.layoutSubtreeIfNeeded()
-        view.displayIfNeeded()
-        guard let bitmap = view.bitmapImageRepForCachingDisplay(in: bounds) else { return false }
-        view.cacheDisplay(in: bounds, to: bitmap)
-        guard let png = bitmap.representation(using: .png, properties: [:]) else { return false }
-        do {
-            try png.write(to: URL(fileURLWithPath: path))
-            return true
-        } catch { return false }
+    @objc(snapshotToPNG::) func snapshotToPNG(_ path: String, _ callback: JSValue) {
+        let cb: JSValue? = (callback.isObject) ? callback : nil
+        func fail(_ msg: String) {
+            AKWarning("hs.webview.snapshotToPNG: \(msg)")
+            cb?.callSafely(withArguments: [false, msg], context: "hs.webview snapshotToPNG")
+        }
+        guard let wv = webView else {
+            fail("webview not shown yet — call show() first")
+            return
+        }
+        wv.takeSnapshot(with: nil) { image, err in
+            // WKWebView calls completion on main, but be explicit (same as evaluateJavaScript).
+            MainActor.assumeIsolated {
+                guard err == nil, let image else {
+                    fail(err?.localizedDescription ?? "no image returned")
+                    return
+                }
+                guard let tiff = image.tiffRepresentation,
+                      let rep = NSBitmapImageRep(data: tiff),
+                      let png = rep.representation(using: .png, properties: [:]) else {
+                    fail("PNG encode failed")
+                    return
+                }
+                do {
+                    try png.write(to: URL(fileURLWithPath: path))
+                    cb?.callSafely(withArguments: [true, NSNull()], context: "hs.webview snapshotToPNG")
+                } catch {
+                    fail("write failed: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     // MARK: - Bridge
