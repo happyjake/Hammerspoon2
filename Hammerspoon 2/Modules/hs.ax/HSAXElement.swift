@@ -7,6 +7,7 @@
 
 import Foundation
 import JavaScriptCore
+import ApplicationServices   // AXUIElementGetTypeID (children() raw-CFArray unpack)
 import AXSwift
 
 /// Object representing an Accessibility element. You should not instantiate this directly, but rather, use the hs.ax methods to create these as required.
@@ -326,10 +327,24 @@ import AXSwift
     }
 
     @objc func children() -> [HSAXElement] {
-        guard let childElements: [UIElement] = try? element.attribute(.children) else {
-            return []
+        // AXSwift's typed attribute<T> cannot decode AXChildren: the attribute arrives as a
+        // raw CFArray of AXUIElement which unpackAXValue does NOT unpack per-item, so the
+        // `as? [UIElement]` cast throws and this read silently returned [] (observed live:
+        // the Dock's root reported AXChildren=array(1) while children() was empty). Ask for
+        // Any and unwrap both shapes manually.
+        let raw: Any?
+        do { raw = try element.attribute(.children) as Any? } catch { raw = nil }
+        guard let value = raw else { return [] }
+        if let childElements = value as? [UIElement] {
+            return childElements.map { HSAXElement(element: $0) }
         }
-        return childElements.map { HSAXElement(element: $0) }
+        if let array = value as? [AnyObject] {
+            return array.compactMap { item in
+                guard CFGetTypeID(item) == AXUIElementGetTypeID() else { return nil }
+                return HSAXElement(element: UIElement(item as! AXUIElement))
+            }
+        }
+        return []
     }
 
     @objc func childAtIndex(_ index: Int) -> HSAXElement? {
