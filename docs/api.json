@@ -1956,7 +1956,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 115
+              "lineNumber": 116
             },
             {
               "name": "childAtIndex",
@@ -1982,7 +1982,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 125
+              "lineNumber": 126
             },
             {
               "name": "attributeNames",
@@ -2002,7 +2002,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 136
+              "lineNumber": 137
             },
             {
               "name": "attributeValue",
@@ -2028,7 +2028,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 146
+              "lineNumber": 147
             },
             {
               "name": "setAttributeValue",
@@ -2059,7 +2059,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 158
+              "lineNumber": 159
             },
             {
               "name": "isAttributeSettable",
@@ -2085,7 +2085,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 168
+              "lineNumber": 169
             },
             {
               "name": "actionNames",
@@ -2105,7 +2105,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 179
+              "lineNumber": 180
             },
             {
               "name": "performAction",
@@ -2131,7 +2131,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 189
+              "lineNumber": 190
             }
           ],
           "properties": [
@@ -2148,7 +2148,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 22
+              "lineNumber": 23
             },
             {
               "name": "subrole",
@@ -2163,7 +2163,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 30
+              "lineNumber": 31
             },
             {
               "name": "title",
@@ -2178,7 +2178,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 38
+              "lineNumber": 39
             },
             {
               "name": "value",
@@ -2193,7 +2193,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 46
+              "lineNumber": 47
             },
             {
               "name": "elementDescription",
@@ -2208,7 +2208,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 54
+              "lineNumber": 55
             },
             {
               "name": "isEnabled",
@@ -2223,7 +2223,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 62
+              "lineNumber": 63
             },
             {
               "name": "isFocused",
@@ -2238,7 +2238,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 70
+              "lineNumber": 71
             },
             {
               "name": "position",
@@ -2253,7 +2253,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 80
+              "lineNumber": 81
             },
             {
               "name": "size",
@@ -2268,7 +2268,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 88
+              "lineNumber": 89
             },
             {
               "name": "frame",
@@ -2283,7 +2283,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 96
+              "lineNumber": 97
             },
             {
               "name": "parent",
@@ -2298,7 +2298,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 106
+              "lineNumber": 107
             },
             {
               "name": "pid",
@@ -2313,7 +2313,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXElement.swift",
-              "lineNumber": 199
+              "lineNumber": 200
             }
           ]
         }
@@ -3652,13 +3652,13 @@
         {
           "name": "makeTap",
           "signature": "func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap",
-          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n```",
-          "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).",
+          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture'.\n  'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n  'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n\n// Watch media keys (volume/brightness):\nconst media = hs.eventtap.make(['systemDefined'], e => {\n  if (e.subtype === 8 && e.down) console.log(e.key)\n  return false\n})\nmedia.start()\n```",
+          "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).",
           "params": [
             {
               "name": "eventTypes",
               "type": "[String]",
-              "description": "Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'"
+              "description": "Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture'."
             },
             {
               "name": "callback",
@@ -3673,12 +3673,12 @@
           "examples": [
             {
               "lang": "js",
-              "code": "const tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()"
+              "code": "const tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n\n// Watch media keys (volume/brightness):\nconst media = hs.eventtap.make(['systemDefined'], e => {\n  if (e.subtype === 8 && e.down) console.log(e.key)\n  return false\n})\nmedia.start()"
             }
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 28
+          "lineNumber": 37
         },
         {
           "name": "keyStroke",
@@ -3711,7 +3711,68 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 42
+          "lineNumber": 51
+        },
+        {
+          "name": "scrollWheel",
+          "signature": "func scrollWheel(_ dx: Double, _ dy: Double, _ unit: JSValue)",
+          "rawDocumentation": "Synthesise a scroll-wheel event at the current mouse position.\nThe window server routes scroll events to the window under the cursor —\nindependent of keyboard focus — so this scrolls whatever the mouse is over.\n- Parameter dx: Horizontal scroll amount (positive scrolls left, like a physical wheel tilt-left)\n- Parameter dy: Vertical scroll amount (positive scrolls up, like a physical wheel-up)\n- Parameter unit: Optional unit string: 'pixel' (default) or 'line'\n- Example:\n```js\nhs.eventtap.scrollWheel(0, -450, 'pixel')  // scroll down 450px under the cursor\nhs.eventtap.scrollWheel(0, 3, 'line')      // scroll up 3 lines\n```",
+          "description": "Synthesise a scroll-wheel event at the current mouse position.\nThe window server routes scroll events to the window under the cursor —\nindependent of keyboard focus — so this scrolls whatever the mouse is over.",
+          "params": [
+            {
+              "name": "dx",
+              "type": "Double",
+              "description": "Horizontal scroll amount (positive scrolls left, like a physical wheel tilt-left)"
+            },
+            {
+              "name": "dy",
+              "type": "Double",
+              "description": "Vertical scroll amount (positive scrolls up, like a physical wheel-up)"
+            },
+            {
+              "name": "unit",
+              "type": "JSValue",
+              "description": "Optional unit string: 'pixel' (default) or 'line'"
+            }
+          ],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.eventtap.scrollWheel(0, -450, 'pixel')  // scroll down 450px under the cursor\nhs.eventtap.scrollWheel(0, 3, 'line')      // scroll up 3 lines"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
+          "lineNumber": 64
+        },
+        {
+          "name": "leftClick",
+          "signature": "func leftClick(_ point: [String: Double], _ delay: JSValue)",
+          "rawDocumentation": "Synthesise a left mouse click (press + release) at a point in global\ntop-left screen coordinates (the same space as `hs.mouse.position()` and\nwindow frames). Does not move the visible cursor.\n- Parameter point: A point object `{x, y}` to click at\n- Parameter delay: Optional number of microseconds between mouseDown and mouseUp.\n  Defaults to 200000 (200 ms), matching upstream Hammerspoon's `hs.eventtap.leftClick`.\n- Example:\n```js\nhs.eventtap.leftClick({ x: 800, y: 450 })         // 200 ms default hold\nhs.eventtap.leftClick({ x: 800, y: 450 }, 10000)  // 10 ms hold\n```",
+          "description": "Synthesise a left mouse click (press + release) at a point in global\ntop-left screen coordinates (the same space as `hs.mouse.position()` and\nwindow frames). Does not move the visible cursor.\nDefaults to 200000 (200 ms), matching upstream Hammerspoon's `hs.eventtap.leftClick`.",
+          "params": [
+            {
+              "name": "point",
+              "type": "[String: Double]",
+              "description": "A point object `{x, y}` to click at"
+            },
+            {
+              "name": "delay",
+              "type": "JSValue",
+              "description": "Optional number of microseconds between mouseDown and mouseUp."
+            }
+          ],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.eventtap.leftClick({ x: 800, y: 450 })         // 200 ms default hold\nhs.eventtap.leftClick({ x: 800, y: 450 }, 10000)  // 10 ms hold"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
+          "lineNumber": 77
         },
         {
           "name": "typeText",
@@ -3734,7 +3795,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 50
+          "lineNumber": 85
         }
       ],
       "properties": [],
@@ -14824,5 +14885,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-06T20:54:14.827Z"
+  "generatedAt": "2026-06-07T17:19:37.523Z"
 }

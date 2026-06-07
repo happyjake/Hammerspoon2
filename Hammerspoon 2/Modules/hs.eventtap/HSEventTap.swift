@@ -64,6 +64,10 @@ import AppKit
             case "rightMouseDragged": mask |= CGEventMask(1 << CGEventType.rightMouseDragged.rawValue)
             case "otherMouseDragged": mask |= CGEventMask(1 << CGEventType.otherMouseDragged.rawValue)
             case "scrollWheel":       mask |= CGEventMask(1 << CGEventType.scrollWheel.rawValue)
+            // NSEvent-layer types — CGEventType has no cases for these, but CGEventTap
+            // delivers them when the mask bit is set (mask bit == NSEvent.EventType raw value).
+            case "systemDefined":     mask |= CGEventMask(1 << NSEvent.EventType.systemDefined.rawValue) // media keys (NX aux control buttons)
+            case "gesture":           mask |= CGEventMask(1 << NSEvent.EventType.gesture.rawValue)       // trackpad touch events
             default: break
             }
         }
@@ -128,6 +132,17 @@ import AppKit
         if flags.contains(.maskControl)   { mods.append("ctrl") }
         if flags.contains(.maskCommand)   { mods.append("cmd") }
         if flags.contains(.maskAlternate) { mods.append("opt") }
+
+        // NSEvent-layer types (no CGEventType case): media keys + trackpad gestures.
+        // Parsed via NSEvent(cgEvent:) — the CGEvent field accessors don't cover them.
+        switch UInt(type.rawValue) {
+        case NSEvent.EventType.systemDefined.rawValue:
+            return dispatch(Self.systemDefinedJSEvent(event: event, modifiers: mods), typeName: "systemDefined", event: event)
+        case NSEvent.EventType.gesture.rawValue:
+            return dispatch(Self.gestureJSEvent(event: event, modifiers: mods), typeName: "gesture", event: event)
+        default:
+            break
+        }
 
         let typeName: String
         switch type {
@@ -197,8 +212,73 @@ import AppKit
             ]
         }
 
+        return dispatch(jsEvent, typeName: typeName, event: event)
+    }
+
+    /// Deliver a JS event dict to the callback; returning true from JS consumes the event.
+    private func dispatch(_ jsEvent: [String: Any], typeName: String, event: CGEvent) -> Unmanaged<CGEvent>? {
         let result = callback.callSafely(withArguments: [jsEvent], context: "hs.eventtap \(typeName)")
         let consume = result?.toBool() ?? false
         return consume ? nil : Unmanaged.passUnretained(event)
+    }
+
+    // NX aux-control key codes (IOKit/hidsystem/ev_keymap.h) → stable JS names.
+    private static let nxKeyNames: [Int: String] = [
+        0: "SOUND_UP", 1: "SOUND_DOWN", 2: "BRIGHTNESS_UP", 3: "BRIGHTNESS_DOWN",
+        4: "CAPS_LOCK", 5: "HELP", 6: "POWER", 7: "MUTE", 10: "NUM_LOCK",
+        11: "CONTRAST_UP", 12: "CONTRAST_DOWN", 13: "LAUNCH_PANEL", 14: "EJECT",
+        15: "VIDMIRROR", 16: "PLAY", 17: "NEXT", 18: "PREVIOUS", 19: "FAST",
+        20: "REWIND", 21: "ILLUMINATION_UP", 22: "ILLUMINATION_DOWN", 23: "ILLUMINATION_TOGGLE",
+    ]
+
+    /// NSSystemDefined (type 14). Subtype 8 = NX_SUBTYPE_AUX_CONTROL_BUTTONS — the media keys
+    /// (brightness, volume, play/pause…). data1 packs: NX key code in the high word; key state
+    /// (0x0A down / 0x0B up) and the repeat flag in the low word. Other subtypes (e.g. 7 = aux
+    /// mouse buttons) are delivered with just `type`/`subtype`/`modifiers` so JS can ignore them.
+    private static func systemDefinedJSEvent(event: CGEvent, modifiers: [String]) -> [String: Any] {
+        var js: [String: Any] = ["type": "systemDefined", "modifiers": modifiers]
+        guard let ns = NSEvent(cgEvent: event) else { return js }
+        let subtype = Int(ns.subtype.rawValue)
+        js["subtype"] = subtype
+        if subtype == 8 {
+            let data1 = ns.data1
+            let nxKeyCode = (data1 & 0xFFFF_0000) >> 16
+            let keyFlags = data1 & 0x0000_FFFF
+            js["nxKeyCode"] = nxKeyCode
+            js["key"] = nxKeyNames[nxKeyCode] ?? String(nxKeyCode)
+            js["down"] = ((keyFlags & 0xFF00) >> 8) == 0x0A
+            js["isRepeat"] = (keyFlags & 0x1) != 0
+        }
+        return js
+    }
+
+    /// NSEventTypeGesture (type 29) — raw trackpad touch frames. Each touch carries a per-finger
+    /// stable `id`, its phase, and its normalized pad position (x/y in 0–1, origin bottom-left).
+    private static func gestureJSEvent(event: CGEvent, modifiers: [String]) -> [String: Any] {
+        var js: [String: Any] = ["type": "gesture", "modifiers": modifiers, "touches": [[String: Any]](), "touchCount": 0]
+        guard let ns = NSEvent(cgEvent: event) else { return js }
+        let touches = ns.touches(matching: .any, in: nil)
+        let arr: [[String: Any]] = touches.map { t in
+            [
+                "id": t.identity.hash,   // identity object is stable for the finger's lifetime
+                "phase": phaseName(t.phase),
+                "x": Double(t.normalizedPosition.x),
+                "y": Double(t.normalizedPosition.y),
+            ]
+        }
+        js["touches"] = arr
+        js["touchCount"] = arr.count
+        return js
+    }
+
+    private static func phaseName(_ p: NSTouch.Phase) -> String {
+        switch p {
+        case .began: return "began"
+        case .moved: return "moved"
+        case .stationary: return "stationary"
+        case .ended: return "ended"
+        case .cancelled: return "cancelled"
+        default: return "touching"
+        }
     }
 }

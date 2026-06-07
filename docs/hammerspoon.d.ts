@@ -1828,7 +1828,9 @@ declare namespace hs.eventtap {
      * Create a new event tap for the specified event types.
 Call .start() on the returned object to begin receiving events.
 Requires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).
-     * @param eventTypes Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel'
+'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.
+'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).
+     * @param eventTypes Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture'.
      * @param callback Function called with an event object. Return true to consume (suppress) the event.
      * @returns An HSEventTap instance
      */
@@ -1844,6 +1846,26 @@ app — the clipboard gets set but the paste never lands.
      * @param delay Optional number of microseconds the key is held between keyDown
      */
     function keyStroke(mods: string[], key: string, delay: JSValue): void;
+
+    /**
+     * Synthesise a scroll-wheel event at the current mouse position.
+The window server routes scroll events to the window under the cursor —
+independent of keyboard focus — so this scrolls whatever the mouse is over.
+     * @param dx Horizontal scroll amount (positive scrolls left, like a physical wheel tilt-left)
+     * @param dy Vertical scroll amount (positive scrolls up, like a physical wheel-up)
+     * @param unit Optional unit string: 'pixel' (default) or 'line'
+     */
+    function scrollWheel(dx: number, dy: number, unit: JSValue): void;
+
+    /**
+     * Synthesise a left mouse click (press + release) at a point in global
+top-left screen coordinates (the same space as `hs.mouse.position()` and
+window frames). Does not move the visible cursor.
+Defaults to 200000 (200 ms), matching upstream Hammerspoon's `hs.eventtap.leftClick`.
+     * @param point A point object `{x, y}` to click at
+     * @param delay Optional number of microseconds between mouseDown and mouseUp.
+     */
+    function leftClick(point: Record<string, number>, delay: JSValue): void;
 
     /**
      * Type a string by synthesising key events (M1 stub — lands in M4).
