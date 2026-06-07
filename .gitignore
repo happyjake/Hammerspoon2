@@ -42,6 +42,7 @@ docs/html/**
 
 # Claude
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # Local code-signing secret — holds your personal Apple Developer Team ID. NEVER COMMIT.
 # (build-local.sh and Signing.local.xcconfig.example are ID-free and ARE tracked.)
