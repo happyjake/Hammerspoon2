@@ -328,6 +328,18 @@ import SwiftUI
     /// ```
     @objc func center() -> HSUIWindow
 
+    /// Anchor the window to an edge of the active screen's *visible* area —
+    /// the region excluding the menu bar and Dock — centered on the cross axis.
+    /// Use this instead of `center()` for status/HUD strips that should sit out
+    /// of the way at the bottom (or top) rather than over your content.
+    /// - Parameter edge: 'bottom', 'top', or 'center'
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// hs.ui.window().borderless().frame({ w: 900, h: 36 }).anchor('bottom').text('…').end().show()
+    /// ```
+    @objc func anchor(_ edge: String) -> HSUIWindow
+
     /// Control whether the window can become the key window (receive keyboard events).
     /// - Parameter enabled: true to allow the window to become key
     /// - Returns: Self for chaining
@@ -399,6 +411,7 @@ import SwiftUI
     private var isBorderless: Bool = true          // default: borderless (matches existing behaviour)
     private var windowLevel: NSWindow.Level = .floating  // default: floating (matches existing behaviour)
     private var shouldCenter: Bool = false
+    private var anchorEdge: String? = nil   // 'bottom' | 'top' | 'center' (visible-frame anchored)
     private var canBecomeKeyOverride: Bool = false
     private var ignoresMouseEventsValue: Bool = false
     private var windowCornerRadiusValue: CGFloat = 0
@@ -477,7 +490,22 @@ import SwiftUI
         window.isReleasedWhenClosed = false
         window.delegate = self
 
-        if shouldCenter, let screen = NSScreen.main {
+        if let edge = anchorEdge, let screen = NSScreen.main {
+            // Anchor within the visible frame (excludes menu bar + Dock) so a
+            // bottom HUD clears the Dock and a top HUD clears the menu bar.
+            let w = windowFrame.size.width
+            let h = windowFrame.size.height
+            let vis = screen.visibleFrame
+            let inset: CGFloat = 22
+            let x = vis.midX - w / 2
+            let y: CGFloat
+            switch edge {
+            case "top":    y = vis.maxY - h - inset
+            case "bottom": y = vis.minY + inset
+            default:       y = vis.midY - h / 2   // 'center' within the visible area
+            }
+            window.setFrame(NSRect(x: x, y: y, width: w, height: h), display: false)
+        } else if shouldCenter, let screen = NSScreen.main {
             let w = windowFrame.size.width
             let h = windowFrame.size.height
             let x = screen.frame.midX - w / 2
@@ -914,6 +942,11 @@ import SwiftUI
 
     @objc func center() -> HSUIWindow {
         shouldCenter = true
+        return self
+    }
+
+    @objc func anchor(_ edge: String) -> HSUIWindow {
+        anchorEdge = edge.lowercased()
         return self
     }
 

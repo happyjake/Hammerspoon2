@@ -11906,6 +11906,32 @@
               "lineNumber": 329
             },
             {
+              "name": "anchor",
+              "signature": "func anchor(_ edge: String) -> HSUIWindow",
+              "rawDocumentation": "Anchor the window to an edge of the active screen's *visible* area —\nthe region excluding the menu bar and Dock — centered on the cross axis.\nUse this instead of `center()` for status/HUD strips that should sit out\nof the way at the bottom (or top) rather than over your content.\n- Parameter edge: 'bottom', 'top', or 'center'\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().borderless().frame({ w: 900, h: 36 }).anchor('bottom').text('…').end().show()\n```",
+              "description": "Anchor the window to an edge of the active screen's *visible* area —\nthe region excluding the menu bar and Dock — centered on the cross axis.\nUse this instead of `center()` for status/HUD strips that should sit out\nof the way at the bottom (or top) rather than over your content.",
+              "params": [
+                {
+                  "name": "edge",
+                  "type": "String",
+                  "description": "'bottom', 'top', or 'center'"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWindow",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.window().borderless().frame({ w: 900, h: 36 }).anchor('bottom').text('…').end().show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
+              "lineNumber": 341
+            },
+            {
               "name": "canBecomeKey",
               "signature": "func canBecomeKey(_ enabled: Bool) -> HSUIWindow",
               "rawDocumentation": "Control whether the window can become the key window (receive keyboard events).\n- Parameter enabled: true to allow the window to become key\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window().canBecomeKey(true).show()\n```",
@@ -11929,7 +11955,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 338
+              "lineNumber": 350
             },
             {
               "name": "ignoresMouseEvents",
@@ -11955,7 +11981,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 348
+              "lineNumber": 360
             },
             {
               "name": "onKey",
@@ -11981,7 +12007,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 358
+              "lineNumber": 370
             },
             {
               "name": "onBlur",
@@ -12007,7 +12033,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 367
+              "lineNumber": 379
             },
             {
               "name": "windowCornerRadius",
@@ -12033,7 +12059,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 379
+              "lineNumber": 391
             }
           ],
           "properties": []
@@ -14885,5 +14911,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-07T17:19:37.523Z"
+  "generatedAt": "2026-06-08T00:57:24.145Z"
 }

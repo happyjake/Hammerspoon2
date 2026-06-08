@@ -33,6 +33,34 @@ struct HSUIWindowStylingTests {
         #expect(result as? String == "object")
     }
 
+    @Test("anchor() accepts edge values and is chainable")
+    func testAnchor() {
+        let h = JSTestHarness()
+        h.loadModuleRoot()
+        for edge in ["bottom", "top", "center", "BOTTOM", "nonsense"] {
+            let result = h.eval("typeof hs.ui.window().anchor('\(edge)')")
+            #expect(result as? String == "object", "anchor('\(edge)') should return the builder")
+            #expect(h.hasException == false)
+        }
+    }
+
+    @Test("anchor('bottom') drives a full borderless HUD chain without throwing")
+    func testAnchorHUDChain() {
+        let h = JSTestHarness()
+        h.loadModuleRoot()
+        _ = h.eval("""
+            hs.ui.window()
+              .borderless()
+              .level('floating')
+              .frame({ w: 900, h: 36 })
+              .anchor('bottom')
+              .canBecomeKey(false)
+              .ignoresMouseEvents(true)
+              .text('CHAT  j/k scroll  Esc exit').end()
+        """)
+        #expect(h.hasException == false)
+    }
+
     @Test("full builder chain compiles and runs")
     func testFullChain() {
         let h = JSTestHarness()

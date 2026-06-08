@@ -5196,6 +5196,16 @@ and not consumed by `onKey`). Called with the current value.
     static center(): HSUIWindow;
 
     /**
+     * Anchor the window to an edge of the active screen's *visible* area —
+the region excluding the menu bar and Dock — centered on the cross axis.
+Use this instead of `center()` for status/HUD strips that should sit out
+of the way at the bottom (or top) rather than over your content.
+     * @param edge 'bottom', 'top', or 'center'
+     * @returns Self for chaining
+     */
+    static anchor(edge: string): HSUIWindow;
+
+    /**
      * Control whether the window can become the key window (receive keyboard events).
      * @param enabled true to allow the window to become key
      * @returns Self for chaining
