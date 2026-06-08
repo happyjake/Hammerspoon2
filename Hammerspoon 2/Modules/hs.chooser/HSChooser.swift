@@ -244,11 +244,8 @@ import SwiftUI
         set {
             _storedQuery = newValue
             viewModel.filteredChoices = filteredChoices(for: newValue)
-            if viewModel.filteredChoices.isEmpty {
-                viewModel.selectedIndex = 0
-            } else {
-                viewModel.selectedIndex = 0
-            }
+            viewModel.selectedIndex = 0
+
             // Programmatic set — update height but do NOT fire onQueryChange.
             viewModel.onContentSizeChange?(viewModel.expectedHeight())
         }
