@@ -153,6 +153,23 @@ struct HSChooserStructureTests {
         harness.eval("var c = hs.chooser.create(); c.onRightClick = () => {}")
         #expect(!harness.hasException)
     }
+
+    @Test("onInvalid property is writable")
+    func testOnInvalidWritable() {
+        let harness = makeHarness()
+        harness.eval("var c = hs.chooser.create(); c.onInvalid = () => {}")
+        #expect(!harness.hasException)
+    }
+
+    @Test("select is a function")
+    func testSelectIsFunction() {
+        makeHarness().expectTrue("typeof hs.chooser.create().select === 'function'")
+    }
+
+    @Test("selectedRowContents is a function")
+    func testSelectedRowContentsIsFunction() {
+        makeHarness().expectTrue("typeof hs.chooser.create().selectedRowContents === 'function'")
+    }
 }
 
 // MARK: - Behaviour
@@ -341,6 +358,85 @@ struct HSChooserBehaviourTests {
             c.enableDefaultForQuery = true
         """)
         harness.expectTrue("c.enableDefaultForQuery === true")
+        #expect(!harness.hasException)
+    }
+
+    @Test("selectedRowContents returns dict for the highlighted row")
+    func testSelectedRowContentsHighlighted() {
+        let harness = makeHarness()
+        harness.eval("""
+            var c = hs.chooser.create()
+            c.setChoices([{text: "Alpha", subText: "sub", extra: 99}])
+            var item = c.selectedRowContents()
+        """)
+        harness.expectTrue("item !== null && item !== undefined")
+        harness.expectEqual("item.text", "Alpha")
+        harness.expectEqual("item.subText", "sub")
+        harness.expectTrue("item.valid === true")
+        #expect(!harness.hasException)
+    }
+
+    @Test("selectedRowContents returns dict for an explicit index")
+    func testSelectedRowContentsByIndex() {
+        let harness = makeHarness()
+        harness.eval("""
+            var c = hs.chooser.create()
+            c.setChoices([{text: "First"}, {text: "Second"}])
+            var item = c.selectedRowContents(1)
+        """)
+        harness.expectEqual("item.text", "Second")
+        #expect(!harness.hasException)
+    }
+
+    @Test("selectedRowContents returns null for out-of-range index")
+    func testSelectedRowContentsOutOfRange() {
+        let harness = makeHarness()
+        harness.eval("""
+            var c = hs.chooser.create()
+            c.setChoices([{text: "Only"}])
+            var item = c.selectedRowContents(99)
+        """)
+        harness.expectTrue("item === null || item === undefined")
+        #expect(!harness.hasException)
+    }
+
+    @Test("select fires onSelect with the item dict")
+    func testSelectFiresOnSelect() {
+        let harness = makeHarness()
+        var fired = false
+        harness.registerCallback("onSelect") {
+            fired = true
+        }
+        harness.eval("""
+            var c = hs.chooser.create()
+            c.setChoices([{text: "Pick me", valid: true}])
+            c.onSelect = function(item) {
+                if (item) __test_callback('onSelect')
+            }
+            c.select(0)
+        """)
+        let ok = harness.waitFor(timeout: 0.2) { fired }
+        #expect(ok, "onSelect should fire when select(0) is called")
+        #expect(!harness.hasException)
+    }
+
+    @Test("activating an invalid row fires onInvalid and does not fire onSelect")
+    func testInvalidRowFiresOnInvalid() {
+        let harness = makeHarness()
+        var invalidFired = false
+        var selectFired = false
+        harness.registerCallback("onInvalid") { invalidFired = true }
+        harness.registerCallback("onSelect") { selectFired = true }
+        harness.eval("""
+            var c = hs.chooser.create()
+            c.setChoices([{text: "Building…", valid: false}])
+            c.onSelect  = function(item) { __test_callback('onSelect') }
+            c.onInvalid = function(item) { __test_callback('onInvalid') }
+            c.select(0)
+        """)
+        let ok = harness.waitFor(timeout: 0.2) { invalidFired }
+        #expect(ok, "onInvalid should fire for an invalid row")
+        #expect(!selectFired, "onSelect should NOT fire for an invalid row")
         #expect(!harness.hasException)
     }
 }

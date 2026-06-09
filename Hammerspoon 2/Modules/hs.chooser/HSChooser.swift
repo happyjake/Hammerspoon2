@@ -202,6 +202,41 @@ import SwiftUI
     /// chooser.onRightClick = (rowIndex) => console.log("Right-clicked row " + rowIndex)
     /// ```
     @objc var onRightClick: JSValue? { get set }
+
+    /// Called when the user activates a row whose `valid` field is `false`.
+    /// The chooser stays open; the argument is the row dict (same shape as `onSelect`).
+    /// If unset, activating an invalid row is silently ignored.
+    /// - Example:
+    /// ```js
+    /// chooser.onInvalid = (item) => console.log("Tapped invalid row: " + item.text)
+    /// ```
+    @objc var onInvalid: JSValue? { get set }
+
+    /// Programmatically confirm a selection.
+    ///
+    /// Omit `row` to confirm the currently highlighted row. Fires `onSelect` (or `onInvalid`
+    /// for rows with `valid: false`) and hides the chooser.
+    ///
+    /// - Parameter row: Zero-based row index, or omit to use the current selection.
+    /// - Returns: Self for chaining
+    /// - Example:
+    /// ```js
+    /// chooser.select()     // confirm highlighted row
+    /// chooser.select(2)    // confirm row at index 2
+    /// ```
+    @objc @discardableResult func select(_ row: JSValue) -> HSChooser
+
+    /// Returns the dict for the highlighted row, or for a specific row by index.
+    /// Returns `null` if the index is out of range or no choices are set.
+    ///
+    /// - Parameter row: Zero-based row index, or omit to query the highlighted row.
+    /// - Returns: The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.
+    /// - Example:
+    /// ```js
+    /// const item = chooser.selectedRowContents()
+    /// const item = chooser.selectedRowContents(2)
+    /// ```
+    @objc func selectedRowContents(_ row: JSValue) -> NSDictionary?
 }
 
 // MARK: -
@@ -232,6 +267,7 @@ import SwiftUI
     private var _onShow: JSCallback?
     private var _onHide: JSCallback?
     private var _onRightClick: JSCallback?
+    private var _onInvalid: JSCallback?
 
     private var previouslyActiveWindow: NSWindow?
     private var keyEventMonitor: Any?
@@ -307,6 +343,14 @@ import SwiftUI
         set {
             _onRightClick?.detach(from: self)
             _onRightClick = newValue.flatMap { JSCallback(value: $0, owner: self) }
+        }
+    }
+
+    @objc var onInvalid: JSValue? {
+        get { _onInvalid?.value }
+        set {
+            _onInvalid?.detach(from: self)
+            _onInvalid = newValue.flatMap { JSCallback(value: $0, owner: self) }
         }
     }
 
@@ -387,6 +431,19 @@ import SwiftUI
         return self
     }
 
+    @objc @discardableResult func select(_ row: JSValue) -> HSChooser {
+        let index = row.isNumber ? Int(row.toInt32()) : viewModel.selectedIndex
+        let safeIndex = (index >= 0 && index < viewModel.filteredChoices.count) ? index : nil
+        handleSelection(safeIndex)
+        return self
+    }
+
+    @objc func selectedRowContents(_ row: JSValue) -> NSDictionary? {
+        let index = row.isNumber ? Int(row.toInt32()) : viewModel.selectedIndex
+        guard index >= 0, index < viewModel.filteredChoices.count else { return nil }
+        return buildReturnDict(for: viewModel.filteredChoices[index])
+    }
+
     @objc func destroy() {
         stopKeyMonitor()
         stopResignKeyObserver()
@@ -406,6 +463,8 @@ import SwiftUI
         _onHide = nil
         _onRightClick?.detach(from: self)
         _onRightClick = nil
+        _onInvalid?.detach(from: self)
+        _onInvalid = nil
 
         allChoices = []
         viewModel.filteredChoices = []
@@ -551,24 +610,31 @@ import SwiftUI
     }
 
     private func handleSelection(_ index: Int?) {
-        guard let cbValue = _onSelect?.value else {
-            _ = hide()
-            return
-        }
-
         if let idx = index, idx >= 0, idx < viewModel.filteredChoices.count {
             let item = viewModel.filteredChoices[idx]
+            if !item.isValid {
+                // Invalid row — fire onInvalid, keep chooser open
+                if let cbValue = _onInvalid?.value {
+                    let dict = buildReturnDict(for: item)
+                    _ = cbValue.call(withArguments: [dict])
+                }
+                return
+            }
             _ = hide()
-            let dict = buildReturnDict(for: item)
-            _ = cbValue.call(withArguments: [dict])
+            if let cbValue = _onSelect?.value {
+                let dict = buildReturnDict(for: item)
+                _ = cbValue.call(withArguments: [dict])
+            }
         } else if enableDefaultForQuery && !_storedQuery.isEmpty && viewModel.filteredChoices.isEmpty {
             _ = hide()
-            let dict: NSDictionary = ["text": _storedQuery]
-            _ = cbValue.call(withArguments: [dict])
+            if let cbValue = _onSelect?.value {
+                let dict: NSDictionary = ["text": _storedQuery]
+                _ = cbValue.call(withArguments: [dict])
+            }
         } else {
-            // Dismissed (Escape or no-match without enableDefaultForQuery)
+            // Dismissed (Escape, focus loss, or no-match without enableDefaultForQuery)
             _ = hide()
-            if let context = cbValue.context {
+            if let cbValue = _onSelect?.value, let context = cbValue.context {
                 _ = cbValue.call(withArguments: [JSValue(nullIn: context) as Any])
             }
         }

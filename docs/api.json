@@ -3266,6 +3266,60 @@
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
               "lineNumber": 154
+            },
+            {
+              "name": "select",
+              "signature": "func select(_ row: JSValue) -> HSChooser",
+              "isStatic": false,
+              "rawDocumentation": "Programmatically confirm a selection.\n\nOmit `row` to confirm the currently highlighted row. Fires `onSelect` (or `onInvalid`\nfor rows with `valid: false`) and hides the chooser.\n\n- Parameter row: Zero-based row index, or omit to use the current selection.\n- Returns: Self for chaining\n- Example:\n```js\nchooser.select()     // confirm highlighted row\nchooser.select(2)    // confirm row at index 2\n```",
+              "description": "Programmatically confirm a selection.\nOmit `row` to confirm the currently highlighted row. Fires `onSelect` (or `onInvalid`\nfor rows with `valid: false`) and hides the chooser.",
+              "params": [
+                {
+                  "name": "row",
+                  "type": "JSValue",
+                  "description": "Zero-based row index, or omit to use the current selection."
+                }
+              ],
+              "returns": {
+                "type": "HSChooser",
+                "description": "Self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.select()     // confirm highlighted row\nchooser.select(2)    // confirm row at index 2"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 227
+            },
+            {
+              "name": "selectedRowContents",
+              "signature": "func selectedRowContents(_ row: JSValue) -> NSDictionary?",
+              "isStatic": false,
+              "rawDocumentation": "Returns the dict for the highlighted row, or for a specific row by index.\nReturns `null` if the index is out of range or no choices are set.\n\n- Parameter row: Zero-based row index, or omit to query the highlighted row.\n- Returns: The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.\n- Example:\n```js\nconst item = chooser.selectedRowContents()\nconst item = chooser.selectedRowContents(2)\n```",
+              "description": "Returns the dict for the highlighted row, or for a specific row by index.\nReturns `null` if the index is out of range or no choices are set.",
+              "params": [
+                {
+                  "name": "row",
+                  "type": "JSValue",
+                  "description": "Zero-based row index, or omit to query the highlighted row."
+                }
+              ],
+              "returns": {
+                "type": "NSDictionary?",
+                "description": "The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`."
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const item = chooser.selectedRowContents()\nconst item = chooser.selectedRowContents(2)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 239
             }
           ],
           "properties": [
@@ -3483,6 +3537,21 @@
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
               "lineNumber": 204
+            },
+            {
+              "name": "onInvalid",
+              "signature": "var onInvalid: JSValue? { get set }",
+              "rawDocumentation": "Called when the user activates a row whose `valid` field is `false`.\nThe chooser stays open; the argument is the row dict (same shape as `onSelect`).\nIf unset, activating an invalid row is silently ignored.\n- Example:\n```js\nchooser.onInvalid = (item) => console.log(\"Tapped invalid row: \" + item.text)\n```",
+              "description": "Called when the user activates a row whose `valid` field is `false`.\nThe chooser stays open; the argument is the row dict (same shape as `onSelect`).\nIf unset, activating an invalid row is silently ignored.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "chooser.onInvalid = (item) => console.log(\"Tapped invalid row: \" + item.text)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
+              "lineNumber": 213
             }
           ]
         }
@@ -12961,5 +13030,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-05-28T22:43:31.138Z"
+  "generatedAt": "2026-06-09T14:21:34.628Z"
 }

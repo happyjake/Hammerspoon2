@@ -119,6 +119,7 @@ struct ChooserRowView: View {
                 : Color.clear,
             in: Rectangle()
         )
+        .opacity(item.isValid ? 1.0 : 0.4)
     }
 }
 

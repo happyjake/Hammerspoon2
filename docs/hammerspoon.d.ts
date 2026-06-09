@@ -1657,6 +1657,23 @@ Call after updating an external data source in an async `onQueryChange` handler.
     destroy(): void;
 
     /**
+     * Programmatically confirm a selection.
+Omit `row` to confirm the currently highlighted row. Fires `onSelect` (or `onInvalid`
+for rows with `valid: false`) and hides the chooser.
+     * @param row Zero-based row index, or omit to use the current selection.
+     * @returns Self for chaining
+     */
+    select(row: JSValue): HSChooser;
+
+    /**
+     * Returns the dict for the highlighted row, or for a specific row by index.
+Returns `null` if the index is out of range or no choices are set.
+     * @param row Zero-based row index, or omit to query the highlighted row.
+     * @returns The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.
+     */
+    selectedRowContents(row: JSValue): NSDictionary | undefined;
+
+    /**
      * Read-only type identifier.
      */
     typeName: string;
@@ -1737,6 +1754,13 @@ Use this to debounce expensive searches or trigger async data fetching.
      * Called when the user right-clicks a row. The argument is the zero-based row index.
      */
     onRightClick: JSValue | undefined;
+
+    /**
+     * Called when the user activates a row whose `valid` field is `false`.
+The chooser stays open; the argument is the row dict (same shape as `onSelect`).
+If unset, activating an invalid row is silently ignored.
+     */
+    onInvalid: JSValue | undefined;
 
 }
 
