@@ -44,6 +44,34 @@ final class HSAppEntry {
         return true
     }
 
+    /// Metadata-only copy with a caller-supplied window list. Reuses the
+    /// original `HSWindowEntry` references (so commit still targets the real
+    /// window) and drops the AX subscription/timer (a display copy owns nothing).
+    private init(copyingMetadataFrom other: HSAppEntry, windows: [HSWindowEntry]) {
+        self.pid = other.pid
+        self.name = other.name
+        self.bundleID = other.bundleID
+        self.activationPolicy = other.activationPolicy
+        self.icon = other.icon
+        self.windows = windows
+        self.lastActivatedAt = other.lastActivatedAt
+        self.observer = nil
+        self.pollTimer = nil
+    }
+
+    /// A display copy for the switcher with un-pickable windows removed —
+    /// windows with no usable title (the Finder desktop, an app's ghost/helper
+    /// surfaces) would otherwise show as "(untitled)" rows you can't identify.
+    /// Filtering here (not in the registry) keeps `hs.window.snapshot()` whole
+    /// and happens at display time, where titles have loaded — unlike seed time,
+    /// where a real window's title can still be empty.
+    func switcherDisplayCopy() -> HSAppEntry {
+        let titled = windows.filter {
+            !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        return HSAppEntry(copyingMetadataFrom: self, windows: titled)
+    }
+
     #if DEBUG
     /// Test-only init for state-machine unit tests that don't need a real
     /// NSRunningApplication.

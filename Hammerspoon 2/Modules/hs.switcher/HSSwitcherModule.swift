@@ -231,8 +231,13 @@ final class HSSwitcherBinding {
     func triggerNow() -> Bool {
         if activeSession != nil { return false }
         // Filter out system helpers / menubar apps that aren't sensible
-        // switch targets (loginwindow, WindowManager, agents with 0 windows).
-        let snap = HSWindowRegistry.shared.snapshot().filter { $0.isSwitchable }
+        // switch targets (loginwindow, WindowManager, agents with 0 windows),
+        // then take a display copy of each that drops untitled ghost windows
+        // (Finder desktop, helper surfaces) so the picker shows no "(untitled)"
+        // rows. The copy reuses the real window refs, so commit still works.
+        let snap = HSWindowRegistry.shared.snapshot()
+            .filter { $0.isSwitchable }
+            .map { $0.switcherDisplayCopy() }
         AKTrace("hs.switcher: triggered with \(snap.count) switchable apps")
         let session = HSSwitcherSession(config: config) { [weak self] in
             self?.activeSession = nil
