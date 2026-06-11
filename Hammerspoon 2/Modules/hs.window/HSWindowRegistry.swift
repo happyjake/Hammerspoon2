@@ -197,6 +197,18 @@ final class HSWindowRegistry {
             }
 
         case .focusedWindowChanged:
+            // The focused element is ground truth: if the registry doesn't know
+            // this window (its app seeded cold and the retries lost the race
+            // too), adopt it now instead of just failing the MRU bump. The app
+            // is frontmost, so its a11y server is warm and the reads are cheap.
+            if !entry.windows.contains(where: { $0.axElement.element == element.element }) {
+                AXUIElementSetMessagingTimeout(element.element, 0.1)
+                if addWindow(element, to: entry) {
+                    AKTrace("hs.window registry: adopted focused window of \(entry.name) (missed at seed)")
+                    try? entry.observer?.addNotification(.uiElementDestroyed, forElement: element)
+                    try? entry.observer?.addNotification(.titleChanged, forElement: element)
+                }
+            }
             bumpWindowMRU(matching: element, in: entry)
 
         default:
@@ -254,7 +266,7 @@ final class HSWindowRegistry {
         let title: String = (try? element.attribute(.title)) ?? ""
         let subrole: Role.Subrole? = (try? element.subrole()) ?? nil
         guard isSwitchableWindow(subrole: subrole, appName: entry.name, title: title) else { return false }
-        let win = HSWindowEntry(stableID: mintWindowID(), axElement: element, title: title)
+        let win = HSWindowEntry(stableID: mintWindowID(), axElement: element, title: title, subrole: subrole)
         entry.windows.insert(win, at: 0)
         return true
     }
@@ -295,12 +307,39 @@ final class HSWindowRegistry {
     private func applySeed(pid: pid_t, seeded: [(UIElement, String, Role.Subrole?)]) {
         guard let entry = appsByPid[pid] else { return }
         for (element, title, subrole) in seeded {
-            if entry.windows.contains(where: { $0.axElement.element == element.element }) { continue }
+            if let existing = entry.windows.first(where: { $0.axElement.element == element.element }) {
+                // A re-seed can heal reads that timed out under the original
+                // launch storm — but never downgrade a good value to a failed read.
+                if existing.title.isEmpty && !title.isEmpty { existing.title = title }
+                if existing.subrole == nil { existing.subrole = subrole }
+                continue
+            }
             guard isSwitchableWindow(subrole: subrole, appName: entry.name, title: title) else { continue }
-            let win = HSWindowEntry(stableID: mintWindowID(), axElement: element, title: title)
+            let win = HSWindowEntry(stableID: mintWindowID(), axElement: element, title: title, subrole: subrole)
             entry.windows.append(win)
             try? entry.observer?.addNotification(.uiElementDestroyed, forElement: element)
             try? entry.observer?.addNotification(.titleChanged, forElement: element)
+        }
+        scheduleSeedRetryIfEmpty(for: entry)
+    }
+
+    /// An app whose a11y server was cold at seed time returns an empty window
+    /// list under the 0.1s timeout — Gecko (Firefox) instantiates its engine
+    /// lazily on the first AX query, so the very query that came back empty is
+    /// what woke it up. Nothing event-driven re-lists pre-existing windows
+    /// (`windowCreated` only fires for new ones), so retry the seed a bounded
+    /// number of times; the second pass runs against a warm engine and harvests.
+    private func scheduleSeedRetryIfEmpty(for entry: HSAppEntry) {
+        guard entry.windows.isEmpty, entry.seedRetriesLeft > 0 else { return }
+        entry.seedRetriesLeft -= 1
+        AKTrace("hs.window registry: \(entry.name) seeded 0 windows — retrying in 3s (\(entry.seedRetriesLeft) retries left after this)")
+        let pid = entry.pid
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, let entry = self.appsByPid[pid] else { return }
+                guard entry.windows.isEmpty else { return }
+                self.seedWindows(for: entry)
+            }
         }
     }
 

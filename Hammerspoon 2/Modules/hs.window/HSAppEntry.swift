@@ -20,6 +20,11 @@ final class HSAppEntry {
     var lastActivatedAt: Date
     var observer: Observer?           // nil if AXObserverCreate failed for this pid
     var pollTimer: Timer?             // non-nil only when using the polled fallback
+    /// Remaining re-seed attempts for an app whose window list seeded empty.
+    /// A cold a11y server (Gecko creates its engine lazily, on the first AX
+    /// query) returns nothing under the seed timeout — and that first failed
+    /// query is what wakes the engine, so a bounded retry usually harvests.
+    var seedRetriesLeft = 2
 
     init(runningApp: NSRunningApplication) {
         self.pid = runningApp.processIdentifier
@@ -57,19 +62,24 @@ final class HSAppEntry {
         self.lastActivatedAt = other.lastActivatedAt
         self.observer = nil
         self.pollTimer = nil
+        self.seedRetriesLeft = 0
     }
 
-    /// A display copy for the switcher with un-pickable windows removed —
-    /// windows with no usable title (the Finder desktop, an app's ghost/helper
-    /// surfaces) would otherwise show as "(untitled)" rows you can't identify.
-    /// Filtering here (not in the registry) keeps `hs.window.snapshot()` whole
-    /// and happens at display time, where titles have loaded — unlike seed time,
-    /// where a real window's title can still be empty.
+    /// A display copy for the switcher with un-pickable windows removed.
+    /// Ghost surfaces (an app's helper windows, the host's own overlays) show
+    /// up as untitled windows whose subrole never positively read — drop those.
+    /// But a real main window can be genuinely untitled (WeChat's is) while its
+    /// subrole DID read `.standardWindow`; that one must stay pickable, so the
+    /// filter is: keep a window if it has a usable title OR a positively-read
+    /// standard subrole. Filtering here (not in the registry) keeps
+    /// `hs.window.snapshot()` whole and happens at display time, where stale
+    /// seed-time reads have had every chance to heal.
     func switcherDisplayCopy() -> HSAppEntry {
-        let titled = windows.filter {
+        let pickable = windows.filter {
             !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || $0.subrole == .standardWindow
         }
-        return HSAppEntry(copyingMetadataFrom: self, windows: titled)
+        return HSAppEntry(copyingMetadataFrom: self, windows: pickable)
     }
 
     #if DEBUG
