@@ -15,7 +15,7 @@ struct PermissionsTypeMetadataTests {
 
     @Test("PermissionsType has all expected cases")
     func testAllCasesContents() {
-        let expected: [PermissionsType] = [.accessibility, .camera, .microphone, .notifications, .screencapture, .location]
+        let expected: [PermissionsType] = [.accessibility, .camera, .microphone, .notifications, .screencapture, .location, .inputMonitoring]
         #expect(PermissionsType.allCases == expected)
     }
 
