@@ -214,10 +214,36 @@ final class HSWindowRegistry {
     /// that merely have an empty title (e.g. WeChat's main window) are
     /// AXStandardWindow and stay. Every skip is traced so a wrongly-dropped
     /// window can be diagnosed from the console.
+    /// Pure switchability decision, extracted so it can be unit-tested without
+    /// AX. See `isSwitchableSubrole` for the rationale.
     private func isSwitchableWindow(subrole: Role.Subrole?, appName: String, title: String) -> Bool {
-        if subrole == .standardWindow { return true }
-        AKTrace("hs.window registry: skipping \(appName) window (subrole=\(subrole?.rawValue ?? "none"), title=\"\(title)\")")
-        return false
+        let ok = Self.isSwitchableSubrole(subrole)
+        if !ok {
+            AKTrace("hs.window registry: skipping \(appName) window (subrole=\(subrole?.rawValue ?? "none"), title=\"\(title)\")")
+        }
+        return ok
+    }
+
+    /// Whether a window with this subrole should be tracked as a switch target.
+    ///
+    /// Fails OPEN: a window is switchable unless its subrole *positively*
+    /// identifies a non-window surface. This is deliberate — `.subrole` reads
+    /// are unreliable during startup seeding (they run on a background queue
+    /// under a 0.1s AX messaging timeout and return `nil` under the launch
+    /// storm), and a real window's subrole only resolves to `.standardWindow`
+    /// once reads are calm. An earlier allowlist (`== .standardWindow`)
+    /// therefore dropped every real window at seed time and left the switcher
+    /// empty for every already-running app, with no event to re-evaluate it.
+    ///
+    /// So: keep `.standardWindow`, keep `nil` (unreadable — don't punish a real
+    /// window for a slow read), keep dialogs/floating panels. Drop only the
+    /// app's own `.unknown` overlay windows (e.g. this app's switcher/HUD
+    /// panels), which set that subrole explicitly and are never switch targets.
+    nonisolated static func isSwitchableSubrole(_ subrole: Role.Subrole?) -> Bool {
+        switch subrole {
+        case .unknown: return false
+        default:       return true
+        }
     }
 
     /// Returns true if the window was actually added (callers only subscribe
