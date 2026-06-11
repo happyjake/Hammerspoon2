@@ -4174,7 +4174,7 @@ Returns null if no session is active.
 
     /**
      * Programmatically move the current session's selection (no UI events).
-     * @param axis `'app'` to move between app columns, `'window'` to move between windows within an app
+     * @param axis `'app'` to move between apps, `'window'` to move between windows within an app, `'linear'` to move through the flat row list the way the ↑/↓ arrow keys do
      * @param delta direction to move — `+1` for forward, `-1` for backward
      * @returns true if a session was active to move.
      */
@@ -5528,6 +5528,10 @@ position inside the image.
 The position of each line is reported as percentages of the image's size with a
 top-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS
 `left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.
+`x`/`y`/`w`/`h` is only the axis-aligned bounding box, while `quad` carries the
+rotated corner points (`tl`/`tr`/`br`/`bl`, each `{x, y}` in the same percent space,
+with `tl→tr` running along the reading direction) and `angle` is the text's rotation
+in degrees (clockwise, `0` = horizontal, `90` = reading top-to-bottom).
 or an `HSImage` object
 When omitted, the language is detected automatically.
      * @param image The image to analyse — either a file path string (`~` is expanded)

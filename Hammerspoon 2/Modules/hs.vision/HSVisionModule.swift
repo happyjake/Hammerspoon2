@@ -21,6 +21,12 @@ import ImageIO
     /// top-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS
     /// `left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.
     ///
+    /// Rotated or vertical text (e.g. a photo taken sideways) keeps its true geometry:
+    /// `x`/`y`/`w`/`h` is only the axis-aligned bounding box, while `quad` carries the
+    /// rotated corner points (`tl`/`tr`/`br`/`bl`, each `{x, y}` in the same percent space,
+    /// with `tl→tr` running along the reading direction) and `angle` is the text's rotation
+    /// in degrees (clockwise, `0` = horizontal, `90` = reading top-to-bottom).
+    ///
     /// - Parameter image: The image to analyse — either a file path string (`~` is expanded)
     ///   or an `HSImage` object
     /// - Parameter options: Optional settings object:
@@ -35,14 +41,14 @@ import ImageIO
     /// - Returns: {Promise<object>} A Promise resolving to
     ///   `{ text, width, height, lines }` where `text` is every recognized line joined with
     ///   newlines, `width`/`height` are the image's pixel dimensions, and `lines` is an array
-    ///   of `{ text, confidence, x, y, w, h }` with coordinates in percent of the image size
-    ///   (top-left origin)
+    ///   of `{ text, confidence, x, y, w, h, angle, quad }` with coordinates in percent of
+    ///   the image size (top-left origin)
     /// - Example:
     /// ```js
     /// const result = await hs.vision.recognizeText('~/Desktop/screenshot.png')
     /// console.log(`Found ${result.lines.length} lines of text`)
     /// for (const line of result.lines) {
-    ///     console.log(`${line.text} @ ${line.x}%,${line.y}% (confidence ${line.confidence})`)
+    ///     console.log(`${line.text} @ ${line.x}%,${line.y}% rotated ${line.angle}°`)
     /// }
     /// ```
     @objc func recognizeText(_ image: JSValue, _ options: JSValue) -> JSPromise?
@@ -125,14 +131,29 @@ import ImageIO
                     case .data(let data): observations = try await request.perform(on: data)
                     }
 
+                    let dimensions = Self.pixelDimensions(of: visionInput)
+                    let pctSpace = CGSize(width: 100, height: 100)
+                    // Angles must be measured in pixel space — percent space
+                    // distorts them on non-square images. Fall back to percent
+                    // space only when the dimensions couldn't be read.
+                    let angleSpace = dimensions == .zero ? pctSpace : dimensions
+
                     var lines: [[String: Any]] = []
                     for observation in observations {
                         guard let candidate = observation.topCandidates(1).first else { continue }
                         guard Double(candidate.confidence) >= minConfidence else { continue }
                         // Project the normalized box into a 100×100 space with an
                         // upper-left origin: the result *is* CSS-ready percentages.
-                        let box = observation.boundingBox.toImageCoordinates(
-                            CGSize(width: 100, height: 100), origin: .upperLeft)
+                        let box = observation.boundingBox.toImageCoordinates(pctSpace, origin: .upperLeft)
+                        // Rotated/vertical text: the quadrilateral keeps the true
+                        // geometry that the axis-aligned box flattens away.
+                        let tl = observation.topLeft.toImageCoordinates(pctSpace, origin: .upperLeft)
+                        let tr = observation.topRight.toImageCoordinates(pctSpace, origin: .upperLeft)
+                        let br = observation.bottomRight.toImageCoordinates(pctSpace, origin: .upperLeft)
+                        let bl = observation.bottomLeft.toImageCoordinates(pctSpace, origin: .upperLeft)
+                        let tlPx = observation.topLeft.toImageCoordinates(angleSpace, origin: .upperLeft)
+                        let trPx = observation.topRight.toImageCoordinates(angleSpace, origin: .upperLeft)
+                        let angle = atan2(Double(trPx.y - tlPx.y), Double(trPx.x - tlPx.x)) * 180 / .pi
                         lines.append([
                             "text": candidate.string,
                             "confidence": (Double(candidate.confidence) * 100).rounded() / 100,
@@ -140,10 +161,16 @@ import ImageIO
                             "y": Self.pct(box.origin.y),
                             "w": Self.pct(box.width),
                             "h": Self.pct(box.height),
+                            "angle": (angle * 100).rounded() / 100,
+                            "quad": [
+                                "tl": ["x": Self.pct(tl.x), "y": Self.pct(tl.y)],
+                                "tr": ["x": Self.pct(tr.x), "y": Self.pct(tr.y)],
+                                "br": ["x": Self.pct(br.x), "y": Self.pct(br.y)],
+                                "bl": ["x": Self.pct(bl.x), "y": Self.pct(bl.y)],
+                            ],
                         ])
                     }
 
-                    let dimensions = Self.pixelDimensions(of: visionInput)
                     holder.resolveWith([
                         "text": lines.compactMap { $0["text"] as? String }.joined(separator: "\n"),
                         "width": Int(dimensions.width),

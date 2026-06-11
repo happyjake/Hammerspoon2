@@ -45,6 +45,41 @@ private func makeTextFixture(_ lines: [(text: String, y: CGFloat)]) -> String? {
     }
 }
 
+/// Draws one horizontal line plus one 90°-rotated line (reading top-to-bottom)
+/// into a PNG — the fixture for rotated-text quad geometry.
+@MainActor
+private func makeRotatedTextFixture() -> String? {
+    let size = NSSize(width: 400, height: 300)
+    let image = NSImage(size: size)
+    image.lockFocus()
+    NSColor.white.setFill()
+    NSRect(origin: .zero, size: size).fill()
+    let attrs: [NSAttributedString.Key: Any] = [
+        .font: NSFont.systemFont(ofSize: 36, weight: .bold),
+        .foregroundColor: NSColor.black,
+    ]
+    ("ALPHA" as NSString).draw(at: NSPoint(x: 30, y: 240), withAttributes: attrs)
+    if let ctx = NSGraphicsContext.current?.cgContext {
+        ctx.saveGState()
+        ctx.translateBy(x: 330, y: 220)
+        ctx.rotate(by: -.pi / 2)
+        ("BRAVO" as NSString).draw(at: NSPoint(x: 0, y: 0), withAttributes: attrs)
+        ctx.restoreGState()
+    }
+    image.unlockFocus()
+
+    guard let tiff = image.tiffRepresentation,
+          let rep = NSBitmapImageRep(data: tiff),
+          let png = rep.representation(using: .png, properties: [:]) else { return nil }
+    let path = NSTemporaryDirectory() + "hsvision-rot-\(UUID().uuidString).png"
+    do {
+        try png.write(to: URL(fileURLWithPath: path))
+        return path
+    } catch {
+        return nil
+    }
+}
+
 // MARK: - Suite 1: API structure
 
 @Suite("hs.vision API structure tests")
@@ -224,6 +259,54 @@ struct HSVisionRecognitionTests {
         #expect(completed, "recognizeText should settle")
         harness.expectTrue("r && !r.error")
         harness.expectTrue("r.text.indexOf('BRIDGE') !== -1")
+        #expect(!harness.hasException)
+    }
+
+    @Test("rotated text carries its true geometry in quad + angle")
+    func testRotatedTextQuad() async throws {
+        let path = try #require(await makeRotatedTextFixture())
+        defer { try? FileManager.default.removeItem(atPath: path) }
+
+        let harness = makeHarness()
+        var resolved = false
+        harness.registerCallback("onResolve") { resolved = true }
+        harness.eval("""
+        var r;
+        hs.vision.recognizeText('\(path)').then(function(result) {
+            r = result;
+            __test_callback('onResolve');
+        }).catch(function(e) {
+            r = { error: String(e), lines: [] };
+            __test_callback('onResolve');
+        });
+        """)
+
+        let completed = await harness.waitForAsync(timeout: 15.0) { resolved }
+        #expect(completed, "recognizeText should settle")
+        harness.expectTrue("r && !r.error")
+        harness.expectTrue("r.lines.length >= 2")
+        // Every line ships a quad with the four corners.
+        harness.expectTrue("""
+        r.lines.every(function(l) {
+            return l.quad && ['tl','tr','br','bl'].every(function(k) {
+                return typeof l.quad[k].x === 'number' && typeof l.quad[k].y === 'number';
+            }) && typeof l.angle === 'number';
+        })
+        """)
+        // The horizontal line is ~0°, the vertical one ~±90° with its top
+        // edge (tl→tr, the reading direction) running vertically.
+        harness.expectTrue("""
+        (function() {
+            var alpha = r.lines.filter(function(l) { return l.text.indexOf('ALPHA') !== -1; })[0];
+            var bravo = r.lines.filter(function(l) { return l.text.indexOf('BRAVO') !== -1; })[0];
+            if (!alpha || !bravo) return false;
+            var alphaFlat = Math.abs(alpha.angle) < 10;
+            var bravoVert = Math.abs(Math.abs(bravo.angle) - 90) < 10;
+            var edgeVert = Math.abs(bravo.quad.tr.y - bravo.quad.tl.y) >
+                           Math.abs(bravo.quad.tr.x - bravo.quad.tl.x);
+            return alphaFlat && bravoVert && edgeVert;
+        })()
+        """)
         #expect(!harness.hasException)
     }
 

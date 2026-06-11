@@ -9620,13 +9620,13 @@
         {
           "name": "debugMove",
           "signature": "func debugMove(_ axis: String, _ delta: Int) -> Bool",
-          "rawDocumentation": "Programmatically move the current session's selection (no UI events).\n- Parameter axis: `'app'` to move between app columns, `'window'` to move between windows within an app\n- Parameter delta: direction to move — `+1` for forward, `-1` for backward\n- Returns: true if a session was active to move.",
+          "rawDocumentation": "Programmatically move the current session's selection (no UI events).\n- Parameter axis: `'app'` to move between apps, `'window'` to move between windows within an app, `'linear'` to move through the flat row list the way the ↑/↓ arrow keys do\n- Parameter delta: direction to move — `+1` for forward, `-1` for backward\n- Returns: true if a session was active to move.",
           "description": "Programmatically move the current session's selection (no UI events).",
           "params": [
             {
               "name": "axis",
               "type": "String",
-              "description": "`'app'` to move between app columns, `'window'` to move between windows within an app"
+              "description": "`'app'` to move between apps, `'window'` to move between windows within an app, `'linear'` to move through the flat row list the way the ↑/↓ arrow keys do"
             },
             {
               "name": "delta",
@@ -12738,8 +12738,8 @@
         {
           "name": "recognizeText",
           "signature": "func recognizeText(_ image: JSValue, _ options: JSValue) -> JSPromise?",
-          "rawDocumentation": "Recognize text in an image (OCR), returning each detected line of text with its\nposition inside the image.\n\nThe position of each line is reported as percentages of the image's size with a\ntop-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS\n`left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.\n\n- Parameter image: The image to analyse — either a file path string (`~` is expanded)\n  or an `HSImage` object\n- Parameter options: Optional settings object:\n  - `level`: `\"accurate\"` (default) or `\"fast\"`\n  - `languages`: array of language identifiers (e.g. `[\"en-US\", \"zh-Hans\"]`).\n    When omitted, the language is detected automatically.\n  - `autoDetectLanguage`: automatically detect the language (default `true`)\n  - `correction`: apply language-model correction to the results (default `true`)\n  - `minConfidence`: drop lines with confidence below this `0.0`–`1.0` threshold (default `0`)\n  - `minTextHeight`: minimum text height to recognise, as a fraction of image height `0.0`–`1.0` (default `0`)\n  - `customWords`: array of out-of-lexicon words to recognise (e.g. product names)\n- Returns: {Promise<object>} A Promise resolving to\n  `{ text, width, height, lines }` where `text` is every recognized line joined with\n  newlines, `width`/`height` are the image's pixel dimensions, and `lines` is an array\n  of `{ text, confidence, x, y, w, h }` with coordinates in percent of the image size\n  (top-left origin)\n- Example:\n```js\nconst result = await hs.vision.recognizeText('~/Desktop/screenshot.png')\nconsole.log(`Found ${result.lines.length} lines of text`)\nfor (const line of result.lines) {\n    console.log(`${line.text} @ ${line.x}%,${line.y}% (confidence ${line.confidence})`)\n}\n```",
-          "description": "Recognize text in an image (OCR), returning each detected line of text with its\nposition inside the image.\nThe position of each line is reported as percentages of the image's size with a\ntop-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS\n`left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.\nor an `HSImage` object\nWhen omitted, the language is detected automatically.",
+          "rawDocumentation": "Recognize text in an image (OCR), returning each detected line of text with its\nposition inside the image.\n\nThe position of each line is reported as percentages of the image's size with a\ntop-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS\n`left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.\n\nRotated or vertical text (e.g. a photo taken sideways) keeps its true geometry:\n`x`/`y`/`w`/`h` is only the axis-aligned bounding box, while `quad` carries the\nrotated corner points (`tl`/`tr`/`br`/`bl`, each `{x, y}` in the same percent space,\nwith `tl→tr` running along the reading direction) and `angle` is the text's rotation\nin degrees (clockwise, `0` = horizontal, `90` = reading top-to-bottom).\n\n- Parameter image: The image to analyse — either a file path string (`~` is expanded)\n  or an `HSImage` object\n- Parameter options: Optional settings object:\n  - `level`: `\"accurate\"` (default) or `\"fast\"`\n  - `languages`: array of language identifiers (e.g. `[\"en-US\", \"zh-Hans\"]`).\n    When omitted, the language is detected automatically.\n  - `autoDetectLanguage`: automatically detect the language (default `true`)\n  - `correction`: apply language-model correction to the results (default `true`)\n  - `minConfidence`: drop lines with confidence below this `0.0`–`1.0` threshold (default `0`)\n  - `minTextHeight`: minimum text height to recognise, as a fraction of image height `0.0`–`1.0` (default `0`)\n  - `customWords`: array of out-of-lexicon words to recognise (e.g. product names)\n- Returns: {Promise<object>} A Promise resolving to\n  `{ text, width, height, lines }` where `text` is every recognized line joined with\n  newlines, `width`/`height` are the image's pixel dimensions, and `lines` is an array\n  of `{ text, confidence, x, y, w, h, angle, quad }` with coordinates in percent of\n  the image size (top-left origin)\n- Example:\n```js\nconst result = await hs.vision.recognizeText('~/Desktop/screenshot.png')\nconsole.log(`Found ${result.lines.length} lines of text`)\nfor (const line of result.lines) {\n    console.log(`${line.text} @ ${line.x}%,${line.y}% rotated ${line.angle}°`)\n}\n```",
+          "description": "Recognize text in an image (OCR), returning each detected line of text with its\nposition inside the image.\nThe position of each line is reported as percentages of the image's size with a\ntop-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS\n`left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.\n`x`/`y`/`w`/`h` is only the axis-aligned bounding box, while `quad` carries the\nrotated corner points (`tl`/`tr`/`br`/`bl`, each `{x, y}` in the same percent space,\nwith `tl→tr` running along the reading direction) and `angle` is the text's rotation\nin degrees (clockwise, `0` = horizontal, `90` = reading top-to-bottom).\nor an `HSImage` object\nWhen omitted, the language is detected automatically.",
           "params": [
             {
               "name": "image",
@@ -12760,12 +12760,12 @@
           "examples": [
             {
               "lang": "js",
-              "code": "const result = await hs.vision.recognizeText('~/Desktop/screenshot.png')\nconsole.log(`Found ${result.lines.length} lines of text`)\nfor (const line of result.lines) {\n    console.log(`${line.text} @ ${line.x}%,${line.y}% (confidence ${line.confidence})`)\n}"
+              "code": "const result = await hs.vision.recognizeText('~/Desktop/screenshot.png')\nconsole.log(`Found ${result.lines.length} lines of text`)\nfor (const line of result.lines) {\n    console.log(`${line.text} @ ${line.x}%,${line.y}% rotated ${line.angle}°`)\n}"
             }
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.vision/HSVisionModule.swift",
-          "lineNumber": 48
+          "lineNumber": 54
         },
         {
           "name": "supportedTextLanguages",
@@ -12791,7 +12791,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.vision/HSVisionModule.swift",
-          "lineNumber": 59
+          "lineNumber": 65
         }
       ],
       "properties": [],
@@ -14976,5 +14976,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-11T07:24:07.221Z"
+  "generatedAt": "2026-06-11T09:07:06.860Z"
 }
