@@ -110,6 +110,18 @@ import Observation
     /// - Returns: {Promise<HSImage>} A Promise that resolves to the loaded image, or rejects on error
     @objc static func fromURL(_ url: String) -> JSPromise?
 
+    /// Create an image from base64-encoded image data (PNG, JPEG, TIFF, GIF, etc.).
+    /// This is the inverse of `encode()` — any base64 string produced by `encode()` round-trips.
+    /// Whitespace/newlines in the base64 input are ignored.
+    /// - Parameter base64: Image file data encoded as a base64 string
+    /// - Returns: An HSImage object, or null if the data is not valid base64 or not a decodable image
+    /// - Example:
+    /// ```js
+    /// const img = HSImage.fromBase64(b64)
+    /// if (img) hs.pasteboard.writeImage(img)
+    /// ```
+    @objc static func fromBase64(_ base64: String) -> HSImage?
+
     /// Get or set the image size
     /// - Parameter size: Optional HSSize to set (if provided, returns a resized copy)
     /// - Returns: The current size as HSSize, or a resized copy if size was provided
@@ -263,6 +275,18 @@ import Observation
                 }
             }
         }
+    }
+
+    @objc static func fromBase64(_ base64: String) -> HSImage? {
+        guard let data = Data(base64Encoded: base64, options: .ignoreUnknownCharacters) else {
+            AKError("HSImage: fromBase64 input is not valid base64")
+            return nil
+        }
+        guard let image = NSImage(data: data) else {
+            AKError("HSImage: Failed to decode image from base64 data (\(data.count) bytes)")
+            return nil
+        }
+        return image.toBridge()
     }
 
     // MARK: - Properties

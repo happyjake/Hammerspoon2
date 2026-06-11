@@ -14526,6 +14526,32 @@
           "lineNumber": 111
         },
         {
+          "name": "fromBase64",
+          "signature": "static func fromBase64(_ base64: String) -> HSImage?",
+          "rawDocumentation": "Create an image from base64-encoded image data (PNG, JPEG, TIFF, GIF, etc.).\nThis is the inverse of `encode()` — any base64 string produced by `encode()` round-trips.\nWhitespace/newlines in the base64 input are ignored.\n- Parameter base64: Image file data encoded as a base64 string\n- Returns: An HSImage object, or null if the data is not valid base64 or not a decodable image\n- Example:\n```js\nconst img = HSImage.fromBase64(b64)\nif (img) hs.pasteboard.writeImage(img)\n```",
+          "description": "Create an image from base64-encoded image data (PNG, JPEG, TIFF, GIF, etc.).\nThis is the inverse of `encode()` — any base64 string produced by `encode()` round-trips.\nWhitespace/newlines in the base64 input are ignored.",
+          "params": [
+            {
+              "name": "base64",
+              "type": "String",
+              "description": "Image file data encoded as a base64 string"
+            }
+          ],
+          "returns": {
+            "type": "HSImage?",
+            "description": "An HSImage object, or null if the data is not valid base64 or not a decodable image"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const img = HSImage.fromBase64(b64)\nif (img) hs.pasteboard.writeImage(img)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
+          "lineNumber": 123
+        },
+        {
           "name": "size",
           "signature": "func size(_ size: JSValue) -> JSValue",
           "rawDocumentation": "Get or set the image size\n- Parameter size: Optional HSSize to set (if provided, returns a resized copy)\n- Returns: The current size as HSSize, or a resized copy if size was provided",
@@ -14544,7 +14570,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 116
+          "lineNumber": 128
         },
         {
           "name": "name",
@@ -14565,7 +14591,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 121
+          "lineNumber": 133
         },
         {
           "name": "setSize",
@@ -14591,7 +14617,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 128
+          "lineNumber": 140
         },
         {
           "name": "copyImage",
@@ -14606,7 +14632,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 132
+          "lineNumber": 144
         },
         {
           "name": "croppedCopy",
@@ -14627,7 +14653,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 137
+          "lineNumber": 149
         },
         {
           "name": "saveToFile",
@@ -14648,7 +14674,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 142
+          "lineNumber": 154
         },
         {
           "name": "template",
@@ -14669,7 +14695,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 147
+          "lineNumber": 159
         },
         {
           "name": "set",
@@ -14687,7 +14713,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 151
+          "lineNumber": 163
         },
         {
           "name": "encode",
@@ -14718,7 +14744,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 163
+          "lineNumber": 175
         }
       ],
       "properties": [],
@@ -14976,5 +15002,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-11T09:07:06.860Z"
+  "generatedAt": "2026-06-11T09:59:06.599Z"
 }

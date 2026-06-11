@@ -8,6 +8,7 @@
 import Testing
 import JavaScriptCore
 import CoreGraphics
+import AppKit
 @testable import Hammerspoon_2
 
 /// Tests for JavaScript bridge types (HSPoint, HSSize, HSRect)
@@ -402,5 +403,80 @@ struct BridgeTypesTests {
 
         harness.expectEqual("point.x", 10000.0)
         harness.expectEqual("size.w", 99999.0)
+    }
+
+    // MARK: - HSImage.fromBase64 Tests
+
+    /// PNG bytes for a small solid image, generated in-process so the test
+    /// doesn't depend on a fixture file or a hand-typed base64 constant.
+    private func makePNGBase64(width: Int, height: Int) throws -> String {
+        let rep = try #require(NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ))
+        for x in 0..<width {
+            for y in 0..<height {
+                rep.setColor(.red, atX: x, y: y)
+            }
+        }
+        let png = try #require(rep.representation(using: .png, properties: [:]))
+        return png.base64EncodedString()
+    }
+
+    @Test("HSImage.fromBase64 decodes a PNG and preserves its dimensions")
+    func testImageFromBase64() throws {
+        let harness = JSTestHarness()
+        let b64 = try makePNGBase64(width: 3, height: 2)
+
+        harness.eval("var img = HSImage.fromBase64('\(b64)')")
+
+        harness.expectTrue("img !== null && img !== undefined")
+        harness.expectEqual("img.size().w", 3.0)
+        harness.expectEqual("img.size().h", 2.0)
+    }
+
+    @Test("HSImage.fromBase64 round-trips with encode()")
+    func testImageFromBase64EncodeRoundTrip() throws {
+        let harness = JSTestHarness()
+        let b64 = try makePNGBase64(width: 4, height: 4)
+
+        harness.eval("""
+        var original = HSImage.fromBase64('\(b64)');
+        var reencoded = original.encode('png', 1.0);
+        var roundTripped = HSImage.fromBase64(reencoded);
+        """)
+
+        harness.expectTrue("typeof reencoded === 'string' && reencoded.length > 0")
+        harness.expectTrue("roundTripped !== null && roundTripped !== undefined")
+        harness.expectEqual("roundTripped.size().w", 4.0)
+    }
+
+    @Test("HSImage.fromBase64 tolerates whitespace in the base64 input")
+    func testImageFromBase64IgnoresWhitespace() throws {
+        let harness = JSTestHarness()
+        let b64 = try makePNGBase64(width: 2, height: 2)
+        // Inject a newline mid-string, as line-wrapping base64 encoders produce.
+        let middle = b64.index(b64.startIndex, offsetBy: b64.count / 2)
+        let wrapped = b64[..<middle] + "\\n" + b64[middle...]
+
+        harness.eval("var img = HSImage.fromBase64('\(wrapped)')")
+
+        harness.expectTrue("img !== null && img !== undefined")
+    }
+
+    @Test("HSImage.fromBase64 returns null for invalid base64")
+    func testImageFromBase64InvalidBase64() {
+        let harness = JSTestHarness()
+        harness.eval("var img = HSImage.fromBase64('!!!not base64!!!')")
+        harness.expectTrue("img === null || img === undefined")
+    }
+
+    @Test("HSImage.fromBase64 returns null for base64 of non-image data")
+    func testImageFromBase64NonImageData() {
+        let harness = JSTestHarness()
+        let textB64 = Data("just some text, not an image".utf8).base64EncodedString()
+        harness.eval("var img = HSImage.fromBase64('\(textB64)')")
+        harness.expectTrue("img === null || img === undefined")
     }
 }

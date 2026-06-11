@@ -238,6 +238,15 @@ content is bound.
     static fromURL(url: string): Promise<HSImage>;
 
     /**
+     * Create an image from base64-encoded image data (PNG, JPEG, TIFF, GIF, etc.).
+This is the inverse of `encode()` — any base64 string produced by `encode()` round-trips.
+Whitespace/newlines in the base64 input are ignored.
+     * @param base64 Image file data encoded as a base64 string
+     * @returns An HSImage object, or null if the data is not valid base64 or not a decodable image
+     */
+    static fromBase64(base64: string): HSImage | undefined;
+
+    /**
      * Get or set the image size
      * @param size Optional HSSize to set (if provided, returns a resized copy)
      * @returns The current size as HSSize, or a resized copy if size was provided
