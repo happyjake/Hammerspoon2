@@ -67,6 +67,41 @@ final class HSSwitcherState {
         selectedWindowIndex = list[next].windows.isEmpty ? -1 : 0
     }
 
+    /// Flat list of selectable rows in display order: one stop per window,
+    /// plus one header stop (windowIndex -1) for each windowless app.
+    private func linearStops(in list: [HSAppEntry]) -> [(appIndex: Int, windowIndex: Int)] {
+        var stops: [(appIndex: Int, windowIndex: Int)] = []
+        for (a, app) in list.enumerated() {
+            if app.windows.isEmpty {
+                stops.append((a, -1))
+            } else {
+                for w in app.windows.indices { stops.append((a, w)) }
+            }
+        }
+        return stops
+    }
+
+    /// Move the selection through the flat row list — what Up/Down should
+    /// feel like in a vertical picker: windows in display order, crossing
+    /// app boundaries, windowless apps as single header stops, wrapping at
+    /// both ends.
+    func moveLinearSelection(by delta: Int) {
+        let stops = linearStops(in: filteredApps())
+        guard !stops.isEmpty else { return }
+        let next: Int
+        if let cur = stops.firstIndex(where: {
+            $0.appIndex == selectedAppIndex && $0.windowIndex == selectedWindowIndex
+        }) {
+            let n = stops.count
+            next = ((cur + delta) % n + n) % n
+        } else {
+            // Unset or out-of-sync selection: enter the list at the end
+            // nearest the travel direction.
+            next = delta >= 0 ? 0 : stops.count - 1
+        }
+        (selectedAppIndex, selectedWindowIndex) = stops[next]
+    }
+
     /// Move window selection within the highlighted app.
     func moveWindowSelection(by delta: Int) {
         let list = filteredApps()

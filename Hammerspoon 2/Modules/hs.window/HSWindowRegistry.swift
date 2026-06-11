@@ -182,9 +182,10 @@ final class HSWindowRegistry {
         switch notification {
         case .windowCreated:
             AXUIElementSetMessagingTimeout(element.element, 0.1)
-            addWindow(element, to: entry)
-            try? entry.observer?.addNotification(.uiElementDestroyed, forElement: element)
-            try? entry.observer?.addNotification(.titleChanged, forElement: element)
+            if addWindow(element, to: entry) {
+                try? entry.observer?.addNotification(.uiElementDestroyed, forElement: element)
+                try? entry.observer?.addNotification(.titleChanged, forElement: element)
+            }
 
         case .uiElementDestroyed:
             removeWindow(matching: element, from: entry)
@@ -205,11 +206,31 @@ final class HSWindowRegistry {
 
     // MARK: - Window mutations
 
-    private func addWindow(_ element: UIElement, to entry: HSAppEntry) {
-        if entry.windows.contains(where: { $0.axElement.element == element.element }) { return }
+    /// The registry feeds switchers, and a switcher only ever targets
+    /// standard windows. Finder's desktop window, Firefox's hidden helper
+    /// window, sheets, tooltips and similar AX flotsam report a different
+    /// subrole (or none) and would surface as phantom "(untitled)" rows in
+    /// the picker — keep them out of the registry entirely. Real windows
+    /// that merely have an empty title (e.g. WeChat's main window) are
+    /// AXStandardWindow and stay. Every skip is traced so a wrongly-dropped
+    /// window can be diagnosed from the console.
+    private func isSwitchableWindow(subrole: Role.Subrole?, appName: String, title: String) -> Bool {
+        if subrole == .standardWindow { return true }
+        AKTrace("hs.window registry: skipping \(appName) window (subrole=\(subrole?.rawValue ?? "none"), title=\"\(title)\")")
+        return false
+    }
+
+    /// Returns true if the window was actually added (callers only subscribe
+    /// to per-window AX notifications for windows we track).
+    @discardableResult
+    private func addWindow(_ element: UIElement, to entry: HSAppEntry) -> Bool {
+        if entry.windows.contains(where: { $0.axElement.element == element.element }) { return false }
         let title: String = (try? element.attribute(.title)) ?? ""
+        let subrole: Role.Subrole? = (try? element.subrole()) ?? nil
+        guard isSwitchableWindow(subrole: subrole, appName: entry.name, title: title) else { return false }
         let win = HSWindowEntry(stableID: mintWindowID(), axElement: element, title: title)
         entry.windows.insert(win, at: 0)
+        return true
     }
 
     private func removeWindow(matching element: UIElement, from entry: HSAppEntry) {
@@ -231,10 +252,11 @@ final class HSWindowRegistry {
             guard let axApp = Application(forProcessID: pid) else { return }
             AXUIElementSetMessagingTimeout(axApp.element, 0.1)
             let windows: [UIElement] = (try? axApp.windows()) ?? []
-            let seeded: [(UIElement, String)] = windows.map { w in
+            let seeded: [(UIElement, String, Role.Subrole?)] = windows.map { w in
                 AXUIElementSetMessagingTimeout(w.element, 0.1)
                 let t: String? = (try? w.attribute(.title))
-                return (w, t ?? "")
+                let subrole: Role.Subrole? = (try? w.subrole()) ?? nil
+                return (w, t ?? "", subrole)
             }
             DispatchQueue.main.async {
                 MainActor.assumeIsolated {
@@ -244,10 +266,11 @@ final class HSWindowRegistry {
         }
     }
 
-    private func applySeed(pid: pid_t, seeded: [(UIElement, String)]) {
+    private func applySeed(pid: pid_t, seeded: [(UIElement, String, Role.Subrole?)]) {
         guard let entry = appsByPid[pid] else { return }
-        for (element, title) in seeded {
+        for (element, title, subrole) in seeded {
             if entry.windows.contains(where: { $0.axElement.element == element.element }) { continue }
+            guard isSwitchableWindow(subrole: subrole, appName: entry.name, title: title) else { continue }
             let win = HSWindowEntry(stableID: mintWindowID(), axElement: element, title: title)
             entry.windows.append(win)
             try? entry.observer?.addNotification(.uiElementDestroyed, forElement: element)

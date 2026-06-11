@@ -59,7 +59,7 @@ import AppKit
     @objc func debugState() -> [String: Any]?
 
     /// Programmatically move the current session's selection (no UI events).
-    /// - Parameter axis: `'app'` to move between app columns, `'window'` to move between windows within an app
+    /// - Parameter axis: `'app'` to move between apps, `'window'` to move between windows within an app, `'linear'` to move through the flat row list the way the ↑/↓ arrow keys do
     /// - Parameter delta: direction to move — `+1` for forward, `-1` for backward
     /// - Returns: true if a session was active to move.
     @objc func debugMove(_ axis: String, _ delta: Int) -> Bool

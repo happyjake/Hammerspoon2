@@ -27,15 +27,21 @@ struct HSSwitcherView: View {
                     .padding(.horizontal, 16).padding(.vertical, 24)
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 0) {
-                        ForEach(Array(apps.enumerated()), id: \.element.pid) { appIdx, app in
-                            appHeader(app: app, idx: appIdx)
-                            ForEach(Array(app.windows.enumerated()), id: \.element.stableID) { winIdx, win in
-                                windowRow(app: app, win: win, appIdx: appIdx, winIdx: winIdx)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            ForEach(Array(apps.enumerated()), id: \.element.pid) { appIdx, app in
+                                appHeader(app: app, idx: appIdx)
+                                    .id("a\(app.pid)")
+                                ForEach(Array(app.windows.enumerated()), id: \.element.stableID) { winIdx, win in
+                                    windowRow(app: app, win: win, appIdx: appIdx, winIdx: winIdx)
+                                        .id("w\(win.stableID)")
+                                }
                             }
                         }
                     }
+                    .onChange(of: state.selectedAppIndex) { scrollToSelection(proxy) }
+                    .onChange(of: state.selectedWindowIndex) { scrollToSelection(proxy) }
                 }
             }
         }
@@ -90,6 +96,18 @@ struct HSSwitcherView: View {
         .background(isSelected ? Color.accentColor : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture { onPick(appIdx, winIdx) }
+    }
+
+    /// Keep the highlighted row visible as arrow keys move it through the list.
+    private func scrollToSelection(_ proxy: ScrollViewProxy) {
+        let apps = state.filteredApps()
+        guard state.selectedAppIndex >= 0, state.selectedAppIndex < apps.count else { return }
+        let app = apps[state.selectedAppIndex]
+        if state.selectedWindowIndex >= 0, state.selectedWindowIndex < app.windows.count {
+            proxy.scrollTo("w\(app.windows[state.selectedWindowIndex].stableID)")
+        } else {
+            proxy.scrollTo("a\(app.pid)")
+        }
     }
 
     @ViewBuilder

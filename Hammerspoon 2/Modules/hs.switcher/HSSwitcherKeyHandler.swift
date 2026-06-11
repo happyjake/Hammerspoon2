@@ -21,8 +21,8 @@ final class HSSwitcherKeyHandler {
     enum Intent {
         case nextApp
         case prevApp
-        case nextWindow
-        case prevWindow
+        case nextRow      // ↓ — next row of the flat list (crosses app boundaries)
+        case prevRow      // ↑
         case commit
         case cancel
         case enterFilter(String)
@@ -181,8 +181,8 @@ final class HSSwitcherKeyHandler {
         switch keyCode {
         case kVK_LeftArrow:  onIntent(.prevApp); return true
         case kVK_RightArrow: onIntent(.nextApp); return true
-        case kVK_UpArrow:    onIntent(.prevWindow); return true
-        case kVK_DownArrow:  onIntent(.nextWindow); return true
+        case kVK_UpArrow:    onIntent(.prevRow); return true
+        case kVK_DownArrow:  onIntent(.nextRow); return true
         default: break
         }
         // Tab while ctrl held: cycle apps (shift reverses)

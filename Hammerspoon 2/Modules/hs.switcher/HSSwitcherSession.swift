@@ -141,6 +141,7 @@ final class HSSwitcherSession {
         switch axis {
         case "app":    state.moveAppSelection(by: delta)
         case "window": state.moveWindowSelection(by: delta)
+        case "linear": state.moveLinearSelection(by: delta)
         default: break
         }
     }
@@ -186,8 +187,8 @@ final class HSSwitcherSession {
         switch intent {
         case .nextApp:     state.moveAppSelection(by: 1)
         case .prevApp:     state.moveAppSelection(by: -1)
-        case .nextWindow:  state.moveWindowSelection(by: 1)
-        case .prevWindow:  state.moveWindowSelection(by: -1)
+        case .nextRow:     state.moveLinearSelection(by: 1)
+        case .prevRow:     state.moveLinearSelection(by: -1)
         case .commit:      commit()
         case .cancel:      cancel()
         case .enterFilter(let s):
