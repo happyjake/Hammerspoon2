@@ -12733,6 +12733,71 @@
       "rawDocumentation": "# hs.ui\n\n**Create custom user interfaces, alerts, dialogs, and file pickers**\n\nThe `hs.ui` module provides a set of tools for creating custom user interfaces\nin Hammerspoon with SwiftUI-like declarative syntax.\n\n## Key Features\n\n- **Custom Windows**: Build custom UI windows with shapes, text, and layouts\n- **Alerts**: Display temporary on-screen notifications\n- **Dialogs**: Show modal dialogs with custom buttons and callbacks\n- **Text Input**: Prompt users for text input\n- **File Pickers**: Let users select files or directories\n- **Reactive Colors**: Pass an `HSColor` object to `.fill()`, `.stroke()`, or `.foregroundColor()`,\n  then call `.set()` on it from any callback to re-render the canvas automatically\n- **Reactive Text**: Create a string with `hs.ui.string()`, pass it to `.text()`,\n  then call `.set()` on it to update the displayed content live\n- **Reactive Images**: Pass an `HSImage` object to `.image()`, then call `.set()` on it\n  to swap the image without rebuilding the window\n\n## Basic Examples\n\n### Simple Alert\n```javascript\nhs.ui.alert(\"Task completed!\")\n    .duration(3)\n    .show();\n```\n\n### Dialog with Buttons\n```javascript\nhs.ui.dialog(\"Save changes?\")\n    .informativeText(\"Your document has unsaved changes.\")\n    .buttons([\"Save\", \"Don't Save\", \"Cancel\"])\n    .onButton((index) => {\n        if (index === 0) print(\"Saving...\");\n    })\n    .show();\n```\n\n### Text Input Prompt\n```javascript\nhs.ui.textPrompt(\"Enter your name\")\n    .defaultText(\"John Doe\")\n    .onButton((buttonIndex, text) => {\n        print(\"User entered: \" + text);\n    })\n    .show();\n```\n\n### File Picker\n```javascript\nhs.ui.filePicker()\n    .message(\"Choose a file\")\n    .allowedFileTypes([\"txt\", \"md\"])\n    .onSelection((path) => {\n        if (path) print(\"Selected: \" + path);\n    })\n    .show();\n```\n\n### Custom Window\n```javascript\nhs.ui.window({x: 100, y: 100, w: 300, h: 200})\n    .vstack()\n        .spacing(10)\n        .padding(20)\n        .text(\"Hello, World!\")\n            .font(HSFont.title())\n            .foregroundColor(\"#FFFFFF\")\n        .rectangle()\n            .fill(\"#4A90E2\")\n            .cornerRadius(10)\n            .frame({w: \"100%\", h: 60})\n    .end()\n    .backgroundColor(\"#2C3E50\")\n    .show();\n```\n\n### Reactive Color on Hover\n```javascript\n// Create a mutable color, then mutate it inside the hover callback\nconst btnColor = HSColor.hex(\"#4A90E2\");\n\nhs.ui.window({x: 100, y: 100, w: 160, h: 60})\n    .rectangle()\n        .fill(btnColor)\n        .cornerRadius(8)\n        .frame({w: \"100%\", h: \"100%\"})\n        .onHover((isHovered) => {\n            btnColor.set(isHovered ? \"#E24A4A\" : \"#4A90E2\");\n        })\n    .show();\n```\n\n### Reactive Text on Hover\n```javascript\n// Create a mutable string, then mutate it inside the hover callback\nconst label = hs.ui.string(\"Move your mouse here\");\n\nhs.ui.window({x: 100, y: 200, w: 220, h: 50})\n    .text(label)\n        .font(HSFont.body())\n        .foregroundColor(\"#FFFFFF\")\n        .onHover((isHovered) => {\n            label.set(isHovered ? \"You're hovering!\" : \"Move your mouse here\");\n        })\n    .show();\n```\n\n### Reactive Image on Click\n```javascript\n// Toggle between two system icons on each click\nconst icon = HSImage.fromName(\"NSStatusAvailable\");\n\nhs.ui.window({x: 100, y: 300, w: 80, h: 80})\n    .image(icon)\n        .resizable()\n        .aspectRatio(\"fit\")\n        .frame({w: 64, h: 64})\n        .onClick(() => {\n            const next = (icon.name() === \"NSStatusAvailable\")\n                ? HSImage.fromName(\"NSStatusUnavailable\")\n                : HSImage.fromName(\"NSStatusAvailable\");\n            icon.set(next);\n        })\n    .show();\n```\n\n## Complete Example: Status Dashboard\n\nHere's a more complex example showing how to build an interactive status dashboard\nthat combines multiple UI elements:\n\n```javascript\n// Create a status dashboard window\nconst statusWindow = hs.ui.window({x: 100, y: 100, w: 400, h: 500})\n    .vstack()\n        .spacing(15)\n        .padding(20)\n\n        // Header\n        .text(\"System Status Dashboard\")\n            .font(HSFont.largeTitle())\n            .foregroundColor(\"#FFFFFF\")\n\n        // Status cards\n        .hstack()\n            .spacing(10)\n            .vstack()\n                .spacing(5)\n                .rectangle()\n                    .fill(\"#4CAF50\")\n                    .cornerRadius(8)\n                    .frame({w: 180, h: 100})\n                .text(\"CPU: 45%\")\n                    .font(HSFont.headline())\n                    .foregroundColor(\"#FFFFFF\")\n            .end()\n            .vstack()\n                .spacing(5)\n                .rectangle()\n                    .fill(\"#2196F3\")\n                    .cornerRadius(8)\n                    .frame({w: 180, h: 100})\n                .text(\"Memory: 8.2GB\")\n                    .font(HSFont.headline())\n                    .foregroundColor(\"#FFFFFF\")\n            .end()\n        .end()\n\n        // Activity indicator with image\n        .hstack()\n            .spacing(10)\n            .image(HSImage.fromName(\"NSComputer\"))\n                .resizable()\n                .aspectRatio(\"fit\")\n                .frame({w: 64, h: 64})\n            .vstack()\n                .text(\"System Running\")\n                    .font(HSFont.title())\n                .text(\"All services operational\")\n                    .font(HSFont.caption())\n                    .foregroundColor(\"#A0A0A0\")\n            .end()\n        .end()\n\n        // Circle status indicators\n        .hstack()\n            .spacing(20)\n            .circle()\n                .fill(\"#4CAF50\")\n                .frame({w: 30, h: 30})\n            .circle()\n                .fill(\"#FFC107\")\n                .frame({w: 30, h: 30})\n            .circle()\n                .fill(\"#F44336\")\n                .frame({w: 30, h: 30})\n        .end()\n    .end()\n    .backgroundColor(\"#2C3E50\");\n\n// Show the dashboard\nstatusWindow.show();\n\n// Later, interact with dialogs\nhs.ui.dialog(\"Shutdown system?\")\n    .informativeText(\"This will close all applications.\")\n    .buttons([\"Shutdown\", \"Cancel\"])\n    .onButton((index) => {\n        if (index === 0) {\n            hs.ui.alert(\"Shutting down...\")\n                .duration(3)\n                .show();\n        }\n    })\n    .show();\n```\n\n## Complete Example: Reactive Hover Card\n\nDemonstrates reactive colors and reactive text together — a single `.onHover()`\ncallback updates both the fill color of a shape and the content of a text label:\n\n```javascript\nconst cardColor = HSColor.hex(\"#3498DB\");\nconst cardLabel = hs.ui.string(\"Hover the card\");\n\nhs.ui.window({x: 100, y: 100, w: 220, h: 120})\n    .vstack()\n        .spacing(12)\n        .padding(16)\n        .rectangle()\n            .fill(cardColor)\n            .cornerRadius(10)\n            .frame({w: \"100%\", h: 60})\n            .onHover((isHovered) => {\n                cardColor.set(isHovered ? \"#E74C3C\" : \"#3498DB\");\n                cardLabel.set(isHovered ? \"You found it!\" : \"Hover the card\");\n            })\n        .text(cardLabel)\n            .font(HSFont.headline())\n            .foregroundColor(\"#FFFFFF\")\n    .end()\n    .backgroundColor(\"#1A252F\")\n    .show();\n```"
     },
     {
+      "name": "hs.vision",
+      "methods": [
+        {
+          "name": "recognizeText",
+          "signature": "func recognizeText(_ image: JSValue, _ options: JSValue) -> JSPromise?",
+          "rawDocumentation": "Recognize text in an image (OCR), returning each detected line of text with its\nposition inside the image.\n\nThe position of each line is reported as percentages of the image's size with a\ntop-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS\n`left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.\n\n- Parameter image: The image to analyse — either a file path string (`~` is expanded)\n  or an `HSImage` object\n- Parameter options: Optional settings object:\n  - `level`: `\"accurate\"` (default) or `\"fast\"`\n  - `languages`: array of language identifiers (e.g. `[\"en-US\", \"zh-Hans\"]`).\n    When omitted, the language is detected automatically.\n  - `autoDetectLanguage`: automatically detect the language (default `true`)\n  - `correction`: apply language-model correction to the results (default `true`)\n  - `minConfidence`: drop lines with confidence below this `0.0`–`1.0` threshold (default `0`)\n  - `minTextHeight`: minimum text height to recognise, as a fraction of image height `0.0`–`1.0` (default `0`)\n  - `customWords`: array of out-of-lexicon words to recognise (e.g. product names)\n- Returns: {Promise<object>} A Promise resolving to\n  `{ text, width, height, lines }` where `text` is every recognized line joined with\n  newlines, `width`/`height` are the image's pixel dimensions, and `lines` is an array\n  of `{ text, confidence, x, y, w, h }` with coordinates in percent of the image size\n  (top-left origin)\n- Example:\n```js\nconst result = await hs.vision.recognizeText('~/Desktop/screenshot.png')\nconsole.log(`Found ${result.lines.length} lines of text`)\nfor (const line of result.lines) {\n    console.log(`${line.text} @ ${line.x}%,${line.y}% (confidence ${line.confidence})`)\n}\n```",
+          "description": "Recognize text in an image (OCR), returning each detected line of text with its\nposition inside the image.\nThe position of each line is reported as percentages of the image's size with a\ntop-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS\n`left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.\nor an `HSImage` object\nWhen omitted, the language is detected automatically.",
+          "params": [
+            {
+              "name": "image",
+              "type": "JSValue",
+              "description": "The image to analyse — either a file path string (`~` is expanded)"
+            },
+            {
+              "name": "options",
+              "type": "JSValue",
+              "description": "Optional settings object:"
+            }
+          ],
+          "returns": {
+            "type": "JSPromise?",
+            "description": "A Promise resolving to",
+            "promiseType": "object"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const result = await hs.vision.recognizeText('~/Desktop/screenshot.png')\nconsole.log(`Found ${result.lines.length} lines of text`)\nfor (const line of result.lines) {\n    console.log(`${line.text} @ ${line.x}%,${line.y}% (confidence ${line.confidence})`)\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.vision/HSVisionModule.swift",
+          "lineNumber": 48
+        },
+        {
+          "name": "supportedTextLanguages",
+          "signature": "func supportedTextLanguages(_ level: JSValue) -> [String]",
+          "rawDocumentation": "List the languages the text recognizer supports on this system.\n- Parameter level: Optional recognition level the query applies to —\n  `\"accurate\"` (default) or `\"fast\"` (the fast path supports fewer languages)\n- Returns: An array of language identifiers (e.g. `[\"en-US\", \"zh-Hans\", ...]`)\n- Example:\n```js\nconst langs = hs.vision.supportedTextLanguages()\nconsole.log('OCR languages: ' + langs.join(', '))\n```",
+          "description": "List the languages the text recognizer supports on this system.\n`\"accurate\"` (default) or `\"fast\"` (the fast path supports fewer languages)",
+          "params": [
+            {
+              "name": "level",
+              "type": "JSValue",
+              "description": "Optional recognition level the query applies to —"
+            }
+          ],
+          "returns": {
+            "type": "[String]",
+            "description": "An array of language identifiers (e.g. `[\"en-US\", \"zh-Hans\", ...]`)"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const langs = hs.vision.supportedTextLanguages()\nconsole.log('OCR languages: ' + langs.join(', '))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.vision/HSVisionModule.swift",
+          "lineNumber": 59
+        }
+      ],
+      "properties": [],
+      "types": []
+    },
+    {
       "name": "hs.webview",
       "methods": [
         {
@@ -14911,5 +14976,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-08T00:57:24.145Z"
+  "generatedAt": "2026-06-11T07:24:07.221Z"
 }

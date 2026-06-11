@@ -408,6 +408,8 @@ extension JSTestHarness {
                 loadModule(HSAudioDeviceModule.self, as: name)
             case "window":
                 loadModule(HSWindowModule.self, as: name)
+            case "vision":
+                loadModule(HSVisionModule.self, as: name)
             default:
                 print("⚠️ Unknown module: \(name)")
             }

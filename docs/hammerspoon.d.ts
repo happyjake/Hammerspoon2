@@ -5520,6 +5520,33 @@ declare class HSUITextPrompt {
 }
 
 /**
+ */
+declare namespace hs.vision {
+    /**
+     * Recognize text in an image (OCR), returning each detected line of text with its
+position inside the image.
+The position of each line is reported as percentages of the image's size with a
+top-left origin — i.e. `x`/`y`/`w`/`h` can be used directly as CSS
+`left`/`top`/`width`/`height` percentage values for a Live Text-style overlay.
+or an `HSImage` object
+When omitted, the language is detected automatically.
+     * @param image The image to analyse — either a file path string (`~` is expanded)
+     * @param options Optional settings object:
+     * @returns A Promise resolving to
+     */
+    function recognizeText(image: JSValue, options: JSValue): Promise<object>;
+
+    /**
+     * List the languages the text recognizer supports on this system.
+`"accurate"` (default) or `"fast"` (the fast path supports fewer languages)
+     * @param level Optional recognition level the query applies to —
+     * @returns An array of language identifiers (e.g. `["en-US", "zh-Hans", ...]`)
+     */
+    function supportedTextLanguages(level: JSValue): string[];
+
+}
+
+/**
  * A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.
 Provides a builder-style API for loading URLs or HTML, styling the window,
 registering JS message handlers, evaluating JavaScript, and managing the window lifecycle.
