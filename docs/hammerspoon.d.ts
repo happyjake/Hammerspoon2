@@ -202,9 +202,10 @@ declare class HSImage {
     /**
      * Load an app's icon by bundle identifier
      * @param bundleID Bundle identifier of the application
+     * @param withFallbackSymbol The name of an SF Symbol to use if no bundle image could be loaded. Defaults to questionmark.circle
      * @returns An HSImage object, or null if the app couldn't be found
      */
-    static fromAppBundle(bundleID: string): HSImage | undefined;
+    static fromAppBundle(bundleID: string, withFallbackSymbol: string): HSImage | undefined;
 
     /**
      * Get the icon for a file
@@ -1633,9 +1634,9 @@ The `contextMenu` array defines per-row right-click menu entries. Each entry is 
   text: "Open Safari", subText: "com.apple.Safari",
   image: HSImage.fromAppBundle("com.apple.Safari"), valid: true, myData: 42,
   contextMenu: [
-    { title: "Open", action: (item) => hs.urlevent.openURL("https://apple.com") },
+    { title: "Open", action: () => hs.urlevent.openURL("https://apple.com") },
     { type: "divider" },
-    { title: "Copy bundle ID", action: (item) => hs.pasteboard.writeString(item.bundleID) }
+    { title: "Copy bundle ID", action: () => hs.pasteboard.writeString("com.apple.Safari") }
   ]
 }
 ```

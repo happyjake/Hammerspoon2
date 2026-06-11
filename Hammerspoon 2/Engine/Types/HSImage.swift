@@ -75,7 +75,7 @@ import Observation
     @objc static func fromSymbol(_ name: String) -> HSImage?
 
     /// Load an app's icon by bundle identifier
-    /// - Parameter:
+    /// - Parameters:
     ///  - bundleID: Bundle identifier of the application
     ///  - withFallbackSymbol: The name of an SF Symbol to use if no bundle image could be loaded. Defaults to questionmark.circle
     /// - Returns: An HSImage object, or null if the app couldn't be found
