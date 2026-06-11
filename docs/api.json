@@ -9554,8 +9554,8 @@
         {
           "name": "enable",
           "signature": "func enable(_ cfg: JSValue) -> [String: Any]",
-          "rawDocumentation": "Enable the switcher with the given configuration.\n\n- Parameter cfg: Object with optional keys:\n  - `commitDelayMs` (number, default 250) — milliseconds of ctrl-idle\n    after which the highlighted selection is committed.\n  - `filterPlaceholder` (string, default \"Type to filter…\")\n  - `onCommit` (function, args: `{ appName, appPid, windowTitle, windowID }`)\n  - `onCancel` (function, no args)\n\n- Returns: `{ disable: function }` on success, or `{ error: string }`\n  on failure. The `error` is one of `\"accessibility\"`,\n  `\"inputMonitoring\"`, or a free-form string describing what went wrong.\n\n- Example:\n```js\nconst sw = hs.switcher.enable({\n  onCommit: e => console.log('switched to', e.appName)\n})\nif (sw.error) console.warn('switcher unavailable:', sw.error)\n// later: sw.disable()\n```",
-          "description": "Enable the switcher with the given configuration.\nafter which the highlighted selection is committed.",
+          "rawDocumentation": "Enable the switcher with the given configuration.\n\n- Parameter cfg: Object with optional keys:\n  - `commitDelayMs` (number, default 250) — milliseconds of ctrl-idle\n    after which the highlighted selection is committed.\n  - `filterPlaceholder` (string, default \"Type to filter…\")\n  - `onCommit` (function, args: `{ appName, appPid, windowTitle, windowID }`)\n  - `onCancel` (function, no args)\n  - `onHandoff` (function, args: `{ query }`) — fired when the user\n    presses Tab while filtering. The picker closes and the typed filter\n    text is handed off so a host launcher can search installed (not just\n    running) apps — letting the user launch something that isn't open yet.\n\n- Returns: `{ disable: function }` on success, or `{ error: string }`\n  on failure. The `error` is one of `\"accessibility\"`,\n  `\"inputMonitoring\"`, or a free-form string describing what went wrong.\n\n- Example:\n```js\nconst sw = hs.switcher.enable({\n  onCommit: e => console.log('switched to', e.appName)\n})\nif (sw.error) console.warn('switcher unavailable:', sw.error)\n// later: sw.disable()\n```",
+          "description": "Enable the switcher with the given configuration.\nafter which the highlighted selection is committed.\npresses Tab while filtering. The picker closes and the typed filter\ntext is handed off so a host launcher can search installed (not just\nrunning) apps — letting the user launch something that isn't open yet.",
           "params": [
             {
               "name": "cfg",
@@ -9575,7 +9575,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 38
+          "lineNumber": 42
         },
         {
           "name": "show",
@@ -9595,7 +9595,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 48
+          "lineNumber": 52
         },
         {
           "name": "debugState",
@@ -9615,7 +9615,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 59
+          "lineNumber": 63
         },
         {
           "name": "debugMove",
@@ -9641,7 +9641,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 65
+          "lineNumber": 69
         },
         {
           "name": "debugCommit",
@@ -9656,7 +9656,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 72
+          "lineNumber": 76
         }
       ],
       "properties": [],
@@ -15002,5 +15002,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-11T09:59:06.599Z"
+  "generatedAt": "2026-06-11T11:23:49.027Z"
 }

@@ -25,6 +25,7 @@ final class HSSwitcherKeyHandler {
         case prevRow      // ↑
         case commit
         case cancel
+        case handoff      // Tab while filtering — hand the typed query to the launcher
         case enterFilter(String)
         case filterAppend(String)
         case filterBackspace
@@ -188,6 +189,13 @@ final class HSSwitcherKeyHandler {
         // Tab while ctrl held: cycle apps (shift reverses)
         if keyCode == kVK_Tab && flags.contains(.maskControl) {
             onIntent(hasShift ? .prevApp : .nextApp)
+            return true
+        }
+        // Plain Tab while filtering: hand the typed query off to the launcher
+        // so the user can launch an app that isn't running yet. (ctrl+Tab above
+        // still cycles; this only fires once the user has entered filter mode.)
+        if keyCode == kVK_Tab && modeIsFilter {
+            onIntent(.handoff)
             return true
         }
         // Enter commits

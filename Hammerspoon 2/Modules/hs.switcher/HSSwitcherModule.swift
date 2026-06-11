@@ -22,6 +22,10 @@ import AppKit
     ///   - `filterPlaceholder` (string, default "Type to filter…")
     ///   - `onCommit` (function, args: `{ appName, appPid, windowTitle, windowID }`)
     ///   - `onCancel` (function, no args)
+    ///   - `onHandoff` (function, args: `{ query }`) — fired when the user
+    ///     presses Tab while filtering. The picker closes and the typed filter
+    ///     text is handed off so a host launcher can search installed (not just
+    ///     running) apps — letting the user launch something that isn't open yet.
     ///
     /// - Returns: `{ disable: function }` on success, or `{ error: string }`
     ///   on failure. The `error` is one of `"accessibility"`,
@@ -154,6 +158,7 @@ struct HSSwitcherConfig: @unchecked Sendable {
     let filterPlaceholder: String
     let onCommit: JSValue?
     let onCancel: JSValue?
+    let onHandoff: JSValue?
 
     init(jsValue: JSValue) {
         guard jsValue.isObject else {
@@ -161,6 +166,7 @@ struct HSSwitcherConfig: @unchecked Sendable {
             filterPlaceholder = "Type to filter…"
             onCommit = nil
             onCancel = nil
+            onHandoff = nil
             return
         }
         let v = jsValue.forProperty("commitDelayMs")
@@ -174,6 +180,9 @@ struct HSSwitcherConfig: @unchecked Sendable {
 
         let on = jsValue.forProperty("onCancel")
         onCancel = (on?.isObject == true && !(on?.isNull ?? true) && !(on?.isUndefined ?? true)) ? on : nil
+
+        let oh = jsValue.forProperty("onHandoff")
+        onHandoff = (oh?.isObject == true && !(oh?.isNull ?? true) && !(oh?.isUndefined ?? true)) ? oh : nil
     }
 }
 

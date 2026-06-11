@@ -80,6 +80,20 @@ final class HSSwitcherSession {
         close(callbackKind: .cancel)
     }
 
+    /// Tab while filtering: tear the picker down and hand the typed query to the
+    /// launcher via `onHandoff`, so the user can launch an app that isn't
+    /// running (and therefore can't appear in this running-windows picker).
+    /// Mirrors `commit()`'s discipline — close FIRST, then fire the callback.
+    /// `internal` (not private) so it can be unit-tested without an eventtap.
+    func emitHandoff() {
+        guard !isClosed else { return }
+        isClosed = true
+        tearDown()
+        let payload: [String: Any] = ["query": state.filterText]
+        config.onHandoff?.callSafely(withArguments: [payload], context: "hs.switcher onHandoff")
+        onClose()
+    }
+
     // MARK: - Internals
 
     private enum CallbackKind {
@@ -191,6 +205,7 @@ final class HSSwitcherSession {
         case .prevRow:     state.moveLinearSelection(by: -1)
         case .commit:      commit()
         case .cancel:      cancel()
+        case .handoff:     emitHandoff()
         case .enterFilter(let s):
             state.mode = .filter
             state.filterText = s

@@ -4161,6 +4161,9 @@ declare namespace hs.switcher {
     /**
      * Enable the switcher with the given configuration.
 after which the highlighted selection is committed.
+presses Tab while filtering. The picker closes and the typed filter
+text is handed off so a host launcher can search installed (not just
+running) apps — letting the user launch something that isn't open yet.
      * @param cfg Object with optional keys:
      * @returns `{ disable: function }` on success, or `{ error: string }`
      */
