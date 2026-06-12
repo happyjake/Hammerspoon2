@@ -150,6 +150,47 @@ struct HSWebviewLifecycleTests {
         h.expectTrue("wv.currentFrame() == null")
     }
 
+    @Test("nonActivating hover forwarding does not recurse") @MainActor func testHoverForwardingNoRecursion() {
+        // Regression: the hover-forwarding wrapper used to re-dispatch
+        // mouseEntered into the WKWebView, which doesn't implement it —
+        // NSResponder forwarded it back to the wrapper, recursing to a stack
+        // overflow the moment a real pointer entered the panel.
+        let h = makeHarness()
+        h.eval("""
+            const wv = hs.webview.new({x:220, y:220, w:390, h:250})
+                .windowStyle({titled:false, closable:false, transparent:true})
+                .nonActivating(true)
+                .canBecomeKey(false)
+                .html('<!doctype html><html><body>hover</body></html>', null)
+                .show()
+        """)
+        let panel = NSApp.windows.first { $0.styleMask.contains(.nonactivatingPanel) && $0.frame.width == 390 }
+        #expect(panel != nil, "non-activating panel should be on screen")
+        if let panel, let content = panel.contentView {
+            let loc = NSPoint(x: 50, y: 50)
+            if let entered = NSEvent.enterExitEvent(
+                with: .mouseEntered, location: loc, modifierFlags: [], timestamp: 0,
+                windowNumber: panel.windowNumber, context: nil,
+                eventNumber: 0, trackingNumber: 0, userData: nil) {
+                content.mouseEntered(with: entered)
+            }
+            if let moved = NSEvent.mouseEvent(
+                with: .mouseMoved, location: loc, modifierFlags: [], timestamp: 0,
+                windowNumber: panel.windowNumber, context: nil,
+                eventNumber: 0, clickCount: 0, pressure: 0) {
+                content.mouseMoved(with: moved)
+            }
+            if let exited = NSEvent.enterExitEvent(
+                with: .mouseExited, location: loc, modifierFlags: [], timestamp: 0,
+                windowNumber: panel.windowNumber, context: nil,
+                eventNumber: 0, trackingNumber: 0, userData: nil) {
+                content.mouseExited(with: exited)
+            }
+        }
+        h.eval("wv.close()")
+        #expect(!h.hasException)
+    }
+
     @Test("show() then close() does not crash") @MainActor func testShowClose() {
         let h = makeHarness()
         h.eval("""

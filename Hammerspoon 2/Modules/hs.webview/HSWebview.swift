@@ -836,12 +836,21 @@ private final class HSWebviewNonActivatingPanel: NSPanel {
 /// events — CSS :hover never matches, DOM mouseenter/mouseleave never fire and
 /// the CSS `cursor` property is ignored. An .activeAlways tracking area
 /// delivers entered/moved/exited to this view (tracking-area events go to the
-/// owner directly, bypassing subview hit-testing); re-dispatching them into the
-/// WKWebView drives its full hover pipeline. When the window happens to be key
-/// WebKit's own tracking fires too — the duplicate delivery is idempotent.
+/// owner directly, bypassing subview hit-testing); re-dispatching into the
+/// WKWebView drives its full hover pipeline.
+///
+/// Everything is forwarded as `mouseMoved` — that is the one event WKWebView
+/// actually implements. Methods it does NOT implement (mouseEntered/Exited)
+/// bounce straight back here through NSResponder's next-responder forwarding,
+/// which once recursed to a stack overflow; `forwarding` makes any bounce a
+/// no-op. Exit is synthesized as a move far outside the view so WebKit clears
+/// hover/cursor state (otherwise a toast would stay "hovered" after the
+/// pointer left). When the window happens to be key WebKit's own tracking
+/// fires too — the duplicate delivery is idempotent.
 @MainActor
 private final class HSWebviewHoverForwardingView: NSView {
     weak var target: WKWebView?
+    private var forwarding = false
 
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
@@ -852,9 +861,25 @@ private final class HSWebviewHoverForwardingView: NSView {
             owner: self, userInfo: nil))
     }
 
-    override func mouseEntered(with event: NSEvent) { target?.mouseEntered(with: event) }
-    override func mouseMoved(with event: NSEvent)   { target?.mouseMoved(with: event) }
-    override func mouseExited(with event: NSEvent)  { target?.mouseExited(with: event) }
+    private func forwardAsMove(_ event: NSEvent) {
+        guard !forwarding, let wv = target else { return }
+        forwarding = true
+        defer { forwarding = false }
+        wv.mouseMoved(with: event)
+    }
+
+    override func mouseEntered(with event: NSEvent) { forwardAsMove(event) }
+    override func mouseMoved(with event: NSEvent)   { forwardAsMove(event) }
+
+    override func mouseExited(with event: NSEvent) {
+        guard let win = window,
+              let out = NSEvent.mouseEvent(with: .mouseMoved,
+                                           location: NSPoint(x: -10000, y: -10000),
+                                           modifierFlags: [], timestamp: event.timestamp,
+                                           windowNumber: win.windowNumber, context: nil,
+                                           eventNumber: 0, clickCount: 0, pressure: 0) else { return }
+        forwardAsMove(out)
+    }
 }
 
 /// WKUserContentController retains its script message handler strongly. To
