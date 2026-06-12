@@ -71,6 +71,27 @@ import WebKit
     /// - Returns: self for chaining
     @objc func canBecomeKey(_ value: Bool) -> HSWebview
 
+    /// Never activate Hammerspoon 2 when this window is shown or clicked. The
+    /// webview is hosted in a non-activating panel: the page still gets mouse
+    /// events (buttons click, CSS `:hover` fires) but the frontmost app keeps
+    /// focus throughout — what you want for a toast or notification overlay.
+    /// Combine with `canBecomeKey(true)` for a Spotlight-style panel that takes
+    /// keyboard input while the previous app stays active, or with
+    /// `canBecomeKey(false)` so the page never captures keyboard at all.
+    /// Must be set before `show()`.
+    /// - Parameter value: true to host the webview in a non-activating panel
+    /// - Returns: self for chaining
+    /// - Example:
+    /// ```js
+    /// const toast = hs.webview.new({x: 100, y: 100, w: 400, h: 200})
+    ///   .windowStyle({ titled: false, transparent: true })
+    ///   .nonActivating(true)
+    ///   .canBecomeKey(false)
+    ///   .url('file://~/toast/index.html')
+    ///   .show()  // appears without stealing focus from the current app
+    /// ```
+    @objc func nonActivating(_ value: Bool) -> HSWebview
+
     /// Make the window click-through: mouse events pass to whatever is beneath it. Essential for a
     /// transparent, screen-covering HUD overlay so it never steals the user's input.
     /// - Parameter value: true to ignore mouse events
@@ -236,6 +257,7 @@ import WebKit
     private var isTransparent: Bool = false
     private var windowLevel: NSWindow.Level = .floating
     private var canBecomeKeyOverride: Bool = true
+    private var isNonActivating: Bool = false
     private var ignoresMouseEventsValue: Bool = false
     private var keepsRenderingInactive: Bool = false
     private var joinAllSpaces: Bool = false
@@ -343,6 +365,11 @@ import WebKit
 
     @objc func canBecomeKey(_ value: Bool) -> HSWebview {
         canBecomeKeyOverride = value
+        return self
+    }
+
+    @objc func nonActivating(_ value: Bool) -> HSWebview {
+        isNonActivating = value
         return self
     }
 
@@ -480,9 +507,26 @@ import WebKit
             if isResizable       { styleMask.insert(.resizable) }
             if isMiniaturizable  { styleMask.insert(.miniaturizable) }
         }
-        let window = canBecomeKeyOverride
-            ? HSWebviewKeyAcceptingWindow(contentRect: windowFrame, styleMask: styleMask, backing: .buffered, defer: false)
-            : NSWindow(contentRect: windowFrame, styleMask: styleMask, backing: .buffered, defer: false)
+        let window: NSWindow
+        if isNonActivating {
+            // .nonactivatingPanel requires an NSPanel host: clicks reach the page
+            // without activating the app, so the frontmost app keeps focus.
+            styleMask.insert(.nonactivatingPanel)
+            let panel = HSWebviewNonActivatingPanel(contentRect: windowFrame, styleMask: styleMask, backing: .buffered, defer: false)
+            panel.allowKey = canBecomeKeyOverride
+            // NSPanel hides itself when the app deactivates by default — fatal
+            // for a background app's overlay, which must survive focus changes.
+            panel.hidesOnDeactivate = false
+            panel.becomesKeyOnlyIfNeeded = true
+            // CSS :hover in the page depends on mouse-moved events arriving even
+            // though the window never becomes key.
+            panel.acceptsMouseMovedEvents = true
+            window = panel
+        } else if canBecomeKeyOverride {
+            window = HSWebviewKeyAcceptingWindow(contentRect: windowFrame, styleMask: styleMask, backing: .buffered, defer: false)
+        } else {
+            window = NSWindow(contentRect: windowFrame, styleMask: styleMask, backing: .buffered, defer: false)
+        }
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.level = windowLevel
@@ -544,10 +588,16 @@ import WebKit
             break
         }
 
-        if canBecomeKeyOverride {
+        if canBecomeKeyOverride && !isNonActivating {
             NSApp.activate(ignoringOtherApps: true)
         }
-        window.makeKeyAndOrderFront(nil)
+        // A non-activating panel with canBecomeKey(true) takes keyboard here
+        // without activating the app (Spotlight-style). Windows that refuse key
+        // status (canBecomeKey false, or plain borderless NSWindows) skip the
+        // makeKey attempt — AppKit logs a warning otherwise.
+        if window.canBecomeKey {
+            window.makeKeyAndOrderFront(nil)
+        }
         window.orderFrontRegardless()
 
         self.nsWindow = window
@@ -758,6 +808,17 @@ import WebKit
 private final class HSWebviewKeyAcceptingWindow: NSWindow {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
+}
+
+/// Host for `nonActivating(true)` webviews. NSPanel + .nonactivatingPanel lets
+/// the page take mouse (and, when allowed, keyboard) input while the frontmost
+/// app stays active. Never main: an overlay must not capture the main-window
+/// role from real document windows.
+@MainActor
+private final class HSWebviewNonActivatingPanel: NSPanel {
+    var allowKey = false
+    override var canBecomeKey: Bool { allowKey }
+    override var canBecomeMain: Bool { false }
 }
 
 /// WKUserContentController retains its script message handler strongly. To

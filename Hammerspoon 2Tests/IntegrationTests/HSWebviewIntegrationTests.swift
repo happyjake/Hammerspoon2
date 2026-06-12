@@ -38,6 +38,7 @@ struct HSWebviewStructureTests {
         h.expectTrue("typeof wv.level === 'function'")
         h.expectTrue("typeof wv.windowStyle === 'function'")
         h.expectTrue("typeof wv.canBecomeKey === 'function'")
+        h.expectTrue("typeof wv.nonActivating === 'function'")
         h.expectTrue("typeof wv.center === 'function'")
         h.expectTrue("typeof wv.windowCornerRadius === 'function'")
         h.expectTrue("typeof wv.developerExtras === 'function'")
@@ -62,6 +63,8 @@ struct HSWebviewStructureTests {
         h.expectTrue("wv.level('floating') === wv")
         h.expectTrue("wv.windowStyle({titled:false, closable:false}) === wv")
         h.expectTrue("wv.canBecomeKey(true) === wv")
+        h.expectTrue("wv.nonActivating(true) === wv")
+        h.expectTrue("wv.nonActivating(false) === wv")
         h.expectTrue("wv.center() === wv")
         h.expectTrue("wv.windowCornerRadius(12) === wv")
         h.expectTrue("wv.developerExtras(false) === wv")
@@ -124,6 +127,27 @@ struct HSWebviewLifecycleTests {
         let harness = JSTestHarness()
         harness.loadModule(HSWebviewModule.self, as: "webview")
         return harness
+    }
+
+    @Test("nonActivating show() then close() does not crash") @MainActor func testNonActivatingShowClose() {
+        // Focus behavior (the frontmost app keeping key status) can't be verified
+        // in the test runner; this drives the NSPanel host through its lifecycle.
+        let h = makeHarness()
+        h.eval("""
+            const wv = hs.webview.new({x:200, y:200, w:380, h:240})
+                .windowStyle({titled:false, closable:false, transparent:true})
+                .nonActivating(true)
+                .canBecomeKey(false)
+                .level('status')
+                .html('<!doctype html><html><body>toast</body></html>', null)
+                .show()
+        """)
+        #expect(!h.hasException)
+        h.expectTrue("wv.currentFrame() != null")
+        h.expectTrue("wv.currentFrame().w === 380")
+        h.eval("wv.close()")
+        #expect(!h.hasException)
+        h.expectTrue("wv.currentFrame() == null")
     }
 
     @Test("show() then close() does not crash") @MainActor func testShowClose() {

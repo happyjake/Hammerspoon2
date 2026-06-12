@@ -5628,6 +5628,20 @@ File URLs must be absolute paths; tilde is expanded.
     static canBecomeKey(value: boolean): HSWebview;
 
     /**
+     * Never activate Hammerspoon 2 when this window is shown or clicked. The
+webview is hosted in a non-activating panel: the page still gets mouse
+events (buttons click, CSS `:hover` fires) but the frontmost app keeps
+focus throughout — what you want for a toast or notification overlay.
+Combine with `canBecomeKey(true)` for a Spotlight-style panel that takes
+keyboard input while the previous app stays active, or with
+`canBecomeKey(false)` so the page never captures keyboard at all.
+Must be set before `show()`.
+     * @param value true to host the webview in a non-activating panel
+     * @returns self for chaining
+     */
+    static nonActivating(value: boolean): HSWebview;
+
+    /**
      * Make the window click-through: mouse events pass to whatever is beneath it. Essential for a
 transparent, screen-covering HUD overlay so it never steals the user's input.
      * @param value true to ignore mouse events
