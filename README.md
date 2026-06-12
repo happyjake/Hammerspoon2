@@ -14,6 +14,12 @@ Pre-releases up to (and including) 0.0.6 target macOS 15.6 and support both Appl
 
 From a future pre-release onwards, builds will require at least macOS 26, and once macOS 27 releases, that will become the minimum target.
 
+## Using Hammerspoon
+
+ * Download one of the pre-releases from GitHub, unzip and place in /Applications
+ * Create ~/.config/hammerspoon2/init.js
+ * For the JavaScript API docs, see https://cmsj.github.io/Hammerspoon2/
+
 ## Development
 
 ### Building
