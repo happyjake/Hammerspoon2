@@ -131,7 +131,9 @@ final class HSSwitcherSession {
             let f = w.frame
             dict["windowFrame"] = ["x": f.origin.x, "y": f.origin.y, "w": f.width, "h": f.height]
         }
-        if let screen = NSScreen.main {
+        // Report the screen the panel actually landed on (pointer may have
+        // moved since); pre-show, the screen it would land on.
+        if let screen = window?.screen ?? hostScreen {
             let f = screen.visibleFrame
             dict["screenVisibleFrame"] = ["x": f.origin.x, "y": f.origin.y, "w": f.width, "h": f.height]
         }
@@ -249,6 +251,15 @@ final class HSSwitcherSession {
         }
     }
 
+    /// The screen that should host the picker: the one under the mouse
+    /// pointer, so the panel opens where the user is working on multi-display
+    /// setups. Falls back to the active-app screen when the pointer sits on
+    /// no display (mid-transition between screens).
+    private var hostScreen: NSScreen? {
+        let loc = NSEvent.mouseLocation
+        return NSScreen.screens.first { NSMouseInRect(loc, $0.frame, false) } ?? NSScreen.main
+    }
+
     private func showWindow() {
         let view = HSSwitcherView(
             state: state,
@@ -273,8 +284,8 @@ final class HSSwitcherSession {
         win.hasShadow = true
         win.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
         win.hidesOnDeactivate = false
-        // Center on the screen with the currently-active app (NSScreen.main
-        // tracks that, unlike NSScreen.screens.first). Use visibleFrame so
+        // Center on the screen under the mouse pointer (hostScreen) — the
+        // panel follows the cursor across displays. Use visibleFrame so
         // we sit below the menu bar / above the Dock.
         //
         // IMPORTANT: use literal constants for w/h, not `win.frame.{width,height}`.
@@ -284,7 +295,7 @@ final class HSSwitcherSession {
         // frame here produced a 0-sized window centered on the screen.
         let panelW: CGFloat = 640
         let panelH: CGFloat = 480
-        if let screen = NSScreen.main {
+        if let screen = hostScreen {
             let f = screen.visibleFrame
             win.setFrame(
                 NSRect(x: f.midX - panelW/2, y: f.midY - panelH/2, width: panelW, height: panelH),
