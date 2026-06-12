@@ -86,9 +86,7 @@ import JavaScriptCore
     }
 
     func cancel() {
-        if #available(macOS 26.0, *) {
-            translationSession.cancel()
-        }
+        translationSession.cancel()
     }
 
     isolated deinit {

@@ -464,7 +464,7 @@ import UniformTypeIdentifiers
     /// ```js
     /// hs.fs.setTags("~/Documents/report.pdf", ["Important", "Work"])
     /// ```
-    @objc @available(macOS 26.0, *) func setTags(_ path: String, _ newTags: NSArray) -> Bool
+    @objc func setTags(_ path: String, _ newTags: NSArray) -> Bool
 
     /// Add Finder tags to a file or directory (union with existing tags).
     /// This function is only available on macOS Tahoe (26) or later.
@@ -477,7 +477,7 @@ import UniformTypeIdentifiers
     /// ```js
     /// hs.fs.addTags("~/Documents/report.pdf", ["Reviewed"])
     /// ```
-    @objc @available(macOS 26.0, *) func addTags(_ path: String, _ newTags: NSArray) -> Bool
+    @objc func addTags(_ path: String, _ newTags: NSArray) -> Bool
 
     /// Remove specific Finder tags from a file or directory.
     /// This function is only available on macOS Tahoe (26) or later.
@@ -492,7 +492,7 @@ import UniformTypeIdentifiers
     /// ```js
     /// hs.fs.removeTags("~/Documents/report.pdf", ["Draft"])
     /// ```
-    @objc @available(macOS 26.0, *) func removeTags(_ path: String, _ tagsToRemove: NSArray) -> Bool
+    @objc func removeTags(_ path: String, _ tagsToRemove: NSArray) -> Bool
 
     // MARK: - Uniform Type Identifiers
 
@@ -912,8 +912,7 @@ import UniformTypeIdentifiers
         }
     }
 
-    @objc @available(macOS 26.0, *)
-    func setTags(_ path: String, _ newTags: NSArray) -> Bool {
+    @objc func setTags(_ path: String, _ newTags: NSArray) -> Bool {
         let tagList = newTags.compactMap { $0 as? String }
         do {
             var values = URLResourceValues()
@@ -927,13 +926,13 @@ import UniformTypeIdentifiers
         }
     }
 
-    @objc @available(macOS 26.0, *) func addTags(_ path: String, _ newTags: NSArray) -> Bool {
+    @objc func addTags(_ path: String, _ newTags: NSArray) -> Bool {
         let existing = Set(tags(path) ?? [])
         let toAdd    = Set(newTags.compactMap { $0 as? String })
         return setTags(path, Array(existing.union(toAdd)).sorted() as NSArray)
     }
 
-    @objc @available(macOS 26.0, *) func removeTags(_ path: String, _ tagsToRemove: NSArray) -> Bool {
+    @objc func removeTags(_ path: String, _ tagsToRemove: NSArray) -> Bool {
         let existing = Set(tags(path) ?? [])
         let toRemove = Set(tagsToRemove.compactMap { $0 as? String })
         return setTags(path, Array(existing.subtracting(toRemove)).sorted() as NSArray)
