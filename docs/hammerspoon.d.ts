@@ -5629,9 +5629,16 @@ File URLs must be absolute paths; tilde is expanded.
 
     /**
      * Never activate Hammerspoon 2 when this window is shown or clicked. The
-webview is hosted in a non-activating panel: the page still gets mouse
-events (buttons click, CSS `:hover` fires) but the frontmost app keeps
-focus throughout — what you want for a toast or notification overlay.
+webview is hosted in a non-activating panel: the page still gets clicks
+and drags but the frontmost app keeps focus throughout — what you want
+for a toast or notification overlay.
+Neither AppKit nor WebKit deliver pointer movement to a window that
+can't become key (so CSS `:hover` and mouseenter/mouseleave are dead).
+Instead, while the window is visible an event monitor publishes the
+pointer to the page as `window.__hsPointer(x, y, inside)` (CSS pixel
+coordinates, ~40 Hz, one `inside=false` call as the pointer leaves) —
+define that function and hit-test (e.g. `document.elementFromPoint`)
+to drive hover effects yourself.
 Combine with `canBecomeKey(true)` for a Spotlight-style panel that takes
 keyboard input while the previous app stays active, or with
 `canBecomeKey(false)` so the page never captures keyboard at all.
@@ -5655,6 +5662,16 @@ transparent, screen-covering HUD overlay so it never steals the user's input.
      * @returns self for chaining
      */
     static canJoinAllSpaces(value: boolean): HSWebview;
+
+    /**
+     * Control the system window shadow. Defaults to true (AppKit's default).
+Turn it off for transparent overlays whose page draws its own CSS
+shadows — the system shadow is computed from the window's opaque pixels
+and can show up as a rectangular halo/edge around translucent content.
+     * @param value false to disable the system window shadow
+     * @returns self for chaining
+     */
+    static windowShadow(value: boolean): HSWebview;
 
     /**
      * Center the window on the main screen on `show()`.

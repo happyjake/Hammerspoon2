@@ -72,9 +72,16 @@ import WebKit
     @objc func canBecomeKey(_ value: Bool) -> HSWebview
 
     /// Never activate Hammerspoon 2 when this window is shown or clicked. The
-    /// webview is hosted in a non-activating panel: the page still gets mouse
-    /// events (buttons click, CSS `:hover` fires) but the frontmost app keeps
-    /// focus throughout — what you want for a toast or notification overlay.
+    /// webview is hosted in a non-activating panel: the page still gets clicks
+    /// and drags but the frontmost app keeps focus throughout — what you want
+    /// for a toast or notification overlay.
+    /// Neither AppKit nor WebKit deliver pointer movement to a window that
+    /// can't become key (so CSS `:hover` and mouseenter/mouseleave are dead).
+    /// Instead, while the window is visible an event monitor publishes the
+    /// pointer to the page as `window.__hsPointer(x, y, inside)` (CSS pixel
+    /// coordinates, ~40 Hz, one `inside=false` call as the pointer leaves) —
+    /// define that function and hit-test (e.g. `document.elementFromPoint`)
+    /// to drive hover effects yourself.
     /// Combine with `canBecomeKey(true)` for a Spotlight-style panel that takes
     /// keyboard input while the previous app stays active, or with
     /// `canBecomeKey(false)` so the page never captures keyboard at all.
@@ -102,6 +109,26 @@ import WebKit
     /// - Parameter value: true to join all Spaces (canJoinAllSpaces + stationary)
     /// - Returns: self for chaining
     @objc func canJoinAllSpaces(_ value: Bool) -> HSWebview
+
+    /// Control the system window shadow. Defaults to true (AppKit's default).
+    /// Turn it off for transparent overlays whose page draws its own CSS
+    /// shadows — the system shadow is computed from the window's opaque pixels
+    /// and can show up as a rectangular halo/edge around translucent content.
+    /// - Parameter value: false to disable the system window shadow
+    /// - Returns: self for chaining
+    /// - Example:
+    /// ```js
+    /// const hud = hs.webview.new({x: 0, y: 0, w: 400, h: 300})
+    ///   .windowStyle({ titled: false, transparent: true })
+    ///   .windowShadow(false)
+    /// ```
+    @objc func windowShadow(_ value: Bool) -> HSWebview
+
+    /// SKIP_DOCS
+    /// Test hook: feed one synthetic hover sample through the same path the
+    /// non-activating hover monitor uses. Coordinates are global Cocoa screen
+    /// points (bottom-left origin).
+    @objc(_simulateHover::) func _simulateHover(_ x: Double, _ y: Double)
 
     /// Center the window on the main screen on `show()`.
     /// - Returns: self for chaining
@@ -261,7 +288,13 @@ import WebKit
     private var ignoresMouseEventsValue: Bool = false
     private var keepsRenderingInactive: Bool = false
     private var joinAllSpaces: Bool = false
+    private var hasShadowValue: Bool = true
     private var shouldCenter: Bool = false
+
+    // Hover feeding for non-activating windows (see installHoverMonitors).
+    private var hoverMonitors: [Any] = []
+    private var hoverInside: Bool = false
+    private var lastHoverFeed: TimeInterval = 0
     private var cornerRadius: CGFloat = 0
     private var developerExtrasEnabled: Bool = false
     private var bgColor: NSColor? = nil
@@ -383,6 +416,12 @@ import WebKit
         return self
     }
 
+    @objc func windowShadow(_ value: Bool) -> HSWebview {
+        hasShadowValue = value
+        nsWindow?.hasShadow = value
+        return self
+    }
+
     @objc func center() -> HSWebview {
         shouldCenter = true
         return self
@@ -438,6 +477,70 @@ import WebKit
 
     // MARK: - Lifecycle
 
+    // MARK: - Hover feeding (non-activating windows)
+
+    /// AppKit routes continuous mouse-moved events only to key windows, and a
+    /// non-activating panel never becomes key — so the page would learn about
+    /// the pointer only on clicks. Worse, WKWebView silently drops externally
+    /// injected .mouseMoved NSEvents for never-key windows (measured), so the
+    /// native hover pipeline cannot be revived from outside. Instead, while
+    /// the window is visible we watch pointer movement with NSEvent monitors
+    /// (global = HS2 inactive, local = HS2 active) and hand the position to
+    /// the page as a plain JS call:
+    ///
+    ///     window.__hsPointer(x, y, inside)   // CSS pixel coords, top-left origin
+    ///
+    /// Pages that care implement `__hsPointer` and drive their own hover UI
+    /// (hit-testing via elementFromPoint). Throttled to ~40 Hz; leaving the
+    /// window always delivers a final `inside = false` sample.
+    private func installHoverMonitors() {
+        guard hoverMonitors.isEmpty else { return }
+        if let g = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
+            self?.feedHover(at: NSEvent.mouseLocation)
+        } {
+            hoverMonitors.append(g)
+        }
+        if let l = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged], handler: { [weak self] event in
+            self?.feedHover(at: NSEvent.mouseLocation)
+            return event
+        }) {
+            hoverMonitors.append(l)
+        }
+    }
+
+    private func removeHoverMonitors() {
+        for m in hoverMonitors { NSEvent.removeMonitor(m) }
+        hoverMonitors.removeAll()
+        hoverInside = false
+    }
+
+    private func feedHover(at screenPoint: NSPoint) {
+        guard let win = nsWindow, let wv = webView, win.isVisible else { return }
+        let now = ProcessInfo.processInfo.systemUptime
+        if win.frame.contains(screenPoint) {
+            // Throttle moves to ~40 Hz; entry transitions always go through.
+            if hoverInside && (now - lastHoverFeed) < 0.025 { return }
+            hoverInside = true
+            lastHoverFeed = now
+            let local = win.convertPoint(fromScreen: screenPoint)
+            let content = win.contentView
+            let p = content?.convert(local, from: nil) ?? local
+            let cssX = Int(p.x)
+            let cssY = Int((content?.bounds.height ?? win.frame.height) - p.y)
+            wv.evaluateJavaScript("window.__hsPointer && window.__hsPointer(\(cssX), \(cssY), true)",
+                                  completionHandler: nil)
+        } else if hoverInside {
+            hoverInside = false
+            lastHoverFeed = now
+            wv.evaluateJavaScript("window.__hsPointer && window.__hsPointer(-1, -1, false)",
+                                  completionHandler: nil)
+        }
+    }
+
+    @objc(_simulateHover::) func _simulateHover(_ x: Double, _ y: Double) {
+        feedHover(at: NSPoint(x: x, y: y))
+    }
+
     @objc func keepsRenderingWhenInactive(_ value: Bool) -> HSWebview {
         keepsRenderingInactive = value
         // Applies to the WKWebView built in show(); set live too if already up.
@@ -466,7 +569,8 @@ import WebKit
 
     @objc func show() -> HSWebview {
         if nsWindow != nil {
-            // Already shown — just bring forward.
+            // Already shown (or hidden) — bring forward and resume hover feeding.
+            if isNonActivating { installHoverMonitors() }
             return bringToFront()
         }
         if keepsRenderingInactive {
@@ -535,20 +639,11 @@ import WebKit
 
         // Host view = a wrapper that contains the WKWebView. We need a wrapper
         // when applying corner radius so the webview's own layer doesn't fight us.
-        // Non-activating windows get the hover-forwarding variant: WebKit only
-        // tracks mouse movement in key windows, so CSS :hover, mouseenter and
-        // cursor updates would all be dead in a panel that never becomes key.
-        let wrapper: NSView
-        if isNonActivating {
-            let forwarding = HSWebviewHoverForwardingView(frame: NSRect(origin: .zero, size: windowFrame.size))
-            forwarding.target = wv
-            wrapper = forwarding
-        } else {
-            wrapper = NSView(frame: NSRect(origin: .zero, size: windowFrame.size))
-        }
+        let wrapper = NSView(frame: NSRect(origin: .zero, size: windowFrame.size))
         wrapper.autoresizesSubviews = true
         wrapper.addSubview(wv)
         window.contentView = wrapper
+        window.hasShadow = hasShadowValue
 
         if isTransparent {
             window.backgroundColor = .clear
@@ -612,16 +707,19 @@ import WebKit
 
         self.nsWindow = window
         module?.register(self, id: webviewID)
+        if isNonActivating { installHoverMonitors() }
         return self
     }
 
     @objc func hide() -> HSWebview {
+        removeHoverMonitors()
         nsWindow?.orderOut(nil)
         return self
     }
 
     @objc func close() {
         guard nsWindow != nil else { return }
+        removeHoverMonitors()
 
         // Tell JS first so any cleanup runs.
         lifecycleCallback?.callSafely(withArguments: ["closing"], context: "hs.webview close")
@@ -797,6 +895,7 @@ import WebKit
 
     nonisolated func windowWillClose(_ notification: Notification) {
         MainActor.assumeIsolated {
+            removeHoverMonitors()
             lifecycleCallback?.callSafely(withArguments: ["closing"], context: "hs.webview windowWillClose")
             // Mark internal state as closed without re-firing the callback.
             for n in installedHandlerNames {
@@ -831,56 +930,6 @@ private final class HSWebviewNonActivatingPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 }
 
-/// Content wrapper for non-activating windows. WebKit's own mouse tracking is
-/// key-window-only, so a panel that never becomes key gets no mouse-moved
-/// events — CSS :hover never matches, DOM mouseenter/mouseleave never fire and
-/// the CSS `cursor` property is ignored. An .activeAlways tracking area
-/// delivers entered/moved/exited to this view (tracking-area events go to the
-/// owner directly, bypassing subview hit-testing); re-dispatching into the
-/// WKWebView drives its full hover pipeline.
-///
-/// Everything is forwarded as `mouseMoved` — that is the one event WKWebView
-/// actually implements. Methods it does NOT implement (mouseEntered/Exited)
-/// bounce straight back here through NSResponder's next-responder forwarding,
-/// which once recursed to a stack overflow; `forwarding` makes any bounce a
-/// no-op. Exit is synthesized as a move far outside the view so WebKit clears
-/// hover/cursor state (otherwise a toast would stay "hovered" after the
-/// pointer left). When the window happens to be key WebKit's own tracking
-/// fires too — the duplicate delivery is idempotent.
-@MainActor
-private final class HSWebviewHoverForwardingView: NSView {
-    weak var target: WKWebView?
-    private var forwarding = false
-
-    override func updateTrackingAreas() {
-        super.updateTrackingAreas()
-        for ta in trackingAreas where ta.owner === self { removeTrackingArea(ta) }
-        addTrackingArea(NSTrackingArea(
-            rect: .zero,
-            options: [.activeAlways, .inVisibleRect, .mouseMoved, .mouseEnteredAndExited],
-            owner: self, userInfo: nil))
-    }
-
-    private func forwardAsMove(_ event: NSEvent) {
-        guard !forwarding, let wv = target else { return }
-        forwarding = true
-        defer { forwarding = false }
-        wv.mouseMoved(with: event)
-    }
-
-    override func mouseEntered(with event: NSEvent) { forwardAsMove(event) }
-    override func mouseMoved(with event: NSEvent)   { forwardAsMove(event) }
-
-    override func mouseExited(with event: NSEvent) {
-        guard let win = window,
-              let out = NSEvent.mouseEvent(with: .mouseMoved,
-                                           location: NSPoint(x: -10000, y: -10000),
-                                           modifierFlags: [], timestamp: event.timestamp,
-                                           windowNumber: win.windowNumber, context: nil,
-                                           eventNumber: 0, clickCount: 0, pressure: 0) else { return }
-        forwardAsMove(out)
-    }
-}
 
 /// WKUserContentController retains its script message handler strongly. To
 /// avoid a cycle (handler → webview → config → ucc → handler), bridge through

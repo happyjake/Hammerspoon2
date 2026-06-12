@@ -65,6 +65,8 @@ struct HSWebviewStructureTests {
         h.expectTrue("wv.canBecomeKey(true) === wv")
         h.expectTrue("wv.nonActivating(true) === wv")
         h.expectTrue("wv.nonActivating(false) === wv")
+        h.expectTrue("wv.windowShadow(false) === wv")
+        h.expectTrue("wv.windowShadow(true) === wv")
         h.expectTrue("wv.center() === wv")
         h.expectTrue("wv.windowCornerRadius(12) === wv")
         h.expectTrue("wv.developerExtras(false) === wv")
@@ -150,43 +152,38 @@ struct HSWebviewLifecycleTests {
         h.expectTrue("wv.currentFrame() == null")
     }
 
-    @Test("nonActivating hover forwarding does not recurse") @MainActor func testHoverForwardingNoRecursion() {
-        // Regression: the hover-forwarding wrapper used to re-dispatch
-        // mouseEntered into the WKWebView, which doesn't implement it —
-        // NSResponder forwarded it back to the wrapper, recursing to a stack
-        // overflow the moment a real pointer entered the panel.
+    @Test("nonActivating hover hook runs without crashing") @MainActor func testSyntheticHoverSmoke() {
+        // DOM-level hover assertions are impossible here: the xcodebuild test
+        // host cannot launch the WebContent process ("Could not signal service
+        // com.apple.WebKit.WebContent"), so pages never load and
+        // evaluateJavaScript completions never fire. This drives the
+        // _simulateHover path (monitor → synthetic .mouseMoved → WKWebView)
+        // inside/outside/edge to verify it cannot crash; the end-to-end DOM
+        // effect is verified live via the vibecast toast probes.
         let h = makeHarness()
         h.eval("""
-            const wv = hs.webview.new({x:220, y:220, w:390, h:250})
+            const wv = hs.webview.new({x:240, y:240, w:370, h:230})
                 .windowStyle({titled:false, closable:false, transparent:true})
                 .nonActivating(true)
                 .canBecomeKey(false)
+                .windowShadow(false)
                 .html('<!doctype html><html><body>hover</body></html>', null)
                 .show()
         """)
-        let panel = NSApp.windows.first { $0.styleMask.contains(.nonactivatingPanel) && $0.frame.width == 390 }
+        #expect(!h.hasException)
+        let panel = NSApp.windows.first { $0.styleMask.contains(.nonactivatingPanel) && $0.frame.width == 370 }
         #expect(panel != nil, "non-activating panel should be on screen")
-        if let panel, let content = panel.contentView {
-            let loc = NSPoint(x: 50, y: 50)
-            if let entered = NSEvent.enterExitEvent(
-                with: .mouseEntered, location: loc, modifierFlags: [], timestamp: 0,
-                windowNumber: panel.windowNumber, context: nil,
-                eventNumber: 0, trackingNumber: 0, userData: nil) {
-                content.mouseEntered(with: entered)
-            }
-            if let moved = NSEvent.mouseEvent(
-                with: .mouseMoved, location: loc, modifierFlags: [], timestamp: 0,
-                windowNumber: panel.windowNumber, context: nil,
-                eventNumber: 0, clickCount: 0, pressure: 0) {
-                content.mouseMoved(with: moved)
-            }
-            if let exited = NSEvent.enterExitEvent(
-                with: .mouseExited, location: loc, modifierFlags: [], timestamp: 0,
-                windowNumber: panel.windowNumber, context: nil,
-                eventNumber: 0, trackingNumber: 0, userData: nil) {
-                content.mouseExited(with: exited)
-            }
-        }
+        guard let panel else { return }
+
+        let cx = Double(panel.frame.midX), cy = Double(panel.frame.midY)
+        h.eval("wv._simulateHover(\(cx), \(cy))")          // inside → synthetic move
+        h.eval("wv._simulateHover(\(cx), \(cy + 5))")      // still inside
+        h.eval("wv._simulateHover(0, 0)")                  // outside → synthetic exit
+        h.eval("wv._simulateHover(0, 0)")                  // outside again (no-op path)
+        #expect(!h.hasException)
+        h.eval("wv.hide()")                                // removes monitors
+        h.eval("wv._simulateHover(\(cx), \(cy))")          // hidden → guarded no-op
+        h.eval("wv.show()")                                // reinstalls monitors
         h.eval("wv.close()")
         #expect(!h.hasException)
     }
