@@ -69,10 +69,17 @@ import Observation
     /// - Returns: An HSImage object, or null if the image couldn't be found
     @objc static func fromName(_ name: String) -> HSImage?
 
+    /// Load a system symbol by name
+    /// - Parameter name: Name of the symbol (e.g., "hammer", "questionmark.circle")
+    /// - Returns: An HSImage object, or null if the symbol couldn't be found
+    @objc static func fromSymbol(_ name: String) -> HSImage?
+
     /// Load an app's icon by bundle identifier
-    /// - Parameter bundleID: Bundle identifier of the application
+    /// - Parameters:
+    ///  - bundleID: Bundle identifier of the application
+    ///  - withFallbackSymbol: The name of an SF Symbol to use if no bundle image could be loaded. Defaults to questionmark.circle
     /// - Returns: An HSImage object, or null if the app couldn't be found
-    @objc static func fromAppBundle(_ bundleID: String) -> HSImage?
+    @objc static func fromAppBundle(_ bundleID: String, _ withFallbackSymbol: String) -> HSImage?
 
     /// Get the icon for a file
     /// - Parameter path: Path to the file
@@ -160,13 +167,30 @@ import Observation
         return image.toBridge()
     }
 
-    @objc static func fromAppBundle(_ bundleID: String) -> HSImage? {
-        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else {
-            AKError("HSImage: Failed to find app with bundle ID: \(bundleID)")
+    @objc static func fromSymbol(_ name: String) -> HSImage? {
+        guard let image = NSImage(systemSymbolName: name, accessibilityDescription: nil) else {
+            AKError("HSImage: Failed to find symbol named: \(name)")
             return nil
         }
-        let image = NSWorkspace.shared.icon(forFile: appURL.path)
         return image.toBridge()
+    }
+
+    @objc static func fromAppBundle(_ bundleID: String, _ withFallbackSymbol: String) -> HSImage? {
+        let image: NSImage?
+        let fallbackSymbol: String
+
+        if withFallbackSymbol == "undefined" {
+            fallbackSymbol = "questionmark.circle"
+        } else {
+            fallbackSymbol = withFallbackSymbol
+        }
+
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
+            image = NSWorkspace.shared.icon(forFile: appURL.path)
+        } else {
+            image = NSImage(systemSymbolName: fallbackSymbol, accessibilityDescription: nil)
+        }
+        return image?.toBridge()
     }
 
     @objc static func iconForFile(_ path: String) -> HSImage? {

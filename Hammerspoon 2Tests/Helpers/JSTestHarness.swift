@@ -410,6 +410,8 @@ extension JSTestHarness {
                 loadModule(HSAudioDeviceModule.self, as: name)
             case "translation":
                 loadModule(HSTranslationModule.self, as: name)
+            case "chooser":
+                loadModule(HSChooserModule.self, as: name)
             case "window":
                 loadModule(HSWindowModule.self, as: name)
             case "spotlight":
