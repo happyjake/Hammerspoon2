@@ -110,10 +110,12 @@ import WebKit
     /// - Returns: self for chaining
     @objc func canJoinAllSpaces(_ value: Bool) -> HSWebview
 
-    /// Control the system window shadow. Defaults to true (AppKit's default).
-    /// Turn it off for transparent overlays whose page draws its own CSS
-    /// shadows — the system shadow is computed from the window's opaque pixels
-    /// and can show up as a rectangular halo/edge around translucent content.
+    /// Control the system window shadow. If never called, the window's shadow
+    /// is left entirely untouched (AppKit decides). Turn it off for
+    /// transparent overlays whose page draws its own CSS shadows — the system
+    /// shadow is computed from the window's opaque pixels and can show up as
+    /// a rectangular halo/edge around translucent content (backdrop-filter
+    /// regions especially).
     /// - Parameter value: false to disable the system window shadow
     /// - Returns: self for chaining
     /// - Example:
@@ -288,7 +290,10 @@ import WebKit
     private var ignoresMouseEventsValue: Bool = false
     private var keepsRenderingInactive: Bool = false
     private var joinAllSpaces: Bool = false
-    private var hasShadowValue: Bool = true
+    // nil = never touch NSWindow.hasShadow. Even assigning it its default
+    // re-engages shadow computation on transparent windows, which traces
+    // near-invisible content (backdrop-filter regions) as a visible ring.
+    private var hasShadowOverride: Bool? = nil
     private var shouldCenter: Bool = false
 
     // Hover feeding for non-activating windows (see installHoverMonitors).
@@ -417,7 +422,7 @@ import WebKit
     }
 
     @objc func windowShadow(_ value: Bool) -> HSWebview {
-        hasShadowValue = value
+        hasShadowOverride = value
         nsWindow?.hasShadow = value
         return self
     }
@@ -643,7 +648,7 @@ import WebKit
         wrapper.autoresizesSubviews = true
         wrapper.addSubview(wv)
         window.contentView = wrapper
-        window.hasShadow = hasShadowValue
+        if let hasShadow = hasShadowOverride { window.hasShadow = hasShadow }
 
         if isTransparent {
             window.backgroundColor = .clear
