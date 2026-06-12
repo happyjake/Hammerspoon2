@@ -535,7 +535,17 @@ import WebKit
 
         // Host view = a wrapper that contains the WKWebView. We need a wrapper
         // when applying corner radius so the webview's own layer doesn't fight us.
-        let wrapper = NSView(frame: NSRect(origin: .zero, size: windowFrame.size))
+        // Non-activating windows get the hover-forwarding variant: WebKit only
+        // tracks mouse movement in key windows, so CSS :hover, mouseenter and
+        // cursor updates would all be dead in a panel that never becomes key.
+        let wrapper: NSView
+        if isNonActivating {
+            let forwarding = HSWebviewHoverForwardingView(frame: NSRect(origin: .zero, size: windowFrame.size))
+            forwarding.target = wv
+            wrapper = forwarding
+        } else {
+            wrapper = NSView(frame: NSRect(origin: .zero, size: windowFrame.size))
+        }
         wrapper.autoresizesSubviews = true
         wrapper.addSubview(wv)
         window.contentView = wrapper
@@ -819,6 +829,32 @@ private final class HSWebviewNonActivatingPanel: NSPanel {
     var allowKey = false
     override var canBecomeKey: Bool { allowKey }
     override var canBecomeMain: Bool { false }
+}
+
+/// Content wrapper for non-activating windows. WebKit's own mouse tracking is
+/// key-window-only, so a panel that never becomes key gets no mouse-moved
+/// events — CSS :hover never matches, DOM mouseenter/mouseleave never fire and
+/// the CSS `cursor` property is ignored. An .activeAlways tracking area
+/// delivers entered/moved/exited to this view (tracking-area events go to the
+/// owner directly, bypassing subview hit-testing); re-dispatching them into the
+/// WKWebView drives its full hover pipeline. When the window happens to be key
+/// WebKit's own tracking fires too — the duplicate delivery is idempotent.
+@MainActor
+private final class HSWebviewHoverForwardingView: NSView {
+    weak var target: WKWebView?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        for ta in trackingAreas where ta.owner === self { removeTrackingArea(ta) }
+        addTrackingArea(NSTrackingArea(
+            rect: .zero,
+            options: [.activeAlways, .inVisibleRect, .mouseMoved, .mouseEnteredAndExited],
+            owner: self, userInfo: nil))
+    }
+
+    override func mouseEntered(with event: NSEvent) { target?.mouseEntered(with: event) }
+    override func mouseMoved(with event: NSEvent)   { target?.mouseMoved(with: event) }
+    override func mouseExited(with event: NSEvent)  { target?.mouseExited(with: event) }
 }
 
 /// WKUserContentController retains its script message handler strongly. To
