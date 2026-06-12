@@ -62,8 +62,8 @@ hs.alert.show("Hammerspoon loaded!");
 
 // Bind a hotkey with type checking
 hs.hotkey.bind(["cmd", "alt"], "r", () => {
-    hs.console.printStyledtext("Reloading config...");
-    hs.console.reload();
+    console.log("Reloading config...");
+    hs.reload();
 });
 
 // Work with windows with autocomplete
@@ -176,7 +176,7 @@ const config: HammerspoonConfig = {
         {
             key: "r",
             description: "Reload Hammerspoon",
-            action: () => hs.console.reload()
+            action: () => hs.reload()
         },
         {
             key: "w",
