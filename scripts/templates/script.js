@@ -1,5 +1,6 @@
-// Navigation data - will be replaced with actual data
+// Navigation and search data injected at build time
 const navigationData = {{NAVIGATION_DATA}};
+const searchIndex = {{SEARCH_INDEX}};
 
 // Load navigation links into left sidebar
 function loadNavigation(currentPage) {
@@ -126,23 +127,96 @@ function addCopyButtons() {
     });
 }
 
-// Filter nav links by text match on search input
+// Full-text search across all properties and methods, with rich result preview
 function initSearch() {
     const searchInput = document.getElementById('search-input');
-    if (!searchInput) return;
+    const resultsPanel = document.getElementById('search-results');
+    if (!searchInput || !resultsPanel) return;
+
+    let selectedIndex = -1;
+    let currentResults = [];
+
+    function setSelected(idx) {
+        selectedIndex = idx;
+        const items = resultsPanel.querySelectorAll('.search-result-item');
+        items.forEach((item, i) => item.classList.toggle('search-result-selected', i === idx));
+        if (idx >= 0 && items[idx]) {
+            items[idx].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    function showResults(results) {
+        currentResults = results;
+        selectedIndex = -1;
+
+        if (results.length === 0) {
+            resultsPanel.hidden = true;
+            return;
+        }
+
+        resultsPanel.innerHTML = results.map((r, i) => {
+            const desc = r.description.length > 120
+                ? r.description.slice(0, 120) + '…'
+                : r.description;
+            return `<a href="${r.url}" class="search-result-item" data-index="${i}">` +
+                `<span class="search-result-name">${r.fullName}</span>` +
+                `<span class="search-result-desc">${desc}</span>` +
+                `</a>`;
+        }).join('');
+
+        resultsPanel.hidden = false;
+    }
+
+    function clearResults() {
+        currentResults = [];
+        selectedIndex = -1;
+        resultsPanel.hidden = true;
+        resultsPanel.innerHTML = '';
+    }
 
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.toLowerCase().trim();
-        const links = document.querySelectorAll('.nav-section a');
 
-        links.forEach(link => {
-            const text = link.textContent.toLowerCase();
-            if (query === '' || text.includes(query)) {
-                link.classList.remove('hidden');
-            } else {
-                link.classList.add('hidden');
-            }
-        });
+        if (query.length < 2) { clearResults(); return; }
+
+        const results = searchIndex.filter(item =>
+            item.fullName.toLowerCase().includes(query) ||
+            item.description.toLowerCase().includes(query)
+        ).slice(0, 10);
+
+        showResults(results);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (resultsPanel.hidden) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelected(Math.min(selectedIndex + 1, currentResults.length - 1));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelected(Math.max(selectedIndex - 1, -1));
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+            e.preventDefault();
+            window.location.href = currentResults[selectedIndex].url;
+            searchInput.value = '';
+            clearResults();
+        } else if (e.key === 'Escape') {
+            searchInput.value = '';
+            clearResults();
+            searchInput.blur();
+        }
+    });
+
+    // Close panel when clicking outside the search wrapper
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-wrapper')) clearResults();
+    });
+
+    // Clear input after a result link is followed (panel element handles the click)
+    resultsPanel.addEventListener('click', () => {
+        searchInput.value = '';
+        clearResults();
     });
 }
 
