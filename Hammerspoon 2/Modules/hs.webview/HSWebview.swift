@@ -101,8 +101,24 @@ import WebKit
 
     /// Make the window click-through: mouse events pass to whatever is beneath it. Essential for a
     /// transparent, screen-covering HUD overlay so it never steals the user's input.
+    /// A click-through window's page never receives pointer movement either (CSS
+    /// `:hover` is dead), so — like `nonActivating(true)` — while the window is
+    /// visible an event monitor publishes the pointer to the page as
+    /// `window.__hsPointer(x, y, inside)` (CSS pixel coordinates, ~40 Hz, one
+    /// `inside=false` call as the pointer leaves). Define that function and
+    /// hit-test (e.g. `document.elementFromPoint`) to drive hover effects for
+    /// any host-side click handling (e.g. an eventtap consuming clicks over
+    /// reported keycap rects).
     /// - Parameter value: true to ignore mouse events
     /// - Returns: self for chaining
+    /// - Example:
+    /// ```js
+    /// const hud = hs.webview.new({x: 0, y: 0, w: 800, h: 600})
+    ///   .windowStyle({ titled: false, transparent: true })
+    ///   .ignoresMouseEvents(true)
+    ///   .url('file:///tmp/hud.html')  // page may define window.__hsPointer(x, y, inside)
+    ///   .show()
+    /// ```
     @objc func ignoresMouseEvents(_ value: Bool) -> HSWebview
 
     /// Make the window appear on every Space and stay put across Space switches (HUD overlay).
@@ -128,8 +144,8 @@ import WebKit
 
     /// SKIP_DOCS
     /// Test hook: feed one synthetic hover sample through the same path the
-    /// non-activating hover monitor uses. Coordinates are global Cocoa screen
-    /// points (bottom-left origin).
+    /// hover monitor uses (non-activating and click-through windows).
+    /// Coordinates are global Cocoa screen points (bottom-left origin).
     @objc(_simulateHover::) func _simulateHover(_ x: Double, _ y: Double)
 
     /// Center the window on the main screen on `show()`.
@@ -482,22 +498,25 @@ import WebKit
 
     // MARK: - Lifecycle
 
-    // MARK: - Hover feeding (non-activating windows)
+    // MARK: - Hover feeding (non-activating & click-through windows)
 
     /// AppKit routes continuous mouse-moved events only to key windows, and a
     /// non-activating panel never becomes key — so the page would learn about
-    /// the pointer only on clicks. Worse, WKWebView silently drops externally
-    /// injected .mouseMoved NSEvents for never-key windows (measured), so the
-    /// native hover pipeline cannot be revived from outside. Instead, while
-    /// the window is visible we watch pointer movement with NSEvent monitors
-    /// (global = HS2 inactive, local = HS2 active) and hand the position to
-    /// the page as a plain JS call:
+    /// the pointer only on clicks. A click-through window (ignoresMouseEvents)
+    /// is fully invisible to the pointer. Worse, WKWebView silently drops
+    /// externally injected .mouseMoved NSEvents for never-key windows
+    /// (measured), so the native hover pipeline cannot be revived from
+    /// outside. Instead, while the window is visible we watch pointer movement
+    /// with NSEvent monitors (global = HS2 inactive, local = HS2 active) and
+    /// hand the position to the page as a plain JS call:
     ///
     ///     window.__hsPointer(x, y, inside)   // CSS pixel coords, top-left origin
     ///
     /// Pages that care implement `__hsPointer` and drive their own hover UI
     /// (hit-testing via elementFromPoint). Throttled to ~40 Hz; leaving the
     /// window always delivers a final `inside = false` sample.
+    private var wantsHoverFeed: Bool { isNonActivating || ignoresMouseEventsValue }
+
     private func installHoverMonitors() {
         guard hoverMonitors.isEmpty else { return }
         if let g = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
@@ -575,7 +594,7 @@ import WebKit
     @objc func show() -> HSWebview {
         if nsWindow != nil {
             // Already shown (or hidden) — bring forward and resume hover feeding.
-            if isNonActivating { installHoverMonitors() }
+            if wantsHoverFeed { installHoverMonitors() }
             return bringToFront()
         }
         if keepsRenderingInactive {
@@ -712,7 +731,7 @@ import WebKit
 
         self.nsWindow = window
         module?.register(self, id: webviewID)
-        if isNonActivating { installHoverMonitors() }
+        if wantsHoverFeed { installHoverMonitors() }
         return self
     }
 

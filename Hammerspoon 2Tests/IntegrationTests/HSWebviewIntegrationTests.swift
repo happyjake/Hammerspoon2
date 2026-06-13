@@ -188,6 +188,38 @@ struct HSWebviewLifecycleTests {
         #expect(!h.hasException)
     }
 
+    @Test("click-through (ignoresMouseEvents) hover hook runs without crashing") @MainActor func testClickThroughHoverSmoke() {
+        // Click-through overlays (e.g. the vibecast shift-mode HUD) get the same
+        // __hsPointer feed as non-activating panels: their pages never receive
+        // native pointer movement either. Same WebContent limitation as above, so
+        // this exercises the feed path for crashes; the DOM .hv effect is
+        // verified live by vibecast's hud-verify hover snapshot.
+        let h = makeHarness()
+        h.eval("""
+            const wv = hs.webview.new({x:240, y:240, w:360, h:220})
+                .windowStyle({titled:false, closable:false, transparent:true})
+                .ignoresMouseEvents(true)
+                .canBecomeKey(false)
+                .windowShadow(false)
+                .html('<!doctype html><html><body>hud</body></html>', null)
+                .show()
+        """)
+        #expect(!h.hasException)
+        let win = NSApp.windows.first { $0.ignoresMouseEvents && $0.frame.width == 360 }
+        #expect(win != nil, "click-through window should be on screen")
+        guard let win else { return }
+
+        let cx = Double(win.frame.midX), cy = Double(win.frame.midY)
+        h.eval("wv._simulateHover(\(cx), \(cy))")          // inside → feed
+        h.eval("wv._simulateHover(\(cx), \(cy + 5))")      // still inside
+        h.eval("wv._simulateHover(-50, -50)")              // outside → inside=false sample
+        #expect(!h.hasException)
+        h.eval("wv.hide()")                                // removes monitors
+        h.eval("wv.show()")                                // reinstalls monitors (wantsHoverFeed)
+        h.eval("wv.close()")
+        #expect(!h.hasException)
+    }
+
     @Test("show() then close() does not crash") @MainActor func testShowClose() {
         let h = makeHarness()
         h.eval("""

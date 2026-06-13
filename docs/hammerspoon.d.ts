@@ -5651,6 +5651,14 @@ Must be set before `show()`.
     /**
      * Make the window click-through: mouse events pass to whatever is beneath it. Essential for a
 transparent, screen-covering HUD overlay so it never steals the user's input.
+A click-through window's page never receives pointer movement either (CSS
+`:hover` is dead), so — like `nonActivating(true)` — while the window is
+visible an event monitor publishes the pointer to the page as
+`window.__hsPointer(x, y, inside)` (CSS pixel coordinates, ~40 Hz, one
+`inside=false` call as the pointer leaves). Define that function and
+hit-test (e.g. `document.elementFromPoint`) to drive hover effects for
+any host-side click handling (e.g. an eventtap consuming clicks over
+reported keycap rects).
      * @param value true to ignore mouse events
      * @returns self for chaining
      */
@@ -5664,10 +5672,12 @@ transparent, screen-covering HUD overlay so it never steals the user's input.
     static canJoinAllSpaces(value: boolean): HSWebview;
 
     /**
-     * Control the system window shadow. Defaults to true (AppKit's default).
-Turn it off for transparent overlays whose page draws its own CSS
-shadows — the system shadow is computed from the window's opaque pixels
-and can show up as a rectangular halo/edge around translucent content.
+     * Control the system window shadow. If never called, the window's shadow
+is left entirely untouched (AppKit decides). Turn it off for
+transparent overlays whose page draws its own CSS shadows — the system
+shadow is computed from the window's opaque pixels and can show up as
+a rectangular halo/edge around translucent content (backdrop-filter
+regions especially).
      * @param value false to disable the system window shadow
      * @returns self for chaining
      */
