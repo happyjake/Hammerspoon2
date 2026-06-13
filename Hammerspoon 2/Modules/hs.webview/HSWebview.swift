@@ -191,9 +191,29 @@ import WebKit
     /// ```
     @objc func keepsRenderingWhenInactive(_ value: Bool) -> HSWebview
 
-    /// Show the window. If already shown, brings it to front.
+    /// Show the window. If already shown (or pre-warmed), activates the app,
+    /// makes the window key, and brings it to front.
     /// - Returns: self for chaining
     @objc func show() -> HSWebview
+
+    /// Build and load the page WITHOUT showing the window — a warm, off-screen
+    /// instance ready for an instant `show()`. The WKWebView spins up, the page
+    /// loads and renders, but the window is never ordered front and the app is
+    /// never activated (so it won't steal focus at boot). Pair with
+    /// `keepsRenderingWhenInactive(true)` so the never-visible page actually
+    /// paints instead of being suspended by WebKit. A later `show()` is then a
+    /// near-instant order-front of an already-rendered window.
+    /// - Returns: self for chaining
+    /// - Example:
+    /// ```js
+    /// const wv = hs.webview.new(rect)
+    ///   .keepsRenderingWhenInactive(true)
+    ///   .url('file://…/index.html')
+    ///   .prewarm()      // builds + renders hidden at boot
+    /// // …later, on a hotkey:
+    /// wv.show()         // instant — no WebKit spin-up, no first-paint gap
+    /// ```
+    @objc func prewarm() -> HSWebview
 
     /// Hide the window. Keeps the WKWebView and its loaded page in memory.
     /// - Returns: self for chaining
@@ -592,11 +612,42 @@ import WebKit
     }
 
     @objc func show() -> HSWebview {
-        if nsWindow != nil {
-            // Already shown (or hidden) — bring forward and resume hover feeding.
-            if wantsHoverFeed { installHoverMonitors() }
-            return bringToFront()
+        buildWindowIfNeeded()
+        guard let window = nsWindow else { return self }
+        // Activate + key the window. This runs on every show (cold OR warm
+        // re-show / post-prewarm), so a window brought back from hide() — or
+        // shown for the first time after prewarm() — actually takes keyboard
+        // focus, not just orders front.
+        if canBecomeKeyOverride && !isNonActivating {
+            NSApp.activate(ignoringOtherApps: true)
         }
+        // A non-activating panel with canBecomeKey(true) takes keyboard here
+        // without activating the app (Spotlight-style). Windows that refuse key
+        // status (canBecomeKey false, or plain borderless NSWindows) skip the
+        // makeKey attempt — AppKit logs a warning otherwise.
+        if window.canBecomeKey {
+            window.makeKeyAndOrderFront(nil)
+        }
+        window.orderFrontRegardless()
+        if wantsHoverFeed { installHoverMonitors() }
+        return self
+    }
+
+    @objc func prewarm() -> HSWebview {
+        // Build + load the page but leave the window off-screen (never ordered
+        // front, app never activated). With keepsRenderingWhenInactive(true)
+        // the never-visible page still paints, so the eventual show() is an
+        // instant order-front of an already-rendered window.
+        buildWindowIfNeeded()
+        return self
+    }
+
+    /// Lazily build the host NSWindow + WKWebView and kick off content loading.
+    /// Idempotent: once `nsWindow` exists this is a no-op, so both `show()` and
+    /// `prewarm()` can call it freely. Does NOT order the window front or
+    /// activate the app — the caller owns presentation.
+    private func buildWindowIfNeeded() {
+        guard nsWindow == nil else { return }
         if keepsRenderingInactive {
             configuration.preferences.inactiveSchedulingPolicy = .none
         }
@@ -717,22 +768,8 @@ import WebKit
             break
         }
 
-        if canBecomeKeyOverride && !isNonActivating {
-            NSApp.activate(ignoringOtherApps: true)
-        }
-        // A non-activating panel with canBecomeKey(true) takes keyboard here
-        // without activating the app (Spotlight-style). Windows that refuse key
-        // status (canBecomeKey false, or plain borderless NSWindows) skip the
-        // makeKey attempt — AppKit logs a warning otherwise.
-        if window.canBecomeKey {
-            window.makeKeyAndOrderFront(nil)
-        }
-        window.orderFrontRegardless()
-
         self.nsWindow = window
         module?.register(self, id: webviewID)
-        if wantsHoverFeed { installHoverMonitors() }
-        return self
     }
 
     @objc func hide() -> HSWebview {

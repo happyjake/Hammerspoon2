@@ -13165,8 +13165,8 @@
             {
               "name": "show",
               "signature": "func show() -> HSWebview",
-              "rawDocumentation": "Show the window. If already shown, brings it to front.\n- Returns: self for chaining",
-              "description": "Show the window. If already shown, brings it to front.",
+              "rawDocumentation": "Show the window. If already shown (or pre-warmed), activates the app,\nmakes the window key, and brings it to front.\n- Returns: self for chaining",
+              "description": "Show the window. If already shown (or pre-warmed), activates the app,\nmakes the window key, and brings it to front.",
               "params": [],
               "returns": {
                 "type": "HSWebview",
@@ -13175,7 +13175,27 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 196
+              "lineNumber": 197
+            },
+            {
+              "name": "prewarm",
+              "signature": "func prewarm() -> HSWebview",
+              "rawDocumentation": "Build and load the page WITHOUT showing the window — a warm, off-screen\ninstance ready for an instant `show()`. The WKWebView spins up, the page\nloads and renders, but the window is never ordered front and the app is\nnever activated (so it won't steal focus at boot). Pair with\n`keepsRenderingWhenInactive(true)` so the never-visible page actually\npaints instead of being suspended by WebKit. A later `show()` is then a\nnear-instant order-front of an already-rendered window.\n- Returns: self for chaining\n- Example:\n```js\nconst wv = hs.webview.new(rect)\n  .keepsRenderingWhenInactive(true)\n  .url('file://…/index.html')\n  .prewarm()      // builds + renders hidden at boot\n// …later, on a hotkey:\nwv.show()         // instant — no WebKit spin-up, no first-paint gap\n```",
+              "description": "Build and load the page WITHOUT showing the window — a warm, off-screen\ninstance ready for an instant `show()`. The WKWebView spins up, the page\nloads and renders, but the window is never ordered front and the app is\nnever activated (so it won't steal focus at boot). Pair with\n`keepsRenderingWhenInactive(true)` so the never-visible page actually\npaints instead of being suspended by WebKit. A later `show()` is then a\nnear-instant order-front of an already-rendered window.",
+              "params": [],
+              "returns": {
+                "type": "HSWebview",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const wv = hs.webview.new(rect)\n  .keepsRenderingWhenInactive(true)\n  .url('file://…/index.html')\n  .prewarm()      // builds + renders hidden at boot\n// …later, on a hotkey:\nwv.show()         // instant — no WebKit spin-up, no first-paint gap"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
+              "lineNumber": 216
             },
             {
               "name": "hide",
@@ -13190,7 +13210,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 200
+              "lineNumber": 220
             },
             {
               "name": "close",
@@ -13202,7 +13222,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 203
+              "lineNumber": 223
             },
             {
               "name": "bringToFront",
@@ -13217,7 +13237,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 207
+              "lineNumber": 227
             },
             {
               "name": "currentFrame",
@@ -13232,7 +13252,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 211
+              "lineNumber": 231
             },
             {
               "name": "setFrame",
@@ -13253,7 +13273,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 216
+              "lineNumber": 236
             },
             {
               "name": "snapshotToPNG",
@@ -13281,7 +13301,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 232
+              "lineNumber": 252
             },
             {
               "name": "setMessageHandler",
@@ -13312,7 +13332,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 252
+              "lineNumber": 272
             },
             {
               "name": "injectUserScript",
@@ -13333,7 +13353,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 258
+              "lineNumber": 278
             },
             {
               "name": "evaluateJavaScript",
@@ -13356,7 +13376,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 266
+              "lineNumber": 286
             },
             {
               "name": "windowCallback",
@@ -13377,7 +13397,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 272
+              "lineNumber": 292
             },
             {
               "name": "developerExtras",
@@ -13398,7 +13418,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 277
+              "lineNumber": 297
             }
           ],
           "properties": []
@@ -15059,5 +15079,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-12T23:14:42.590Z"
+  "generatedAt": "2026-06-13T14:48:11.371Z"
 }

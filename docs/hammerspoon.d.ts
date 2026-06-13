@@ -5722,10 +5722,23 @@ of that suspension (`WKPreferences.inactiveSchedulingPolicy = .none`).
     static keepsRenderingWhenInactive(value: boolean): HSWebview;
 
     /**
-     * Show the window. If already shown, brings it to front.
+     * Show the window. If already shown (or pre-warmed), activates the app,
+makes the window key, and brings it to front.
      * @returns self for chaining
      */
     static show(): HSWebview;
+
+    /**
+     * Build and load the page WITHOUT showing the window — a warm, off-screen
+instance ready for an instant `show()`. The WKWebView spins up, the page
+loads and renders, but the window is never ordered front and the app is
+never activated (so it won't steal focus at boot). Pair with
+`keepsRenderingWhenInactive(true)` so the never-visible page actually
+paints instead of being suspended by WebKit. A later `show()` is then a
+near-instant order-front of an already-rendered window.
+     * @returns self for chaining
+     */
+    static prewarm(): HSWebview;
 
     /**
      * Hide the window. Keeps the WKWebView and its loaded page in memory.
