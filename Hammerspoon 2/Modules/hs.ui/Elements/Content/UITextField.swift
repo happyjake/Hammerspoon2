@@ -10,6 +10,7 @@
 import Foundation
 import JavaScriptCore
 import SwiftUI
+import AppKit
 
 /// SwiftUI view that directly observes an HSString so only the field re-renders
 /// when its value or focus state changes — not the entire canvas.
@@ -56,7 +57,20 @@ private struct ReactiveTextField: View {
             if startFocused {
                 // Defer to next runloop so the SwiftUI hosting view has installed
                 // its responder chain before we grab first-responder.
-                DispatchQueue.main.async { isFocused = true }
+                DispatchQueue.main.async {
+                    isFocused = true
+                    // AppKit selects ALL text when an NSTextField becomes first
+                    // responder. For a search/launcher field we want the caret at
+                    // the end of any pre-filled text instead, so ⌫ deletes one
+                    // character rather than the whole value. Collapse the
+                    // selection once the field editor has been installed.
+                    DispatchQueue.main.async {
+                        if let editor = NSApp.keyWindow?.firstResponder as? NSTextView {
+                            let end = (editor.string as NSString).length
+                            editor.selectedRange = NSRange(location: end, length: 0)
+                        }
+                    }
+                }
             }
         }
     }
@@ -72,7 +86,18 @@ private struct ReactiveTextField: View {
         case .rightArrow:    return "ArrowRight"
         case .delete:        return "Backspace"
         case .deleteForward: return "Delete"
-        default:             return keyPress.characters
+        default:
+            // The Backspace key is special: SwiftUI reports a KeyPress whose
+            // .key does NOT compare equal to KeyEquivalent.delete, so `case
+            // .delete` above is skipped and we land here. Recover it from the
+            // produced character — the DEL (U+007F) or BS (U+0008) control
+            // char — so onKey consumers get "Backspace" instead of a raw
+            // control character. Escape/Tab/arrows/Return don't have this
+            // problem (their .key matches), so they're handled above.
+            if keyPress.characters == "\u{7F}" || keyPress.characters == "\u{08}" {
+                return "Backspace"
+            }
+            return keyPress.characters
         }
     }
 
