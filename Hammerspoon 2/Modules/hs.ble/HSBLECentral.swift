@@ -109,9 +109,9 @@ private let HID_UUID = CBUUID(string: "1812")
 
     @objc func connect(_ config: [String: Any]) -> HSBLEPeripheral {
         deviceName = (config["name"] as? String) ?? "VoiceKB"
-        svcUUID = CBUUID(string: (config["service"] as? String) ?? DEFAULT_SVC_UUID)
-        txUUID  = CBUUID(string: (config["writeChar"] as? String) ?? DEFAULT_WRITE_UUID)
-        rxUUID  = CBUUID(string: (config["notifyChar"] as? String) ?? DEFAULT_NOTIFY_UUID)
+        svcUUID = cbUUID(config["service"],    field: "service",    fallback: DEFAULT_SVC_UUID)
+        txUUID  = cbUUID(config["writeChar"],  field: "writeChar",  fallback: DEFAULT_WRITE_UUID)
+        rxUUID  = cbUUID(config["notifyChar"], field: "notifyChar", fallback: DEFAULT_NOTIFY_UUID)
         autoReconnect = (config["autoReconnect"] as? Bool) ?? true
         if let s = config["peerUUID"] as? String { peerUUID = UUID(uuidString: s) }
 
@@ -119,6 +119,25 @@ private let HID_UUID = CBUUID(string: "1812")
         wrapper = w
         if manager.state == .poweredOn { attachExistingOrScan() }
         return w
+    }
+
+    // CBUUID(string:) raises an uncaught Obj-C exception on malformed input (wrong
+    // length or non-hex) — which Swift can't catch, so it crashes the app. Validate
+    // the documented 16-/32-/128-bit forms first, and fall back to the firmware
+    // default (a known-valid constant) when a config override is bad.
+    private func cbUUID(_ raw: Any?, field: String, fallback: String) -> CBUUID {
+        guard let s = raw as? String else { return CBUUID(string: fallback) }
+        if let u = Self.parseCBUUID(s) { return u }
+        AKWarning("hs.ble: ignoring malformed \(field) UUID '\(s)', using default")
+        return CBUUID(string: fallback)
+    }
+
+    private static func parseCBUUID(_ s: String) -> CBUUID? {
+        switch s.count {
+        case 4, 8: return s.allSatisfy { $0.isHexDigit && $0.isASCII } ? CBUUID(string: s) : nil
+        case 36:   return UUID(uuidString: s) != nil ? CBUUID(string: s) : nil
+        default:   return nil
+        }
     }
 
     // MARK: - Connection bring-up
