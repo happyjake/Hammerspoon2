@@ -102,6 +102,9 @@ import MultipeerConnectivity
     // Sendable mirrors the bg delegate queue may read freely.
     nonisolated private let inviteContext: Data
     nonisolated private let myDisplayName: String
+    // Unique per-launch identity used to break the invite "glare" tie. displayName
+    // alone is ambiguous (two Macs can share one), so tiebreak on this instead.
+    nonisolated private let myInstanceToken: String
 
     private let myPeerID: MCPeerID
     private let encPref: MCEncryptionPreference
@@ -115,10 +118,17 @@ import MultipeerConnectivity
     private var receiveCb: JSValue?
 
     init(serviceType: String, displayName: String, context: String, encryption: String, allowPeers: [String] = []) {
-        let dn = displayName.isEmpty ? "Mac" : displayName
-        self.serviceType = serviceType
+        // Validate before constructing MPC objects: an over-long displayName crashes
+        // MCPeerID, and an out-of-spec serviceType crashes the advertiser/browser — both
+        // with uncaught exceptions. These values come straight from public config, so
+        // clamp the name and fall back to the known-good default serviceType on bad input.
+        let dn = Self.clampPeerName(displayName)
+        let svc = Self.isValidServiceType(serviceType) ? serviceType : "voicekb-cs"
+        let token = UUID().uuidString
+        self.serviceType = svc
         self.allowPeers = allowPeers
         self.myDisplayName = dn
+        self.myInstanceToken = token
         self.inviteContext = context.data(using: .utf8) ?? Data()
         let enc: MCEncryptionPreference
         switch encryption {
@@ -130,12 +140,18 @@ import MultipeerConnectivity
         let pid = MCPeerID(displayName: dn)
         self.myPeerID = pid
         unsafe self.session = MCSession(peer: pid, securityIdentity: nil, encryptionPreference: enc)
-        self.advertiser = MCNearbyServiceAdvertiser(peer: pid, discoveryInfo: nil, serviceType: serviceType)
-        self.browser = MCNearbyServiceBrowser(peer: pid, serviceType: serviceType)
+        self.advertiser = MCNearbyServiceAdvertiser(peer: pid, discoveryInfo: ["id": token], serviceType: svc)
+        self.browser = MCNearbyServiceBrowser(peer: pid, serviceType: svc)
         super.init()
         unsafe session.delegate = self
         advertiser.delegate = self
         browser.delegate = self
+        if svc != serviceType {
+            AKWarning("hs.multipeer: invalid serviceType '\(serviceType)', using default '\(svc)'")
+        }
+        if !displayName.isEmpty && dn != displayName {
+            AKWarning("hs.multipeer: displayName exceeds 63 UTF-8 bytes, clamped to '\(dn)'")
+        }
     }
 
     // MARK: - HSMPCSessionAPI
@@ -161,7 +177,7 @@ import MultipeerConnectivity
         let fresh = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: encPref)
         unsafe session = fresh
         unsafe session.delegate = self
-        advertiser = MCNearbyServiceAdvertiser(peer: myPeerID, discoveryInfo: nil, serviceType: serviceType)
+        advertiser = MCNearbyServiceAdvertiser(peer: myPeerID, discoveryInfo: ["id": myInstanceToken], serviceType: serviceType)
         advertiser.delegate = self
         browser = MCNearbyServiceBrowser(peer: myPeerID, serviceType: serviceType)
         browser.delegate = self
@@ -216,6 +232,40 @@ import MultipeerConnectivity
         return allowPeers.contains { !$0.isEmpty && name.hasPrefix($0) }
     }
 
+    // MARK: - Public-config validation (a bad value here would crash MPC, not just fail)
+
+    /// A MultipeerConnectivity service type must be a valid Bonjour service name:
+    /// 1–15 chars of ASCII lowercase letters / digits / hyphens, at least one letter,
+    /// no leading/trailing or adjacent hyphens. Anything else makes the advertiser /
+    /// browser raise an uncaught exception, so reject it and fall back to the default.
+    private nonisolated static func isValidServiceType(_ s: String) -> Bool {
+        guard (1...15).contains(s.count) else { return false }
+        guard !s.hasPrefix("-"), !s.hasSuffix("-"), !s.contains("--") else { return false }
+        var hasLetter = false
+        for u in s.unicodeScalars {
+            switch u {
+            case "a"..."z":      hasLetter = true
+            case "0"..."9", "-": break
+            default:             return false
+            }
+        }
+        return hasLetter
+    }
+
+    /// MCPeerID requires a 1–63 byte UTF-8 display name; an empty or over-long name
+    /// crashes it. Default empties to "Mac" and truncate longer names on a character
+    /// boundary (a clean prefix — never a torn multi-byte scalar).
+    private nonisolated static func clampPeerName(_ s: String) -> String {
+        let name = s.isEmpty ? "Mac" : s
+        guard name.utf8.count > 63 else { return name }
+        var out = ""
+        for ch in name {
+            if out.utf8.count + String(ch).utf8.count > 63 { break }
+            out.append(ch)
+        }
+        return out.isEmpty ? "Mac" : out
+    }
+
     // MARK: - MCSessionDelegate (private queue → hop to main)
 
     nonisolated func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
@@ -258,14 +308,21 @@ import MultipeerConnectivity
     // MARK: - MCNearbyServiceBrowserDelegate (private queue)
 
     nonisolated func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
-        if peerID.displayName == myDisplayName { return }
+        let peerToken = info?["id"]
+        // Skip our own rediscovered advertisement. Prefer the unique token; only if a
+        // peer advertised none do we fall back to the (ambiguous) displayName match.
+        if peerToken == myInstanceToken || (peerToken == nil && peerID.displayName == myDisplayName) { return }
         if unsafe session.connectedPeers.contains(peerID) { return }
         guard isAllowedPeer(peerID) else { return }   // ignore advertisers that aren't our counterpart
         // Tiebreaker: avoid a symmetric-invite race. If both peers invite each other into
         // their own sessions, MCSession resolves the "glare" unreliably and often never
-        // reaches .connected. Make invitation one-directional — only the peer with the
-        // greater displayName initiates; the other only advertises and accepts the invite.
-        guard myDisplayName > peerID.displayName else { return }
+        // reaches .connected. Make invitation one-directional — only one side initiates.
+        // Tiebreak on the unique per-launch token, NOT displayName: two Macs can share a
+        // display name, which would make both sides skip (each seeing the other as itself
+        // or losing the string compare) so they'd never pair. Fall back to displayName
+        // only for a peer that advertised no token.
+        let theirs = peerToken ?? peerID.displayName
+        guard myInstanceToken > theirs else { return }
         unsafe browser.invitePeer(peerID, to: session, withContext: inviteContext, timeout: 30)
     }
 
