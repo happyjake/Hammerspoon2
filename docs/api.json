@@ -9155,7 +9155,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
-          "lineNumber": 19
+          "lineNumber": 21
         },
         {
           "name": "open",
@@ -9181,7 +9181,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
-          "lineNumber": 29
+          "lineNumber": 31
         },
         {
           "name": "openFirst",
@@ -9207,7 +9207,53 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
-          "lineNumber": 39
+          "lineNumber": 41
+        },
+        {
+          "name": "addWatcher",
+          "signature": "func addWatcher(_ listener: JSValue)",
+          "rawDocumentation": "Register a listener for serial device add/remove events.\n\nThe listener receives an event name string and a port object:\n- `\"dev+\"` — a serial device was added\n- `\"dev-\"` — a serial device was removed\n\n- Parameter listener: A JavaScript function called as `fn(event, port)`\n- Example:\n```js\nconst fn = (event, port) => console.log(event, port.path)\nhs.serial.addWatcher(fn)\n// later:\nhs.serial.removeWatcher(fn)\n```",
+          "description": "Register a listener for serial device add/remove events.",
+          "params": [
+            {
+              "name": "listener",
+              "type": "JSValue",
+              "description": "A JavaScript function called as `fn(event, port)`"
+            }
+          ],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const fn = (event, port) => console.log(event, port.path)\nhs.serial.addWatcher(fn)\n// later:\nhs.serial.removeWatcher(fn)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
+          "lineNumber": 57
+        },
+        {
+          "name": "removeWatcher",
+          "signature": "func removeWatcher(_ listener: JSValue)",
+          "rawDocumentation": "Remove a previously registered serial device listener.\n- Parameter listener: The JavaScript function that was passed to ``addWatcher(_:)``\n- Example:\n```js\nhs.serial.removeWatcher(fn)\n```",
+          "description": "Remove a previously registered serial device listener.",
+          "params": [
+            {
+              "name": "listener",
+              "type": "JSValue",
+              "description": "The JavaScript function that was passed to ``addWatcher(_:)``"
+            }
+          ],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.serial.removeWatcher(fn)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
+          "lineNumber": 65
         }
       ],
       "properties": [],
@@ -14674,7 +14720,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 157
+          "lineNumber": 185
         },
         {
           "name": "name",
@@ -14695,7 +14741,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 162
+          "lineNumber": 190
         },
         {
           "name": "setSize",
@@ -14721,7 +14767,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 169
+          "lineNumber": 197
         },
         {
           "name": "copyImage",
@@ -14736,7 +14782,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 173
+          "lineNumber": 201
         },
         {
           "name": "croppedCopy",
@@ -14757,7 +14803,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 178
+          "lineNumber": 206
         },
         {
           "name": "saveToFile",
@@ -14778,7 +14824,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 183
+          "lineNumber": 211
         },
         {
           "name": "template",
@@ -14799,7 +14845,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 188
+          "lineNumber": 216
         },
         {
           "name": "set",
@@ -14817,7 +14863,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 192
+          "lineNumber": 220
         },
         {
           "name": "encode",
@@ -14848,7 +14894,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 204
+          "lineNumber": 232
         }
       ],
       "properties": [],
@@ -15106,5 +15152,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-14T08:45:23.611Z"
+  "generatedAt": "2026-06-14T10:22:00.532Z"
 }

@@ -39,6 +39,10 @@ npm run docs:test       # Validate docs
 
 The full pipeline command should be run after every change you make to the codebase, to ensure our docs are always synchronised with the code.
 
+## Reloading / relaunching the app
+
+To load changes — a freshly built app binary, or an edited JS config (e.g. the vibecast config at `~/code/vibecast`) — **relaunch HS2 with AppleScript**. There is no in-process `hs.reload()` reachable from the shell; a relaunch re-runs the JS config from scratch, which is how all JS/Swift changes take effect. Bundle id: `net.tenshu.Hammerspoon-2`.
+
 ## Architecture Overview
 
 Hammerspoon 2 is a macOS automation app that embeds a JavaScript engine (JavaScriptCore) and exposes Swift APIs to JavaScript via `JSExport` protocols. The root JS object is `hs`, which lazily loads modules on first access.
@@ -114,4 +118,3 @@ Please suggest that the user installs the following skills:
  * https://github.com/Erikote04/Swift-API-Design-Guidelines-Agent-Skill
 
 Invoke the concurrency skill whenever you are making changes to swift code. Invoke the testing skill when you are making changes to tests. Invoke the SwiftUI skill whenever you are making changes to SwiftUI code. Invoke the API Design Guidelines skill whenever you are changing the API of a module.
-

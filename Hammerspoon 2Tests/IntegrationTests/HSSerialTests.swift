@@ -21,6 +21,26 @@ struct HSSerialTests {
         harness.expectTrue("typeof hs.serial.list().length === 'number'")
     }
 
+    @Test("addWatcher() and removeWatcher() exist")
+    func testWatcherMethodsExist() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSSerialModule.self, as: "serial")
+        harness.expectTrue("typeof hs.serial.addWatcher === 'function'")
+        harness.expectTrue("typeof hs.serial.removeWatcher === 'function'")
+    }
+
+    @Test("addWatcher() / removeWatcher() cycle is safe")
+    func testWatcherAddRemoveCycle() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSSerialModule.self, as: "serial")
+        harness.eval("""
+            var __serialWatcher = function(event, port) {};
+            hs.serial.addWatcher(__serialWatcher);
+            hs.serial.removeWatcher(__serialWatcher);
+        """)
+        harness.expectTrue("true")
+    }
+
     @Test("open() with bad path returns null, openFirst() with no match returns null")
     func testOpenBadPathReturnsNull() {
         let harness = JSTestHarness()

@@ -4044,6 +4044,18 @@ declare namespace hs.serial {
      */
     function openFirst(match: string): HSSerialPort | undefined;
 
+    /**
+     * Register a listener for serial device add/remove events.
+     * @param listener A JavaScript function called as `fn(event, port)`
+     */
+    function addWatcher(listener: JSValue): void;
+
+    /**
+     * Remove a previously registered serial device listener.
+     * @param listener The JavaScript function that was passed to ``addWatcher(_:)``
+     */
+    function removeWatcher(listener: JSValue): void;
+
 }
 
 /**
@@ -6056,4 +6068,3 @@ declare class HSWindow {
     screen: HSScreen | undefined;
 
 }
-
