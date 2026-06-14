@@ -247,6 +247,20 @@ Whitespace/newlines in the base64 input are ignored.
     static fromBase64(base64: string): HSImage | undefined;
 
     /**
+     * Decode an image (from raw bytes or a file), optionally downscale it, and
+re-encode it to a destination file — entirely off the main thread.
+Use this instead of `saveToFile()` / `encode()` for any large or
+untrusted image. Those run a **synchronous, full-bitmap** decode+encode on
+the main thread: a single large photo can block the whole app for tens of
+seconds and spike memory into the gigabytes. `transcodeToFileAsync` runs on
+a background queue via ImageIO and, when `maxEdge` is set, **downsamples
+during decode** — it never materialises the full-resolution bitmap.
+     * @param options A configuration object:
+     * @returns resolves to `{ path, width, height, bytes }`; rejects with an error string
+     */
+    static transcodeToFileAsync(options: JSValue): Promise<Object>;
+
+    /**
      * Get or set the image size
      * @param size Optional HSSize to set (if provided, returns a resized copy)
      * @returns The current size as HSSize, or a resized copy if size was provided

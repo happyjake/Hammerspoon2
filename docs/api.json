@@ -14448,7 +14448,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 65
+          "lineNumber": 66
         },
         {
           "name": "fromName",
@@ -14469,7 +14469,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 70
+          "lineNumber": 71
         },
         {
           "name": "fromAppBundle",
@@ -14490,7 +14490,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 75
+          "lineNumber": 76
         },
         {
           "name": "iconForFile",
@@ -14511,7 +14511,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 80
+          "lineNumber": 81
         },
         {
           "name": "iconForFileType",
@@ -14532,7 +14532,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 85
+          "lineNumber": 86
         },
         {
           "name": "fromSymbol",
@@ -14558,7 +14558,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 96
+          "lineNumber": 97
         },
         {
           "name": "empty",
@@ -14578,7 +14578,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 106
+          "lineNumber": 107
         },
         {
           "name": "fromURL",
@@ -14600,7 +14600,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 111
+          "lineNumber": 112
         },
         {
           "name": "fromBase64",
@@ -14626,7 +14626,34 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 123
+          "lineNumber": 124
+        },
+        {
+          "name": "transcodeToFileAsync",
+          "signature": "static func transcodeToFileAsync(_ options: JSValue) -> JSPromise?",
+          "rawDocumentation": "Decode an image (from raw bytes or a file), optionally downscale it, and\nre-encode it to a destination file — entirely off the main thread.\n\nUse this instead of `saveToFile()` / `encode()` for any large or\nuntrusted image. Those run a **synchronous, full-bitmap** decode+encode on\nthe main thread: a single large photo can block the whole app for tens of\nseconds and spike memory into the gigabytes. `transcodeToFileAsync` runs on\na background queue via ImageIO and, when `maxEdge` is set, **downsamples\nduring decode** — it never materialises the full-resolution bitmap.\n\n- Parameter options: A configuration object:\n    - `src`: the source, as `{ dataB64: \"<base64 image bytes>\" }` **or** `{ path: \"/abs/path\" }`\n    - `dest`: destination file path (required)\n    - `maxEdge`: longest-side pixel cap; omit or `0` to keep full resolution\n    - `format`: `\"jpeg\"` or `\"png\"`; if omitted, inferred from `dest`'s extension (default `png`)\n    - `quality`: JPEG quality `0.0`–`1.0` (default `0.8`; ignored for png)\n- Returns: {Promise<Object>} resolves to `{ path, width, height, bytes }`; rejects with an error string\n- Example:\n```js\n// Make a 512px thumbnail of a clipboard image without blocking the UI:\nconst info = await HSImage.transcodeToFileAsync({\n  src: { dataB64: hs.pasteboard.readData('public.png') },\n  dest: '/tmp/thumb.jpg', maxEdge: 512, format: 'jpeg', quality: 0.85,\n})\nconsole.log(info.width, info.height, info.bytes)\n```",
+          "description": "Decode an image (from raw bytes or a file), optionally downscale it, and\nre-encode it to a destination file — entirely off the main thread.\nUse this instead of `saveToFile()` / `encode()` for any large or\nuntrusted image. Those run a **synchronous, full-bitmap** decode+encode on\nthe main thread: a single large photo can block the whole app for tens of\nseconds and spike memory into the gigabytes. `transcodeToFileAsync` runs on\na background queue via ImageIO and, when `maxEdge` is set, **downsamples\nduring decode** — it never materialises the full-resolution bitmap.",
+          "params": [
+            {
+              "name": "options",
+              "type": "JSValue",
+              "description": "A configuration object:"
+            }
+          ],
+          "returns": {
+            "type": "JSPromise?",
+            "description": "resolves to `{ path, width, height, bytes }`; rejects with an error string",
+            "promiseType": "Object"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "// Make a 512px thumbnail of a clipboard image without blocking the UI:\nconst info = await HSImage.transcodeToFileAsync({\n  src: { dataB64: hs.pasteboard.readData('public.png') },\n  dest: '/tmp/thumb.jpg', maxEdge: 512, format: 'jpeg', quality: 0.85,\n})\nconsole.log(info.width, info.height, info.bytes)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
+          "lineNumber": 152
         },
         {
           "name": "size",
@@ -14647,7 +14674,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 128
+          "lineNumber": 157
         },
         {
           "name": "name",
@@ -14668,7 +14695,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 133
+          "lineNumber": 162
         },
         {
           "name": "setSize",
@@ -14694,7 +14721,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 140
+          "lineNumber": 169
         },
         {
           "name": "copyImage",
@@ -14709,7 +14736,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 144
+          "lineNumber": 173
         },
         {
           "name": "croppedCopy",
@@ -14730,7 +14757,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 149
+          "lineNumber": 178
         },
         {
           "name": "saveToFile",
@@ -14751,7 +14778,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 154
+          "lineNumber": 183
         },
         {
           "name": "template",
@@ -14772,7 +14799,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 159
+          "lineNumber": 188
         },
         {
           "name": "set",
@@ -14790,7 +14817,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 163
+          "lineNumber": 192
         },
         {
           "name": "encode",
@@ -14821,7 +14848,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 175
+          "lineNumber": 204
         }
       ],
       "properties": [],
@@ -15079,5 +15106,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-14T08:29:48.292Z"
+  "generatedAt": "2026-06-14T08:45:23.611Z"
 }

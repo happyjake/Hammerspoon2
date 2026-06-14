@@ -8,6 +8,7 @@
 import Foundation
 import JavaScriptCore
 import AppKit
+import ImageIO
 import UniformTypeIdentifiers
 import Observation
 
@@ -121,6 +122,34 @@ import Observation
     /// if (img) hs.pasteboard.writeImage(img)
     /// ```
     @objc static func fromBase64(_ base64: String) -> HSImage?
+
+    /// Decode an image (from raw bytes or a file), optionally downscale it, and
+    /// re-encode it to a destination file — entirely off the main thread.
+    ///
+    /// Use this instead of `saveToFile()` / `encode()` for any large or
+    /// untrusted image. Those run a **synchronous, full-bitmap** decode+encode on
+    /// the main thread: a single large photo can block the whole app for tens of
+    /// seconds and spike memory into the gigabytes. `transcodeToFileAsync` runs on
+    /// a background queue via ImageIO and, when `maxEdge` is set, **downsamples
+    /// during decode** — it never materialises the full-resolution bitmap.
+    ///
+    /// - Parameter options: A configuration object:
+    ///     - `src`: the source, as `{ dataB64: "<base64 image bytes>" }` **or** `{ path: "/abs/path" }`
+    ///     - `dest`: destination file path (required)
+    ///     - `maxEdge`: longest-side pixel cap; omit or `0` to keep full resolution
+    ///     - `format`: `"jpeg"` or `"png"`; if omitted, inferred from `dest`'s extension (default `png`)
+    ///     - `quality`: JPEG quality `0.0`–`1.0` (default `0.8`; ignored for png)
+    /// - Returns: {Promise<Object>} resolves to `{ path, width, height, bytes }`; rejects with an error string
+    /// - Example:
+    /// ```js
+    /// // Make a 512px thumbnail of a clipboard image without blocking the UI:
+    /// const info = await HSImage.transcodeToFileAsync({
+    ///   src: { dataB64: hs.pasteboard.readData('public.png') },
+    ///   dest: '/tmp/thumb.jpg', maxEdge: 512, format: 'jpeg', quality: 0.85,
+    /// })
+    /// console.log(info.width, info.height, info.bytes)
+    /// ```
+    @objc static func transcodeToFileAsync(_ options: JSValue) -> JSPromise?
 
     /// Get or set the image size
     /// - Parameter size: Optional HSSize to set (if provided, returns a resized copy)
@@ -275,6 +304,151 @@ import Observation
                 }
             }
         }
+    }
+
+    // Primitive, Sendable result of an off-thread transcode — built off the main
+    // thread, then handed back to JS on the main thread.
+    private struct TranscodeOutput: Sendable {
+        let path: String
+        let width: Int
+        let height: Int
+        let bytes: Int
+    }
+
+    private enum TranscodeOutcome: Sendable {
+        case success(TranscodeOutput)
+        case failure(String)
+    }
+
+    // Build the Promise in the CALLER's context (not JSEngine.shared's) so it is a
+    // real thenable in whatever context invoked us — matters for tests, and for any
+    // future multi-context use. The class is main-actor isolated by default, so the
+    // @MainActor Promise helpers are usable directly; only the ImageIO transcode is
+    // forced off-main (via a continuation), and `holder` never leaves the main actor.
+    @objc static func transcodeToFileAsync(_ options: JSValue) -> JSPromise? {
+        guard let context = JSContext.current() else { return nil }
+
+        guard options.isObject else {
+            return context.createRejectedPromise(with: "transcodeToFileAsync: options must be an object")
+        }
+
+        // Parse everything up-front on the main thread (JSValue must not cross threads).
+        // A missing JS property reads back as a JSValue whose toString() is the literal
+        // "undefined", so require a real string before accepting it.
+        let destProp = options.forProperty("dest")
+        let destRaw = (destProp?.isString == true) ? (destProp?.toString() ?? "") : ""
+        guard !destRaw.isEmpty else {
+            return context.createRejectedPromise(with: "transcodeToFileAsync: missing dest")
+        }
+        let destPath = NSString(string: destRaw).expandingTildeInPath
+
+        var srcDataParsed: Data? = nil
+        var srcURLParsed: URL? = nil
+        if let src = options.forProperty("src"), src.isObject {
+            if let b64 = src.forProperty("dataB64"), b64.isString,
+               let data = Data(base64Encoded: b64.toString(), options: .ignoreUnknownCharacters) {
+                srcDataParsed = data
+            } else if let p = src.forProperty("path"), p.isString, !(p.toString().isEmpty) {
+                srcURLParsed = URL(fileURLWithPath: NSString(string: p.toString()).expandingTildeInPath)
+            }
+        }
+        guard srcDataParsed != nil || srcURLParsed != nil else {
+            return context.createRejectedPromise(with: "transcodeToFileAsync: src must be { dataB64 } or { path }")
+        }
+
+        let maxEdge = Int(options.forProperty("maxEdge")?.toInt32() ?? 0)
+        let fmt = (options.forProperty("format")?.toString() ?? "").lowercased()
+        let lowerDest = destPath.lowercased()
+        let isJpeg = fmt == "jpeg" || fmt == "jpg"
+            || (fmt.isEmpty && (lowerDest.hasSuffix(".jpg") || lowerDest.hasSuffix(".jpeg")))
+        let qualityValue = options.forProperty("quality")
+        let quality = (qualityValue != nil && qualityValue!.isNumber) ? qualityValue!.toDouble() : 0.8
+
+        // Capture only Sendable primitives in the off-main closure below.
+        let srcData = srcDataParsed
+        let srcURL = srcURLParsed
+        return wrapAsyncInJSPromise(in: context) { holder in
+            Task { @MainActor in
+                let outcome: TranscodeOutcome = await withCheckedContinuation { cont in
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        cont.resume(returning: HSImage.transcodeSync(
+                            data: srcData, url: srcURL, destPath: destPath,
+                            maxEdge: maxEdge, isJpeg: isJpeg, quality: quality
+                        ))
+                    }
+                }
+                switch outcome {
+                case .success(let out):
+                    holder.resolveWith([
+                        "path": out.path,
+                        "width": out.width,
+                        "height": out.height,
+                        "bytes": out.bytes,
+                    ] as [String: Any])
+                case .failure(let message):
+                    AKError("HSImage.transcodeToFileAsync: \(message)")
+                    holder.rejectWithMessage(message)
+                }
+            }
+        }
+    }
+
+    // Pure ImageIO transcode — runs off the main thread (nonisolated). With
+    // `maxEdge` set, CGImageSourceCreateThumbnailAtIndex downsamples *during*
+    // decode, so a huge source never inflates into a full-resolution bitmap.
+    private nonisolated static func transcodeSync(
+        data: Data?, url: URL?, destPath: String,
+        maxEdge: Int, isJpeg: Bool, quality: Double
+    ) -> TranscodeOutcome {
+        let source: CGImageSource?
+        if let data = data {
+            source = CGImageSourceCreateWithData(data as CFData, nil)
+        } else if let url = url {
+            source = CGImageSourceCreateWithURL(url as CFURL, nil)
+        } else {
+            source = nil
+        }
+        guard let source = source, CGImageSourceGetCount(source) > 0 else {
+            return .failure("could not read source image")
+        }
+
+        let cgImage: CGImage?
+        if maxEdge > 0 {
+            let opts: [CFString: Any] = [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceCreateThumbnailWithTransform: true,
+                kCGImageSourceThumbnailMaxPixelSize: maxEdge,
+                kCGImageSourceShouldCacheImmediately: true,
+            ]
+            cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, opts as CFDictionary)
+        } else {
+            let opts: [CFString: Any] = [kCGImageSourceShouldCacheImmediately: true]
+            cgImage = CGImageSourceCreateImageAtIndex(source, 0, opts as CFDictionary)
+        }
+        guard let image = cgImage else {
+            return .failure("could not decode source image")
+        }
+
+        let utType: UTType = isJpeg ? .jpeg : .png
+        let destURL = URL(fileURLWithPath: destPath)
+        guard let dest = CGImageDestinationCreateWithURL(
+            destURL as CFURL, utType.identifier as CFString, 1, nil
+        ) else {
+            return .failure("could not create destination at \(destPath)")
+        }
+        var destProps: [CFString: Any] = [:]
+        if isJpeg {
+            destProps[kCGImageDestinationLossyCompressionQuality] = max(0.0, min(1.0, quality))
+        }
+        CGImageDestinationAddImage(dest, image, destProps as CFDictionary)
+        guard CGImageDestinationFinalize(dest) else {
+            return .failure("could not write \(destPath)")
+        }
+
+        let bytes = (try? FileManager.default.attributesOfItem(atPath: destPath)[.size] as? Int) ?? 0
+        return .success(TranscodeOutput(
+            path: destPath, width: image.width, height: image.height, bytes: bytes ?? 0
+        ))
     }
 
     @objc static func fromBase64(_ base64: String) -> HSImage? {
