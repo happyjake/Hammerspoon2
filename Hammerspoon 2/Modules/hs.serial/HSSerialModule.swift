@@ -78,6 +78,8 @@ import JavaScriptCore
     private var notificationPort: IONotificationPortRef?
     private var matchedIterator: io_iterator_t = 0
     private var terminatedIterator: io_iterator_t = 0
+    private var serialWatcherDrainDepth = 0
+    private var stopSerialWatcherAfterDrain = false
 
     required init(engineID: UUID) {
         self.engineID = engineID
@@ -88,8 +90,8 @@ import JavaScriptCore
     func shutdown() {
         for p in ports { p.close() }
         ports.removeAll()
-        stopSerialWatcher()
         watchers.removeAll()
+        stopSerialWatcherWhenIdle()
     }
 
     isolated deinit {
@@ -125,7 +127,7 @@ import JavaScriptCore
 
     @objc func removeWatcher(_ listener: JSValue) {
         watchers.removeAll { $0 === listener || $0.isEqual(listener) }
-        if watchers.isEmpty { stopSerialWatcher() }
+        if watchers.isEmpty { stopSerialWatcherWhenIdle() }
     }
 
     private func startSerialWatcherIfNeeded() {
@@ -174,6 +176,7 @@ import JavaScriptCore
     }
 
     private func stopSerialWatcher() {
+        stopSerialWatcherAfterDrain = false
         if matchedIterator != 0 {
             IOObjectRelease(matchedIterator)
             matchedIterator = 0
@@ -186,6 +189,17 @@ import JavaScriptCore
             unsafe IONotificationPortDestroy(port)
             unsafe notificationPort = nil
         }
+    }
+
+    private func stopSerialWatcherWhenIdle() {
+        let hasNotificationPort = unsafe notificationPort != nil
+        guard matchedIterator != 0 || terminatedIterator != 0 || hasNotificationPort else { return }
+        // IOKit callbacks continue using their iterator after JS callbacks return.
+        guard serialWatcherDrainDepth == 0 else {
+            stopSerialWatcherAfterDrain = true
+            return
+        }
+        stopSerialWatcher()
     }
 
     private func serialMatchingDictionary() -> CFMutableDictionary {
@@ -217,6 +231,18 @@ import JavaScriptCore
     }
 
     private func drain(iterator: io_iterator_t, event: String?) {
+        serialWatcherDrainDepth += 1
+        defer {
+            serialWatcherDrainDepth -= 1
+            if serialWatcherDrainDepth == 0 && stopSerialWatcherAfterDrain {
+                if watchers.isEmpty {
+                    stopSerialWatcher()
+                } else {
+                    stopSerialWatcherAfterDrain = false
+                }
+            }
+        }
+
         while true {
             let service = IOIteratorNext(iterator)
             if service == 0 { break }
