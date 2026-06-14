@@ -393,9 +393,11 @@ import Observation
         }
     }
 
-    // Pure ImageIO transcode — runs off the main thread (nonisolated). With
-    // `maxEdge` set, CGImageSourceCreateThumbnailAtIndex downsamples *during*
-    // decode, so a huge source never inflates into a full-resolution bitmap.
+    // Pure ImageIO transcode — runs off the main thread (nonisolated). Both paths
+    // decode through CGImageSourceCreateThumbnailAtIndex so the source's EXIF
+    // orientation is baked into the output pixels (kCGImageSourceCreateThumbnailWithTransform);
+    // with `maxEdge` set it also downsamples *during* decode, so a huge source
+    // never inflates into a full-resolution bitmap.
     private nonisolated static func transcodeSync(
         data: Data?, url: URL?, destPath: String,
         maxEdge: Int, isJpeg: Bool, quality: Double
@@ -412,20 +414,31 @@ import Observation
             return .failure("could not read source image")
         }
 
-        let cgImage: CGImage?
+        // Decode through the thumbnail API for both the downscaled and full-size
+        // paths: kCGImageSourceCreateThumbnailWithTransform bakes the source's EXIF
+        // orientation into the output pixels, so rotated phone photos (the full-size
+        // clipboard archive path passes no maxEdge) are written upright rather than
+        // sideways. Cap the longest edge at maxEdge when downscaling, else at the
+        // source's own longest edge so the full-size image is neither up- nor
+        // downscaled (the thumbnail generator never upscales past the source).
+        var opts: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+        ]
+        let thumbMax: Int
         if maxEdge > 0 {
-            let opts: [CFString: Any] = [
-                kCGImageSourceCreateThumbnailFromImageAlways: true,
-                kCGImageSourceCreateThumbnailWithTransform: true,
-                kCGImageSourceThumbnailMaxPixelSize: maxEdge,
-                kCGImageSourceShouldCacheImmediately: true,
-            ]
-            cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, opts as CFDictionary)
+            thumbMax = maxEdge
         } else {
-            let opts: [CFString: Any] = [kCGImageSourceShouldCacheImmediately: true]
-            cgImage = CGImageSourceCreateImageAtIndex(source, 0, opts as CFDictionary)
+            let srcProps = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+            let srcW = (srcProps?[kCGImagePropertyPixelWidth] as? Int) ?? 0
+            let srcH = (srcProps?[kCGImagePropertyPixelHeight] as? Int) ?? 0
+            thumbMax = max(srcW, srcH)
         }
-        guard let image = cgImage else {
+        if thumbMax > 0 {
+            opts[kCGImageSourceThumbnailMaxPixelSize] = thumbMax
+        }
+        guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, opts as CFDictionary) else {
             return .failure("could not decode source image")
         }
 
