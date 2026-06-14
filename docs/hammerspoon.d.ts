@@ -261,6 +261,21 @@ during decode** — it never materialises the full-resolution bitmap.
     static transcodeToFileAsync(options: JSValue): Promise<Object>;
 
     /**
+     * Decode an image (from raw bytes or a file), optionally downscale it, and
+re-encode it to a **base64 string returned directly** — entirely off the
+main thread, with no temp file.
+This is the in-memory sibling of `transcodeToFileAsync`. Use it when the
+caller needs the encoded bytes back as base64 (a webview `data:` URL, a
+network payload) rather than on disk — it avoids the
+transcode-to-file → read-back → delete round-trip. Same ImageIO core: with
+`maxEdge` set it **downsamples during decode** and never materialises the
+full-resolution bitmap, and the base64 encode also runs off-main.
+     * @param options A configuration object:
+     * @returns resolves to `{ b64, width, height, bytes }`; rejects with an error string
+     */
+    static transcodeToBase64Async(options: JSValue): Promise<Object>;
+
+    /**
      * Get or set the image size
      * @param size Optional HSSize to set (if provided, returns a resized copy)
      * @returns The current size as HSSize, or a resized copy if size was provided
@@ -6068,3 +6083,4 @@ declare class HSWindow {
     screen: HSScreen | undefined;
 
 }
+

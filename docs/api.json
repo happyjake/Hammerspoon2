@@ -14702,6 +14702,33 @@
           "lineNumber": 152
         },
         {
+          "name": "transcodeToBase64Async",
+          "signature": "static func transcodeToBase64Async(_ options: JSValue) -> JSPromise?",
+          "rawDocumentation": "Decode an image (from raw bytes or a file), optionally downscale it, and\nre-encode it to a **base64 string returned directly** — entirely off the\nmain thread, with no temp file.\n\nThis is the in-memory sibling of `transcodeToFileAsync`. Use it when the\ncaller needs the encoded bytes back as base64 (a webview `data:` URL, a\nnetwork payload) rather than on disk — it avoids the\ntranscode-to-file → read-back → delete round-trip. Same ImageIO core: with\n`maxEdge` set it **downsamples during decode** and never materialises the\nfull-resolution bitmap, and the base64 encode also runs off-main.\n\n- Parameter options: A configuration object:\n    - `src`: the source, as `{ dataB64: \"<base64 image bytes>\" }` **or** `{ path: \"/abs/path\" }`\n    - `maxEdge`: longest-side pixel cap; omit or `0` to keep full resolution\n    - `format`: `\"jpeg\"` or `\"png\"` (default `png`)\n    - `quality`: JPEG quality `0.0`–`1.0` (default `0.8`; ignored for png)\n- Returns: {Promise<Object>} resolves to `{ b64, width, height, bytes }`; rejects with an error string\n- Example:\n```js\n// Build a 600px JPEG thumbnail and drop it straight into a webview <img>:\nconst info = await HSImage.transcodeToBase64Async({\n  src: { dataB64: hs.pasteboard.readData('public.png') },\n  maxEdge: 600, format: 'jpeg', quality: 0.82,\n})\nimg.src = 'data:image/jpeg;base64,' + info.b64\n```",
+          "description": "Decode an image (from raw bytes or a file), optionally downscale it, and\nre-encode it to a **base64 string returned directly** — entirely off the\nmain thread, with no temp file.\nThis is the in-memory sibling of `transcodeToFileAsync`. Use it when the\ncaller needs the encoded bytes back as base64 (a webview `data:` URL, a\nnetwork payload) rather than on disk — it avoids the\ntranscode-to-file → read-back → delete round-trip. Same ImageIO core: with\n`maxEdge` set it **downsamples during decode** and never materialises the\nfull-resolution bitmap, and the base64 encode also runs off-main.",
+          "params": [
+            {
+              "name": "options",
+              "type": "JSValue",
+              "description": "A configuration object:"
+            }
+          ],
+          "returns": {
+            "type": "JSPromise?",
+            "description": "resolves to `{ b64, width, height, bytes }`; rejects with an error string",
+            "promiseType": "Object"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "// Build a 600px JPEG thumbnail and drop it straight into a webview <img>:\nconst info = await HSImage.transcodeToBase64Async({\n  src: { dataB64: hs.pasteboard.readData('public.png') },\n  maxEdge: 600, format: 'jpeg', quality: 0.82,\n})\nimg.src = 'data:image/jpeg;base64,' + info.b64"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
+          "lineNumber": 180
+        },
+        {
           "name": "size",
           "signature": "func size(_ size: JSValue) -> JSValue",
           "rawDocumentation": "Get or set the image size\n- Parameter size: Optional HSSize to set (if provided, returns a resized copy)\n- Returns: The current size as HSSize, or a resized copy if size was provided",
@@ -15152,5 +15179,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-14T10:22:00.532Z"
+  "generatedAt": "2026-06-14T10:33:20.929Z"
 }

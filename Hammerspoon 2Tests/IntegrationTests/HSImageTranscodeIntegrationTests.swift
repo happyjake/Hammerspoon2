@@ -149,3 +149,91 @@ struct HSImageTranscodeIntegrationTests {
         harness.expectTrue("errv.indexOf('source') !== -1")
     }
 }
+
+// MARK: - Base64 variant
+
+/// Integration tests for HSImage.transcodeToBase64Async — the in-memory sibling
+/// that hands the encoded bytes back as base64 (no temp file), used where the
+/// caller needs a webview data: URL or a network payload rather than a file.
+@Suite("HSImage.transcodeToBase64Async")
+struct HSImageTranscodeBase64IntegrationTests {
+    private func makeHarness() -> JSTestHarness {
+        let harness = JSTestHarness()
+        harness.context.setObject(HSImage.self, forKeyedSubscript: "HSImage" as NSString)
+        return harness
+    }
+
+    @Test("transcodeToBase64Async is a function")
+    func testIsFunction() {
+        makeHarness().expectTrue("typeof HSImage.transcodeToBase64Async === 'function'")
+    }
+
+    @Test("downscales and resolves with b64/width/height/bytes — no file on disk")
+    @MainActor
+    func testDownscaleToBase64() async throws {
+        let harness = makeHarness()
+        let src = try #require(makeSolidPNG(width: 400, height: 200))
+        let b64 = try Data(contentsOf: URL(fileURLWithPath: src)).base64EncodedString()
+        defer { try? FileManager.default.removeItem(atPath: src) }
+
+        var done = false
+        harness.registerCallback("onDone") { done = true }
+        harness.eval("""
+        var res, errv;
+        HSImage.transcodeToBase64Async({
+            src: { dataB64: '\(b64)' }, maxEdge: 64, format: 'jpeg', quality: 0.8
+        }).then(function (r) { res = r; __test_callback('onDone'); })
+          .catch(function (e) { errv = String(e); __test_callback('onDone'); });
+        """)
+
+        let completed = await harness.waitForAsync(timeout: 5.0) { done }
+        #expect(completed, "Promise should resolve")
+        harness.expectTrue("!errv")
+        // Longest edge clamped to 64; aspect ratio preserved (400×200 → 64×32).
+        harness.expectTrue("res && res.width === 64 && res.height === 32")
+        harness.expectTrue("res.bytes > 0")
+        // The payload comes back as a non-empty base64 string (no `path` field).
+        harness.expectTrue("typeof res.b64 === 'string' && res.b64.length > 0")
+        harness.expectTrue("res.path === undefined")
+    }
+
+    @Test("the returned base64 round-trips back into a decodable image")
+    @MainActor
+    func testBase64RoundTrips() async throws {
+        let harness = makeHarness()
+        let src = try #require(makeSolidPNG(width: 200, height: 200))
+        let b64 = try Data(contentsOf: URL(fileURLWithPath: src)).base64EncodedString()
+        defer { try? FileManager.default.removeItem(atPath: src) }
+
+        var done = false
+        harness.registerCallback("onDone") { done = true }
+        // Feed the result straight back through fromBase64 — proves the bytes are a
+        // real encoded image, not a mangled string.
+        harness.eval("""
+        var ok, errv;
+        HSImage.transcodeToBase64Async({ src: { dataB64: '\(b64)' }, maxEdge: 96, format: 'jpeg' })
+          .then(function (r) { ok = !!HSImage.fromBase64(r.b64); __test_callback('onDone'); })
+          .catch(function (e) { errv = String(e); __test_callback('onDone'); });
+        """)
+
+        let completed = await harness.waitForAsync(timeout: 5.0) { done }
+        #expect(completed, "Promise should resolve")
+        harness.expectTrue("!errv")
+        harness.expectTrue("ok === true")
+    }
+
+    @Test("rejects when src is missing")
+    func testRejectsMissingSrc() async {
+        let harness = makeHarness()
+        var done = false
+        harness.registerCallback("onDone") { done = true }
+        harness.eval("""
+        var errv;
+        HSImage.transcodeToBase64Async({ maxEdge: 64 })
+            .catch(function (e) { errv = String(e); __test_callback('onDone'); });
+        """)
+        let completed = await harness.waitForAsync(timeout: 5.0) { done }
+        #expect(completed, "Promise should reject")
+        harness.expectTrue("errv.indexOf('src') !== -1")
+    }
+}
