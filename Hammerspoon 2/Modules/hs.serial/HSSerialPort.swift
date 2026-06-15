@@ -139,8 +139,32 @@ import Darwin
     @objc func write(_ s: String) -> Bool {
         guard fd >= 0 else { return false }
         let bytes = Array(s.utf8)
-        let n = bytes.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
-        return n == bytes.count
+        var offset = 0
+        let deadline = DispatchTime.now().uptimeNanoseconds + 200_000_000
+
+        while offset < bytes.count {
+            let n = bytes.withUnsafeBytes { raw -> Int in
+                guard let base = raw.baseAddress else { return 0 }
+                return Darwin.write(fd, base.advanced(by: offset), bytes.count - offset)
+            }
+
+            if n > 0 {
+                offset += n
+                continue
+            }
+            if n == 0 || errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK {
+                if DispatchTime.now().uptimeNanoseconds > deadline {
+                    AKWarning("hs.serial.write(\(path)): timed out after \(offset)/\(bytes.count) bytes")
+                    return false
+                }
+                usleep(1_000)
+                continue
+            }
+
+            AKWarning("hs.serial.write(\(path)): \(String(cString: strerror(errno)))")
+            return false
+        }
+        return true
     }
 
     @objc func close() {
