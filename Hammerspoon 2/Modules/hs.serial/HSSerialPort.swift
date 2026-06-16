@@ -70,6 +70,8 @@ import Darwin
     private var buffer = [UInt8]()
     private var lineCb: JSValue?
     private var closeCb: JSValue?
+    private var lastWriteWarningAt: UInt64 = 0
+    private let writeWarningIntervalNs: UInt64 = 2_000_000_000
 
     init?(path: String) {
         self.path = path
@@ -136,11 +138,20 @@ import Darwin
 
     @objc func onClose(_ cb: JSValue) -> HSSerialPort { closeCb = cb; return self }
 
+    private func warnWrite(_ message: String) {
+        let now = DispatchTime.now().uptimeNanoseconds
+        if now >= lastWriteWarningAt + writeWarningIntervalNs || lastWriteWarningAt == 0 {
+            lastWriteWarningAt = now
+            AKWarning("hs.serial.write(\(path)): \(message)")
+        }
+    }
+
     @objc func write(_ s: String) -> Bool {
         guard fd >= 0 else { return false }
         let bytes = Array(s.utf8)
+        guard !bytes.isEmpty else { return true }
         var offset = 0
-        let deadline = DispatchTime.now().uptimeNanoseconds + 200_000_000
+        var interruptedRetries = 0
 
         while offset < bytes.count {
             let n = bytes.withUnsafeBytes { raw -> Int in
@@ -152,16 +163,24 @@ import Darwin
                 offset += n
                 continue
             }
-            if n == 0 || errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK {
-                if DispatchTime.now().uptimeNanoseconds > deadline {
-                    AKWarning("hs.serial.write(\(path)): timed out after \(offset)/\(bytes.count) bytes")
+            if n == 0 {
+                warnWrite("not writable after \(offset)/\(bytes.count) bytes")
+                return false
+            }
+            if errno == EINTR {
+                interruptedRetries += 1
+                if interruptedRetries > 3 {
+                    warnWrite("interrupted after \(offset)/\(bytes.count) bytes")
                     return false
                 }
-                usleep(1_000)
                 continue
             }
+            if errno == EAGAIN || errno == EWOULDBLOCK {
+                warnWrite("not ready after \(offset)/\(bytes.count) bytes")
+                return false
+            }
 
-            AKWarning("hs.serial.write(\(path)): \(String(cString: strerror(errno)))")
+            warnWrite(String(cString: strerror(errno)))
             return false
         }
         return true
