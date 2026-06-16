@@ -13,6 +13,7 @@
 build/
 artifacts/
 DerivedData/
+build-devid/
 
 ## Various settings
 *.pbxuser
