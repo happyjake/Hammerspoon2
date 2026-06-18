@@ -9140,12 +9140,12 @@
         {
           "name": "list",
           "signature": "func list() -> [[String: String]]",
-          "rawDocumentation": "List available serial ports (devices matching `/dev/cu.*`).\n- Returns: An array of `{ path, name }` objects (empty if none are present).\n- Example:\n```js\nhs.serial.list().forEach(p => console.log(p.path))\n```",
+          "rawDocumentation": "List available serial ports (devices matching `/dev/cu.*`).\n- Returns: An array of port objects (empty if none are present). Each object\n  always includes `path` and `name`; USB-backed devices may also include\n  `serialNumber`, `location`, `locationId`, `usbVendor`, `usbProduct`,\n  `vendorId`, and `productId`.\n- Example:\n```js\nhs.serial.list().forEach(p => console.log(p.path))\n```",
           "description": "List available serial ports (devices matching `/dev/cu.*`).",
           "params": [],
           "returns": {
             "type": "[[String: String]]",
-            "description": "An array of `{ path, name }` objects (empty if none are present)."
+            "description": "An array of port objects (empty if none are present). Each object"
           },
           "examples": [
             {
@@ -9155,7 +9155,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
-          "lineNumber": 21
+          "lineNumber": 24
         },
         {
           "name": "open",
@@ -9181,18 +9181,18 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
-          "lineNumber": 31
+          "lineNumber": 34
         },
         {
           "name": "openFirst",
           "signature": "func openFirst(_ match: String) -> HSSerialPort?",
-          "rawDocumentation": "Open the first serial port whose name contains the given string.\n- Parameter match: A substring to search for in each port's name.\n- Returns: An `HSSerialPort` object, or `null` if no matching port was found or could not be opened.\n- Example:\n```js\nconst p = hs.serial.openFirst('usbmodem')\nif (p) { console.log('opened', p.path) }\n```",
-          "description": "Open the first serial port whose name contains the given string.",
+          "rawDocumentation": "Open the first serial port whose name, path, USB serial number, or USB\nlocation contains the given string.\n- Parameter match: A substring to search for in each port.\n- Returns: An `HSSerialPort` object, or `null` if no matching port was found or could not be opened.\n- Example:\n```js\nconst p = hs.serial.openFirst('usbmodem')\nif (p) { console.log('opened', p.path) }\n```",
+          "description": "Open the first serial port whose name, path, USB serial number, or USB\nlocation contains the given string.",
           "params": [
             {
               "name": "match",
               "type": "String",
-              "description": "A substring to search for in each port's name."
+              "description": "A substring to search for in each port."
             }
           ],
           "returns": {
@@ -9207,13 +9207,13 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
-          "lineNumber": 41
+          "lineNumber": 45
         },
         {
           "name": "addWatcher",
           "signature": "func addWatcher(_ listener: JSValue)",
-          "rawDocumentation": "Register a listener for serial device add/remove events.\n\nThe listener receives an event name string and a port object:\n- `\"dev+\"` — a serial device was added\n- `\"dev-\"` — a serial device was removed\n\n- Parameter listener: A JavaScript function called as `fn(event, port)`\n- Example:\n```js\nconst fn = (event, port) => console.log(event, port.path)\nhs.serial.addWatcher(fn)\n// later:\nhs.serial.removeWatcher(fn)\n```",
-          "description": "Register a listener for serial device add/remove events.",
+          "rawDocumentation": "Register a listener for serial device add/remove events.\n\nThe listener receives an event name string and a port object. The port object\nalways includes `path` and `name`; USB-backed devices may also include\n`serialNumber`, `location`, `locationId`, `usbVendor`, `usbProduct`,\n`vendorId`, and `productId`.\n- `\"dev+\"` — a serial device was added\n- `\"dev-\"` — a serial device was removed\n\n- Parameter listener: A JavaScript function called as `fn(event, port)`\n- Example:\n```js\nconst fn = (event, port) => console.log(event, port.path)\nhs.serial.addWatcher(fn)\n// later:\nhs.serial.removeWatcher(fn)\n```",
+          "description": "Register a listener for serial device add/remove events.\nThe listener receives an event name string and a port object. The port object\nalways includes `path` and `name`; USB-backed devices may also include\n`serialNumber`, `location`, `locationId`, `usbVendor`, `usbProduct`,\n`vendorId`, and `productId`.",
           "params": [
             {
               "name": "listener",
@@ -9230,7 +9230,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
-          "lineNumber": 57
+          "lineNumber": 64
         },
         {
           "name": "removeWatcher",
@@ -9253,7 +9253,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialModule.swift",
-          "lineNumber": 65
+          "lineNumber": 72
         }
       ],
       "properties": [],
@@ -15179,5 +15179,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-14T10:33:20.929Z"
+  "generatedAt": "2026-06-18T07:29:38.739Z"
 }

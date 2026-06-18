@@ -17,6 +17,7 @@ struct HSSerialTests {
         harness.loadModule(HSSerialModule.self, as: "serial")
         harness.expectTrue("Array.isArray(hs.serial.list())")
         harness.expectTrue("hs.serial.list().every(p => typeof p.path === 'string' && typeof p.name === 'string')")
+        harness.expectTrue("hs.serial.list().every(p => ['serialNumber','location','locationId','usbVendor','usbProduct','vendorId','productId'].every(k => p[k] == null || typeof p[k] === 'string'))")
         // Prove it returns a real array regardless of device presence (not vacuously true)
         harness.expectTrue("typeof hs.serial.list().length === 'number'")
     }

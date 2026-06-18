@@ -13,7 +13,10 @@ import JavaScriptCore
 /// Module for enumerating and opening serial ports (e.g. a USB-attached ESP32).
 @objc protocol HSSerialModuleAPI: JSExport {
     /// List available serial ports (devices matching `/dev/cu.*`).
-    /// - Returns: An array of `{ path, name }` objects (empty if none are present).
+    /// - Returns: An array of port objects (empty if none are present). Each object
+    ///   always includes `path` and `name`; USB-backed devices may also include
+    ///   `serialNumber`, `location`, `locationId`, `usbVendor`, `usbProduct`,
+    ///   `vendorId`, and `productId`.
     /// - Example:
     /// ```js
     /// hs.serial.list().forEach(p => console.log(p.path))
@@ -30,8 +33,9 @@ import JavaScriptCore
     /// ```
     @objc func open(_ path: String) -> HSSerialPort?
 
-    /// Open the first serial port whose name contains the given string.
-    /// - Parameter match: A substring to search for in each port's name.
+    /// Open the first serial port whose name, path, USB serial number, or USB
+    /// location contains the given string.
+    /// - Parameter match: A substring to search for in each port.
     /// - Returns: An `HSSerialPort` object, or `null` if no matching port was found or could not be opened.
     /// - Example:
     /// ```js
@@ -42,7 +46,10 @@ import JavaScriptCore
 
     /// Register a listener for serial device add/remove events.
     ///
-    /// The listener receives an event name string and a port object:
+    /// The listener receives an event name string and a port object. The port object
+    /// always includes `path` and `name`; USB-backed devices may also include
+    /// `serialNumber`, `location`, `locationId`, `usbVendor`, `usbProduct`,
+    /// `vendorId`, and `productId`.
     /// - `"dev+"` — a serial device was added
     /// - `"dev-"` — a serial device was removed
     ///
@@ -101,8 +108,15 @@ import JavaScriptCore
     @objc func list() -> [[String: String]] {
         let dev = "/dev"
         let names = (try? FileManager.default.contentsOfDirectory(atPath: dev)) ?? []
+        let iokitInfo = serialPortInfosByPath()
         return names.filter { $0.hasPrefix("cu.") }.sorted()
-            .map { ["path": "\(dev)/\($0)", "name": $0] }
+            .map { name in
+                let path = "\(dev)/\(name)"
+                var info = iokitInfo[path] ?? [:]
+                info["path"] = info["path"] ?? path
+                info["name"] = info["name"] ?? name
+                return info
+            }
     }
 
     @objc func open(_ path: String) -> HSSerialPort? {
@@ -113,7 +127,7 @@ import JavaScriptCore
     }
 
     @objc func openFirst(_ match: String) -> HSSerialPort? {
-        guard let hit = list().first(where: { ($0["name"] ?? "").contains(match) }),
+        guard let hit = list().first(where: { portInfo($0, matches: match) }),
               let p = hit["path"] else { return nil }
         return open(p)
     }
@@ -208,6 +222,44 @@ import JavaScriptCore
         return dict
     }
 
+    private func serialPortInfosByPath() -> [String: [String: String]] {
+        var iterator: io_iterator_t = 0
+        let result = unsafe IOServiceGetMatchingServices(
+            kIOMainPortDefault,
+            serialMatchingDictionary(),
+            &iterator
+        )
+        guard result == KERN_SUCCESS else { return [:] }
+        defer {
+            if iterator != 0 { IOObjectRelease(iterator) }
+        }
+
+        var infos: [String: [String: String]] = [:]
+        while true {
+            let service = IOIteratorNext(iterator)
+            if service == 0 { break }
+            let info = serialPortInfo(for: service)
+            IOObjectRelease(service)
+            if let path = info["path"], !path.isEmpty {
+                infos[path] = info
+            }
+        }
+        return infos
+    }
+
+    private func portInfo(_ info: [String: String], matches match: String) -> Bool {
+        let needle = match.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !needle.isEmpty else { return true }
+        let keys = [
+            "name", "path", "serialNumber", "location", "locationId",
+            "usbVendor", "usbProduct", "vendorId", "productId",
+        ]
+        return keys.contains { key in
+            guard let value = info[key] else { return false }
+            return value.range(of: needle, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+        }
+    }
+
     private static let deviceMatched: IOServiceMatchingCallback = { refCon, iterator in
         guard let refCon = unsafe refCon else {
             releaseServices(in: iterator)
@@ -266,7 +318,29 @@ import JavaScriptCore
     private func serialPortInfo(for service: io_object_t) -> [String: String] {
         let path = copyStringProperty(kIOCalloutDeviceKey, from: service) ?? ""
         let name = path.isEmpty ? (copyStringProperty(kIOTTYDeviceKey, from: service) ?? "") : URL(fileURLWithPath: path).lastPathComponent
-        return ["path": path, "name": name]
+        var info = ["path": path, "name": name]
+        if let serialNumber = firstAncestorStringProperty(["USB Serial Number", "kUSBSerialNumberString"], from: service) {
+            info["serialNumber"] = serialNumber
+        }
+        if let locationId = firstAncestorUInt32Property(["locationID"], from: service) {
+            info["locationId"] = String(format: "0x%08X", locationId)
+            if let location = usbLocationString(from: locationId) {
+                info["location"] = location
+            }
+        }
+        if let vendor = firstAncestorStringProperty(["USB Vendor Name", "kUSBVendorString"], from: service) {
+            info["usbVendor"] = vendor
+        }
+        if let product = firstAncestorStringProperty(["USB Product Name", "kUSBProductString"], from: service) {
+            info["usbProduct"] = product
+        }
+        if let vendorId = firstAncestorUInt32Property(["idVendor"], from: service) {
+            info["vendorId"] = String(format: "0x%04X", vendorId)
+        }
+        if let productId = firstAncestorUInt32Property(["idProduct"], from: service) {
+            info["productId"] = String(format: "0x%04X", productId)
+        }
+        return info
     }
 
     private func copyStringProperty(_ key: String, from service: io_object_t) -> String? {
@@ -275,5 +349,77 @@ import JavaScriptCore
         }
         let value = unsafe unmanaged.takeRetainedValue()
         return value as? String
+    }
+
+    private func copyUInt32Property(_ key: String, from service: io_object_t) -> UInt32? {
+        guard let unmanaged = unsafe IORegistryEntryCreateCFProperty(service, key as CFString, kCFAllocatorDefault, 0) else {
+            return nil
+        }
+        let value = unsafe unmanaged.takeRetainedValue()
+        return (value as? NSNumber)?.uint32Value
+    }
+
+    private func firstAncestorStringProperty(_ keys: [String], from service: io_object_t) -> String? {
+        for key in keys {
+            if let value = ancestorStringProperty(key, from: service), !value.isEmpty {
+                return value
+            }
+        }
+        return nil
+    }
+
+    private func firstAncestorUInt32Property(_ keys: [String], from service: io_object_t) -> UInt32? {
+        for key in keys {
+            if let value = ancestorUInt32Property(key, from: service) {
+                return value
+            }
+        }
+        return nil
+    }
+
+    private func ancestorStringProperty(_ key: String, from service: io_object_t) -> String? {
+        var current: io_registry_entry_t = service
+        var releaseCurrent = false
+        while current != 0 {
+            if let value = copyStringProperty(key, from: current) {
+                if releaseCurrent { IOObjectRelease(current) }
+                return value
+            }
+            var parent: io_registry_entry_t = 0
+            let result = IORegistryEntryGetParentEntry(current, kIOServicePlane, &parent)
+            if releaseCurrent { IOObjectRelease(current) }
+            guard result == KERN_SUCCESS, parent != 0 else { return nil }
+            current = parent
+            releaseCurrent = true
+        }
+        return nil
+    }
+
+    private func ancestorUInt32Property(_ key: String, from service: io_object_t) -> UInt32? {
+        var current: io_registry_entry_t = service
+        var releaseCurrent = false
+        while current != 0 {
+            if let value = copyUInt32Property(key, from: current) {
+                if releaseCurrent { IOObjectRelease(current) }
+                return value
+            }
+            var parent: io_registry_entry_t = 0
+            let result = IORegistryEntryGetParentEntry(current, kIOServicePlane, &parent)
+            if releaseCurrent { IOObjectRelease(current) }
+            guard result == KERN_SUCCESS, parent != 0 else { return nil }
+            current = parent
+            releaseCurrent = true
+        }
+        return nil
+    }
+
+    private func usbLocationString(from locationId: UInt32) -> String? {
+        var parts: [String] = []
+        for shift in stride(from: 20, through: 0, by: -4) {
+            let port = (locationId >> UInt32(shift)) & 0xF
+            if port != 0 { parts.append(String(port)) }
+        }
+        guard !parts.isEmpty else { return nil }
+        return "\(locationId >> 24)-\(parts.joined(separator: "."))"
     }
 }

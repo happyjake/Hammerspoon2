@@ -4041,7 +4041,7 @@ Assign a new absolute file path or `file://` URL string to change the wallpaper.
 declare namespace hs.serial {
     /**
      * List available serial ports (devices matching `/dev/cu.*`).
-     * @returns An array of `{ path, name }` objects (empty if none are present).
+     * @returns An array of port objects (empty if none are present). Each object
      */
     function list(): [[String: String]];
 
@@ -4053,14 +4053,19 @@ declare namespace hs.serial {
     function open(path: string): HSSerialPort | undefined;
 
     /**
-     * Open the first serial port whose name contains the given string.
-     * @param match A substring to search for in each port's name.
+     * Open the first serial port whose name, path, USB serial number, or USB
+location contains the given string.
+     * @param match A substring to search for in each port.
      * @returns An `HSSerialPort` object, or `null` if no matching port was found or could not be opened.
      */
     function openFirst(match: string): HSSerialPort | undefined;
 
     /**
      * Register a listener for serial device add/remove events.
+The listener receives an event name string and a port object. The port object
+always includes `path` and `name`; USB-backed devices may also include
+`serialNumber`, `location`, `locationId`, `usbVendor`, `usbProduct`,
+`vendorId`, and `productId`.
      * @param listener A JavaScript function called as `fn(event, port)`
      */
     function addWatcher(listener: JSValue): void;
