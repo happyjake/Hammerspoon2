@@ -4163,7 +4163,7 @@
           "name": "write",
           "signature": "func write(_ path: String, _ content: String, _ inPlace: Bool) -> Bool",
           "isStatic": false,
-          "rawDocumentation": "Write a UTF-8 string to a file, creating it or overwriting any existing content.\n\nIntermediate directories are not created automatically; use `mkdir` first if needed.\n\n- Parameters:\n  - path: Path to the file. `~` is expanded.\n  - content: String to write.\n  - inPlace: Whether to write the file in-place or atomically. Defaults to atomically\n- Returns: `true` on success, `false` on failure.\n- Example:\n```js\nhs.fs.write(\"/tmp/hello.txt\", \"Hello, world!\\n\")\n```",
+          "rawDocumentation": "Write a UTF-8 string to a file, creating it or overwriting any existing content.\n\nIntermediate directories are not created automatically; use `mkdir` first if needed.\n\n- Parameters:\n  - path: Path to the file. `~` is expanded.\n  - content: String to write.\n  - inPlace?: Whether to write the file in-place or atomically. Defaults to atomically (false).\n- Returns: `true` on success, `false` on failure.\n- Example:\n```js\nhs.fs.write(\"/tmp/hello.txt\", \"Hello, world!\\n\")\n```",
           "description": "Write a UTF-8 string to a file, creating it or overwriting any existing content.\nIntermediate directories are not created automatically; use `mkdir` first if needed.",
           "params": [
             {
@@ -4181,8 +4181,8 @@
             {
               "name": "inPlace",
               "type": "Bool",
-              "description": "Whether to write the file in-place or atomically. Defaults to atomically",
-              "optional": false
+              "description": "Whether to write the file in-place or atomically. Defaults to atomically (false).",
+              "optional": true
             }
           ],
           "returns": {
@@ -6092,14 +6092,14 @@
           "name": "create",
           "signature": "func create(_ hidden: Bool) -> HSMenuBarItem",
           "isStatic": false,
-          "rawDocumentation": "Create a new menu bar item\n- Parameter hidden: If true, the item is immediately visible in the menu bar. Defaults to false\n- Returns: A new HSMenuBarItem\n- Example:\n```js\nconst item = hs.menubar.create()\nconst hidden = hs.menubar.create(true)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()\n```",
+          "rawDocumentation": "Create a new menu bar item\n- Parameter hidden?: Pass true to create the item hidden (not shown in the menu bar). Defaults to false (immediately visible).\n- Returns: A new HSMenuBarItem\n- Example:\n```js\nconst item = hs.menubar.create()\nconst hidden = hs.menubar.create(true)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()\n```",
           "description": "Create a new menu bar item",
           "params": [
             {
               "name": "hidden",
               "type": "Bool",
-              "description": "If true, the item is immediately visible in the menu bar. Defaults to false",
-              "optional": false
+              "description": "Pass true to create the item hidden (not shown in the menu bar). Defaults to false (immediately visible).",
+              "optional": true
             }
           ],
           "returns": {
@@ -9915,7 +9915,7 @@
           "name": "create",
           "signature": "func create(_ interval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool) -> HSTimer",
           "isStatic": false,
-          "rawDocumentation": "Create a new timer\n- Parameters:\n  - interval: The interval in seconds at which the timer should fire\n  - callback: A JavaScript function to call when the timer fires\n  - continueOnError: If true, the timer will continue running even if the callback throws an error\n- Returns: A timer object. Call start() to begin the timer.\n- Example:\n```js\nconst t = hs.timer.create(5, () => console.log(\"tick\"), false)\nt.start()\n```",
+          "rawDocumentation": "Create a new timer\n- Parameters:\n  - interval: The interval in seconds at which the timer should fire\n  - callback: A JavaScript function to call when the timer fires\n  - continueOnError?: If true, the timer will continue running even if the callback throws an error\n- Returns: A timer object. Call start() to begin the timer.\n- Example:\n```js\nconst t = hs.timer.create(5, () => console.log(\"tick\"), false)\nt.start()\n```",
           "description": "Create a new timer",
           "params": [
             {
@@ -9934,7 +9934,7 @@
               "name": "continueOnError",
               "type": "Bool",
               "description": "If true, the timer will continue running even if the callback throws an error",
-              "optional": false
+              "optional": true
             }
           ],
           "returns": {
@@ -10023,7 +10023,7 @@
           "name": "doAt",
           "signature": "func doAt(_ time: TimeInterval, _ repeatInterval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool) -> HSTimer",
           "isStatic": false,
-          "rawDocumentation": "Create and start a timer that fires at a specific time\n- Parameters:\n  - time: Seconds since midnight (local time) when the timer should first fire\n  - repeatInterval: If provided, the timer will repeat at this interval. Pass 0 for one-shot.\n  - callback: A JavaScript function to call when the timer fires\n  - continueOnError: If true, the timer will continue running even if the callback throws an error\n- Returns: A timer object (already started)\n- Example:\n```js\n// Fire at 9am every day\nhs.timer.doAt(9 * 3600, 86400, () => console.log(\"morning\"), false)\n```",
+          "rawDocumentation": "Create and start a timer that fires at a specific time\n- Parameters:\n  - time: Seconds since midnight (local time) when the timer should first fire\n  - repeatInterval: If provided, the timer will repeat at this interval. Pass 0 for one-shot.\n  - callback: A JavaScript function to call when the timer fires\n  - continueOnError?: If true, the timer will continue running even if the callback throws an error\n- Returns: A timer object (already started)\n- Example:\n```js\n// Fire at 9am every day\nhs.timer.doAt(9 * 3600, 86400, () => console.log(\"morning\"), false)\n```",
           "description": "Create and start a timer that fires at a specific time",
           "params": [
             {
@@ -10048,7 +10048,7 @@
               "name": "continueOnError",
               "type": "Bool",
               "description": "If true, the timer will continue running even if the callback throws an error",
-              "optional": false
+              "optional": true
             }
           ],
           "returns": {
@@ -13916,5 +13916,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-22T15:53:50.135Z"
+  "generatedAt": "2026-06-22T16:20:58.927Z"
 }

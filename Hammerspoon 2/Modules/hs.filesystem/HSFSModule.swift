@@ -104,7 +104,7 @@ import UniformTypeIdentifiers
     /// - Parameters:
     ///   - path: Path to the file. `~` is expanded.
     ///   - content: String to write.
-    ///   - inPlace: Whether to write the file in-place or atomically. Defaults to atomically
+    ///   - inPlace?: Whether to write the file in-place or atomically. Defaults to atomically (false).
     /// - Returns: `true` on success, `false` on failure.
     /// - Example:
     /// ```js

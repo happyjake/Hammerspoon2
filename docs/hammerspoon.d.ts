@@ -1968,10 +1968,10 @@ Lines are delivered with newline characters stripped. Both `\n` and `\r\n` line 
 Intermediate directories are not created automatically; use `mkdir` first if needed.
      * @param path Path to the file. `~` is expanded.
      * @param content String to write.
-     * @param inPlace Whether to write the file in-place or atomically. Defaults to atomically
+     * @param inPlace Whether to write the file in-place or atomically. Defaults to atomically (false).
      * @returns `true` on success, `false` on failure.
      */
-    function write(path: string, content: string, inPlace: boolean): boolean;
+    function write(path: string, content: string, inPlace?: boolean): boolean;
 
     /**
      * Append a UTF-8 string to a file, creating it if it does not exist.
@@ -2564,10 +2564,10 @@ item.setMenu(() => [
 declare namespace hs.menubar {
     /**
      * Create a new menu bar item
-     * @param hidden If true, the item is immediately visible in the menu bar. Defaults to false
+     * @param hidden Pass true to create the item hidden (not shown in the menu bar). Defaults to false (immediately visible).
      * @returns A new HSMenuBarItem
      */
-    function create(hidden: boolean): HSMenuBarItem;
+    function create(hidden?: boolean): HSMenuBarItem;
 
 }
 
@@ -4224,7 +4224,7 @@ declare namespace hs.timer {
      * @param continueOnError If true, the timer will continue running even if the callback throws an error
      * @returns A timer object. Call start() to begin the timer.
      */
-    function create(interval: number, callback: JSValue, continueOnError: boolean): HSTimer;
+    function create(interval: number, callback: JSValue, continueOnError?: boolean): HSTimer;
 
     /**
      * Create and start a one-shot timer
@@ -4250,7 +4250,7 @@ declare namespace hs.timer {
      * @param continueOnError If true, the timer will continue running even if the callback throws an error
      * @returns A timer object (already started)
      */
-    function doAt(time: number, repeatInterval: number, callback: JSValue, continueOnError: boolean): HSTimer;
+    function doAt(time: number, repeatInterval: number, callback: JSValue, continueOnError?: boolean): HSTimer;
 
     /**
      * Block execution for a specified number of microseconds (strongly discouraged)
