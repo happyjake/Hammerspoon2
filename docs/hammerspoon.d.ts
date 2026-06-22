@@ -600,6 +600,70 @@ declare class HSApplication {
     axElement(): HSAXElement | undefined;
 
     /**
+     * Bring this application to the foreground
+     * @param allWindows Pass true to raise all application windows. Defaults to false.
+     */
+    activate(allWindows?: boolean): void;
+
+    /**
+     * Hide this application and all its windows
+     */
+    hide(): void;
+
+    /**
+     * Unhide this application
+     */
+    unhide(): void;
+
+    /**
+     * Get the full menu structure of this application
+     * @returns An array of top-level menu objects, each with title and items keys, or null if unavailable
+     */
+    getMenuItems(): Record<string, any>[] | undefined;
+
+    /**
+     * Find a menu item by searching all menus for a matching title (case-insensitive)
+     * @param name The menu item title to search for
+     * @returns An object with title and enabled keys, or null if not found
+     */
+    findMenuItemByName(name: string): Record<string, any> | undefined;
+
+    /**
+     * Find a menu item by following a hierarchical path of titles
+     * @param path An array of menu titles forming a path from the top-level menu to the item, e.g. ["Edit", "Select All"]
+     * @returns An object with title and enabled keys, or null if not found
+     */
+    findMenuItemByPath(path: string[]): Record<string, any> | undefined;
+
+    /**
+     * Click a menu item found by searching all menus for a matching title (case-insensitive)
+     * @param name The menu item title to search for
+     * @returns true if the menu item was found and clicked, false otherwise
+     */
+    selectMenuItemByName(name: string): boolean;
+
+    /**
+     * Click a menu item found by following a hierarchical path of titles
+     * @param path An array of menu titles forming a path from the top-level menu to the item, e.g. ["File", "New Window"]
+     * @returns true if the menu item was found and clicked, false otherwise
+     */
+    selectMenuItemByPath(path: string[]): boolean;
+
+    /**
+     * Find windows whose title contains the given string (case-insensitive)
+     * @param pattern A string to search for in window titles
+     * @returns An array of matching HSWindow objects
+     */
+    findWindow(pattern: string): HSWindow[];
+
+    /**
+     * Get the first window with exactly the given title
+     * @param title The exact window title to search for
+     * @returns The matching HSWindow, or null if not found
+     */
+    getWindow(title: string): HSWindow | undefined;
+
+    /**
      * POSIX Process Identifier
      */
     pid: number;
@@ -648,6 +712,16 @@ declare class HSApplication {
      * All visible (ie non-hidden) windows of this application
      */
     visibleWindows: HSWindow[];
+
+    /**
+     * Whether the application process is still running
+     */
+    isRunning: boolean;
+
+    /**
+     * The kind of application: "standard" (regular dock app), "accessory" (no dock), or "background" (agent)
+     */
+    kind: string;
 
 }
 
@@ -1894,10 +1968,10 @@ Lines are delivered with newline characters stripped. Both `\n` and `\r\n` line 
 Intermediate directories are not created automatically; use `mkdir` first if needed.
      * @param path Path to the file. `~` is expanded.
      * @param content String to write.
-     * @param inPlace Whether to write the file in-place or atomically. Defaults to atomically
+     * @param inPlace Whether to write the file in-place or atomically. Defaults to atomically (false).
      * @returns `true` on success, `false` on failure.
      */
-    function write(path: string, content: string, inPlace: boolean): boolean;
+    function write(path: string, content: string, inPlace?: boolean): boolean;
 
     /**
      * Append a UTF-8 string to a file, creating it if it does not exist.
@@ -2490,11 +2564,10 @@ item.setMenu(() => [
 declare namespace hs.menubar {
     /**
      * Create a new menu bar item
-Pass false to create the item without showing it; call show() when ready.
-     * @param inMenuBar If true (default), the item is immediately visible in the menu bar.
+     * @param hidden Pass true to create the item hidden (not shown in the menu bar). Defaults to false (immediately visible).
      * @returns A new HSMenuBarItem
      */
-    function create(inMenuBar: JSValue): HSMenuBarItem;
+    function create(hidden?: boolean): HSMenuBarItem;
 
 }
 
@@ -3730,7 +3803,7 @@ the search once you have what you need.
 | `icloud` | iCloud Documents |
 | `icloudData` | iCloud Data (non-document ubiquitous files) |
      */
-    const scope: [String: [String]];
+    const scope: Record<string, string[]>;
 
     /**
      * Common Spotlight metadata attribute key shortcuts.
@@ -3943,7 +4016,7 @@ Returns an empty array if `setGroupingAttributes()` was not called.
 Returns an empty array if `setValueListAttributes()` was not called.
      * @returns An array of summary objects
      */
-    valueLists(): [[String: Any]];
+    valueLists(): Record<string, any>[];
 
     /**
      * Stops the query and releases all associated resources.
@@ -4151,7 +4224,7 @@ declare namespace hs.timer {
      * @param continueOnError If true, the timer will continue running even if the callback throws an error
      * @returns A timer object. Call start() to begin the timer.
      */
-    function create(interval: number, callback: JSValue, continueOnError: boolean): HSTimer;
+    function create(interval: number, callback: JSValue, continueOnError?: boolean): HSTimer;
 
     /**
      * Create and start a one-shot timer
@@ -4177,7 +4250,7 @@ declare namespace hs.timer {
      * @param continueOnError If true, the timer will continue running even if the callback throws an error
      * @returns A timer object (already started)
      */
-    function doAt(time: number, repeatInterval: number, callback: JSValue, continueOnError: boolean): HSTimer;
+    function doAt(time: number, repeatInterval: number, callback: JSValue, continueOnError?: boolean): HSTimer;
 
     /**
      * Block execution for a specified number of microseconds (strongly discouraged)

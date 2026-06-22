@@ -16,7 +16,7 @@ import JavaScriptCore
     /// - Parameters:
     ///   - interval: The interval in seconds at which the timer should fire
     ///   - callback: A JavaScript function to call when the timer fires
-    ///   - continueOnError: If true, the timer will continue running even if the callback throws an error
+    ///   - continueOnError?: If true, the timer will continue running even if the callback throws an error
     /// - Returns: A timer object. Call start() to begin the timer.
     /// - Example:
     /// ```js
@@ -52,7 +52,7 @@ import JavaScriptCore
     ///   - time: Seconds since midnight (local time) when the timer should first fire
     ///   - repeatInterval: If provided, the timer will repeat at this interval. Pass 0 for one-shot.
     ///   - callback: A JavaScript function to call when the timer fires
-    ///   - continueOnError: If true, the timer will continue running even if the callback throws an error
+    ///   - continueOnError?: If true, the timer will continue running even if the callback throws an error
     /// - Returns: A timer object (already started)
     /// - Example:
     /// ```js

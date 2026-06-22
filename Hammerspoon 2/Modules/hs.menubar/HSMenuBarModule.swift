@@ -47,7 +47,7 @@ import JavaScriptCore
 /// ```
 @objc protocol HSMenuBarModuleAPI: JSExport {
     /// Create a new menu bar item
-    /// - Parameter hidden: If true, the item is immediately visible in the menu bar. Defaults to false
+    /// - Parameter hidden?: Pass true to create the item hidden (not shown in the menu bar). Defaults to false (immediately visible).
     /// - Returns: A new HSMenuBarItem
     /// - Example:
     /// ```js

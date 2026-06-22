@@ -334,7 +334,10 @@ function parseSwiftFile(filePath, repoRoot) {
 }
 
 /**
- * Extract parameter descriptions from documentation
+ * Extract parameter descriptions from documentation.
+ * Returns a map of { paramName: { description, optional } }.
+ * A parameter name suffixed with '?' in the doc comment (e.g. "- Parameter allWindows?: ...")
+ * sets optional: true, which causes the TypeScript generator to emit `name?: type`.
  */
 function extractParamDescriptions(docLines) {
     const descriptions = {};
@@ -350,18 +353,25 @@ function extractParamDescriptions(docLines) {
             continue;
         }
 
-        // Check for single Parameter (with or without leading dash)
-        const singleParamMatch = trimmed.match(/^-?\s*Parameter\s+(\w+)\s*:\s*(.+)$/);
+        // Check for single Parameter (with or without leading dash).
+        // The parameter name may be suffixed with '?' to mark it as optional in TypeScript.
+        const singleParamMatch = trimmed.match(/^-?\s*Parameter\s+(\w+)(\?)?\s*:\s*(.+)$/);
         if (singleParamMatch) {
-            descriptions[singleParamMatch[1]] = singleParamMatch[2].trim();
+            descriptions[singleParamMatch[1]] = {
+                description: singleParamMatch[3].trim(),
+                optional: !!singleParamMatch[2]
+            };
             continue;
         }
 
         // If we're in Parameters section, look for individual parameters
         if (inParams) {
-            const paramMatch = trimmed.match(/^-\s+(\w+)\s*:\s*(.+)$/);
+            const paramMatch = trimmed.match(/^-\s+(\w+)(\?)?\s*:\s*(.+)$/);
             if (paramMatch) {
-                descriptions[paramMatch[1]] = paramMatch[2].trim();
+                descriptions[paramMatch[1]] = {
+                    description: paramMatch[3].trim(),
+                    optional: !!paramMatch[2]
+                };
                 continue;
             }
             // Stop if we hit a non-parameter line or Returns section
@@ -397,10 +407,12 @@ function extractParams(signature, docLines = []) {
         const paramMatch = part.match(/(?:_\s+)?(\w+)\s*:\s*([^=]+)/);
         if (paramMatch) {
             const paramName = paramMatch[1];
+            const paramInfo = descriptions[paramName] || { description: '', optional: false };
             params.push({
                 name: paramName,
                 type: paramMatch[2].trim(),
-                description: descriptions[paramName] || ''
+                description: paramInfo.description,
+                optional: paramInfo.optional
             });
         }
     }
@@ -689,11 +701,12 @@ function parseDocCStyleComment(docText) {
     doc.description = descLines.join(' ').trim();
 
     // Extract parameters - they're in the descriptions map
-    for (const [paramName, paramDesc] of Object.entries(descriptions)) {
+    for (const [paramName, paramInfo] of Object.entries(descriptions)) {
         doc.params.push({
             name: paramName,
             type: 'any',
-            description: paramDesc
+            description: paramInfo.description,
+            optional: paramInfo.optional
         });
     }
 
