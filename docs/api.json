@@ -650,6 +650,195 @@
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
               "lineNumber": 120
+            },
+            {
+              "name": "activate",
+              "signature": "func activate(_ allWindows: JSValue)",
+              "isStatic": false,
+              "rawDocumentation": "Bring this application to the foreground\n- Parameter allWindows: Pass true to raise all application windows. Defaults to false.\n- Example:\n```js\nconst app = hs.application.matchingName(\"Safari\")\napp.activate()\napp.activate(true)\n```",
+              "description": "Bring this application to the foreground",
+              "params": [
+                {
+                  "name": "allWindows",
+                  "type": "JSValue",
+                  "description": "Pass true to raise all application windows. Defaults to false."
+                }
+              ],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.matchingName(\"Safari\")\napp.activate()\napp.activate(true)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 130
+            },
+            {
+              "name": "hide",
+              "signature": "func hide()",
+              "isStatic": false,
+              "rawDocumentation": "Hide this application and all its windows\n- Example:\n```js\nconst app = hs.application.matchingName(\"Safari\")\napp.hide()\n```",
+              "description": "Hide this application and all its windows",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.matchingName(\"Safari\")\napp.hide()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 138
+            },
+            {
+              "name": "unhide",
+              "signature": "func unhide()",
+              "isStatic": false,
+              "rawDocumentation": "Unhide this application\n- Example:\n```js\nconst app = hs.application.matchingName(\"Safari\")\napp.unhide()\n```",
+              "description": "Unhide this application",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.matchingName(\"Safari\")\napp.unhide()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 146
+            },
+            {
+              "name": "getMenuItems",
+              "signature": "func getMenuItems() -> [[String: Any]]?",
+              "isStatic": false,
+              "rawDocumentation": "Get the full menu structure of this application\n- Note: This traverses the accessibility hierarchy and may be slow for apps with large menus.\n- Returns: An array of top-level menu objects, each with title and items keys, or null if unavailable\n- Example:\n```js\nconst app = hs.application.frontmost()\napp.getMenuItems().forEach(m => console.log(m.title))\n```",
+              "description": "Get the full menu structure of this application",
+              "params": [],
+              "returns": {
+                "type": "[[String: Any]]?",
+                "description": "An array of top-level menu objects, each with title and items keys, or null if unavailable"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.frontmost()\napp.getMenuItems().forEach(m => console.log(m.title))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 174
+            },
+            {
+              "name": "findMenuItem",
+              "signature": "func findMenuItem(_ item: JSValue) -> [String: Any]?",
+              "isStatic": false,
+              "rawDocumentation": "Find a menu item by title search or hierarchical path\n- Parameter item: A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as [\"Edit\", \"Select All\"]\n- Returns: An object with title and enabled keys, or null if not found\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst item = app.findMenuItem([\"Edit\", \"Select All\"])\nconsole.log(item.enabled)\n```",
+              "description": "Find a menu item by title search or hierarchical path",
+              "params": [
+                {
+                  "name": "item",
+                  "type": "JSValue",
+                  "description": "A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as [\"Edit\", \"Select All\"]"
+                }
+              ],
+              "returns": {
+                "type": "[String: Any]?",
+                "description": "An object with title and enabled keys, or null if not found"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.frontmost()\nconst item = app.findMenuItem([\"Edit\", \"Select All\"])\nconsole.log(item.enabled)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 185
+            },
+            {
+              "name": "selectMenuItem",
+              "signature": "func selectMenuItem(_ item: JSValue) -> Bool",
+              "isStatic": false,
+              "rawDocumentation": "Click a menu item found by title search or hierarchical path\n- Parameter item: A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as [\"File\", \"New Window\"]\n- Returns: true if the menu item was found and clicked, false otherwise\n- Example:\n```js\nconst safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItem([\"File\", \"New Window\"])\n```",
+              "description": "Click a menu item found by title search or hierarchical path",
+              "params": [
+                {
+                  "name": "item",
+                  "type": "JSValue",
+                  "description": "A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as [\"File\", \"New Window\"]"
+                }
+              ],
+              "returns": {
+                "type": "Bool",
+                "description": "true if the menu item was found and clicked, false otherwise"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItem([\"File\", \"New Window\"])"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 195
+            },
+            {
+              "name": "findWindow",
+              "signature": "func findWindow(_ pattern: String) -> [HSWindow]",
+              "isStatic": false,
+              "rawDocumentation": "Find windows whose title contains the given string (case-insensitive)\n- Parameter pattern: A string to search for in window titles\n- Returns: An array of matching HSWindow objects\n- Example:\n```js\nconst app = hs.application.frontmost()\napp.findWindow(\"untitled\").forEach(w => console.log(w.title))\n```",
+              "description": "Find windows whose title contains the given string (case-insensitive)",
+              "params": [
+                {
+                  "name": "pattern",
+                  "type": "String",
+                  "description": "A string to search for in window titles"
+                }
+              ],
+              "returns": {
+                "type": "[HSWindow]",
+                "description": "An array of matching HSWindow objects"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.frontmost()\napp.findWindow(\"untitled\").forEach(w => console.log(w.title))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 205
+            },
+            {
+              "name": "getWindow",
+              "signature": "func getWindow(_ title: String) -> HSWindow?",
+              "isStatic": false,
+              "rawDocumentation": "Get the first window with exactly the given title\n- Parameter title: The exact window title to search for\n- Returns: The matching HSWindow, or null if not found\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst win = app.getWindow(\"index.html\")\n```",
+              "description": "Get the first window with exactly the given title",
+              "params": [
+                {
+                  "name": "title",
+                  "type": "String",
+                  "description": "The exact window title to search for"
+                }
+              ],
+              "returns": {
+                "type": "HSWindow?",
+                "description": "The matching HSWindow, or null if not found"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.frontmost()\nconst win = app.getWindow(\"index.html\")"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 215
             }
           ],
           "properties": [
@@ -802,6 +991,36 @@
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
               "lineNumber": 111
+            },
+            {
+              "name": "isRunning",
+              "signature": "var isRunning: Bool { get }",
+              "rawDocumentation": "Whether the application process is still running\n- Returns: true if the application is running, false if it has terminated\n- Example:\n```js\nconst app = hs.application.matchingName(\"Calculator\")\napp.kill()\nconsole.log(app.isRunning)\n```",
+              "description": "Whether the application process is still running",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.matchingName(\"Calculator\")\napp.kill()\nconsole.log(app.isRunning)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 156
+            },
+            {
+              "name": "kind",
+              "signature": "var kind: String { get }",
+              "rawDocumentation": "The kind of application: \"standard\" (regular dock app), \"accessory\" (no dock), or \"background\" (agent)\n- Example:\n```js\nconst app = hs.application.frontmost()\nconsole.log(app.kind)\n```",
+              "description": "The kind of application: \"standard\" (regular dock app), \"accessory\" (no dock), or \"background\" (agent)",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.frontmost()\nconsole.log(app.kind)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 164
             }
           ]
         }
@@ -5660,15 +5879,15 @@
       "methods": [
         {
           "name": "create",
-          "signature": "func create(_ inMenuBar: JSValue) -> HSMenuBarItem",
+          "signature": "func create(_ hidden: Bool) -> HSMenuBarItem",
           "isStatic": false,
-          "rawDocumentation": "Create a new menu bar item\n- Parameter inMenuBar: If true (default), the item is immediately visible in the menu bar.\n  Pass false to create the item without showing it; call show() when ready.\n- Returns: A new HSMenuBarItem\n- Example:\n```js\nconst item = hs.menubar.create()\nconst hidden = hs.menubar.create(false)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()\n```",
-          "description": "Create a new menu bar item\nPass false to create the item without showing it; call show() when ready.",
+          "rawDocumentation": "Create a new menu bar item\n- Parameter hidden: If true, the item is immediately visible in the menu bar. Defaults to false\n- Returns: A new HSMenuBarItem\n- Example:\n```js\nconst item = hs.menubar.create()\nconst hidden = hs.menubar.create(true)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()\n```",
+          "description": "Create a new menu bar item",
           "params": [
             {
-              "name": "inMenuBar",
-              "type": "JSValue",
-              "description": "If true (default), the item is immediately visible in the menu bar."
+              "name": "hidden",
+              "type": "Bool",
+              "description": "If true, the item is immediately visible in the menu bar. Defaults to false"
             }
           ],
           "returns": {
@@ -5678,12 +5897,12 @@
           "examples": [
             {
               "lang": "js",
-              "code": "const item = hs.menubar.create()\nconst hidden = hs.menubar.create(false)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()"
+              "code": "const item = hs.menubar.create()\nconst hidden = hs.menubar.create(true)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()"
             }
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarModule.swift",
-          "lineNumber": 60
+          "lineNumber": 59
         }
       ],
       "properties": [],
@@ -13299,5 +13518,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-22T13:09:35.906Z"
+  "generatedAt": "2026-06-22T15:08:40.344Z"
 }

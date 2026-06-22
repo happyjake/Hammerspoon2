@@ -600,6 +600,56 @@ declare class HSApplication {
     axElement(): HSAXElement | undefined;
 
     /**
+     * Bring this application to the foreground
+     * @param allWindows Pass true to raise all application windows. Defaults to false.
+     */
+    activate(allWindows: JSValue): void;
+
+    /**
+     * Hide this application and all its windows
+     */
+    hide(): void;
+
+    /**
+     * Unhide this application
+     */
+    unhide(): void;
+
+    /**
+     * Get the full menu structure of this application
+     * @returns An array of top-level menu objects, each with title and items keys, or null if unavailable
+     */
+    getMenuItems(): [[String: Any]] | undefined;
+
+    /**
+     * Find a menu item by title search or hierarchical path
+     * @param item A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as ["Edit", "Select All"]
+     * @returns An object with title and enabled keys, or null if not found
+     */
+    findMenuItem(item: JSValue): Record<string, any> | undefined;
+
+    /**
+     * Click a menu item found by title search or hierarchical path
+     * @param item A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as ["File", "New Window"]
+     * @returns true if the menu item was found and clicked, false otherwise
+     */
+    selectMenuItem(item: JSValue): boolean;
+
+    /**
+     * Find windows whose title contains the given string (case-insensitive)
+     * @param pattern A string to search for in window titles
+     * @returns An array of matching HSWindow objects
+     */
+    findWindow(pattern: string): HSWindow[];
+
+    /**
+     * Get the first window with exactly the given title
+     * @param title The exact window title to search for
+     * @returns The matching HSWindow, or null if not found
+     */
+    getWindow(title: string): HSWindow | undefined;
+
+    /**
      * POSIX Process Identifier
      */
     pid: number;
@@ -648,6 +698,16 @@ declare class HSApplication {
      * All visible (ie non-hidden) windows of this application
      */
     visibleWindows: HSWindow[];
+
+    /**
+     * Whether the application process is still running
+     */
+    isRunning: boolean;
+
+    /**
+     * The kind of application: "standard" (regular dock app), "accessory" (no dock), or "background" (agent)
+     */
+    kind: string;
 
 }
 
@@ -2490,11 +2550,10 @@ item.setMenu(() => [
 declare namespace hs.menubar {
     /**
      * Create a new menu bar item
-Pass false to create the item without showing it; call show() when ready.
-     * @param inMenuBar If true (default), the item is immediately visible in the menu bar.
+     * @param hidden If true, the item is immediately visible in the menu bar. Defaults to false
      * @returns A new HSMenuBarItem
      */
-    function create(inMenuBar: JSValue): HSMenuBarItem;
+    function create(hidden: boolean): HSMenuBarItem;
 
 }
 
