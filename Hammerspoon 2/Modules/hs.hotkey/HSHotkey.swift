@@ -37,14 +37,6 @@ import Carbon
     /// ```
     @objc func isEnabled() -> Bool
 
-    /// Delete the hotkey (disables and clears callbacks)
-    /// - Example:
-    /// ```js
-    /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
-    /// hk.delete()
-    /// ```
-    @objc func delete()
-
     /// The callback function to be called when the hotkey is pressed
     /// - Example:
     /// ```js
@@ -153,16 +145,14 @@ import Carbon
 
         unsafe UnregisterEventHotKey(hotKeyRef)
         unsafe carbonHotKeyRef = nil
+
+        // Unregister with the manager so we can be garbage collected if needed
+        HotkeyManager.shared.unregister(hotkeyID: hotkeyID)
         enabled = false
     }
 
     @objc func isEnabled() -> Bool {
         return enabled
-    }
-
-    @objc func delete() {
-        disable()
-        HotkeyManager.shared.unregister(hotkeyID: hotkeyID)
     }
 
     /// Internal method called by HotkeyManager when the hotkey is triggered

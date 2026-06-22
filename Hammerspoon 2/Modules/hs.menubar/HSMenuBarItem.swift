@@ -97,13 +97,6 @@ import JavaScriptCore
     /// ```
     @objc func isVisible() -> Bool
 
-    /// Permanently destroy this item and remove it from the menu bar.
-    /// - Example:
-    /// ```js
-    /// item.delete()
-    /// ```
-    @objc func delete()
-
     /// The current title text, or null if none is set
     /// - Example:
     /// ```js
@@ -236,10 +229,6 @@ import JavaScriptCore
 
     @objc func isVisible() -> Bool {
         return statusItem?.isVisible ?? false
-    }
-
-    @objc func delete() {
-        destroy()
     }
 
     @objc var title: String? {
