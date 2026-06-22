@@ -2490,7 +2490,7 @@ item.setMenu(() => [
 declare namespace hs.menubar {
     /**
      * Create a new menu bar item
-Pass false to create the item without showing it; call returnToMenuBar() when ready.
+Pass false to create the item without showing it; call show() when ready.
      * @param inMenuBar If true (default), the item is immediately visible in the menu bar.
      * @returns A new HSMenuBarItem
      */
@@ -2535,20 +2535,20 @@ or a function that returns an array for a dynamic menu populated each time it op
     setMenu(menuOrFn: JSValue): void;
 
     /**
-     * Remove this item from the menu bar. The item is retained and can be shown again with returnToMenuBar().
+     * Remove this item from the menu bar. The item is retained and can be shown again with show().
      */
-    removeFromMenuBar(): void;
+    hide(): void;
 
     /**
-     * Show this item in the menu bar (reverses removeFromMenuBar).
+     * Show this item in the menu bar.
      */
-    returnToMenuBar(): void;
+    show(): void;
 
     /**
      * Check if this item is currently visible in the menu bar.
      * @returns true if the item is visible in the menu bar
      */
-    isInMenuBar(): boolean;
+    isVisible(): boolean;
 
     /**
      * Permanently destroy this item and remove it from the menu bar.

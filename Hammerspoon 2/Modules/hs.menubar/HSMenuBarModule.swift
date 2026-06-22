@@ -48,14 +48,14 @@ import JavaScriptCore
 @objc protocol HSMenuBarModuleAPI: JSExport {
     /// Create a new menu bar item
     /// - Parameter inMenuBar: If true (default), the item is immediately visible in the menu bar.
-    ///   Pass false to create the item without showing it; call returnToMenuBar() when ready.
+    ///   Pass false to create the item without showing it; call show() when ready.
     /// - Returns: A new HSMenuBarItem
     /// - Example:
     /// ```js
     /// const item = hs.menubar.create()
     /// const hidden = hs.menubar.create(false)  // not shown yet
     /// hidden.setTitle("Ready")
-    /// hidden.returnToMenuBar()
+    /// hidden.show()
     /// ```
     @objc func create(_ inMenuBar: JSValue) -> HSMenuBarItem
 }

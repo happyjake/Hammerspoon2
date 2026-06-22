@@ -5662,8 +5662,8 @@
           "name": "create",
           "signature": "func create(_ inMenuBar: JSValue) -> HSMenuBarItem",
           "isStatic": false,
-          "rawDocumentation": "Create a new menu bar item\n- Parameter inMenuBar: If true (default), the item is immediately visible in the menu bar.\n  Pass false to create the item without showing it; call returnToMenuBar() when ready.\n- Returns: A new HSMenuBarItem\n- Example:\n```js\nconst item = hs.menubar.create()\nconst hidden = hs.menubar.create(false)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.returnToMenuBar()\n```",
-          "description": "Create a new menu bar item\nPass false to create the item without showing it; call returnToMenuBar() when ready.",
+          "rawDocumentation": "Create a new menu bar item\n- Parameter inMenuBar: If true (default), the item is immediately visible in the menu bar.\n  Pass false to create the item without showing it; call show() when ready.\n- Returns: A new HSMenuBarItem\n- Example:\n```js\nconst item = hs.menubar.create()\nconst hidden = hs.menubar.create(false)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()\n```",
+          "description": "Create a new menu bar item\nPass false to create the item without showing it; call show() when ready.",
           "params": [
             {
               "name": "inMenuBar",
@@ -5678,7 +5678,7 @@
           "examples": [
             {
               "lang": "js",
-              "code": "const item = hs.menubar.create()\nconst hidden = hs.menubar.create(false)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.returnToMenuBar()"
+              "code": "const item = hs.menubar.create()\nconst hidden = hs.menubar.create(false)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()"
             }
           ],
           "source": "swift",
@@ -5815,17 +5815,17 @@
               "lineNumber": 75
             },
             {
-              "name": "removeFromMenuBar",
-              "signature": "func removeFromMenuBar()",
+              "name": "hide",
+              "signature": "func hide()",
               "isStatic": false,
-              "rawDocumentation": "Remove this item from the menu bar. The item is retained and can be shown again with returnToMenuBar().\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.removeFromMenuBar()\n```",
-              "description": "Remove this item from the menu bar. The item is retained and can be shown again with returnToMenuBar().",
+              "rawDocumentation": "Remove this item from the menu bar. The item is retained and can be shown again with show().\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.hide()\n```",
+              "description": "Remove this item from the menu bar. The item is retained and can be shown again with show().",
               "params": [],
               "returns": null,
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const item = hs.menubar.create()\nitem.removeFromMenuBar()"
+                  "code": "const item = hs.menubar.create()\nitem.hide()"
                 }
               ],
               "source": "swift",
@@ -5833,17 +5833,17 @@
               "lineNumber": 83
             },
             {
-              "name": "returnToMenuBar",
-              "signature": "func returnToMenuBar()",
+              "name": "show",
+              "signature": "func show()",
               "isStatic": false,
-              "rawDocumentation": "Show this item in the menu bar (reverses removeFromMenuBar).\n- Example:\n```js\nitem.returnToMenuBar()\n```",
-              "description": "Show this item in the menu bar (reverses removeFromMenuBar).",
+              "rawDocumentation": "Show this item in the menu bar.\n- Example:\n```js\nitem.show()\n```",
+              "description": "Show this item in the menu bar.",
               "params": [],
               "returns": null,
               "examples": [
                 {
                   "lang": "js",
-                  "code": "item.returnToMenuBar()"
+                  "code": "item.show()"
                 }
               ],
               "source": "swift",
@@ -5851,10 +5851,10 @@
               "lineNumber": 90
             },
             {
-              "name": "isInMenuBar",
-              "signature": "func isInMenuBar() -> Bool",
+              "name": "isVisible",
+              "signature": "func isVisible() -> Bool",
               "isStatic": false,
-              "rawDocumentation": "Check if this item is currently visible in the menu bar.\n- Returns: true if the item is visible in the menu bar\n- Example:\n```js\nconst visible = item.isInMenuBar()\n```",
+              "rawDocumentation": "Check if this item is currently visible in the menu bar.\n- Returns: true if the item is visible in the menu bar\n- Example:\n```js\nconst visible = item.isVisible()\n```",
               "description": "Check if this item is currently visible in the menu bar.",
               "params": [],
               "returns": {
@@ -5864,7 +5864,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const visible = item.isInMenuBar()"
+                  "code": "const visible = item.isVisible()"
                 }
               ],
               "source": "swift",
@@ -13299,5 +13299,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-22T12:34:37.686Z"
+  "generatedAt": "2026-06-22T13:09:35.906Z"
 }

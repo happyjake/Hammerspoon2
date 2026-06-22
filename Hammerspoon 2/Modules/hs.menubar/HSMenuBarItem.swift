@@ -74,28 +74,28 @@ import JavaScriptCore
     /// ```
     @objc func setMenu(_ menuOrFn: JSValue)
 
-    /// Remove this item from the menu bar. The item is retained and can be shown again with returnToMenuBar().
+    /// Remove this item from the menu bar. The item is retained and can be shown again with show().
     /// - Example:
     /// ```js
     /// const item = hs.menubar.create()
-    /// item.removeFromMenuBar()
+    /// item.hide()
     /// ```
-    @objc func removeFromMenuBar()
+    @objc func hide()
 
-    /// Show this item in the menu bar (reverses removeFromMenuBar).
+    /// Show this item in the menu bar.
     /// - Example:
     /// ```js
-    /// item.returnToMenuBar()
+    /// item.show()
     /// ```
-    @objc func returnToMenuBar()
+    @objc func show()
 
     /// Check if this item is currently visible in the menu bar.
     /// - Returns: true if the item is visible in the menu bar
     /// - Example:
     /// ```js
-    /// const visible = item.isInMenuBar()
+    /// const visible = item.isVisible()
     /// ```
-    @objc func isInMenuBar() -> Bool
+    @objc func isVisible() -> Bool
 
     /// Permanently destroy this item and remove it from the menu bar.
     /// - Example:
@@ -226,15 +226,15 @@ import JavaScriptCore
         }
     }
 
-    @objc func removeFromMenuBar() {
+    @objc func hide() {
         statusItem?.isVisible = false
     }
 
-    @objc func returnToMenuBar() {
+    @objc func show() {
         statusItem?.isVisible = true
     }
 
-    @objc func isInMenuBar() -> Bool {
+    @objc func isVisible() -> Bool {
         return statusItem?.isVisible ?? false
     }
 
