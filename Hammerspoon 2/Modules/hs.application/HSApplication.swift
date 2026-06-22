@@ -120,7 +120,7 @@ import AXSwift
     @objc func axElement() -> HSAXElement?
 
     /// Bring this application to the foreground
-    /// - Parameter allWindows: Pass true to raise all application windows. Defaults to false.
+    /// - Parameter allWindows?: Pass true to raise all application windows. Defaults to false.
     /// - Example:
     /// ```js
     /// const app = hs.application.matchingName("Safari")

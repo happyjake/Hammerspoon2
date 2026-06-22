@@ -127,10 +127,10 @@ function generateModuleDefinitions(moduleData) {
         }
         output += `     */\n`;
 
-        // Method signature
+        // Method signature — p.optional maps to TypeScript's optional parameter (name?: type)
         const params = (method.params || []).map(p => {
             const tsType = method.source === 'swift' ? swiftTypeToTS(p.type) : p.type;
-            return `${p.name}: ${tsType}`;
+            return `${p.name}${p.optional ? '?' : ''}: ${tsType}`;
         }).join(', ');
 
         const returnType = method.returns
@@ -218,7 +218,7 @@ function generateTypeDefinition(protocol) {
             output += `     */\n`;
 
             const params = (method.params || []).map(p => {
-                return `${p.name}: ${swiftTypeToTS(p.type)}`;
+                return `${p.name}${p.optional ? '?' : ''}: ${swiftTypeToTS(p.type)}`;
             }).join(', ');
 
             const returnType = method.returns ? swiftTypeToTS(method.returns.type, method.returns.promiseType) : 'void';
@@ -292,7 +292,7 @@ function generateTypeDefinition(protocol) {
             output += `     */\n`;
 
             const params = (method.params || []).map(p => {
-                return `${p.name}: ${swiftTypeToTS(p.type)}`;
+                return `${p.name}${p.optional ? '?' : ''}: ${swiftTypeToTS(p.type)}`;
             }).join(', ');
 
             const returnType = method.returns ? swiftTypeToTS(method.returns.type, method.returns.promiseType) : 'void';

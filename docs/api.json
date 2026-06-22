@@ -13,7 +13,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "A message to log"
+              "description": "A message to log",
+              "optional": false
             }
           ],
           "returns": null,
@@ -32,7 +33,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "An error message"
+              "description": "An error message",
+              "optional": false
             }
           ],
           "returns": null,
@@ -51,7 +53,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "A warning message"
+              "description": "A warning message",
+              "optional": false
             }
           ],
           "returns": null,
@@ -70,7 +73,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "An informational message"
+              "description": "An informational message",
+              "optional": false
             }
           ],
           "returns": null,
@@ -89,7 +93,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "A debug message"
+              "description": "A debug message",
+              "optional": false
             }
           ],
           "returns": null,
@@ -282,7 +287,8 @@
             {
               "name": "name",
               "type": "String",
-              "description": "The applicaiton name to search for"
+              "description": "The applicaiton name to search for",
+              "optional": false
             }
           ],
           "returns": {
@@ -309,7 +315,8 @@
             {
               "name": "bundleID",
               "type": "String",
-              "description": "The identifier to search for"
+              "description": "The identifier to search for",
+              "optional": false
             }
           ],
           "returns": {
@@ -336,7 +343,8 @@
             {
               "name": "pid",
               "type": "Int",
-              "description": "The PID to search for"
+              "description": "The PID to search for",
+              "optional": false
             }
           ],
           "returns": {
@@ -405,7 +413,8 @@
             {
               "name": "bundleID",
               "type": "String",
-              "description": "The application bundle identifier to search for (e.g. \"com.apple.Safari\")"
+              "description": "The application bundle identifier to search for (e.g. \"com.apple.Safari\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -432,7 +441,8 @@
             {
               "name": "bundleID",
               "type": "String",
-              "description": "The application bundle identifier to search for (e.g. \"com.apple.Safari\")"
+              "description": "The application bundle identifier to search for (e.g. \"com.apple.Safari\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -459,7 +469,8 @@
             {
               "name": "fileType",
               "type": "String",
-              "description": "The file type to search for. This can be a UTType identifier, a MIME type, or a filename extension"
+              "description": "The file type to search for. This can be a UTType identifier, a MIME type, or a filename extension",
+              "optional": false
             }
           ],
           "returns": {
@@ -486,7 +497,8 @@
             {
               "name": "fileType",
               "type": "String",
-              "description": "The file type to search for. This can be a UTType identifier, a MIME type, or a filename extension"
+              "description": "The file type to search for. This can be a UTType identifier, a MIME type, or a filename extension",
+              "optional": false
             }
           ],
           "returns": {
@@ -513,7 +525,8 @@
             {
               "name": "bundleID",
               "type": "String",
-              "description": "A bundle identifier for the app to launch/focus (e.g. \"com.apple.Safari\")"
+              "description": "A bundle identifier for the app to launch/focus (e.g. \"com.apple.Safari\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -541,7 +554,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "A javascript function/lambda to call when any application event is received. The function will be called with two parameters: the name of the event, and the associated HSApplication object"
+              "description": "A javascript function/lambda to call when any application event is received. The function will be called with two parameters: the name of the event, and the associated HSApplication object",
+              "optional": false
             }
           ],
           "returns": null,
@@ -565,7 +579,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "The javascript function/lambda that was previously being used to handle events"
+              "description": "The javascript function/lambda that was previously being used to handle events",
+              "optional": false
             }
           ],
           "returns": null,
@@ -655,13 +670,14 @@
               "name": "activate",
               "signature": "func activate(_ allWindows: Bool)",
               "isStatic": false,
-              "rawDocumentation": "Bring this application to the foreground\n- Parameter allWindows: Pass true to raise all application windows. Defaults to false.\n- Example:\n```js\nconst app = hs.application.matchingName(\"Safari\")\napp.activate()\napp.activate(true)\n```",
+              "rawDocumentation": "Bring this application to the foreground\n- Parameter allWindows?: Pass true to raise all application windows. Defaults to false.\n- Example:\n```js\nconst app = hs.application.matchingName(\"Safari\")\napp.activate()\napp.activate(true)\n```",
               "description": "Bring this application to the foreground",
               "params": [
                 {
                   "name": "allWindows",
                   "type": "Bool",
-                  "description": "Pass true to raise all application windows. Defaults to false."
+                  "description": "Pass true to raise all application windows. Defaults to false.",
+                  "optional": true
                 }
               ],
               "returns": null,
@@ -742,7 +758,8 @@
                 {
                   "name": "name",
                   "type": "String",
-                  "description": "The menu item title to search for"
+                  "description": "The menu item title to search for",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -769,7 +786,8 @@
                 {
                   "name": "path",
                   "type": "[String]",
-                  "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"Edit\", \"Select All\"]"
+                  "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"Edit\", \"Select All\"]",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -796,7 +814,8 @@
                 {
                   "name": "name",
                   "type": "String",
-                  "description": "The menu item title to search for"
+                  "description": "The menu item title to search for",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -823,7 +842,8 @@
                 {
                   "name": "path",
                   "type": "[String]",
-                  "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"File\", \"New Window\"]"
+                  "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"File\", \"New Window\"]",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -850,7 +870,8 @@
                 {
                   "name": "pattern",
                   "type": "String",
-                  "description": "A string to search for in window titles"
+                  "description": "A string to search for in window titles",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -877,7 +898,8 @@
                 {
                   "name": "title",
                   "type": "String",
-                  "description": "The exact window title to search for"
+                  "description": "The exact window title to search for",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -1221,7 +1243,8 @@
             {
               "name": "name",
               "type": "String",
-              "description": "The device name to search for"
+              "description": "The device name to search for",
+              "optional": false
             }
           ],
           "returns": {
@@ -1248,7 +1271,8 @@
             {
               "name": "uid",
               "type": "String",
-              "description": "The device UID to search for"
+              "description": "The device UID to search for",
+              "optional": false
             }
           ],
           "returns": {
@@ -1275,7 +1299,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "A JavaScript function that receives the event name string"
+              "description": "A JavaScript function that receives the event name string",
+              "optional": false
             }
           ],
           "returns": null,
@@ -1299,7 +1324,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "The JavaScript function that was passed to ``addWatcher(_:)``"
+              "description": "The JavaScript function that was passed to ``addWatcher(_:)``",
+              "optional": false
             }
           ],
           "returns": null,
@@ -1427,7 +1453,8 @@
                 {
                   "name": "sourceID",
                   "type": "Int",
-                  "description": "The `id` value from ``outputDataSources()``"
+                  "description": "The `id` value from ``outputDataSources()``",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -1454,7 +1481,8 @@
                 {
                   "name": "sourceID",
                   "type": "Int",
-                  "description": "The `id` value from ``inputDataSources()``"
+                  "description": "The `id` value from ``inputDataSources()``",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -1544,7 +1572,8 @@
                 {
                   "name": "listener",
                   "type": "JSValue",
-                  "description": "A JavaScript function that receives an event name string"
+                  "description": "A JavaScript function that receives an event name string",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -1568,7 +1597,8 @@
                 {
                   "name": "listener",
                   "type": "JSValue",
-                  "description": "The JavaScript function that was passed to ``addWatcher(_:)``"
+                  "description": "The JavaScript function that was passed to ``addWatcher(_:)``",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -1849,7 +1879,8 @@
             {
               "name": "element",
               "type": "HSApplication",
-              "description": "An HSApplication object"
+              "description": "An HSApplication object",
+              "optional": false
             }
           ],
           "returns": {
@@ -1876,7 +1907,8 @@
             {
               "name": "window",
               "type": "HSWindow",
-              "description": "An HSWindow  object"
+              "description": "An HSWindow  object",
+              "optional": false
             }
           ],
           "returns": {
@@ -1903,7 +1935,8 @@
             {
               "name": "point",
               "type": "HSPoint",
-              "description": "An HSPoint object containing screen coordinates"
+              "description": "An HSPoint object containing screen coordinates",
+              "optional": false
             }
           ],
           "returns": {
@@ -1930,17 +1963,20 @@
             {
               "name": "application",
               "type": "HSApplication",
-              "description": "An HSApplication object"
+              "description": "An HSApplication object",
+              "optional": false
             },
             {
               "name": "notification",
               "type": "String",
-              "description": "An event name"
+              "description": "An event name",
+              "optional": false
             },
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "A function/lambda to be called when the event is fired. The function/lambda will be called with two arguments: the name of the event, and the element it applies to"
+              "description": "A function/lambda to be called when the event is fired. The function/lambda will be called with two arguments: the name of the event, and the element it applies to",
+              "optional": false
             }
           ],
           "returns": null,
@@ -1964,17 +2000,20 @@
             {
               "name": "application",
               "type": "HSApplication",
-              "description": "An HSApplication object"
+              "description": "An HSApplication object",
+              "optional": false
             },
             {
               "name": "notification",
               "type": "String",
-              "description": "The event name to stop watching"
+              "description": "The event name to stop watching",
+              "optional": false
             },
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "The function/lambda provided when adding the watcher"
+              "description": "The function/lambda provided when adding the watcher",
+              "optional": false
             }
           ],
           "returns": null,
@@ -2010,12 +2049,14 @@
             {
               "name": "role",
               "type": "any",
-              "description": "The role name to search for"
+              "description": "The role name to search for",
+              "optional": false
             },
             {
               "name": "parent",
               "type": "any",
-              "description": "An HSAXElement object to search. If none is supplied, the search will be conducted system-wide"
+              "description": "An HSAXElement object to search. If none is supplied, the search will be conducted system-wide",
+              "optional": false
             }
           ],
           "returns": {
@@ -2035,12 +2076,14 @@
             {
               "name": "title",
               "type": "any",
-              "description": "The name to search for"
+              "description": "The name to search for",
+              "optional": false
             },
             {
               "name": "parent",
               "type": "any",
-              "description": "An HSAXElement object to search. If none is supplied, the search will be conducted system-wide"
+              "description": "An HSAXElement object to search. If none is supplied, the search will be conducted system-wide",
+              "optional": false
             }
           ],
           "returns": {
@@ -2060,12 +2103,14 @@
             {
               "name": "element",
               "type": "any",
-              "description": "An HSAXElement"
+              "description": "An HSAXElement",
+              "optional": false
             },
             {
               "name": "depth",
               "type": "any",
-              "description": "This parameter should not be supplied"
+              "description": "This parameter should not be supplied",
+              "optional": false
             }
           ],
           "returns": null,
@@ -2190,7 +2235,8 @@
                 {
                   "name": "index",
                   "type": "Int",
-                  "description": "The index to fetch"
+                  "description": "The index to fetch",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2238,7 +2284,8 @@
                 {
                   "name": "attribute",
                   "type": "String",
-                  "description": "The attribute name to fetch the value for"
+                  "description": "The attribute name to fetch the value for",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2265,12 +2312,14 @@
                 {
                   "name": "attribute",
                   "type": "String",
-                  "description": "The attribute name to set"
+                  "description": "The attribute name to set",
+                  "optional": false
                 },
                 {
                   "name": "value",
                   "type": "Any",
-                  "description": "The value to set"
+                  "description": "The value to set",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2297,7 +2346,8 @@
                 {
                   "name": "attribute",
                   "type": "String",
-                  "description": "An attribute name"
+                  "description": "An attribute name",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2345,7 +2395,8 @@
                 {
                   "name": "action",
                   "type": "String",
-                  "description": "The action to perform"
+                  "description": "The action to perform",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2584,7 +2635,8 @@
             {
               "name": "search",
               "type": "HSBonjourSearch",
-              "description": "the search returned by `createSearch()`"
+              "description": "the search returned by `createSearch()`",
+              "optional": false
             }
           ],
           "returns": null,
@@ -2608,27 +2660,32 @@
             {
               "name": "name",
               "type": "String",
-              "description": "human-readable name shown to browsers (e.g. `\"My Web Server\"`)"
+              "description": "human-readable name shown to browsers (e.g. `\"My Web Server\"`)",
+              "optional": false
             },
             {
               "name": "type",
               "type": "String",
-              "description": "service type in `\"_proto._tcp.\"` or `\"_proto._udp.\"` form"
+              "description": "service type in `\"_proto._tcp.\"` or `\"_proto._udp.\"` form",
+              "optional": false
             },
             {
               "name": "port",
               "type": "Int32",
-              "description": "port number the service listens on"
+              "description": "port number the service listens on",
+              "optional": false
             },
             {
               "name": "domain",
               "type": "JSValue",
-              "description": "mDNS domain; defaults to `\"local.\"` if omitted"
+              "description": "mDNS domain; defaults to `\"local.\"` if omitted",
+              "optional": false
             },
             {
               "name": "callback",
               "type": "JSValue",
-              "description": "optional `function(event, data?)` called on status changes"
+              "description": "optional `function(event, data?)` called on status changes",
+              "optional": false
             }
           ],
           "returns": null,
@@ -2652,12 +2709,14 @@
             {
               "name": "name",
               "type": "String",
-              "description": "the name passed to `advertise()`"
+              "description": "the name passed to `advertise()`",
+              "optional": false
             },
             {
               "name": "type",
               "type": "String",
-              "description": "the type passed to `advertise()`"
+              "description": "the type passed to `advertise()`",
+              "optional": false
             }
           ],
           "returns": null,
@@ -2681,7 +2740,8 @@
             {
               "name": "timeout",
               "type": "Double",
-              "description": "maximum seconds to wait (pass `0` to use the default 5 s)"
+              "description": "maximum seconds to wait (pass `0` to use the default 5 s)",
+              "optional": false
             }
           ],
           "returns": {
@@ -2734,17 +2794,20 @@
                 {
                   "name": "type",
                   "type": "String",
-                  "description": "service type string, e.g. `\"_http._tcp.\"` or `\"_ssh._tcp.\"`"
+                  "description": "service type string, e.g. `\"_http._tcp.\"` or `\"_ssh._tcp.\"`",
+                  "optional": false
                 },
                 {
                   "name": "domain",
                   "type": "String",
-                  "description": "mDNS domain; `\"local.\"` for the local link, `\"\"` for all domains"
+                  "description": "mDNS domain; `\"local.\"` for the local link, `\"\"` for all domains",
+                  "optional": false
                 },
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "`function(event, service, moreComing)` called for each result"
+                  "description": "`function(event, service, moreComing)` called for each result",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2771,7 +2834,8 @@
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "`function(event, domain, moreComing)` called for each result"
+                  "description": "`function(event, domain, moreComing)` called for each result",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2798,7 +2862,8 @@
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "`function(event, domain, moreComing)` called for each result"
+                  "description": "`function(event, domain, moreComing)` called for each result",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2886,12 +2951,14 @@
                 {
                   "name": "timeout",
                   "type": "Double",
-                  "description": "seconds before giving up; pass `0` for no timeout"
+                  "description": "seconds before giving up; pass `0` for no timeout",
+                  "optional": false
                 },
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "`function(event, data?)` called on status changes"
+                  "description": "`function(event, data?)` called on status changes",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -2918,7 +2985,8 @@
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "`function(txtRecord)` called when TXT data changes"
+                  "description": "`function(txtRecord)` called when TXT data changes",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -3154,7 +3222,8 @@
             {
               "name": "name",
               "type": "String",
-              "description": "The device name to search for (exact match)"
+              "description": "The device name to search for (exact match)",
+              "optional": false
             }
           ],
           "returns": {
@@ -3181,7 +3250,8 @@
             {
               "name": "uid",
               "type": "String",
-              "description": "The device UID to search for"
+              "description": "The device UID to search for",
+              "optional": false
             }
           ],
           "returns": {
@@ -3208,7 +3278,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "A JavaScript function receiving `(event: string, camera: HSCamera)`"
+              "description": "A JavaScript function receiving `(event: string, camera: HSCamera)`",
+              "optional": false
             }
           ],
           "returns": null,
@@ -3232,7 +3303,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "The function originally passed to ``addWatcher(_:)``"
+              "description": "The function originally passed to ``addWatcher(_:)``",
+              "optional": false
             }
           ],
           "returns": null,
@@ -3276,7 +3348,8 @@
                 {
                   "name": "listener",
                   "type": "JSValue",
-                  "description": "A JavaScript function receiving `(isInUse: boolean)`"
+                  "description": "A JavaScript function receiving `(isInUse: boolean)`",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -3300,7 +3373,8 @@
                 {
                   "name": "listener",
                   "type": "JSValue",
-                  "description": "The function originally passed to ``addWatcher(_:)``"
+                  "description": "The function originally passed to ``addWatcher(_:)``",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -3442,7 +3516,8 @@
                 {
                   "name": "choices",
                   "type": "JSValue",
-                  "description": "An array of choice objects, or a function `(query) => [...]`"
+                  "description": "An array of choice objects, or a function `(query) => [...]`",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -3550,7 +3625,8 @@
                 {
                   "name": "row",
                   "type": "JSValue",
-                  "description": "Zero-based row index, or omit to use the current selection."
+                  "description": "Zero-based row index, or omit to use the current selection.",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -3577,7 +3653,8 @@
                 {
                   "name": "row",
                   "type": "JSValue",
-                  "description": "Zero-based row index, or omit to query the highlighted row."
+                  "description": "Zero-based row index, or omit to query the highlighted row.",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -3884,7 +3961,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "The message to print"
+              "description": "The message to print",
+              "optional": false
             }
           ],
           "returns": null,
@@ -3908,7 +3986,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "The message to print"
+              "description": "The message to print",
+              "optional": false
             }
           ],
           "returns": null,
@@ -3932,7 +4011,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "The message to print"
+              "description": "The message to print",
+              "optional": false
             }
           ],
           "returns": null,
@@ -3956,7 +4036,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "The message to print"
+              "description": "The message to print",
+              "optional": false
             }
           ],
           "returns": null,
@@ -3980,7 +4061,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "The message to print"
+              "description": "The message to print",
+              "optional": false
             }
           ],
           "returns": null,
@@ -4013,17 +4095,20 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file. `~` is expanded."
+              "description": "Path to the file. `~` is expanded.",
+              "optional": false
             },
             {
               "name": "offset",
               "type": "Int",
-              "description": "Byte offset to start reading from. Pass `0` (or omit) to read from the beginning."
+              "description": "Byte offset to start reading from. Pass `0` (or omit) to read from the beginning.",
+              "optional": false
             },
             {
               "name": "length",
               "type": "Int",
-              "description": "Maximum number of bytes to read. Pass `0` (or omit) to read to the end of the file."
+              "description": "Maximum number of bytes to read. Pass `0` (or omit) to read to the end of the file.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4050,12 +4135,14 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file. `~` is expanded."
+              "description": "Path to the file. `~` is expanded.",
+              "optional": false
             },
             {
               "name": "callback",
               "type": "JSValue",
-              "description": "Called once per line with the line text. Return `true` to continue reading, or `false` to stop early."
+              "description": "Called once per line with the line text. Return `true` to continue reading, or `false` to stop early.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4082,17 +4169,20 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file. `~` is expanded."
+              "description": "Path to the file. `~` is expanded.",
+              "optional": false
             },
             {
               "name": "content",
               "type": "String",
-              "description": "String to write."
+              "description": "String to write.",
+              "optional": false
             },
             {
               "name": "inPlace",
               "type": "Bool",
-              "description": "Whether to write the file in-place or atomically. Defaults to atomically"
+              "description": "Whether to write the file in-place or atomically. Defaults to atomically",
+              "optional": false
             }
           ],
           "returns": {
@@ -4119,12 +4209,14 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file. `~` is expanded."
+              "description": "Path to the file. `~` is expanded.",
+              "optional": false
             },
             {
               "name": "content",
               "type": "String",
-              "description": "String to append."
+              "description": "String to append.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4151,7 +4243,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to check. `~` is expanded."
+              "description": "Path to check. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4178,7 +4271,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to check. `~` is expanded."
+              "description": "Path to check. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4205,7 +4299,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to check. `~` is expanded."
+              "description": "Path to check. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4232,7 +4327,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to check. `~` is expanded."
+              "description": "Path to check. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4259,7 +4355,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to check. `~` is expanded."
+              "description": "Path to check. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4286,7 +4383,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to check. `~` is expanded."
+              "description": "Path to check. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4313,12 +4411,14 @@
             {
               "name": "source",
               "type": "String",
-              "description": "Path to the existing file or directory. `~` is expanded."
+              "description": "Path to the existing file or directory. `~` is expanded.",
+              "optional": false
             },
             {
               "name": "destination",
               "type": "String",
-              "description": "Path for the copy. `~` is expanded."
+              "description": "Path for the copy. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4345,12 +4445,14 @@
             {
               "name": "source",
               "type": "String",
-              "description": "Path to the existing file or directory. `~` is expanded."
+              "description": "Path to the existing file or directory. `~` is expanded.",
+              "optional": false
             },
             {
               "name": "destination",
               "type": "String",
-              "description": "New path. `~` is expanded."
+              "description": "New path. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4377,7 +4479,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to delete. `~` is expanded."
+              "description": "Path to delete. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4404,7 +4507,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the directory. `~` is expanded."
+              "description": "Path to the directory. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4431,7 +4535,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the root directory. `~` is expanded."
+              "description": "Path to the root directory. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4458,7 +4563,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path of the directory to create. `~` is expanded."
+              "description": "Path of the directory to create. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4485,7 +4591,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path of the directory to remove. `~` is expanded."
+              "description": "Path of the directory to remove. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4533,7 +4640,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "New working directory path. `~` is expanded."
+              "description": "New working directory path. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4560,7 +4668,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to resolve."
+              "description": "Path to resolve.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4587,7 +4696,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file or directory. `~` is expanded."
+              "description": "Path to the file or directory. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4656,7 +4766,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Filesystem path. `~` is expanded."
+              "description": "Filesystem path. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4683,7 +4794,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to inspect. `~` is expanded."
+              "description": "Path to inspect. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4710,7 +4822,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file. `~` is expanded."
+              "description": "Path to the file. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4737,12 +4850,14 @@
             {
               "name": "source",
               "type": "String",
-              "description": "Path of the existing file."
+              "description": "Path of the existing file.",
+              "optional": false
             },
             {
               "name": "destination",
               "type": "String",
-              "description": "Path for the new hard link."
+              "description": "Path for the new hard link.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4769,12 +4884,14 @@
             {
               "name": "source",
               "type": "String",
-              "description": "The path the symlink will point to."
+              "description": "The path the symlink will point to.",
+              "optional": false
             },
             {
               "name": "destination",
               "type": "String",
-              "description": "The path where the symlink will be created."
+              "description": "The path where the symlink will be created.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4801,7 +4918,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the symbolic link."
+              "description": "Path to the symbolic link.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4828,7 +4946,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file or directory. `~` is expanded."
+              "description": "Path to the file or directory. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4855,7 +4974,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file."
+              "description": "Path to the file.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4894,7 +5014,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file or directory. `~` is expanded."
+              "description": "Path to the file or directory. `~` is expanded.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4921,7 +5042,8 @@
             {
               "name": "data",
               "type": "String",
-              "description": "Base64-encoded bookmark string produced by `pathToBookmark`."
+              "description": "Base64-encoded bookmark string produced by `pathToBookmark`.",
+              "optional": false
             }
           ],
           "returns": {
@@ -4957,7 +5079,8 @@
             {
               "name": "data",
               "type": "String",
-              "description": "The string to encode"
+              "description": "The string to encode",
+              "optional": false
             }
           ],
           "returns": {
@@ -4984,7 +5107,8 @@
             {
               "name": "data",
               "type": "String",
-              "description": "The base64 string to decode"
+              "description": "The base64 string to decode",
+              "optional": false
             }
           ],
           "returns": {
@@ -5011,7 +5135,8 @@
             {
               "name": "data",
               "type": "String",
-              "description": "The string to hash"
+              "description": "The string to hash",
+              "optional": false
             }
           ],
           "returns": {
@@ -5038,7 +5163,8 @@
             {
               "name": "data",
               "type": "String",
-              "description": "The string to hash"
+              "description": "The string to hash",
+              "optional": false
             }
           ],
           "returns": {
@@ -5065,7 +5191,8 @@
             {
               "name": "data",
               "type": "String",
-              "description": "The string to hash"
+              "description": "The string to hash",
+              "optional": false
             }
           ],
           "returns": {
@@ -5092,7 +5219,8 @@
             {
               "name": "data",
               "type": "String",
-              "description": "The string to hash"
+              "description": "The string to hash",
+              "optional": false
             }
           ],
           "returns": {
@@ -5119,12 +5247,14 @@
             {
               "name": "key",
               "type": "String",
-              "description": "The secret key"
+              "description": "The secret key",
+              "optional": false
             },
             {
               "name": "data",
               "type": "String",
-              "description": "The data to authenticate"
+              "description": "The data to authenticate",
+              "optional": false
             }
           ],
           "returns": {
@@ -5151,12 +5281,14 @@
             {
               "name": "key",
               "type": "String",
-              "description": "The secret key"
+              "description": "The secret key",
+              "optional": false
             },
             {
               "name": "data",
               "type": "String",
-              "description": "The data to authenticate"
+              "description": "The data to authenticate",
+              "optional": false
             }
           ],
           "returns": {
@@ -5183,12 +5315,14 @@
             {
               "name": "key",
               "type": "String",
-              "description": "The secret key"
+              "description": "The secret key",
+              "optional": false
             },
             {
               "name": "data",
               "type": "String",
-              "description": "The data to authenticate"
+              "description": "The data to authenticate",
+              "optional": false
             }
           ],
           "returns": {
@@ -5215,12 +5349,14 @@
             {
               "name": "key",
               "type": "String",
-              "description": "The secret key"
+              "description": "The secret key",
+              "optional": false
             },
             {
               "name": "data",
               "type": "String",
-              "description": "The data to authenticate"
+              "description": "The data to authenticate",
+              "optional": false
             }
           ],
           "returns": {
@@ -5256,22 +5392,26 @@
             {
               "name": "mods",
               "type": "JSValue",
-              "description": "An array of modifier key strings (e.g., [\"cmd\", \"shift\"])"
+              "description": "An array of modifier key strings (e.g., [\"cmd\", \"shift\"])",
+              "optional": false
             },
             {
               "name": "key",
               "type": "String",
-              "description": "The key name or character (e.g., \"a\", \"space\", \"return\")"
+              "description": "The key name or character (e.g., \"a\", \"space\", \"return\")",
+              "optional": false
             },
             {
               "name": "callbackPressed",
               "type": "JSValue",
-              "description": "A JavaScript function to call when the hotkey is pressed"
+              "description": "A JavaScript function to call when the hotkey is pressed",
+              "optional": false
             },
             {
               "name": "callbackReleased",
               "type": "JSValue",
-              "description": "A JavaScript function to call when the hotkey is released"
+              "description": "A JavaScript function to call when the hotkey is released",
+              "optional": false
             }
           ],
           "returns": {
@@ -5298,27 +5438,32 @@
             {
               "name": "mods",
               "type": "JSValue",
-              "description": "An array of modifier key strings"
+              "description": "An array of modifier key strings",
+              "optional": false
             },
             {
               "name": "key",
               "type": "String",
-              "description": "The key name or character"
+              "description": "The key name or character",
+              "optional": false
             },
             {
               "name": "message",
               "type": "String?",
-              "description": "A description of what this hotkey does (currently unused, for future features)"
+              "description": "A description of what this hotkey does (currently unused, for future features)",
+              "optional": false
             },
             {
               "name": "callbackPressed",
               "type": "JSValue",
-              "description": "A JavaScript function to call when the hotkey is pressed"
+              "description": "A JavaScript function to call when the hotkey is pressed",
+              "optional": false
             },
             {
               "name": "callbackReleased",
               "type": "JSValue",
-              "description": "A JavaScript function to call when the hotkey is released"
+              "description": "A JavaScript function to call when the hotkey is released",
+              "optional": false
             }
           ],
           "returns": {
@@ -5515,7 +5660,8 @@
             {
               "name": "address",
               "type": "String",
-              "description": "a free-form address string in any locale"
+              "description": "a free-form address string in any locale",
+              "optional": false
             }
           ],
           "returns": {
@@ -5543,7 +5689,8 @@
             {
               "name": "locationTable",
               "type": "JSValue",
-              "description": "an object with at least `latitude` and `longitude`"
+              "description": "an object with at least `latitude` and `longitude`",
+              "optional": false
             }
           ],
           "returns": {
@@ -5634,12 +5781,14 @@
             {
               "name": "from",
               "type": "JSValue",
-              "description": "locationTable with at least `latitude` and `longitude`"
+              "description": "locationTable with at least `latitude` and `longitude`",
+              "optional": false
             },
             {
               "name": "to",
               "type": "JSValue",
-              "description": "locationTable with at least `latitude` and `longitude`"
+              "description": "locationTable with at least `latitude` and `longitude`",
+              "optional": false
             }
           ],
           "returns": {
@@ -5666,17 +5815,20 @@
             {
               "name": "latitude",
               "type": "Double",
-              "description": "degrees north (positive) or south (negative)"
+              "description": "degrees north (positive) or south (negative)",
+              "optional": false
             },
             {
               "name": "longitude",
               "type": "Double",
-              "description": "degrees east (positive) or west (negative)"
+              "description": "degrees east (positive) or west (negative)",
+              "optional": false
             },
             {
               "name": "date",
               "type": "JSValue",
-              "description": "optional JS `Date`; defaults to today"
+              "description": "optional JS `Date`; defaults to today",
+              "optional": false
             }
           ],
           "returns": {
@@ -5703,17 +5855,20 @@
             {
               "name": "latitude",
               "type": "Double",
-              "description": "degrees north (positive) or south (negative)"
+              "description": "degrees north (positive) or south (negative)",
+              "optional": false
             },
             {
               "name": "longitude",
               "type": "Double",
-              "description": "degrees east (positive) or west (negative)"
+              "description": "degrees east (positive) or west (negative)",
+              "optional": false
             },
             {
               "name": "date",
               "type": "JSValue",
-              "description": "optional JS `Date`; defaults to today"
+              "description": "optional JS `Date`; defaults to today",
+              "optional": false
             }
           ],
           "returns": {
@@ -5761,7 +5916,8 @@
             {
               "name": "watcher",
               "type": "HSLocationWatcher",
-              "description": "the watcher returned by `addWatcher()`"
+              "description": "the watcher returned by `addWatcher()`",
+              "optional": false
             }
           ],
           "returns": null,
@@ -5852,7 +6008,8 @@
                 {
                   "name": "fn",
                   "type": "JSValue",
-                  "description": "`function(event, data)` — see type documentation for event names"
+                  "description": "`function(event, data)` — see type documentation for event names",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -5941,7 +6098,8 @@
             {
               "name": "hidden",
               "type": "Bool",
-              "description": "If true, the item is immediately visible in the menu bar. Defaults to false"
+              "description": "If true, the item is immediately visible in the menu bar. Defaults to false",
+              "optional": false
             }
           ],
           "returns": {
@@ -5977,7 +6135,8 @@
                 {
                   "name": "title",
                   "type": "JSValue",
-                  "description": "Text to display, or null to remove the title"
+                  "description": "Text to display, or null to remove the title",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -6001,7 +6160,8 @@
                 {
                   "name": "image",
                   "type": "JSValue",
-                  "description": "An HSImage object, or null to remove the icon"
+                  "description": "An HSImage object, or null to remove the icon",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -6025,7 +6185,8 @@
                 {
                   "name": "tooltip",
                   "type": "JSValue",
-                  "description": "Tooltip text, or null to remove the tooltip"
+                  "description": "Tooltip text, or null to remove the tooltip",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -6049,7 +6210,8 @@
                 {
                   "name": "fn",
                   "type": "JSValue",
-                  "description": "A function to call on click, or null to remove the callback"
+                  "description": "A function to call on click, or null to remove the callback",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -6073,7 +6235,8 @@
                 {
                   "name": "menuOrFn",
                   "type": "JSValue",
-                  "description": "Array of menu item objects, a function returning such an array, or null to remove the menu"
+                  "description": "Array of menu item objects, a function returning such an array, or null to remove the menu",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -6198,17 +6361,20 @@
             {
               "name": "title",
               "type": "String",
-              "description": "The notification title"
+              "description": "The notification title",
+              "optional": false
             },
             {
               "name": "body",
               "type": "String",
-              "description": "The notification body text"
+              "description": "The notification body text",
+              "optional": false
             },
             {
               "name": "callback",
               "type": "JSValue",
-              "description": "Optional function called when the user taps the notification."
+              "description": "Optional function called when the user taps the notification.",
+              "optional": false
             }
           ],
           "returns": null,
@@ -6232,7 +6398,8 @@
             {
               "name": "options",
               "type": "JSValue",
-              "description": "A JavaScript object — see module documentation for supported keys."
+              "description": "A JavaScript object — see module documentation for supported keys.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6369,12 +6536,14 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Absolute path to the image file."
+              "description": "Absolute path to the image file.",
+              "optional": false
             },
             {
               "name": "options",
               "type": "JSValue?",
-              "description": "Optional configuration object (see description)."
+              "description": "Optional configuration object (see description).",
+              "optional": false
             }
           ],
           "returns": {
@@ -6560,7 +6729,8 @@
             {
               "name": "source",
               "type": "String",
-              "description": "The AppleScript source code to compile and execute."
+              "description": "The AppleScript source code to compile and execute.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6587,7 +6757,8 @@
             {
               "name": "source",
               "type": "String",
-              "description": "The OSA JavaScript source code to compile and execute."
+              "description": "The OSA JavaScript source code to compile and execute.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6614,7 +6785,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Absolute path to the AppleScript source file."
+              "description": "Absolute path to the AppleScript source file.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6641,7 +6813,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Absolute path to the OSA JavaScript source file."
+              "description": "Absolute path to the OSA JavaScript source file.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6668,12 +6841,14 @@
             {
               "name": "source",
               "type": "String",
-              "description": "The script source code."
+              "description": "The script source code.",
+              "optional": false
             },
             {
               "name": "language",
               "type": "String",
-              "description": "The OSA language name — must be `\"AppleScript\"` or `\"JavaScript\"`."
+              "description": "The OSA language name — must be `\"AppleScript\"` or `\"JavaScript\"`.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6700,7 +6875,8 @@
             {
               "name": "source",
               "type": "String",
-              "description": "The AppleScript source code to compile and execute."
+              "description": "The AppleScript source code to compile and execute.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6727,7 +6903,8 @@
             {
               "name": "source",
               "type": "String",
-              "description": "The OSA JavaScript source code to compile and execute."
+              "description": "The OSA JavaScript source code to compile and execute.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6754,7 +6931,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Absolute path to the AppleScript source file."
+              "description": "Absolute path to the AppleScript source file.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6781,7 +6959,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Absolute path to the OSA JavaScript source file."
+              "description": "Absolute path to the OSA JavaScript source file.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6808,12 +6987,14 @@
             {
               "name": "source",
               "type": "String",
-              "description": "The script source code."
+              "description": "The script source code.",
+              "optional": false
             },
             {
               "name": "language",
               "type": "String",
-              "description": "The OSA language name — must be `\"AppleScript\"` or `\"JavaScript\"`."
+              "description": "The OSA language name — must be `\"AppleScript\"` or `\"JavaScript\"`.",
+              "optional": false
             }
           ],
           "returns": {
@@ -6954,7 +7135,8 @@
             {
               "name": "uti",
               "type": "String",
-              "description": "A UTI type string (e.g. \"com.adobe.pdf\")"
+              "description": "A UTI type string (e.g. \"com.adobe.pdf\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -6981,7 +7163,8 @@
             {
               "name": "str",
               "type": "String",
-              "description": "The text string to write"
+              "description": "The text string to write",
+              "optional": false
             }
           ],
           "returns": {
@@ -7008,7 +7191,8 @@
             {
               "name": "html",
               "type": "String",
-              "description": "The HTML string to write"
+              "description": "The HTML string to write",
+              "optional": false
             }
           ],
           "returns": {
@@ -7035,7 +7219,8 @@
             {
               "name": "rtf",
               "type": "String",
-              "description": "The RTF string to write"
+              "description": "The RTF string to write",
+              "optional": false
             }
           ],
           "returns": {
@@ -7062,7 +7247,8 @@
             {
               "name": "url",
               "type": "String",
-              "description": "The URL string to write"
+              "description": "The URL string to write",
+              "optional": false
             }
           ],
           "returns": {
@@ -7089,7 +7275,8 @@
             {
               "name": "image",
               "type": "HSImage",
-              "description": "An HSImage to write"
+              "description": "An HSImage to write",
+              "optional": false
             }
           ],
           "returns": {
@@ -7116,12 +7303,14 @@
             {
               "name": "base64",
               "type": "String",
-              "description": "The data encoded as a base64 string"
+              "description": "The data encoded as a base64 string",
+              "optional": false
             },
             {
               "name": "uti",
               "type": "String",
-              "description": "A UTI type string (e.g. \"com.adobe.pdf\")"
+              "description": "A UTI type string (e.g. \"com.adobe.pdf\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -7148,7 +7337,8 @@
             {
               "name": "representations",
               "type": "JSValue",
-              "description": "A JavaScript object whose keys are UTI strings and values are strings"
+              "description": "A JavaScript object whose keys are UTI strings and values are strings",
+              "optional": false
             }
           ],
           "returns": {
@@ -7196,7 +7386,8 @@
             {
               "name": "uti",
               "type": "String",
-              "description": "A UTI type string to check for"
+              "description": "A UTI type string to check for",
+              "optional": false
             }
           ],
           "returns": {
@@ -7241,7 +7432,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "A function called with one argument: the new `changeCount` integer"
+              "description": "A function called with one argument: the new `changeCount` integer",
+              "optional": false
             }
           ],
           "returns": null,
@@ -7265,7 +7457,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "The function previously passed to `addWatcher`"
+              "description": "The function previously passed to `addWatcher`",
+              "optional": false
             }
           ],
           "returns": null,
@@ -7588,7 +7781,8 @@
             {
               "name": "type",
               "type": "String",
-              "description": "The sleep type to prevent. One of: `\"display\"` (prevent display"
+              "description": "The sleep type to prevent. One of: `\"display\"` (prevent display",
+              "optional": false
             }
           ],
           "returns": {
@@ -7615,7 +7809,8 @@
             {
               "name": "type",
               "type": "String",
-              "description": "The sleep type to allow again. One of: `\"display\"`, `\"systemIdle\"`, `\"system\"`."
+              "description": "The sleep type to allow again. One of: `\"display\"`, `\"systemIdle\"`, `\"system\"`.",
+              "optional": false
             }
           ],
           "returns": {
@@ -7642,7 +7837,8 @@
             {
               "name": "type",
               "type": "String",
-              "description": "The sleep type to check. One of: `\"display\"`, `\"systemIdle\"`, `\"system\"`."
+              "description": "The sleep type to check. One of: `\"display\"`, `\"systemIdle\"`, `\"system\"`.",
+              "optional": false
             }
           ],
           "returns": {
@@ -7783,7 +7979,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "A function receiving `(eventName: string)`."
+              "description": "A function receiving `(eventName: string)`.",
+              "optional": false
             }
           ],
           "returns": null,
@@ -7807,7 +8004,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "The function originally passed to `addEventWatcher`."
+              "description": "The function originally passed to `addEventWatcher`.",
+              "optional": false
             }
           ],
           "returns": null,
@@ -7831,7 +8029,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "A function called with no arguments on battery state change."
+              "description": "A function called with no arguments on battery state change.",
+              "optional": false
             }
           ],
           "returns": null,
@@ -7855,7 +8054,8 @@
             {
               "name": "listener",
               "type": "JSValue",
-              "description": "The function originally passed to `addBatteryWatcher`."
+              "description": "The function originally passed to `addBatteryWatcher`.",
+              "optional": false
             }
           ],
           "returns": null,
@@ -8036,22 +8236,26 @@
                 {
                   "name": "width",
                   "type": "Int",
-                  "description": "Horizontal resolution in pixels."
+                  "description": "Horizontal resolution in pixels.",
+                  "optional": false
                 },
                 {
                   "name": "height",
                   "type": "Int",
-                  "description": "Vertical resolution in pixels."
+                  "description": "Vertical resolution in pixels.",
+                  "optional": false
                 },
                 {
                   "name": "scale",
                   "type": "Double",
-                  "description": "Backing scale factor (e.g. `2` for HiDPI, `1` for non-HiDPI). Pass `0` to ignore."
+                  "description": "Backing scale factor (e.g. `2` for HiDPI, `1` for non-HiDPI). Pass `0` to ignore.",
+                  "optional": false
                 },
                 {
                   "name": "frequency",
                   "type": "Double",
-                  "description": "Refresh rate in Hz. Pass `0` to ignore."
+                  "description": "Refresh rate in Hz. Pass `0` to ignore.",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8226,12 +8430,14 @@
                 {
                   "name": "x",
                   "type": "Double",
-                  "description": "The X coordinate to move to"
+                  "description": "The X coordinate to move to",
+                  "optional": false
                 },
                 {
                   "name": "y",
                   "type": "Double",
-                  "description": "The Y coordinate to move to"
+                  "description": "The Y coordinate to move to",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8279,7 +8485,8 @@
                 {
                   "name": "screen",
                   "type": "HSScreen",
-                  "description": "The screen to mirror."
+                  "description": "The screen to mirror.",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8327,7 +8534,8 @@
                 {
                   "name": "rect",
                   "type": "JSValue",
-                  "description": "An `HSRect` in global Hammerspoon coordinates."
+                  "description": "An `HSRect` in global Hammerspoon coordinates.",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8354,7 +8562,8 @@
                 {
                   "name": "rect",
                   "type": "JSValue",
-                  "description": "An `HSRect` relative to this screen's top-left corner."
+                  "description": "An `HSRect` relative to this screen's top-left corner.",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8563,12 +8772,14 @@
             {
               "name": "predicate",
               "type": "String",
-              "description": "An NSPredicate-format query string"
+              "description": "An NSPredicate-format query string",
+              "optional": false
             },
             {
               "name": "callback",
               "type": "JSValue",
-              "description": "A function called with `(event, update?)` lifecycle events"
+              "description": "A function called with `(event, update?)` lifecycle events",
+              "optional": false
             }
           ],
           "returns": {
@@ -8769,7 +8980,8 @@
                 {
                   "name": "key",
                   "type": "String",
-                  "description": "An attribute key such as `\"kMDItemPath\"` or `hs.spotlight.attribute.path`"
+                  "description": "An attribute key such as `\"kMDItemPath\"` or `hs.spotlight.attribute.path`",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8816,7 +9028,8 @@
                 {
                   "name": "predicate",
                   "type": "String",
-                  "description": "An NSPredicate-format query string"
+                  "description": "An NSPredicate-format query string",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8843,7 +9056,8 @@
                 {
                   "name": "scopes",
                   "type": "JSValue",
-                  "description": "An array of scope-constant strings or absolute directory paths"
+                  "description": "An array of scope-constant strings or absolute directory paths",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8870,7 +9084,8 @@
                 {
                   "name": "descriptors",
                   "type": "JSValue",
-                  "description": "An array of sort descriptor objects"
+                  "description": "An array of sort descriptor objects",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8897,7 +9112,8 @@
                 {
                   "name": "attrs",
                   "type": "JSValue",
-                  "description": "An array of attribute name strings"
+                  "description": "An array of attribute name strings",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8924,7 +9140,8 @@
                 {
                   "name": "attrs",
                   "type": "JSValue",
-                  "description": "An array of attribute name strings"
+                  "description": "An array of attribute name strings",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -8951,7 +9168,8 @@
                 {
                   "name": "fn",
                   "type": "JSValue",
-                  "description": "A JavaScript function `(event, update?) => void`"
+                  "description": "A JavaScript function `(event, update?) => void`",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -9162,27 +9380,32 @@
             {
               "name": "launchPath",
               "type": "String",
-              "description": "The full path to the executable to run"
+              "description": "The full path to the executable to run",
+              "optional": false
             },
             {
               "name": "arguments",
               "type": "[String]",
-              "description": "An array of arguments to pass to the executable"
+              "description": "An array of arguments to pass to the executable",
+              "optional": false
             },
             {
               "name": "completionCallback",
               "type": "JSValue?",
-              "description": "Optional callback function called when the task terminates"
+              "description": "Optional callback function called when the task terminates",
+              "optional": false
             },
             {
               "name": "environment",
               "type": "JSValue?",
-              "description": "Optional dictionary of environment variables for the task"
+              "description": "Optional dictionary of environment variables for the task",
+              "optional": false
             },
             {
               "name": "streamingCallback",
               "type": "JSValue?",
-              "description": "Optional callback function called when the task produces output"
+              "description": "Optional callback function called when the task produces output",
+              "optional": false
             }
           ],
           "returns": {
@@ -9554,7 +9777,8 @@
                 {
                   "name": "data",
                   "type": "String",
-                  "description": "The string data to write"
+                  "description": "The string data to write",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -9697,17 +9921,20 @@
             {
               "name": "interval",
               "type": "TimeInterval",
-              "description": "The interval in seconds at which the timer should fire"
+              "description": "The interval in seconds at which the timer should fire",
+              "optional": false
             },
             {
               "name": "callback",
               "type": "JSValue",
-              "description": "A JavaScript function to call when the timer fires"
+              "description": "A JavaScript function to call when the timer fires",
+              "optional": false
             },
             {
               "name": "continueOnError",
               "type": "Bool",
-              "description": "If true, the timer will continue running even if the callback throws an error"
+              "description": "If true, the timer will continue running even if the callback throws an error",
+              "optional": false
             }
           ],
           "returns": {
@@ -9734,12 +9961,14 @@
             {
               "name": "seconds",
               "type": "TimeInterval",
-              "description": "Number of seconds to wait before firing"
+              "description": "Number of seconds to wait before firing",
+              "optional": false
             },
             {
               "name": "callback",
               "type": "JSValue",
-              "description": "A JavaScript function to call when the timer fires"
+              "description": "A JavaScript function to call when the timer fires",
+              "optional": false
             }
           ],
           "returns": {
@@ -9766,12 +9995,14 @@
             {
               "name": "interval",
               "type": "TimeInterval",
-              "description": "The interval in seconds at which the timer should fire"
+              "description": "The interval in seconds at which the timer should fire",
+              "optional": false
             },
             {
               "name": "callback",
               "type": "JSValue",
-              "description": "A JavaScript function to call when the timer fires"
+              "description": "A JavaScript function to call when the timer fires",
+              "optional": false
             }
           ],
           "returns": {
@@ -9798,22 +10029,26 @@
             {
               "name": "time",
               "type": "TimeInterval",
-              "description": "Seconds since midnight (local time) when the timer should first fire"
+              "description": "Seconds since midnight (local time) when the timer should first fire",
+              "optional": false
             },
             {
               "name": "repeatInterval",
               "type": "TimeInterval",
-              "description": "If provided, the timer will repeat at this interval. Pass 0 for one-shot."
+              "description": "If provided, the timer will repeat at this interval. Pass 0 for one-shot.",
+              "optional": false
             },
             {
               "name": "callback",
               "type": "JSValue",
-              "description": "A JavaScript function to call when the timer fires"
+              "description": "A JavaScript function to call when the timer fires",
+              "optional": false
             },
             {
               "name": "continueOnError",
               "type": "Bool",
-              "description": "If true, the timer will continue running even if the callback throws an error"
+              "description": "If true, the timer will continue running even if the callback throws an error",
+              "optional": false
             }
           ],
           "returns": {
@@ -9840,7 +10075,8 @@
             {
               "name": "microseconds",
               "type": "UInt32",
-              "description": "Number of microseconds to sleep"
+              "description": "Number of microseconds to sleep",
+              "optional": false
             }
           ],
           "returns": null,
@@ -9927,7 +10163,8 @@
             {
               "name": "n",
               "type": "Double",
-              "description": "A number of minutes"
+              "description": "A number of minutes",
+              "optional": false
             }
           ],
           "returns": {
@@ -9954,7 +10191,8 @@
             {
               "name": "n",
               "type": "Double",
-              "description": "A number of hours"
+              "description": "A number of hours",
+              "optional": false
             }
           ],
           "returns": {
@@ -9981,7 +10219,8 @@
             {
               "name": "n",
               "type": "Double",
-              "description": "A number of days"
+              "description": "A number of days",
+              "optional": false
             }
           ],
           "returns": {
@@ -10008,7 +10247,8 @@
             {
               "name": "n",
               "type": "Double",
-              "description": "A number of weeks"
+              "description": "A number of weeks",
+              "optional": false
             }
           ],
           "returns": {
@@ -10033,17 +10273,20 @@
             {
               "name": "predicateFn",
               "type": "any",
-              "description": "A function/lambda to test if the timer should continue. Return True to end the timer, False to continue it"
+              "description": "A function/lambda to test if the timer should continue. Return True to end the timer, False to continue it",
+              "optional": false
             },
             {
               "name": "actionFn",
               "type": "any",
-              "description": "A function/lambda to call until the predicateFn returns true"
+              "description": "A function/lambda to call until the predicateFn returns true",
+              "optional": false
             },
             {
               "name": "checkInterval",
               "type": "any",
-              "description": "How often, in seconds, to call actionFn"
+              "description": "How often, in seconds, to call actionFn",
+              "optional": false
             }
           ],
           "returns": null,
@@ -10060,17 +10303,20 @@
             {
               "name": "predicateFn",
               "type": "any",
-              "description": "A function/lambda to test if the timer should continue. Return True to continue the timer, False to end it"
+              "description": "A function/lambda to test if the timer should continue. Return True to continue the timer, False to end it",
+              "optional": false
             },
             {
               "name": "actionFn",
               "type": "any",
-              "description": "A function/lambda to call while the predicateFn returns true"
+              "description": "A function/lambda to call while the predicateFn returns true",
+              "optional": false
             },
             {
               "name": "checkInterval",
               "type": "any",
-              "description": "How often, in seconds, to call actionFn"
+              "description": "How often, in seconds, to call actionFn",
+              "optional": false
             }
           ],
           "returns": null,
@@ -10087,17 +10333,20 @@
             {
               "name": "predicateFn",
               "type": "any",
-              "description": "A function/lambda to test if the actionFn should be called. Return True to call the actionFn, False to continue waiting"
+              "description": "A function/lambda to test if the actionFn should be called. Return True to call the actionFn, False to continue waiting",
+              "optional": false
             },
             {
               "name": "actionFn",
               "type": "any",
-              "description": "A function/lambda to call when the predicateFn returns true. This will only be called once and then the timer will stop."
+              "description": "A function/lambda to call when the predicateFn returns true. This will only be called once and then the timer will stop.",
+              "optional": false
             },
             {
               "name": "checkInterval",
               "type": "any",
-              "description": "How often, in seconds, to call predicateFn"
+              "description": "How often, in seconds, to call predicateFn",
+              "optional": false
             }
           ],
           "returns": null,
@@ -10114,17 +10363,20 @@
             {
               "name": "predicateFn",
               "type": "any",
-              "description": "A function/lambda to test if the actionFn should be called. Return False to call the actionFn, True to continue waiting"
+              "description": "A function/lambda to test if the actionFn should be called. Return False to call the actionFn, True to continue waiting",
+              "optional": false
             },
             {
               "name": "actionFn",
               "type": "any",
-              "description": "A function/lambda to call when the predicateFn returns False. This will only be called once and then the timer will stop."
+              "description": "A function/lambda to call when the predicateFn returns False. This will only be called once and then the timer will stop.",
+              "optional": false
             },
             {
               "name": "checkInterval",
               "type": "any",
-              "description": "How often, in seconds, to call predicateFn"
+              "description": "How often, in seconds, to call predicateFn",
+              "optional": false
             }
           ],
           "returns": null,
@@ -10309,7 +10561,8 @@
                 {
                   "name": "seconds",
                   "type": "TimeInterval",
-                  "description": "Number of seconds from now when the timer should fire"
+                  "description": "Number of seconds from now when the timer should fire",
+                  "optional": false
                 }
               ],
               "returns": null,
@@ -10396,12 +10649,14 @@
             {
               "name": "sourceLanguage",
               "type": "String",
-              "description": "BCP-47 code of the source language (e.g. `\"en\"`)."
+              "description": "BCP-47 code of the source language (e.g. `\"en\"`).",
+              "optional": false
             },
             {
               "name": "targetLanguage",
               "type": "String",
-              "description": "BCP-47 code of the target language (e.g. `\"fr\"`)."
+              "description": "BCP-47 code of the target language (e.g. `\"fr\"`).",
+              "optional": false
             }
           ],
           "returns": {
@@ -10429,12 +10684,14 @@
             {
               "name": "sourceLanguage",
               "type": "String",
-              "description": "BCP-47 code of the source language (e.g. `\"en\"`)."
+              "description": "BCP-47 code of the source language (e.g. `\"en\"`).",
+              "optional": false
             },
             {
               "name": "targetLanguage",
               "type": "String",
-              "description": "BCP-47 code of the target language (e.g. `\"fr\"`)."
+              "description": "BCP-47 code of the target language (e.g. `\"fr\"`).",
+              "optional": false
             }
           ],
           "returns": {
@@ -10470,7 +10727,8 @@
                 {
                   "name": "text",
                   "type": "String",
-                  "description": "The text to translate."
+                  "description": "The text to translate.",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -10554,7 +10812,8 @@
             {
               "name": "dict",
               "type": "[String: Any]",
-              "description": "Dictionary with keys: `x`, `y`, `w`, `h` (all numbers)"
+              "description": "Dictionary with keys: `x`, `y`, `w`, `h` (all numbers)",
+              "optional": false
             }
           ],
           "returns": {
@@ -10581,7 +10840,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "The message text to display"
+              "description": "The message text to display",
+              "optional": false
             }
           ],
           "returns": {
@@ -10608,7 +10868,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "The main message text"
+              "description": "The main message text",
+              "optional": false
             }
           ],
           "returns": {
@@ -10635,7 +10896,8 @@
             {
               "name": "message",
               "type": "String",
-              "description": "The prompt message"
+              "description": "The prompt message",
+              "optional": false
             }
           ],
           "returns": {
@@ -10662,7 +10924,8 @@
             {
               "name": "initialValue",
               "type": "String",
-              "description": "The starting string value"
+              "description": "The starting string value",
+              "optional": false
             }
           ],
           "returns": {
@@ -10761,7 +11024,8 @@
                 {
                   "name": "colorValue",
                   "type": "JSValue",
-                  "description": "Color as hex string (e.g., \"#FF0000\") or HSColor object"
+                  "description": "Color as hex string (e.g., \"#FF0000\") or HSColor object",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -10815,7 +11079,8 @@
                 {
                   "name": "content",
                   "type": "JSValue",
-                  "description": "The text to display — a plain JS string for static text,"
+                  "description": "The text to display — a plain JS string for static text,",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -10837,7 +11102,8 @@
                 {
                   "name": "imageValue",
                   "type": "JSValue",
-                  "description": "Image as HSImage object or file path string"
+                  "description": "Image as HSImage object or file path string",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -10859,7 +11125,8 @@
                 {
                   "name": "label",
                   "type": "JSValue",
-                  "description": "The button label — a plain JS string for static text,"
+                  "description": "The button label — a plain JS string for static text,",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -10961,7 +11228,8 @@
                 {
                   "name": "colorValue",
                   "type": "JSValue",
-                  "description": "Color as hex string or HSColor"
+                  "description": "Color as hex string or HSColor",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -10983,7 +11251,8 @@
                 {
                   "name": "colorValue",
                   "type": "JSValue",
-                  "description": "Color as hex string or HSColor"
+                  "description": "Color as hex string or HSColor",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11005,7 +11274,8 @@
                 {
                   "name": "width",
                   "type": "Double",
-                  "description": "Width in points"
+                  "description": "Width in points",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11027,7 +11297,8 @@
                 {
                   "name": "radius",
                   "type": "Double",
-                  "description": "Corner radius in points"
+                  "description": "Corner radius in points",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11049,7 +11320,8 @@
                 {
                   "name": "dict",
                   "type": "[String: Any]",
-                  "description": "Dictionary with `w` and/or `h` (can be numbers or percentage strings like \"50%\")"
+                  "description": "Dictionary with `w` and/or `h` (can be numbers or percentage strings like \"50%\")",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11071,7 +11343,8 @@
                 {
                   "name": "value",
                   "type": "Double",
-                  "description": "Opacity from 0.0 (transparent) to 1.0 (opaque)"
+                  "description": "Opacity from 0.0 (transparent) to 1.0 (opaque)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11093,7 +11366,8 @@
                 {
                   "name": "font",
                   "type": "HSFont",
-                  "description": "An HSFont object (e.g., `HSFont.title()`)"
+                  "description": "An HSFont object (e.g., `HSFont.title()`)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11115,7 +11389,8 @@
                 {
                   "name": "colorValue",
                   "type": "JSValue",
-                  "description": "Color as hex string or HSColor"
+                  "description": "Color as hex string or HSColor",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11153,7 +11428,8 @@
                 {
                   "name": "mode",
                   "type": "String",
-                  "description": "\"fit\" (scales to fit within frame) or \"fill\" (scales to fill frame)"
+                  "description": "\"fit\" (scales to fit within frame) or \"fill\" (scales to fill frame)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11175,7 +11451,8 @@
                 {
                   "name": "value",
                   "type": "Double",
-                  "description": "Padding in points"
+                  "description": "Padding in points",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11197,7 +11474,8 @@
                 {
                   "name": "value",
                   "type": "Double",
-                  "description": "Spacing in points"
+                  "description": "Spacing in points",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11219,7 +11497,8 @@
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "A JavaScript function to call on click"
+                  "description": "A JavaScript function to call on click",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11241,7 +11520,8 @@
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "A JavaScript function called with a boolean: true when entering, false when leaving"
+                  "description": "A JavaScript function called with a boolean: true when entering, false when leaving",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11272,7 +11552,8 @@
                 {
                   "name": "font",
                   "type": "HSFont",
-                  "description": "An HSFont object (e.g., `HSFont.headline()`)"
+                  "description": "An HSFont object (e.g., `HSFont.headline()`)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11299,7 +11580,8 @@
                 {
                   "name": "seconds",
                   "type": "Double",
-                  "description": "Duration in seconds (default: 5.0)"
+                  "description": "Duration in seconds (default: 5.0)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11326,7 +11608,8 @@
                 {
                   "name": "points",
                   "type": "Double",
-                  "description": "Padding in points (default: 20)"
+                  "description": "Padding in points (default: 20)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11353,7 +11636,8 @@
                 {
                   "name": "dict",
                   "type": "[String: Any]",
-                  "description": "Dictionary with `x` and `y` coordinates"
+                  "description": "Dictionary with `x` and `y` coordinates",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11428,7 +11712,8 @@
                 {
                   "name": "text",
                   "type": "String",
-                  "description": "The informative text"
+                  "description": "The informative text",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11455,7 +11740,8 @@
                 {
                   "name": "labels",
                   "type": "[String]",
-                  "description": "Array of button labels (default: [\"OK\"])"
+                  "description": "Array of button labels (default: [\"OK\"])",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11482,7 +11768,8 @@
                 {
                   "name": "style",
                   "type": "String",
-                  "description": "Style name (e.g., \"informational\", \"warning\", \"critical\")"
+                  "description": "Style name (e.g., \"informational\", \"warning\", \"critical\")",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11509,7 +11796,8 @@
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "Function receiving button index (0-based)"
+                  "description": "Function receiving button index (0-based)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11584,7 +11872,8 @@
                 {
                   "name": "text",
                   "type": "String",
-                  "description": "The message text"
+                  "description": "The message text",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11611,7 +11900,8 @@
                 {
                   "name": "path",
                   "type": "String",
-                  "description": "Path to directory (supports `~` for home)"
+                  "description": "Path to directory (supports `~` for home)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11638,7 +11928,8 @@
                 {
                   "name": "value",
                   "type": "Bool",
-                  "description": "true to allow file selection (default: true)"
+                  "description": "true to allow file selection (default: true)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11665,7 +11956,8 @@
                 {
                   "name": "value",
                   "type": "Bool",
-                  "description": "true to allow directory selection (default: false)"
+                  "description": "true to allow directory selection (default: false)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11692,7 +11984,8 @@
                 {
                   "name": "value",
                   "type": "Bool",
-                  "description": "true to allow multiple selection (default: false)"
+                  "description": "true to allow multiple selection (default: false)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11719,7 +12012,8 @@
                 {
                   "name": "types",
                   "type": "[String]",
-                  "description": "Array of file extensions (e.g., [\"txt\", \"md\"])"
+                  "description": "Array of file extensions (e.g., [\"txt\", \"md\"])",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11746,7 +12040,8 @@
                 {
                   "name": "value",
                   "type": "Bool",
-                  "description": "true to resolve aliases (default: true)"
+                  "description": "true to resolve aliases (default: true)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11773,7 +12068,8 @@
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "Function receiving selected path(s) or null if cancelled"
+                  "description": "Function receiving selected path(s) or null if cancelled",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11827,7 +12123,8 @@
                 {
                   "name": "text",
                   "type": "String",
-                  "description": "The informative text"
+                  "description": "The informative text",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11854,7 +12151,8 @@
                 {
                   "name": "text",
                   "type": "String",
-                  "description": "Default text value"
+                  "description": "Default text value",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11881,7 +12179,8 @@
                 {
                   "name": "labels",
                   "type": "[String]",
-                  "description": "Array of button labels (default: [\"OK\", \"Cancel\"])"
+                  "description": "Array of button labels (default: [\"OK\", \"Cancel\"])",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -11908,7 +12207,8 @@
                 {
                   "name": "callback",
                   "type": "JSValue",
-                  "description": "Function receiving (buttonIndex, inputText)"
+                  "description": "Function receiving (buttonIndex, inputText)",
+                  "optional": false
                 }
               ],
               "returns": {
@@ -12026,7 +12326,8 @@
             {
               "name": "app",
               "type": "HSApplication",
-              "description": "An HSApplication object"
+              "description": "An HSApplication object",
+              "optional": false
             }
           ],
           "returns": {
@@ -12053,7 +12354,8 @@
             {
               "name": "screenIndex",
               "type": "Int",
-              "description": "The screen index (0 for main screen)"
+              "description": "The screen index (0 for main screen)",
+              "optional": false
             }
           ],
           "returns": {
@@ -12080,7 +12382,8 @@
             {
               "name": "point",
               "type": "HSPoint",
-              "description": "An HSPoint containing the coordinates"
+              "description": "An HSPoint containing the coordinates",
+              "optional": false
             }
           ],
           "returns": {
@@ -12126,7 +12429,8 @@
             {
               "name": "title",
               "type": "any",
-              "description": "The window title to search for. All windows with titles that include this string, will be matched"
+              "description": "The window title to search for. All windows with titles that include this string, will be matched",
+              "optional": false
             }
           ],
           "returns": {
@@ -12160,7 +12464,8 @@
             {
               "name": "win",
               "type": "any",
-              "description": "An HSWindow object"
+              "description": "An HSWindow object",
+              "optional": false
             }
           ],
           "returns": {
@@ -12180,7 +12485,8 @@
             {
               "name": "win",
               "type": "any",
-              "description": "An HSWindow object"
+              "description": "An HSWindow object",
+              "optional": false
             }
           ],
           "returns": {
@@ -12200,7 +12506,8 @@
             {
               "name": "win",
               "type": "any",
-              "description": "An HSWindow object"
+              "description": "An HSWindow object",
+              "optional": false
             }
           ],
           "returns": {
@@ -12618,22 +12925,26 @@
             {
               "name": "r",
               "type": "Double",
-              "description": "Red component (0.0-1.0)"
+              "description": "Red component (0.0-1.0)",
+              "optional": false
             },
             {
               "name": "g",
               "type": "Double",
-              "description": "Green component (0.0-1.0)"
+              "description": "Green component (0.0-1.0)",
+              "optional": false
             },
             {
               "name": "b",
               "type": "Double",
-              "description": "Blue component (0.0-1.0)"
+              "description": "Blue component (0.0-1.0)",
+              "optional": false
             },
             {
               "name": "a",
               "type": "Double",
-              "description": "Alpha component (0.0-1.0)"
+              "description": "Alpha component (0.0-1.0)",
+              "optional": false
             }
           ],
           "returns": {
@@ -12655,7 +12966,8 @@
             {
               "name": "hex",
               "type": "String",
-              "description": "Hex string (e.g. \"#FF0000\" or \"FF0000\")"
+              "description": "Hex string (e.g. \"#FF0000\" or \"FF0000\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -12677,7 +12989,8 @@
             {
               "name": "name",
               "type": "String",
-              "description": "Name of the system color (e.g. \"red\", \"blue\", \"systemBlue\")"
+              "description": "Name of the system color (e.g. \"red\", \"blue\", \"systemBlue\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -12699,7 +13012,8 @@
             {
               "name": "value",
               "type": "JSValue",
-              "description": "New color as a hex string (e.g. \"#FF0000\") or another HSColor object"
+              "description": "New color as a hex string (e.g. \"#FF0000\") or another HSColor object",
+              "optional": false
             }
           ],
           "returns": null,
@@ -12904,7 +13218,8 @@
             {
               "name": "size",
               "type": "Double",
-              "description": "The font size in points"
+              "description": "The font size in points",
+              "optional": false
             }
           ],
           "returns": {
@@ -12926,12 +13241,14 @@
             {
               "name": "size",
               "type": "Double",
-              "description": "The font size in points"
+              "description": "The font size in points",
+              "optional": false
             },
             {
               "name": "weight",
               "type": "String",
-              "description": "The font weight as a string (e.g. \"ultralight\", \"thin\", \"light\", \"regular\", \"medium\", \"semibold\", \"bold\", \"heavy\", \"black\")"
+              "description": "The font weight as a string (e.g. \"ultralight\", \"thin\", \"light\", \"regular\", \"medium\", \"semibold\", \"bold\", \"heavy\", \"black\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -12953,12 +13270,14 @@
             {
               "name": "name",
               "type": "String",
-              "description": "A string containing the name of the font to instantiate"
+              "description": "A string containing the name of the font to instantiate",
+              "optional": false
             },
             {
               "name": "size",
               "type": "Double",
-              "description": "The font size in points"
+              "description": "The font size in points",
+              "optional": false
             }
           ],
           "returns": {
@@ -12990,7 +13309,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the image file"
+              "description": "Path to the image file",
+              "optional": false
             }
           ],
           "returns": {
@@ -13012,7 +13332,8 @@
             {
               "name": "name",
               "type": "String",
-              "description": "Name of the system image (e.g., \"NSComputer\", \"NSFolder\")"
+              "description": "Name of the system image (e.g., \"NSComputer\", \"NSFolder\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -13034,7 +13355,8 @@
             {
               "name": "name",
               "type": "String",
-              "description": "Name of the symbol (e.g., \"hammer\", \"questionmark.circle\")"
+              "description": "Name of the symbol (e.g., \"hammer\", \"questionmark.circle\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -13056,12 +13378,14 @@
             {
               "name": "bundleID",
               "type": "String",
-              "description": "Bundle identifier of the application"
+              "description": "Bundle identifier of the application",
+              "optional": false
             },
             {
               "name": "withFallbackSymbol",
               "type": "String",
-              "description": "The name of an SF Symbol to use if no bundle image could be loaded. Defaults to questionmark.circle"
+              "description": "The name of an SF Symbol to use if no bundle image could be loaded. Defaults to questionmark.circle",
+              "optional": false
             }
           ],
           "returns": {
@@ -13083,7 +13407,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Path to the file"
+              "description": "Path to the file",
+              "optional": false
             }
           ],
           "returns": {
@@ -13105,7 +13430,8 @@
             {
               "name": "fileType",
               "type": "String",
-              "description": "File extension or UTI (e.g., \"png\", \"public.png\")"
+              "description": "File extension or UTI (e.g., \"png\", \"public.png\")",
+              "optional": false
             }
           ],
           "returns": {
@@ -13127,7 +13453,8 @@
             {
               "name": "url",
               "type": "String",
-              "description": "URL string of the image"
+              "description": "URL string of the image",
+              "optional": false
             }
           ],
           "returns": {
@@ -13150,7 +13477,8 @@
             {
               "name": "size",
               "type": "JSValue",
-              "description": "Optional HSSize to set (if provided, returns a resized copy)"
+              "description": "Optional HSSize to set (if provided, returns a resized copy)",
+              "optional": false
             }
           ],
           "returns": {
@@ -13172,7 +13500,8 @@
             {
               "name": "name",
               "type": "JSValue",
-              "description": "Optional name to set"
+              "description": "Optional name to set",
+              "optional": false
             }
           ],
           "returns": {
@@ -13194,12 +13523,14 @@
             {
               "name": "size",
               "type": "JSValue",
-              "description": "Target size as HSSize"
+              "description": "Target size as HSSize",
+              "optional": false
             },
             {
               "name": "absolute",
               "type": "Bool",
-              "description": "If true, resize exactly to specified dimensions. If false, maintain aspect ratio"
+              "description": "If true, resize exactly to specified dimensions. If false, maintain aspect ratio",
+              "optional": false
             }
           ],
           "returns": {
@@ -13237,7 +13568,8 @@
             {
               "name": "rect",
               "type": "JSValue",
-              "description": "HSRect defining the crop area"
+              "description": "HSRect defining the crop area",
+              "optional": false
             }
           ],
           "returns": {
@@ -13259,7 +13591,8 @@
             {
               "name": "path",
               "type": "String",
-              "description": "Destination file path (extension determines format: png, jpg, tiff, bmp, gif)"
+              "description": "Destination file path (extension determines format: png, jpg, tiff, bmp, gif)",
+              "optional": false
             }
           ],
           "returns": {
@@ -13281,7 +13614,8 @@
             {
               "name": "state",
               "type": "JSValue",
-              "description": "Optional boolean to set template state"
+              "description": "Optional boolean to set template state",
+              "optional": false
             }
           ],
           "returns": {
@@ -13303,7 +13637,8 @@
             {
               "name": "value",
               "type": "JSValue",
-              "description": "New image as an HSImage object or a file path string"
+              "description": "New image as an HSImage object or a file path string",
+              "optional": false
             }
           ],
           "returns": null,
@@ -13332,12 +13667,14 @@
             {
               "name": "x",
               "type": "Double",
-              "description": "A coordinate for this point on the x-axis"
+              "description": "A coordinate for this point on the x-axis",
+              "optional": false
             },
             {
               "name": "y",
               "type": "Double",
-              "description": "A coordinate for this point on the y-axis"
+              "description": "A coordinate for this point on the y-axis",
+              "optional": false
             }
           ],
           "returns": null,
@@ -13387,22 +13724,26 @@
             {
               "name": "x",
               "type": "Double",
-              "description": "The x-axis coordinate of the top-left corner"
+              "description": "The x-axis coordinate of the top-left corner",
+              "optional": false
             },
             {
               "name": "y",
               "type": "Double",
-              "description": "The y-axis coordinate of the top-left corner"
+              "description": "The y-axis coordinate of the top-left corner",
+              "optional": false
             },
             {
               "name": "w",
               "type": "Double",
-              "description": "The width of the rectangle"
+              "description": "The width of the rectangle",
+              "optional": false
             },
             {
               "name": "h",
               "type": "Double",
-              "description": "The height of the rectangle"
+              "description": "The height of the rectangle",
+              "optional": false
             }
           ],
           "returns": null,
@@ -13492,12 +13833,14 @@
             {
               "name": "w",
               "type": "Double",
-              "description": "The width of the rectangle"
+              "description": "The width of the rectangle",
+              "optional": false
             },
             {
               "name": "h",
               "type": "Double",
-              "description": "The height of the rectangle"
+              "description": "The height of the rectangle",
+              "optional": false
             }
           ],
           "returns": null,
@@ -13547,7 +13890,8 @@
             {
               "name": "newValue",
               "type": "String",
-              "description": "The new string"
+              "description": "The new string",
+              "optional": false
             }
           ],
           "returns": null,
@@ -13572,5 +13916,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-22T15:46:50.150Z"
+  "generatedAt": "2026-06-22T15:53:50.135Z"
 }

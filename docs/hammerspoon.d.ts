@@ -603,7 +603,7 @@ declare class HSApplication {
      * Bring this application to the foreground
      * @param allWindows Pass true to raise all application windows. Defaults to false.
      */
-    activate(allWindows: boolean): void;
+    activate(allWindows?: boolean): void;
 
     /**
      * Hide this application and all its windows
