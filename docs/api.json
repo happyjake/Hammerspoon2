@@ -653,14 +653,14 @@
             },
             {
               "name": "activate",
-              "signature": "func activate(_ allWindows: JSValue)",
+              "signature": "func activate(_ allWindows: Bool)",
               "isStatic": false,
               "rawDocumentation": "Bring this application to the foreground\n- Parameter allWindows: Pass true to raise all application windows. Defaults to false.\n- Example:\n```js\nconst app = hs.application.matchingName(\"Safari\")\napp.activate()\napp.activate(true)\n```",
               "description": "Bring this application to the foreground",
               "params": [
                 {
                   "name": "allWindows",
-                  "type": "JSValue",
+                  "type": "Bool",
                   "description": "Pass true to raise all application windows. Defaults to false."
                 }
               ],
@@ -733,16 +733,16 @@
               "lineNumber": 174
             },
             {
-              "name": "findMenuItem",
-              "signature": "func findMenuItem(_ item: JSValue) -> [String: Any]?",
+              "name": "findMenuItemByName",
+              "signature": "func findMenuItemByName(_ name: String) -> [String: Any]?",
               "isStatic": false,
-              "rawDocumentation": "Find a menu item by title search or hierarchical path\n- Parameter item: A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as [\"Edit\", \"Select All\"]\n- Returns: An object with title and enabled keys, or null if not found\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst item = app.findMenuItem([\"Edit\", \"Select All\"])\nconsole.log(item.enabled)\n```",
-              "description": "Find a menu item by title search or hierarchical path",
+              "rawDocumentation": "Find a menu item by searching all menus for a matching title (case-insensitive)\n- Parameter name: The menu item title to search for\n- Returns: An object with title and enabled keys, or null if not found\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst item = app.findMenuItemByName(\"Select All\")\nconsole.log(item.enabled)\n```",
+              "description": "Find a menu item by searching all menus for a matching title (case-insensitive)",
               "params": [
                 {
-                  "name": "item",
-                  "type": "JSValue",
-                  "description": "A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as [\"Edit\", \"Select All\"]"
+                  "name": "name",
+                  "type": "String",
+                  "description": "The menu item title to search for"
                 }
               ],
               "returns": {
@@ -752,7 +752,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const app = hs.application.frontmost()\nconst item = app.findMenuItem([\"Edit\", \"Select All\"])\nconsole.log(item.enabled)"
+                  "code": "const app = hs.application.frontmost()\nconst item = app.findMenuItemByName(\"Select All\")\nconsole.log(item.enabled)"
                 }
               ],
               "source": "swift",
@@ -760,16 +760,43 @@
               "lineNumber": 185
             },
             {
-              "name": "selectMenuItem",
-              "signature": "func selectMenuItem(_ item: JSValue) -> Bool",
+              "name": "findMenuItemByPath",
+              "signature": "func findMenuItemByPath(_ path: [String]) -> [String: Any]?",
               "isStatic": false,
-              "rawDocumentation": "Click a menu item found by title search or hierarchical path\n- Parameter item: A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as [\"File\", \"New Window\"]\n- Returns: true if the menu item was found and clicked, false otherwise\n- Example:\n```js\nconst safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItem([\"File\", \"New Window\"])\n```",
-              "description": "Click a menu item found by title search or hierarchical path",
+              "rawDocumentation": "Find a menu item by following a hierarchical path of titles\n- Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. [\"Edit\", \"Select All\"]\n- Returns: An object with title and enabled keys, or null if not found\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst item = app.findMenuItemByPath([\"Edit\", \"Select All\"])\nconsole.log(item.enabled)\n```",
+              "description": "Find a menu item by following a hierarchical path of titles",
               "params": [
                 {
-                  "name": "item",
-                  "type": "JSValue",
-                  "description": "A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as [\"File\", \"New Window\"]"
+                  "name": "path",
+                  "type": "[String]",
+                  "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"Edit\", \"Select All\"]"
+                }
+              ],
+              "returns": {
+                "type": "[String: Any]?",
+                "description": "An object with title and enabled keys, or null if not found"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const app = hs.application.frontmost()\nconst item = app.findMenuItemByPath([\"Edit\", \"Select All\"])\nconsole.log(item.enabled)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 196
+            },
+            {
+              "name": "selectMenuItemByName",
+              "signature": "func selectMenuItemByName(_ name: String) -> Bool",
+              "isStatic": false,
+              "rawDocumentation": "Click a menu item found by searching all menus for a matching title (case-insensitive)\n- Parameter name: The menu item title to search for\n- Returns: true if the menu item was found and clicked, false otherwise\n- Example:\n```js\nconst safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItemByName(\"New Window\")\n```",
+              "description": "Click a menu item found by searching all menus for a matching title (case-insensitive)",
+              "params": [
+                {
+                  "name": "name",
+                  "type": "String",
+                  "description": "The menu item title to search for"
                 }
               ],
               "returns": {
@@ -779,12 +806,39 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItem([\"File\", \"New Window\"])"
+                  "code": "const safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItemByName(\"New Window\")"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
-              "lineNumber": 195
+              "lineNumber": 206
+            },
+            {
+              "name": "selectMenuItemByPath",
+              "signature": "func selectMenuItemByPath(_ path: [String]) -> Bool",
+              "isStatic": false,
+              "rawDocumentation": "Click a menu item found by following a hierarchical path of titles\n- Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. [\"File\", \"New Window\"]\n- Returns: true if the menu item was found and clicked, false otherwise\n- Example:\n```js\nconst safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItemByPath([\"File\", \"New Window\"])\n```",
+              "description": "Click a menu item found by following a hierarchical path of titles",
+              "params": [
+                {
+                  "name": "path",
+                  "type": "[String]",
+                  "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"File\", \"New Window\"]"
+                }
+              ],
+              "returns": {
+                "type": "Bool",
+                "description": "true if the menu item was found and clicked, false otherwise"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItemByPath([\"File\", \"New Window\"])"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
+              "lineNumber": 216
             },
             {
               "name": "findWindow",
@@ -811,7 +865,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
-              "lineNumber": 205
+              "lineNumber": 226
             },
             {
               "name": "getWindow",
@@ -838,7 +892,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.application/HSApplication.swift",
-              "lineNumber": 215
+              "lineNumber": 236
             }
           ],
           "properties": [
@@ -13518,5 +13572,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-22T15:08:40.344Z"
+  "generatedAt": "2026-06-22T15:31:19.094Z"
 }

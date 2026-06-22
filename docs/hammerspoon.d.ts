@@ -603,7 +603,7 @@ declare class HSApplication {
      * Bring this application to the foreground
      * @param allWindows Pass true to raise all application windows. Defaults to false.
      */
-    activate(allWindows: JSValue): void;
+    activate(allWindows: boolean): void;
 
     /**
      * Hide this application and all its windows
@@ -622,18 +622,32 @@ declare class HSApplication {
     getMenuItems(): [[String: Any]] | undefined;
 
     /**
-     * Find a menu item by title search or hierarchical path
-     * @param item A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as ["Edit", "Select All"]
+     * Find a menu item by searching all menus for a matching title (case-insensitive)
+     * @param name The menu item title to search for
      * @returns An object with title and enabled keys, or null if not found
      */
-    findMenuItem(item: JSValue): Record<string, any> | undefined;
+    findMenuItemByName(name: string): Record<string, any> | undefined;
 
     /**
-     * Click a menu item found by title search or hierarchical path
-     * @param item A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as ["File", "New Window"]
+     * Find a menu item by following a hierarchical path of titles
+     * @param path An array of menu titles forming a path from the top-level menu to the item, e.g. ["Edit", "Select All"]
+     * @returns An object with title and enabled keys, or null if not found
+     */
+    findMenuItemByPath(path: string[]): Record<string, any> | undefined;
+
+    /**
+     * Click a menu item found by searching all menus for a matching title (case-insensitive)
+     * @param name The menu item title to search for
      * @returns true if the menu item was found and clicked, false otherwise
      */
-    selectMenuItem(item: JSValue): boolean;
+    selectMenuItemByName(name: string): boolean;
+
+    /**
+     * Click a menu item found by following a hierarchical path of titles
+     * @param path An array of menu titles forming a path from the top-level menu to the item, e.g. ["File", "New Window"]
+     * @returns true if the menu item was found and clicked, false otherwise
+     */
+    selectMenuItemByPath(path: string[]): boolean;
 
     /**
      * Find windows whose title contains the given string (case-insensitive)

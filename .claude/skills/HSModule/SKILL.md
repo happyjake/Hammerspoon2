@@ -265,6 +265,57 @@ The HSFooModuleAPI protocol should observe the following rules:
  * If for some reason we must have parameter labels, the name of the method exposed to JavaScript can be overridden thusly: "@objc(doFoo:) func doFoo(someParameter: String)"
  * If we are allowing users to create "watcher" objects that respond to macOS events and call user-supplied JS callbacks, they should be created/destroyed with methods called "addWatcher" and "removeWatcher"
 
+### Never use JSValue for typed parameters or return values
+
+`JSValue` must NOT appear in `@objc protocol ... JSExport` declarations as a parameter type or return type for any value that has a concrete Swift type. Use the appropriate Swift type instead:
+
+| Instead of          | Use                     |
+|---------------------|-------------------------|
+| `JSValue` (string)  | `String` or `String?`   |
+| `JSValue` (number)  | `Int`, `Double`, etc.   |
+| `JSValue` (boolean) | `Bool`                  |
+| `JSValue` (array)   | `[String]`, `[Any]`, etc. |
+| `JSValue` (object)  | `[String: Any]`         |
+
+`JSValue` is only acceptable for JavaScript **function callbacks** (there is no concrete Swift type for a JS function). Examples where `JSValue` is correct:
+
+```swift
+@objc func addWatcher(_ listener: JSValue)          // listener is a JS function
+@objc func setCallback(_ fn: JSValue) -> HSXxxWatcher // fn is a JS function
+@objc var callbackPressed: JSValue? { get set }      // property holding a JS function
+```
+
+If a parameter needs to accept two different concrete types (e.g. a string OR an array), do not reach for `JSValue` — instead split into two separate methods with descriptive names:
+
+```swift
+// BAD — hides the type contract, breaks TypeScript, forces runtime JSValue inspection
+@objc func findMenuItem(_ item: JSValue) -> [String: Any]?
+
+// GOOD — clear types, two separate entry points
+@objc func findMenuItemByName(_ name: String) -> [String: Any]?
+@objc func findMenuItemByPath(_ path: [String]) -> [String: Any]?
+```
+
+### Bool parameters default to false when omitted
+
+When a `@objc` method has a `Bool` parameter, JavaScript callers that omit the argument receive `false` at the Swift layer (ObjC bridges `undefined`/missing to `NO`/`false`). This has an important consequence for API design:
+
+**Design Bool-parameter APIs so that `false` represents the safe, common, or "do nothing extra" behaviour.** The user gets `false` for free when they call the method with no argument.
+
+```swift
+// GOOD — false means "don't raise all windows", which is the common case
+@objc func activate(_ allWindows: Bool)   // app.activate() works naturally
+
+// GOOD — false means "not hidden", so create() makes a visible item by default
+@objc func create(_ hidden: Bool) -> HSMenuBarItem   // hs.menubar.create() → visible
+
+// BAD — false means "not visible", so create() would create a hidden item
+//        and callers would need create(true) for the common case
+@objc func create(_ visible: Bool) -> HSMenuBarItem
+```
+
+If the natural default behaviour maps to `true`, invert the parameter name so `false` is the default (e.g. rename `visible` → `hidden`, `enabled` → `disabled`, `synchronous` → `async`).
+
 ## Promise-returning methods
 
   Several modules return Promises for async operations. The return type is JSPromise? (a

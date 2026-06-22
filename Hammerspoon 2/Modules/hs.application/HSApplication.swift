@@ -173,26 +173,47 @@ import AXSwift
     /// ```
     @objc func getMenuItems() -> [[String: Any]]?
 
-    /// Find a menu item by title search or hierarchical path
-    /// - Parameter item: A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as ["Edit", "Select All"]
+    /// Find a menu item by searching all menus for a matching title (case-insensitive)
+    /// - Parameter name: The menu item title to search for
     /// - Returns: An object with title and enabled keys, or null if not found
     /// - Example:
     /// ```js
     /// const app = hs.application.frontmost()
-    /// const item = app.findMenuItem(["Edit", "Select All"])
+    /// const item = app.findMenuItemByName("Select All")
     /// console.log(item.enabled)
     /// ```
-    @objc func findMenuItem(_ item: JSValue) -> [String: Any]?
+    @objc func findMenuItemByName(_ name: String) -> [String: Any]?
 
-    /// Click a menu item found by title search or hierarchical path
-    /// - Parameter item: A string to search for (case-insensitive) across all menus, or an array of strings forming a path such as ["File", "New Window"]
+    /// Find a menu item by following a hierarchical path of titles
+    /// - Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. ["Edit", "Select All"]
+    /// - Returns: An object with title and enabled keys, or null if not found
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const item = app.findMenuItemByPath(["Edit", "Select All"])
+    /// console.log(item.enabled)
+    /// ```
+    @objc func findMenuItemByPath(_ path: [String]) -> [String: Any]?
+
+    /// Click a menu item found by searching all menus for a matching title (case-insensitive)
+    /// - Parameter name: The menu item title to search for
     /// - Returns: true if the menu item was found and clicked, false otherwise
     /// - Example:
     /// ```js
     /// const safari = hs.application.matchingName("Safari")
-    /// safari.selectMenuItem(["File", "New Window"])
+    /// safari.selectMenuItemByName("New Window")
     /// ```
-    @objc func selectMenuItem(_ item: JSValue) -> Bool
+    @objc func selectMenuItemByName(_ name: String) -> Bool
+
+    /// Click a menu item found by following a hierarchical path of titles
+    /// - Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. ["File", "New Window"]
+    /// - Returns: true if the menu item was found and clicked, false otherwise
+    /// - Example:
+    /// ```js
+    /// const safari = hs.application.matchingName("Safari")
+    /// safari.selectMenuItemByPath(["File", "New Window"])
+    /// ```
+    @objc func selectMenuItemByPath(_ path: [String]) -> Bool
 
     /// Find windows whose title contains the given string (case-insensitive)
     /// - Parameter pattern: A string to search for in window titles
@@ -337,50 +358,62 @@ import AXSwift
         return menuBarItems.compactMap { menuBarItemToDict($0) }
     }
 
-    @objc func findMenuItem(_ item: JSValue) -> [String: Any]? {
-        guard let element = findMenuElement(matching: item) else { return nil }
+    @objc func findMenuItemByName(_ name: String) -> [String: Any]? {
+        guard let element = findMenuElement(byName: name) else { return nil }
+        return menuElementToDict(element)
+    }
+
+    @objc func findMenuItemByPath(_ path: [String]) -> [String: Any]? {
+        guard let element = findMenuElement(byPath: path) else { return nil }
+        return menuElementToDict(element)
+    }
+
+    @objc func selectMenuItemByName(_ name: String) -> Bool {
+        guard let element = findMenuElement(byName: name) else { return false }
+        return pressMenuElement(element, context: "selectMenuItemByName")
+    }
+
+    @objc func selectMenuItemByPath(_ path: [String]) -> Bool {
+        guard let element = findMenuElement(byPath: path) else { return false }
+        return pressMenuElement(element, context: "selectMenuItemByPath")
+    }
+
+    private func menuBarItems() -> [UIElement]? {
+        guard let menuBar: UIElement = try? axUIElement?.attribute(.menuBar) else { return nil }
+        return try? menuBar.attribute(.children)
+    }
+
+    private func findMenuElement(byName name: String) -> UIElement? {
+        guard let items = menuBarItems() else { return nil }
+        let target = name.lowercased()
+        for barItem in items {
+            if let found = searchMenuElement(withTitle: target, in: barItem) { return found }
+        }
+        return nil
+    }
+
+    private func findMenuElement(byPath path: [String]) -> UIElement? {
+        guard let items = menuBarItems(), let first = path.first else { return nil }
+        guard let topItem = items.first(where: {
+            ((try? $0.attribute(.title) as String?) ?? "").lowercased() == first.lowercased()
+        }) else { return nil }
+        return path.count == 1 ? topItem : navigateMenuPath(Array(path.dropFirst()), from: topItem)
+    }
+
+    private func menuElementToDict(_ element: UIElement) -> [String: Any] {
         let title: String = (try? element.attribute(.title)) ?? ""
         let enabled: Bool = (try? element.attribute(.enabled)) ?? false
         return ["title": title, "enabled": enabled]
     }
 
-    @objc func selectMenuItem(_ item: JSValue) -> Bool {
-        guard let element = findMenuElement(matching: item) else { return false }
+    private func pressMenuElement(_ element: UIElement, context: String) -> Bool {
         do {
             try element.performAction(.press)
             return true
         } catch {
-            AKError("hs.application.selectMenuItem: \(error.localizedDescription)")
+            AKError("hs.application.\(context): \(error.localizedDescription)")
             return false
         }
-    }
-
-    private func findMenuElement(matching item: JSValue) -> UIElement? {
-        guard let menuBar: UIElement = try? axUIElement?.attribute(.menuBar),
-              let menuBarItems: [UIElement] = try? menuBar.attribute(.children) else {
-            return nil
-        }
-
-        if item.isString {
-            let target = (item.toString() ?? "").lowercased()
-            for barItem in menuBarItems {
-                if let found = searchMenuElement(withTitle: target, in: barItem) {
-                    return found
-                }
-            }
-            return nil
-        }
-
-        if item.isArray {
-            let path = (item.toArray() ?? []).compactMap { $0 as? String }
-            guard let first = path.first else { return nil }
-            guard let topItem = menuBarItems.first(where: {
-                ((try? $0.attribute(.title) as String?) ?? "").lowercased() == first.lowercased()
-            }) else { return nil }
-            return path.count == 1 ? topItem : navigateMenuPath(Array(path.dropFirst()), from: topItem)
-        }
-
-        return nil
     }
 
     private func searchMenuElement(withTitle title: String, in element: UIElement) -> UIElement? {
