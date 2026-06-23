@@ -35,9 +35,27 @@ import Observation
     /// - Returns: An HSColor object
     @objc static func named(_ name: String) -> HSColor
 
-    /// Update this color's value
-    /// - Parameter value: New color as a hex string (e.g. "#FF0000") or another HSColor object
-    @objc func set(_ value: JSValue)
+    /// Replace this color's value with another HSColor.
+    ///
+    /// If this color is bound to a UI element, the canvas re-renders automatically.
+    /// - Parameter color: The HSColor to copy from
+    /// - Example:
+    /// ```js
+    /// const reactive = HSColor.hex("#4A90E2")
+    /// reactive.replaceWithColor(HSColor.named("red"))
+    /// ```
+    @objc func replaceWithColor(_ color: HSColor)
+
+    /// Replace this color's value from a hex string.
+    ///
+    /// If this color is bound to a UI element, the canvas re-renders automatically.
+    /// - Parameter hex: Hex color string (e.g. "#FF0000" or "FF0000")
+    /// - Example:
+    /// ```js
+    /// const reactive = HSColor.hex("#4A90E2")
+    /// reactive.replaceWithHex("#E24A4A")
+    /// ```
+    @objc func replaceWithHex(_ hex: String)
 }
 
 @Observable
@@ -112,12 +130,14 @@ import Observation
         return color.toBridge()
     }
 
-    // MARK: - Mutation
+    // MARK: - Reactive Mutation
 
-    @objc func set(_ value: JSValue) {
-        if let newColor = HSColor.fromJSValue(value) {
-            color = newColor.color
-        }
+    @objc func replaceWithColor(_ other: HSColor) {
+        color = other.color
+    }
+
+    @objc func replaceWithHex(_ hex: String) {
+        color = HSColor.hex(hex).color
     }
 
     // MARK: - Helper Methods

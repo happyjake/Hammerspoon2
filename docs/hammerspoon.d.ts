@@ -35,10 +35,18 @@ declare class HSColor {
     static named(name: string): HSColor;
 
     /**
-     * Update this color's value
-     * @param value New color as a hex string (e.g. "#FF0000") or another HSColor object
+     * Replace this color's value with another HSColor.
+If this color is bound to a UI element, the canvas re-renders automatically.
+     * @param color The HSColor to copy from
      */
-    set(value: JSValue): void;
+    replaceWithColor(color: HSColor): void;
+
+    /**
+     * Replace this color's value from a hex string.
+If this color is bound to a UI element, the canvas re-renders automatically.
+     * @param hex Hex color string (e.g. "#FF0000" or "FF0000")
+     */
+    replaceWithHex(hex: string): void;
 
 }
 
@@ -4467,7 +4475,7 @@ declare class HSTranslationSession {
 The `hs.ui` module provides a set of tools for creating custom user interfaces
 in Hammerspoon with SwiftUI-like declarative syntax.
 ## Key Features
-then call `.set()` on it from any callback to re-render the canvas automatically
+then call `.replaceWithColor()` or `.replaceWithHex()` on it from any callback to re-render the canvas automatically
 then call `.set()` on it to update the displayed content live
 to swap the image without rebuilding the window
 ## Basic Examples
@@ -4534,7 +4542,7 @@ hs.ui.window({x: 100, y: 100, w: 160, h: 60})
         .cornerRadius(8)
         .frame({w: "100%", h: "100%"})
         .onHover((isHovered) => {
-            btnColor.set(isHovered ? "#E24A4A" : "#4A90E2");
+            btnColor.replaceWithHex(isHovered ? "#E24A4A" : "#4A90E2");
         })
     .show();
 ```
@@ -4672,7 +4680,7 @@ hs.ui.window({x: 100, y: 100, w: 220, h: 120})
             .cornerRadius(10)
             .frame({w: "100%", h: 60})
             .onHover((isHovered) => {
-                cardColor.set(isHovered ? "#E74C3C" : "#3498DB");
+                cardColor.replaceWithHex(isHovered ? "#E74C3C" : "#3498DB");
                 cardLabel.set(isHovered ? "You found it!" : "Hover the card");
             })
         .text(cardLabel)
