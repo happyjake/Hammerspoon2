@@ -117,36 +117,16 @@ import AXSwift
     /// SKIP_DOCS
     @objc var _watcherEmitter: JSFunction? { get set }
 
-    /// Fetch the focused UI element. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// const el = hs.ax.focusedElement()
-    /// console.log(el.role, el.title)
-    /// ```
+    /// SKIP_DOCS
     @objc var focusedElement: JSFunction? { get set }
 
-    /// Find AX elements by role. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// const app = hs.application.frontmost()
-    /// const buttons = hs.ax.findByRole(app, "AXButton")
-    /// ```
+    /// SKIP_DOCS
     @objc var findByRole: JSFunction? { get set }
 
-    /// Find AX elements by title. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// const app = hs.application.frontmost()
-    /// const matches = hs.ax.findByTitle(app, "OK")
-    /// ```
+    /// SKIP_DOCS
     @objc var findByTitle: JSFunction? { get set }
 
-    /// Print the element hierarchy. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// const app = hs.application.frontmost()
-    /// hs.ax.printHierarchy(app)
-    /// ```
+    /// SKIP_DOCS
     @objc var printHierarchy: JSFunction? { get set }
 }
 

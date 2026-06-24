@@ -346,7 +346,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const dev = hs.audiodevice.defaultOutputDevice()
     /// console.log(dev.currentOutputDataSource())
     /// ```
-    @objc func currentOutputDataSource() -> NSDictionary?
+    @objc func currentOutputDataSource() -> [String: Any]?
 
     /// The current input data source as `{ id, name }`, or `null` if unavailable.
     /// - Returns: A dictionary containing the id and name of the current input data source
@@ -355,7 +355,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const mic = hs.audiodevice.defaultInputDevice()
     /// console.log(mic.currentInputDataSource())
     /// ```
-    @objc func currentInputDataSource() -> NSDictionary?
+    @objc func currentInputDataSource() -> [String: Any]?
 
     /// All available output data sources as an array of `{ id, name }` objects.
     /// - Returns: A dictionary containing the ids and names of all available output data sources
@@ -364,7 +364,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const dev = hs.audiodevice.defaultOutputDevice()
     /// console.log(dev.outputDataSources())
     /// ```
-    @objc func outputDataSources() -> [NSDictionary]
+    @objc func outputDataSources() -> [[String: Any]]
 
     /// All available input data sources as an array of `{ id, name }` objects.
     /// - Returns: A dictionary containing the ids and names of all available input data sources
@@ -373,7 +373,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const mic = hs.audiodevice.defaultInputDevice()
     /// console.log(mic.inputDataSources())
     /// ```
-    @objc func inputDataSources() -> [NSDictionary]
+    @objc func inputDataSources() -> [[String: Any]]
 
     /// Select an output data source by its numeric ID.
     /// - Parameter sourceID: The `id` value from ``outputDataSources()``
@@ -631,22 +631,22 @@ private func caDataSourceName(_ objectID: AudioObjectID,
 
     // MARK: - Data sources
 
-    private func dataSource(scope: AudioObjectPropertyScope) -> NSDictionary? {
+    private func dataSource(scope: AudioObjectPropertyScope) -> [String: Any]? {
         guard let sourceID = caGetUInt32(objectID, kAudioDevicePropertyDataSource, scope) else { return nil }
         return ["id": sourceID, "name": caDataSourceName(objectID, sourceID: sourceID, scope: scope)]
     }
 
-    private func dataSources(scope: AudioObjectPropertyScope) -> [NSDictionary] {
+    private func dataSources(scope: AudioObjectPropertyScope) -> [[String: Any]] {
         let ids = caGetUInt32Array(objectID, kAudioDevicePropertyDataSources, scope)
         return ids.map { id in
             ["id": id, "name": caDataSourceName(objectID, sourceID: id, scope: scope)]
         }
     }
 
-    @objc func currentOutputDataSource() -> NSDictionary? { dataSource(scope: kAudioDevicePropertyScopeOutput) }
-    @objc func currentInputDataSource() -> NSDictionary? { dataSource(scope: kAudioDevicePropertyScopeInput) }
-    @objc func outputDataSources() -> [NSDictionary] { dataSources(scope: kAudioDevicePropertyScopeOutput) }
-    @objc func inputDataSources() -> [NSDictionary] { dataSources(scope: kAudioDevicePropertyScopeInput) }
+    @objc func currentOutputDataSource() -> [String: Any]? { dataSource(scope: kAudioDevicePropertyScopeOutput) }
+    @objc func currentInputDataSource() -> [String: Any]? { dataSource(scope: kAudioDevicePropertyScopeInput) }
+    @objc func outputDataSources() -> [[String: Any]] { dataSources(scope: kAudioDevicePropertyScopeOutput) }
+    @objc func inputDataSources() -> [[String: Any]] { dataSources(scope: kAudioDevicePropertyScopeInput) }
 
     @objc func setCurrentOutputDataSource(_ sourceID: Int) -> Bool {
         caSetUInt32(objectID, kAudioDevicePropertyDataSource, kAudioDevicePropertyScopeOutput,

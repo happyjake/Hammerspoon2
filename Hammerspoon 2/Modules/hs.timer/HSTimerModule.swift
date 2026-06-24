@@ -131,34 +131,16 @@ import JavaScriptCore
     /// ```
     @objc func weeks(_ n: Double) -> Double
 
-    /// Repeat a function until a predicate returns true. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// let count = 0
-    /// hs.timer.doUntil(() => count >= 3, () => { count++; console.log(count) }, 1)
-    /// ```
+    /// SKIP_DOCS
     @objc var doUntil: JSFunction? { get set }
 
-    /// Repeat a function while a predicate returns true. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// let count = 0
-    /// hs.timer.doWhile(() => count < 3, () => { count++; console.log(count) }, 1)
-    /// ```
+    /// SKIP_DOCS
     @objc var doWhile: JSFunction? { get set }
 
-    /// Wait to call a function until a predicate returns true. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// hs.timer.waitUntil(() => someCondition, () => console.log("ready"), 0.5)
-    /// ```
+    /// SKIP_DOCS
     @objc var waitUntil: JSFunction? { get set }
 
-    /// Wait to call a function until a predicate returns false. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// hs.timer.waitWhile(() => stillLoading, () => console.log("done"), 0.5)
-    /// ```
+    /// SKIP_DOCS
     @objc var waitWhile: JSFunction? { get set }
 }
 

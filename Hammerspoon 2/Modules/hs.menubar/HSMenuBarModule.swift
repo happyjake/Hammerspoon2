@@ -17,7 +17,7 @@ import JavaScriptCore
 ///
 /// ```js
 /// const item = hs.menubar.create()
-/// item.setTitle("Hello")
+/// item.title = "Hello"
 /// item.setClickCallback(() => console.log("clicked!"))
 /// ```
 ///
@@ -38,7 +38,7 @@ import JavaScriptCore
 ///
 /// ```js
 /// const item = hs.menubar.create()
-/// item.setTitle("Dynamic")
+/// item.title = "Dynamic"
 /// item.setMenu(() => [
 ///     { title: "Time: " + new Date().toLocaleTimeString() },
 ///     { title: "-" },
@@ -53,7 +53,7 @@ import JavaScriptCore
     /// ```js
     /// const item = hs.menubar.create()
     /// const hidden = hs.menubar.create(true)  // not shown yet
-    /// hidden.setTitle("Ready")
+    /// hidden.title = "Ready"
     /// hidden.show()
     /// ```
     @objc func create(_ hidden: Bool) -> HSMenuBarItem

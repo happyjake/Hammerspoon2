@@ -672,6 +672,7 @@ function parseJavaScriptFile(filePath, moduleName = null, repoRoot = REPO_ROOT) 
                     description: formatDocCToJSDoc(docText),
                     params: parsed.params,
                     returns: parsed.returns,
+                    examples: extractExamples(docLines),
                     source: 'javascript',
                     filePath: relativePath,
                     lineNumber: i + 1, // Line numbers are 1-indexed
@@ -846,6 +847,7 @@ function swiftTypeToJSDoc(swiftType) {
         'Bool': 'boolean',
         'TimeInterval': 'number',
         'UInt32': 'number',
+        'NSNumber': 'number',
         'Any': '*'
     };
     
@@ -1302,11 +1304,37 @@ function main() {
     fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2));
     console.log(`\n✓ Saved module index: ${indexPath}`);
 
-    // Save combined api.json file with all modules and types
+    // Save combined api.json file with all modules and types.
+    // Normalize Swift type names to their JS equivalents for Swift-sourced items.
+    // This covers param/return types AND raw signature strings so NSNumber etc. don't
+    // appear verbatim in api.json.
+    const swiftTypeTokenRe = /\bNSNumber\b/g;
+    const normalizeSignature = sig => (sig || '').replace(swiftTypeTokenRe, 'number');
+    const normalizeMethod = m => {
+        if (m.source !== 'swift') return m;
+        return {
+            ...m,
+            signature: normalizeSignature(m.signature),
+            params: (m.params || []).map(p => ({ ...p, type: swiftTypeToJSDoc(p.type || '') })),
+            returns: m.returns ? { ...m.returns, type: swiftTypeToJSDoc(m.returns.type || '') } : m.returns
+        };
+    };
+    const normalizeProperty = p => ({ ...p, signature: normalizeSignature(p.signature) });
+    const normalizeModule = mod => ({
+        ...mod,
+        methods: (mod.methods || []).map(normalizeMethod),
+        properties: (mod.properties || []).map(normalizeProperty),
+        types: (mod.types || []).map(t => ({
+            ...t,
+            methods: (t.methods || []).map(normalizeMethod),
+            properties: (t.properties || []).map(normalizeProperty)
+        }))
+    });
+
     const apiJsonPath = path.join(__dirname, '..', 'docs', 'api.json');
     const apiJsonData = {
-        modules: allModules,
-        types: typesData ? (typesData.types || []) : [],
+        modules: allModules.map(normalizeModule),
+        types: typesData ? (typesData.types || []).map(normalizeModule) : [],
         generatedAt: new Date().toISOString()
     };
     fs.writeFileSync(apiJsonPath, JSON.stringify(apiJsonData, null, 2));

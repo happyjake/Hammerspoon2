@@ -849,25 +849,25 @@ declare class HSAudioDevice {
      * The current output data source as `{ id, name }`, or `null` if unavailable.
      * @returns A dictionary containing the id and name of the current output data source
      */
-    currentOutputDataSource(): NSDictionary | undefined;
+    currentOutputDataSource(): Record<string, any> | undefined;
 
     /**
      * The current input data source as `{ id, name }`, or `null` if unavailable.
      * @returns A dictionary containing the id and name of the current input data source
      */
-    currentInputDataSource(): NSDictionary | undefined;
+    currentInputDataSource(): Record<string, any> | undefined;
 
     /**
      * All available output data sources as an array of `{ id, name }` objects.
      * @returns A dictionary containing the ids and names of all available output data sources
      */
-    outputDataSources(): NSDictionary[];
+    outputDataSources(): Record<string, any>[];
 
     /**
      * All available input data sources as an array of `{ id, name }` objects.
      * @returns A dictionary containing the ids and names of all available input data sources
      */
-    inputDataSources(): NSDictionary[];
+    inputDataSources(): Record<string, any>[];
 
     /**
      * Select an output data source by its numeric ID.
@@ -959,7 +959,7 @@ declare class HSAudioDevice {
      * Output volume scalar in the range `0.0`–`1.0`, or `null` if the device has
 no controllable output volume. Setting `null` is a no-op.
      */
-    volume: NSNumber | undefined;
+    volume: number | undefined;
 
     /**
      * Whether output is muted. Always `false` if the device has no mutable output.
@@ -970,13 +970,13 @@ no controllable output volume. Setting `null` is a no-op.
      * Output stereo balance in the range `0.0` (full left)–`1.0` (full right),
 or `null` if balance control is not available.
      */
-    balance: NSNumber | undefined;
+    balance: number | undefined;
 
     /**
      * Input (microphone) volume scalar in the range `0.0`–`1.0`, or `null` if
 the device has no controllable input volume.
      */
-    inputVolume: NSNumber | undefined;
+    inputVolume: number | undefined;
 
     /**
      * Whether input is muted. Always `false` if the device has no mutable input.
@@ -986,13 +986,13 @@ the device has no controllable input volume.
     /**
      * The current nominal sample rate in Hz (e.g. `44100`), or `null` if unknown.
      */
-    sampleRate: NSNumber | undefined;
+    sampleRate: number | undefined;
 
     /**
      * All sample rates (in Hz) that this device supports.
 For devices that support a range, both the minimum and maximum are included.
      */
-    availableSampleRates: NSNumber[];
+    availableSampleRates: number[];
 
 }
 
@@ -1089,26 +1089,6 @@ declare namespace hs.ax {
      * A dictionary containing all of the notification types that can be used with hs.ax.addWatcher()
      */
     const notificationTypes: Record<string, string>;
-
-    /**
-     * Fetch the focused UI element. Swift-retained storage for the JS implementation.
-     */
-    const focusedElement: ((...args: any[]) => any) | undefined;
-
-    /**
-     * Find AX elements by role. Swift-retained storage for the JS implementation.
-     */
-    const findByRole: ((...args: any[]) => any) | undefined;
-
-    /**
-     * Find AX elements by title. Swift-retained storage for the JS implementation.
-     */
-    const findByTitle: ((...args: any[]) => any) | undefined;
-
-    /**
-     * Print the element hierarchy. Swift-retained storage for the JS implementation.
-     */
-    const printHierarchy: ((...args: any[]) => any) | undefined;
 
 }
 
@@ -2461,7 +2441,7 @@ night). Pass a JS `Date` for `date`, or omit/pass null to use today.
      * @param date optional JS `Date`; defaults to today
      * @returns seconds since epoch of sunrise, or null
      */
-    function sunrise(latitude: number, longitude: number, date: JSValue): NSNumber | undefined;
+    function sunrise(latitude: number, longitude: number, date: JSValue): number | undefined;
 
     /**
      * Returns the time of sunset for the given coordinates and date as seconds
@@ -2472,7 +2452,7 @@ sun). Pass a JS `Date` for `date`, or omit/pass null to use today.
      * @param date optional JS `Date`; defaults to today
      * @returns seconds since epoch of sunset, or null
      */
-    function sunset(latitude: number, longitude: number, date: JSValue): NSNumber | undefined;
+    function sunset(latitude: number, longitude: number, date: JSValue): number | undefined;
 
     /**
      * Creates a new location watcher object. Call `.start()` on it to begin
@@ -2551,7 +2531,7 @@ Each item can display a title, an icon, or both, and can open a menu or invoke a
 ## Creating a simple title item
 ```js
 const item = hs.menubar.create()
-item.setTitle("Hello")
+item.title = "Hello"
 item.setClickCallback(() => console.log("clicked!"))
 ```
 ## Creating an icon item with a static menu
@@ -2568,7 +2548,7 @@ item.setMenu([
 ## Creating an item with a dynamic menu
 ```js
 const item = hs.menubar.create()
-item.setTitle("Dynamic")
+item.title = "Dynamic"
 item.setMenu(() => [
     { title: "Time: " + new Date().toLocaleTimeString() },
     { title: "-" },
@@ -2592,22 +2572,16 @@ Create instances with `hs.menubar.create()`.
  */
 declare class HSMenuBarItem {
     /**
-     * Set the text title displayed in the menu bar
-     * @param title Text to display, or null to remove the title
-     */
-    setTitle(title: JSValue): void;
-
-    /**
      * Set the icon displayed in the menu bar
      * @param image An HSImage object, or null to remove the icon
      */
-    setIcon(image: JSValue): void;
+    setIcon(image: HSImage | undefined): void;
 
     /**
      * Set the tooltip shown when hovering over the menu bar item
      * @param tooltip Tooltip text, or null to remove the tooltip
      */
-    setTooltip(tooltip: JSValue): void;
+    setTooltip(tooltip: string | undefined): void;
 
     /**
      * Set a callback invoked when the item is clicked (only fires when no menu is set)
@@ -2639,7 +2613,7 @@ or a function that returns an array for a dynamic menu populated each time it op
     isVisible(): boolean;
 
     /**
-     * The current title text, or null if none is set
+     * Get or set the menu item's title.
      */
     title: string | undefined;
 
@@ -4207,7 +4181,7 @@ declare class HSTask {
     /**
      * The termination status of the task
      */
-    terminationStatus: NSNumber | undefined;
+    terminationStatus: number | undefined;
 
     /**
      * The termination reason
@@ -4338,26 +4312,6 @@ declare namespace hs.timer {
      * @param checkInterval How often, in seconds, to call predicateFn
      */
     function waitWhile(predicateFn: any, actionFn: any, checkInterval: any): void;
-
-    /**
-     * Repeat a function until a predicate returns true. Swift-retained storage for the JS implementation.
-     */
-    const doUntil: ((...args: any[]) => any) | undefined;
-
-    /**
-     * Repeat a function while a predicate returns true. Swift-retained storage for the JS implementation.
-     */
-    const doWhile: ((...args: any[]) => any) | undefined;
-
-    /**
-     * Wait to call a function until a predicate returns true. Swift-retained storage for the JS implementation.
-     */
-    const waitUntil: ((...args: any[]) => any) | undefined;
-
-    /**
-     * Wait to call a function until a predicate returns false. Swift-retained storage for the JS implementation.
-     */
-    const waitWhile: ((...args: any[]) => any) | undefined;
 
 }
 

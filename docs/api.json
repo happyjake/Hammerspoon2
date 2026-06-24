@@ -12,7 +12,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "A message to log",
               "optional": false,
               "tsType": null
@@ -33,7 +33,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "An error message",
               "optional": false,
               "tsType": null
@@ -54,7 +54,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "A warning message",
               "optional": false,
               "tsType": null
@@ -75,7 +75,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "An informational message",
               "optional": false,
               "tsType": null
@@ -96,7 +96,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "A debug message",
               "optional": false,
               "tsType": null
@@ -269,7 +269,7 @@
           "description": "Fetch all running applications",
           "params": [],
           "returns": {
-            "type": "[HSApplication]",
+            "type": "Array<HSApplication>",
             "description": "An array of all currently running applications"
           },
           "examples": [
@@ -291,14 +291,14 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "The applicaiton name to search for",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSApplication?",
+            "type": "HSApplication",
             "description": "The first matching application, or nil if none matched"
           },
           "examples": [
@@ -320,14 +320,14 @@
           "params": [
             {
               "name": "bundleID",
-              "type": "String",
+              "type": "string",
               "description": "The identifier to search for",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSApplication?",
+            "type": "HSApplication",
             "description": "The first matching application, or nil if none matched"
           },
           "examples": [
@@ -349,14 +349,14 @@
           "params": [
             {
               "name": "pid",
-              "type": "Int",
+              "type": "number",
               "description": "The PID to search for",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSApplication?",
+            "type": "HSApplication",
             "description": "The matching application, or nil if none matched"
           },
           "examples": [
@@ -377,7 +377,7 @@
           "description": "Fetch the currently focused application",
           "params": [],
           "returns": {
-            "type": "HSApplication?",
+            "type": "HSApplication",
             "description": "The matching application, or nil if none matched"
           },
           "examples": [
@@ -398,7 +398,7 @@
           "description": "Fetch the application which currently owns the menu bar",
           "params": [],
           "returns": {
-            "type": "HSApplication?",
+            "type": "HSApplication",
             "description": "The matching application, or nil if none matched"
           },
           "examples": [
@@ -420,14 +420,14 @@
           "params": [
             {
               "name": "bundleID",
-              "type": "String",
+              "type": "string",
               "description": "The application bundle identifier to search for (e.g. \"com.apple.Safari\")",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The application's filesystem path, or nil if it was not found"
           },
           "examples": [
@@ -449,14 +449,14 @@
           "params": [
             {
               "name": "bundleID",
-              "type": "String",
+              "type": "string",
               "description": "The application bundle identifier to search for (e.g. \"com.apple.Safari\")",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String]",
+            "type": "Array<String>",
             "description": "An array of strings containing any filesystem paths that were found"
           },
           "examples": [
@@ -478,14 +478,14 @@
           "params": [
             {
               "name": "fileType",
-              "type": "String",
+              "type": "string",
               "description": "The file type to search for. This can be a UTType identifier, a MIME type, or a filename extension",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The path to an application for the given filetype, or il if none were found"
           },
           "examples": [
@@ -507,14 +507,14 @@
           "params": [
             {
               "name": "fileType",
-              "type": "String",
+              "type": "string",
               "description": "The file type to search for. This can be a UTType identifier, a MIME type, or a filename extension",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String]",
+            "type": "Array<String>",
             "description": "An array of strings containing the filesystem paths for any applications that were found"
           },
           "examples": [
@@ -536,14 +536,14 @@
           "params": [
             {
               "name": "bundleID",
-              "type": "String",
+              "type": "string",
               "description": "A bundle identifier for the app to launch/focus (e.g. \"com.apple.Safari\")",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A Promise that resolves to true if successful, false otherwise",
             "promiseType": "boolean"
           },
@@ -626,7 +626,7 @@
               "description": "Terminate the application",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "True if the application was terminated, otherwise false"
               },
               "examples": [
@@ -647,7 +647,7 @@
               "description": "Force-terminate the application",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "True if the application was force-terminated, otherwise false"
               },
               "examples": [
@@ -668,7 +668,7 @@
               "description": "The application's HSAXElement object, for use with the hs.ax APIs",
               "params": [],
               "returns": {
-                "type": "HSAXElement?",
+                "type": "HSAXElement",
                 "description": "An HSAXElement object, or nil if it could not be obtained"
               },
               "examples": [
@@ -690,7 +690,7 @@
               "params": [
                 {
                   "name": "allWindows",
-                  "type": "Bool",
+                  "type": "boolean",
                   "description": "Pass true to raise all application windows. Defaults to false.",
                   "optional": true,
                   "tsType": null
@@ -751,7 +751,7 @@
               "description": "Get the full menu structure of this application",
               "params": [],
               "returns": {
-                "type": "[[String: Any]]?",
+                "type": "[[String: Any]]",
                 "description": "An array of top-level menu objects, each with title and items keys, or null if unavailable"
               },
               "examples": [
@@ -773,14 +773,14 @@
               "params": [
                 {
                   "name": "name",
-                  "type": "String",
+                  "type": "string",
                   "description": "The menu item title to search for",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "[String: Any]?",
+                "type": "Object<String, Any>",
                 "description": "An object with title and enabled keys, or null if not found"
               },
               "examples": [
@@ -802,14 +802,14 @@
               "params": [
                 {
                   "name": "path",
-                  "type": "[String]",
+                  "type": "Array<String>",
                   "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"Edit\", \"Select All\"]",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "[String: Any]?",
+                "type": "Object<String, Any>",
                 "description": "An object with title and enabled keys, or null if not found"
               },
               "examples": [
@@ -831,14 +831,14 @@
               "params": [
                 {
                   "name": "name",
-                  "type": "String",
+                  "type": "string",
                   "description": "The menu item title to search for",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if the menu item was found and clicked, false otherwise"
               },
               "examples": [
@@ -860,14 +860,14 @@
               "params": [
                 {
                   "name": "path",
-                  "type": "[String]",
+                  "type": "Array<String>",
                   "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"File\", \"New Window\"]",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if the menu item was found and clicked, false otherwise"
               },
               "examples": [
@@ -889,14 +889,14 @@
               "params": [
                 {
                   "name": "pattern",
-                  "type": "String",
+                  "type": "string",
                   "description": "A string to search for in window titles",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "[HSWindow]",
+                "type": "Array<HSWindow>",
                 "description": "An array of matching HSWindow objects"
               },
               "examples": [
@@ -918,14 +918,14 @@
               "params": [
                 {
                   "name": "title",
-                  "type": "String",
+                  "type": "string",
                   "description": "The exact window title to search for",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "HSWindow?",
+                "type": "HSWindow",
                 "description": "The matching HSWindow, or null if not found"
               },
               "examples": [
@@ -1137,7 +1137,7 @@
           "description": "All audio devices attached to the system.",
           "params": [],
           "returns": {
-            "type": "[HSAudioDevice]",
+            "type": "Array<HSAudioDevice>",
             "description": "An array of HSAudioDevice objects"
           },
           "examples": [
@@ -1158,7 +1158,7 @@
           "description": "All audio devices that have at least one output stream.",
           "params": [],
           "returns": {
-            "type": "[HSAudioDevice]",
+            "type": "Array<HSAudioDevice>",
             "description": "An array of HSAudioDevice objects"
           },
           "examples": [
@@ -1179,7 +1179,7 @@
           "description": "All audio devices that have at least one input stream.",
           "params": [],
           "returns": {
-            "type": "[HSAudioDevice]",
+            "type": "Array<HSAudioDevice>",
             "description": "An array of HSAudioDevice objects"
           },
           "examples": [
@@ -1200,7 +1200,7 @@
           "description": "The current system default output device.",
           "params": [],
           "returns": {
-            "type": "HSAudioDevice?",
+            "type": "HSAudioDevice",
             "description": "An HSAudioDevice, or null if none is set"
           },
           "examples": [
@@ -1221,7 +1221,7 @@
           "description": "The current system default input device.",
           "params": [],
           "returns": {
-            "type": "HSAudioDevice?",
+            "type": "HSAudioDevice",
             "description": "An HSAudioDevice, or null if none is set"
           },
           "examples": [
@@ -1242,7 +1242,7 @@
           "description": "The current system alert sound device.",
           "params": [],
           "returns": {
-            "type": "HSAudioDevice?",
+            "type": "HSAudioDevice",
             "description": "An HSAudioDevice, or null if none is set"
           },
           "examples": [
@@ -1264,14 +1264,14 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "The device name to search for",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSAudioDevice?",
+            "type": "HSAudioDevice",
             "description": "An HSAudioDevice if found, null otherwise"
           },
           "examples": [
@@ -1293,14 +1293,14 @@
           "params": [
             {
               "name": "uid",
-              "type": "String",
+              "type": "string",
               "description": "The device UID to search for",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSAudioDevice?",
+            "type": "HSAudioDevice",
             "description": "An HSAudioDevice if found, null otherwise"
           },
           "examples": [
@@ -1371,6 +1371,7 @@
           "description": "SKIP_DOCS",
           "params": [],
           "returns": null,
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.audiodevice/hs.audiodevice.js",
           "lineNumber": 108,
@@ -1387,13 +1388,13 @@
           "methods": [
             {
               "name": "currentOutputDataSource",
-              "signature": "func currentOutputDataSource() -> NSDictionary?",
+              "signature": "func currentOutputDataSource() -> [String: Any]?",
               "isStatic": false,
               "rawDocumentation": "The current output data source as `{ id, name }`, or `null` if unavailable.\n- Returns: A dictionary containing the id and name of the current output data source\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.currentOutputDataSource())\n```",
               "description": "The current output data source as `{ id, name }`, or `null` if unavailable.",
               "params": [],
               "returns": {
-                "type": "NSDictionary?",
+                "type": "Object<String, Any>",
                 "description": "A dictionary containing the id and name of the current output data source"
               },
               "examples": [
@@ -1408,13 +1409,13 @@
             },
             {
               "name": "currentInputDataSource",
-              "signature": "func currentInputDataSource() -> NSDictionary?",
+              "signature": "func currentInputDataSource() -> [String: Any]?",
               "isStatic": false,
               "rawDocumentation": "The current input data source as `{ id, name }`, or `null` if unavailable.\n- Returns: A dictionary containing the id and name of the current input data source\n- Example:\n```js\nconst mic = hs.audiodevice.defaultInputDevice()\nconsole.log(mic.currentInputDataSource())\n```",
               "description": "The current input data source as `{ id, name }`, or `null` if unavailable.",
               "params": [],
               "returns": {
-                "type": "NSDictionary?",
+                "type": "Object<String, Any>",
                 "description": "A dictionary containing the id and name of the current input data source"
               },
               "examples": [
@@ -1429,13 +1430,13 @@
             },
             {
               "name": "outputDataSources",
-              "signature": "func outputDataSources() -> [NSDictionary]",
+              "signature": "func outputDataSources() -> [[String: Any]]",
               "isStatic": false,
               "rawDocumentation": "All available output data sources as an array of `{ id, name }` objects.\n- Returns: A dictionary containing the ids and names of all available output data sources\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.outputDataSources())\n```",
               "description": "All available output data sources as an array of `{ id, name }` objects.",
               "params": [],
               "returns": {
-                "type": "[NSDictionary]",
+                "type": "[[String: Any]]",
                 "description": "A dictionary containing the ids and names of all available output data sources"
               },
               "examples": [
@@ -1450,13 +1451,13 @@
             },
             {
               "name": "inputDataSources",
-              "signature": "func inputDataSources() -> [NSDictionary]",
+              "signature": "func inputDataSources() -> [[String: Any]]",
               "isStatic": false,
               "rawDocumentation": "All available input data sources as an array of `{ id, name }` objects.\n- Returns: A dictionary containing the ids and names of all available input data sources\n- Example:\n```js\nconst mic = hs.audiodevice.defaultInputDevice()\nconsole.log(mic.inputDataSources())\n```",
               "description": "All available input data sources as an array of `{ id, name }` objects.",
               "params": [],
               "returns": {
-                "type": "[NSDictionary]",
+                "type": "[[String: Any]]",
                 "description": "A dictionary containing the ids and names of all available input data sources"
               },
               "examples": [
@@ -1478,14 +1479,14 @@
               "params": [
                 {
                   "name": "sourceID",
-                  "type": "Int",
+                  "type": "number",
                   "description": "The `id` value from ``outputDataSources()``",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success"
               },
               "examples": [
@@ -1507,14 +1508,14 @@
               "params": [
                 {
                   "name": "sourceID",
-                  "type": "Int",
+                  "type": "number",
                   "description": "The `id` value from ``inputDataSources()``",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success"
               },
               "examples": [
@@ -1535,7 +1536,7 @@
               "description": "Make this device the system default output device.",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success"
               },
               "examples": [
@@ -1556,7 +1557,7 @@
               "description": "Make this device the system default input device.",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success"
               },
               "examples": [
@@ -1577,7 +1578,7 @@
               "description": "Make this device the system alert sound (effect) device.",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success"
               },
               "examples": [
@@ -1766,7 +1767,7 @@
             },
             {
               "name": "volume",
-              "signature": "var volume: NSNumber? { get set }",
+              "signature": "var volume: number? { get set }",
               "rawDocumentation": "Output volume scalar in the range `0.0`–`1.0`, or `null` if the device has\nno controllable output volume. Setting `null` is a no-op.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\ndev.volume = 0.5\n```",
               "description": "Output volume scalar in the range `0.0`–`1.0`, or `null` if the device has\nno controllable output volume. Setting `null` is a no-op.",
               "examples": [
@@ -1796,7 +1797,7 @@
             },
             {
               "name": "balance",
-              "signature": "var balance: NSNumber? { get set }",
+              "signature": "var balance: number? { get set }",
               "rawDocumentation": "Output stereo balance in the range `0.0` (full left)–`1.0` (full right),\nor `null` if balance control is not available.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\ndev.balance = 0.5\n```",
               "description": "Output stereo balance in the range `0.0` (full left)–`1.0` (full right),\nor `null` if balance control is not available.",
               "examples": [
@@ -1811,7 +1812,7 @@
             },
             {
               "name": "inputVolume",
-              "signature": "var inputVolume: NSNumber? { get set }",
+              "signature": "var inputVolume: number? { get set }",
               "rawDocumentation": "Input (microphone) volume scalar in the range `0.0`–`1.0`, or `null` if\nthe device has no controllable input volume.\n- Example:\n```js\nconst mic = hs.audiodevice.defaultInputDevice()\nmic.inputVolume = 0.8\n```",
               "description": "Input (microphone) volume scalar in the range `0.0`–`1.0`, or `null` if\nthe device has no controllable input volume.",
               "examples": [
@@ -1841,7 +1842,7 @@
             },
             {
               "name": "sampleRate",
-              "signature": "var sampleRate: NSNumber? { get set }",
+              "signature": "var sampleRate: number? { get set }",
               "rawDocumentation": "The current nominal sample rate in Hz (e.g. `44100`), or `null` if unknown.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.sampleRate)\n```",
               "description": "The current nominal sample rate in Hz (e.g. `44100`), or `null` if unknown.",
               "examples": [
@@ -1856,7 +1857,7 @@
             },
             {
               "name": "availableSampleRates",
-              "signature": "var availableSampleRates: [NSNumber] { get }",
+              "signature": "var availableSampleRates: [number] { get }",
               "rawDocumentation": "All sample rates (in Hz) that this device supports.\nFor devices that support a range, both the minimum and maximum are included.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.availableSampleRates)\n```",
               "description": "All sample rates (in Hz) that this device supports.\nFor devices that support a range, both the minimum and maximum are included.",
               "examples": [
@@ -1886,7 +1887,7 @@
           "description": "Get the system-wide accessibility element",
           "params": [],
           "returns": {
-            "type": "HSAXElement?",
+            "type": "HSAXElement",
             "description": "The system-wide AXElement, or nil if accessibility is not available"
           },
           "examples": [
@@ -1915,7 +1916,7 @@
             }
           ],
           "returns": {
-            "type": "HSAXElement?",
+            "type": "HSAXElement",
             "description": "The AXElement for the application, or nil if accessibility is not available"
           },
           "examples": [
@@ -1944,7 +1945,7 @@
             }
           ],
           "returns": {
-            "type": "HSAXElement?",
+            "type": "HSAXElement",
             "description": "The AXElement for the window, or nil if accessibility is not available"
           },
           "examples": [
@@ -1973,7 +1974,7 @@
             }
           ],
           "returns": {
-            "type": "HSAXElement?",
+            "type": "HSAXElement",
             "description": "The AXElement at that position, or nil if none found"
           },
           "examples": [
@@ -2002,7 +2003,7 @@
             },
             {
               "name": "notification",
-              "type": "String",
+              "type": "string",
               "description": "An event name",
               "optional": false,
               "tsType": null
@@ -2042,7 +2043,7 @@
             },
             {
               "name": "notification",
-              "type": "String",
+              "type": "string",
               "description": "The event name to stop watching",
               "optional": false,
               "tsType": null
@@ -2068,21 +2069,27 @@
         },
         {
           "name": "focusedElement",
-          "rawDocumentation": "Fetch the focused UI element\nReturns: An HSAXElement representing the focused UI element, or null if none was found",
+          "rawDocumentation": "Fetch the focused UI element\nReturns: An HSAXElement representing the focused UI element, or null if none was found\nExample:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.role, el.title)\n```",
           "description": "Fetch the focused UI element",
           "params": [],
           "returns": {
             "type": "any",
             "description": "An HSAXElement representing the focused UI element, or null if none was found"
           },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const el = hs.ax.focusedElement()\nconsole.log(el.role, el.title)"
+            }
+          ],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.ax/hs.ax.js",
-          "lineNumber": 75,
+          "lineNumber": 80,
           "type": "function"
         },
         {
           "name": "findByRole",
-          "rawDocumentation": "Find AX elements for a given role\nParameters:\n- role: The role name to search for\n- parent: An HSAXElement object to search. If none is supplied, the search will be conducted system-wide\nReturns: An array of found elements",
+          "rawDocumentation": "Find AX elements for a given role\nParameters:\n- role: The role name to search for\n- parent: An HSAXElement object to search. If none is supplied, the search will be conducted system-wide\nReturns: An array of found elements\nExample:\n```js\nconst app = hs.application.frontmost()\nconst buttons = hs.ax.findByRole(app, \"AXButton\")\n```",
           "description": "Find AX elements for a given role",
           "params": [
             {
@@ -2102,14 +2109,20 @@
             "type": "any",
             "description": "An array of found elements"
           },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const app = hs.application.frontmost()\nconst buttons = hs.ax.findByRole(app, \"AXButton\")"
+            }
+          ],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.ax/hs.ax.js",
-          "lineNumber": 103,
+          "lineNumber": 113,
           "type": "function"
         },
         {
           "name": "findByTitle",
-          "rawDocumentation": "Find AX elements by title\nParameters:\n- title: The name to search for\n- parent: An HSAXElement object to search. If none is supplied, the search will be conducted system-wide\nReturns: An array of found elements",
+          "rawDocumentation": "Find AX elements by title\nParameters:\n- title: The name to search for\n- parent: An HSAXElement object to search. If none is supplied, the search will be conducted system-wide\nReturns: An array of found elements\nExample:\n```js\nconst app = hs.application.frontmost()\nconst matches = hs.ax.findByTitle(app, \"OK\")\n```",
           "description": "Find AX elements by title",
           "params": [
             {
@@ -2129,14 +2142,20 @@
             "type": "any",
             "description": "An array of found elements"
           },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const app = hs.application.frontmost()\nconst matches = hs.ax.findByTitle(app, \"OK\")"
+            }
+          ],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.ax/hs.ax.js",
-          "lineNumber": 134,
+          "lineNumber": 149,
           "type": "function"
         },
         {
           "name": "printHierarchy",
-          "rawDocumentation": "Prints the hierarchy of a given element to the Console\nParameters:\n- element: An HSAXElement\n- depth: This parameter should not be supplied",
+          "rawDocumentation": "Prints the hierarchy of a given element to the Console\nParameters:\n- element: An HSAXElement\n- depth: This parameter should not be supplied\nExample:\n```js\nconst app = hs.application.frontmost()\nhs.ax.printHierarchy(app)\n```",
           "description": "Prints the hierarchy of a given element to the Console",
           "params": [
             {
@@ -2153,9 +2172,15 @@
             }
           ],
           "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const app = hs.application.frontmost()\nhs.ax.printHierarchy(app)"
+            }
+          ],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.ax/hs.ax.js",
-          "lineNumber": 164,
+          "lineNumber": 184,
           "type": "function"
         }
       ],
@@ -2174,66 +2199,6 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXModule.swift",
           "lineNumber": 82
-        },
-        {
-          "name": "focusedElement",
-          "signature": "var focusedElement: JSFunction? { get set }",
-          "rawDocumentation": "Fetch the focused UI element. Swift-retained storage for the JS implementation.\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.role, el.title)\n```",
-          "description": "Fetch the focused UI element. Swift-retained storage for the JS implementation.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "const el = hs.ax.focusedElement()\nconsole.log(el.role, el.title)"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXModule.swift",
-          "lineNumber": 126
-        },
-        {
-          "name": "findByRole",
-          "signature": "var findByRole: JSFunction? { get set }",
-          "rawDocumentation": "Find AX elements by role. Swift-retained storage for the JS implementation.\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst buttons = hs.ax.findByRole(app, \"AXButton\")\n```",
-          "description": "Find AX elements by role. Swift-retained storage for the JS implementation.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "const app = hs.application.frontmost()\nconst buttons = hs.ax.findByRole(app, \"AXButton\")"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXModule.swift",
-          "lineNumber": 134
-        },
-        {
-          "name": "findByTitle",
-          "signature": "var findByTitle: JSFunction? { get set }",
-          "rawDocumentation": "Find AX elements by title. Swift-retained storage for the JS implementation.\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst matches = hs.ax.findByTitle(app, \"OK\")\n```",
-          "description": "Find AX elements by title. Swift-retained storage for the JS implementation.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "const app = hs.application.frontmost()\nconst matches = hs.ax.findByTitle(app, \"OK\")"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXModule.swift",
-          "lineNumber": 142
-        },
-        {
-          "name": "printHierarchy",
-          "signature": "var printHierarchy: JSFunction? { get set }",
-          "rawDocumentation": "Print the element hierarchy. Swift-retained storage for the JS implementation.\n- Example:\n```js\nconst app = hs.application.frontmost()\nhs.ax.printHierarchy(app)\n```",
-          "description": "Print the element hierarchy. Swift-retained storage for the JS implementation.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "const app = hs.application.frontmost()\nhs.ax.printHierarchy(app)"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.ax/HSAXModule.swift",
-          "lineNumber": 150
         }
       ],
       "types": [
@@ -2251,7 +2216,7 @@
               "description": "The element's children",
               "params": [],
               "returns": {
-                "type": "[HSAXElement]",
+                "type": "Array<HSAXElement>",
                 "description": "An array of HSAXElement objects"
               },
               "examples": [
@@ -2273,14 +2238,14 @@
               "params": [
                 {
                   "name": "index",
-                  "type": "Int",
+                  "type": "number",
                   "description": "The index to fetch",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "HSAXElement?",
+                "type": "HSAXElement",
                 "description": "An HSAXElement object, if a child exists at the given index"
               },
               "examples": [
@@ -2301,7 +2266,7 @@
               "description": "Get all available attribute names",
               "params": [],
               "returns": {
-                "type": "[String]",
+                "type": "Array<String>",
                 "description": "An array of attribute names"
               },
               "examples": [
@@ -2323,14 +2288,14 @@
               "params": [
                 {
                   "name": "attribute",
-                  "type": "String",
+                  "type": "string",
                   "description": "The attribute name to fetch the value for",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Any?",
+                "type": "*",
                 "description": "The requested value, or nil if none was found"
               },
               "examples": [
@@ -2352,21 +2317,21 @@
               "params": [
                 {
                   "name": "attribute",
-                  "type": "String",
+                  "type": "string",
                   "description": "The attribute name to set",
                   "optional": false,
                   "tsType": null
                 },
                 {
                   "name": "value",
-                  "type": "Any",
+                  "type": "*",
                   "description": "The value to set",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "True if the operation succeeded, otherwise False"
               },
               "examples": [
@@ -2388,14 +2353,14 @@
               "params": [
                 {
                   "name": "attribute",
-                  "type": "String",
+                  "type": "string",
                   "description": "An attribute name",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "True if the attribute is settable, otherwise False"
               },
               "examples": [
@@ -2416,7 +2381,7 @@
               "description": "Get all available action names",
               "params": [],
               "returns": {
-                "type": "[String]",
+                "type": "Array<String>",
                 "description": "An array of available action names"
               },
               "examples": [
@@ -2438,14 +2403,14 @@
               "params": [
                 {
                   "name": "action",
-                  "type": "String",
+                  "type": "string",
                   "description": "The action to perform",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "True if the action succeeded, otherwise False"
               },
               "examples": [
@@ -2705,14 +2670,14 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "human-readable name shown to browsers (e.g. `\"My Web Server\"`)",
               "optional": false,
               "tsType": null
             },
             {
               "name": "type",
-              "type": "String",
+              "type": "string",
               "description": "service type in `\"_proto._tcp.\"` or `\"_proto._udp.\"` form",
               "optional": false,
               "tsType": null
@@ -2726,7 +2691,7 @@
             },
             {
               "name": "domain",
-              "type": "String",
+              "type": "string",
               "description": "mDNS domain; defaults to `\"local.\"` if an empty string is passed",
               "optional": false,
               "tsType": null
@@ -2759,14 +2724,14 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "the name passed to `advertise()`",
               "optional": false,
               "tsType": null
             },
             {
               "name": "type",
-              "type": "String",
+              "type": "string",
               "description": "the type passed to `advertise()`",
               "optional": false,
               "tsType": null
@@ -2792,14 +2757,14 @@
           "params": [
             {
               "name": "timeout",
-              "type": "Double",
+              "type": "number",
               "description": "maximum seconds to wait (pass `0` to use the default 5 s)",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "a Promise resolving to an array of service-type strings such as `\"_http._tcp.\"`",
             "promiseType": "string[]"
           },
@@ -2847,14 +2812,14 @@
               "params": [
                 {
                   "name": "type",
-                  "type": "String",
+                  "type": "string",
                   "description": "service type string, e.g. `\"_http._tcp.\"` or `\"_ssh._tcp.\"`",
                   "optional": false,
                   "tsType": null
                 },
                 {
                   "name": "domain",
-                  "type": "String",
+                  "type": "string",
                   "description": "mDNS domain; `\"local.\"` for the local link, `\"\"` for all domains",
                   "optional": false,
                   "tsType": null
@@ -3009,7 +2974,7 @@
               "params": [
                 {
                   "name": "timeout",
-                  "type": "Double",
+                  "type": "number",
                   "description": "seconds before giving up; pass `0` for no timeout",
                   "optional": false,
                   "tsType": null
@@ -3261,7 +3226,7 @@
           "description": "All video camera devices currently connected to the system.",
           "params": [],
           "returns": {
-            "type": "[HSCamera]",
+            "type": "Array<HSCamera>",
             "description": "An array of `HSCamera` objects"
           },
           "examples": [
@@ -3283,14 +3248,14 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "The device name to search for (exact match)",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSCamera?",
+            "type": "HSCamera",
             "description": "An `HSCamera` if found, `null` otherwise"
           },
           "examples": [
@@ -3312,14 +3277,14 @@
           "params": [
             {
               "name": "uid",
-              "type": "String",
+              "type": "string",
               "description": "The device UID to search for",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSCamera?",
+            "type": "HSCamera",
             "description": "An `HSCamera` if found, `null` otherwise"
           },
           "examples": [
@@ -3390,6 +3355,7 @@
           "description": "SKIP_DOCS",
           "params": [],
           "returns": null,
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.camera/hs.camera.js",
           "lineNumber": 89,
@@ -3464,7 +3430,7 @@
               "description": "Capture a still image from this camera.\nCamera permission must be granted via `hs.permissions.requestCamera()` before calling\nthis method. The returned `HSImage` can be saved, displayed in a UI element, or\npassed to other image-processing APIs.",
               "params": [],
               "returns": {
-                "type": "JSPromise?",
+                "type": "JSPromise",
                 "description": "A Promise that resolves to an `HSImage`, or rejects on error",
                 "promiseType": "HSImage"
               },
@@ -3583,7 +3549,7 @@
               "params": [
                 {
                   "name": "choices",
-                  "type": "[Any]",
+                  "type": "Array<Any>",
                   "description": "An array of choice objects, each with `text`, optional `subText`, `image`, `valid`, and custom fields",
                   "optional": false,
                   "tsType": null
@@ -3704,7 +3670,7 @@
               "params": [
                 {
                   "name": "index",
-                  "type": "Int",
+                  "type": "number",
                   "description": "Zero-based row index to select",
                   "optional": false,
                   "tsType": null
@@ -3754,14 +3720,14 @@
               "params": [
                 {
                   "name": "index",
-                  "type": "Int",
+                  "type": "number",
                   "description": "Zero-based row index",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "NSDictionary?",
+                "type": "NSDictionary",
                 "description": "The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`."
               },
               "examples": [
@@ -3782,7 +3748,7 @@
               "description": "Returns the dict for the currently highlighted row.\nReturns `null` if no choices are set or the chooser is empty.",
               "params": [],
               "returns": {
-                "type": "NSDictionary?",
+                "type": "NSDictionary",
                 "description": "The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`."
               },
               "examples": [
@@ -4084,7 +4050,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "The message to print",
               "optional": false,
               "tsType": null
@@ -4110,7 +4076,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "The message to print",
               "optional": false,
               "tsType": null
@@ -4136,7 +4102,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "The message to print",
               "optional": false,
               "tsType": null
@@ -4162,7 +4128,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "The message to print",
               "optional": false,
               "tsType": null
@@ -4188,7 +4154,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "The message to print",
               "optional": false,
               "tsType": null
@@ -4223,28 +4189,28 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file. `~` is expanded.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "offset",
-              "type": "Int",
+              "type": "number",
               "description": "Byte offset to start reading from. Pass `0` (or omit) to read from the beginning.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "length",
-              "type": "Int",
+              "type": "number",
               "description": "Maximum number of bytes to read. Pass `0` (or omit) to read to the end of the file.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The file contents as a UTF-8 string, or `null` if the file cannot be read."
           },
           "examples": [
@@ -4266,7 +4232,7 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file. `~` is expanded.",
               "optional": false,
               "tsType": null
@@ -4280,7 +4246,7 @@
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if the file was read successfully (including early stops requested by the callback), or `false` if the file could not be opened."
           },
           "examples": [
@@ -4302,28 +4268,28 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file. `~` is expanded.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "content",
-              "type": "String",
+              "type": "string",
               "description": "String to write.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "inPlace",
-              "type": "Bool",
+              "type": "boolean",
               "description": "Whether to write the file in-place or atomically. Defaults to atomically (false).",
               "optional": true,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -4345,21 +4311,21 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file. `~` is expanded.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "content",
-              "type": "String",
+              "type": "string",
               "description": "String to append.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -4381,14 +4347,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to check. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if any filesystem entry (file, directory, symlink, etc.) exists at the path."
           },
           "examples": [
@@ -4410,14 +4376,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to check. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if a regular file (not a directory or symlink) exists at the path."
           },
           "examples": [
@@ -4439,14 +4405,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to check. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if a directory exists at the path."
           },
           "examples": [
@@ -4468,14 +4434,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to check. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if the path is a symbolic link."
           },
           "examples": [
@@ -4497,14 +4463,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to check. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if the current process can read the file or directory at the path."
           },
           "examples": [
@@ -4526,14 +4492,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to check. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if the current process can write to the file or directory at the path."
           },
           "examples": [
@@ -4555,21 +4521,21 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "Path to the existing file or directory. `~` is expanded.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "destination",
-              "type": "String",
+              "type": "string",
               "description": "Path for the copy. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -4591,21 +4557,21 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "Path to the existing file or directory. `~` is expanded.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "destination",
-              "type": "String",
+              "type": "string",
               "description": "New path. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -4627,14 +4593,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to delete. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -4656,14 +4622,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the directory. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String]?",
+            "type": "Array<String>",
             "description": "Sorted array of filenames, or `null` if the path cannot be read."
           },
           "examples": [
@@ -4685,14 +4651,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the root directory. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String]?",
+            "type": "Array<String>",
             "description": "Sorted array of relative paths, or `null` if the path cannot be read."
           },
           "examples": [
@@ -4714,14 +4680,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path of the directory to create. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -4743,14 +4709,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path of the directory to remove. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -4771,7 +4737,7 @@
           "description": "Returns the current working directory of the process.",
           "params": [],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "Current directory path, or `null` on error."
           },
           "examples": [
@@ -4793,14 +4759,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "New working directory path. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -4822,14 +4788,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to resolve.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "Absolute canonical path, or `null` if it cannot be resolved."
           },
           "examples": [
@@ -4851,14 +4817,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file or directory. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "Display name string, or `null` if the path does not exist."
           },
           "examples": [
@@ -4879,7 +4845,7 @@
           "description": "Returns the temporary directory for the current user.",
           "params": [],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Temporary directory path (always ends with `/`)."
           },
           "examples": [
@@ -4900,7 +4866,7 @@
           "description": "Returns the home directory for the current user.",
           "params": [],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Home directory path string."
           },
           "examples": [
@@ -4922,14 +4888,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Filesystem path. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "URL string"
           },
           "examples": [
@@ -4951,14 +4917,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to inspect. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "NSDictionary?",
+            "type": "NSDictionary",
             "description": "Attributes object, or `null` if the path cannot be accessed."
           },
           "examples": [
@@ -4980,14 +4946,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -5009,21 +4975,21 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "Path of the existing file.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "destination",
-              "type": "String",
+              "type": "string",
               "description": "Path for the new hard link.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -5045,21 +5011,21 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "The path the symlink will point to.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "destination",
-              "type": "String",
+              "type": "string",
               "description": "The path where the symlink will be created.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -5081,14 +5047,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the symbolic link.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The raw path the link points to, or `null` if the path is not a symlink."
           },
           "examples": [
@@ -5110,14 +5076,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file or directory. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String]?",
+            "type": "Array<String>",
             "description": "Array of tag name strings, or `null` if no tags are set."
           },
           "examples": [
@@ -5139,14 +5105,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "`true` on success, `false` on failure."
           },
           "examples": [
@@ -5180,14 +5146,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file or directory. `~` is expanded.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "Base64-encoded bookmark string, or `null` on failure."
           },
           "examples": [
@@ -5209,14 +5175,14 @@
           "params": [
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "Base64-encoded bookmark string produced by `pathToBookmark`.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The current file path, or `null` if the bookmark cannot be resolved."
           },
           "examples": [
@@ -5247,14 +5213,14 @@
           "params": [
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The string to encode",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Base64 encoded string"
           },
           "examples": [
@@ -5276,14 +5242,14 @@
           "params": [
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The base64 string to decode",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "Decoded string, or nil if the input is invalid"
           },
           "examples": [
@@ -5305,14 +5271,14 @@
           "params": [
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The string to hash",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Hexadecimal MD5 hash"
           },
           "examples": [
@@ -5334,14 +5300,14 @@
           "params": [
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The string to hash",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Hexadecimal SHA1 hash"
           },
           "examples": [
@@ -5363,14 +5329,14 @@
           "params": [
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The string to hash",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Hexadecimal SHA256 hash"
           },
           "examples": [
@@ -5392,14 +5358,14 @@
           "params": [
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The string to hash",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Hexadecimal SHA512 hash"
           },
           "examples": [
@@ -5421,21 +5387,21 @@
           "params": [
             {
               "name": "key",
-              "type": "String",
+              "type": "string",
               "description": "The secret key",
               "optional": false,
               "tsType": null
             },
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The data to authenticate",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Hexadecimal HMAC-MD5"
           },
           "examples": [
@@ -5457,21 +5423,21 @@
           "params": [
             {
               "name": "key",
-              "type": "String",
+              "type": "string",
               "description": "The secret key",
               "optional": false,
               "tsType": null
             },
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The data to authenticate",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Hexadecimal HMAC-SHA1"
           },
           "examples": [
@@ -5493,21 +5459,21 @@
           "params": [
             {
               "name": "key",
-              "type": "String",
+              "type": "string",
               "description": "The secret key",
               "optional": false,
               "tsType": null
             },
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The data to authenticate",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Hexadecimal HMAC-SHA256"
           },
           "examples": [
@@ -5529,21 +5495,21 @@
           "params": [
             {
               "name": "key",
-              "type": "String",
+              "type": "string",
               "description": "The secret key",
               "optional": false,
               "tsType": null
             },
             {
               "name": "data",
-              "type": "String",
+              "type": "string",
               "description": "The data to authenticate",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "Hexadecimal HMAC-SHA512"
           },
           "examples": [
@@ -5581,7 +5547,7 @@
             },
             {
               "name": "key",
-              "type": "String",
+              "type": "string",
               "description": "The key name or character (e.g., \"a\", \"space\", \"return\")",
               "optional": false,
               "tsType": null
@@ -5602,7 +5568,7 @@
             }
           ],
           "returns": {
-            "type": "HSHotkey?",
+            "type": "HSHotkey",
             "description": "A hotkey object, or nil if binding failed"
           },
           "examples": [
@@ -5631,14 +5597,14 @@
             },
             {
               "name": "key",
-              "type": "String",
+              "type": "string",
               "description": "The key name or character",
               "optional": false,
               "tsType": null
             },
             {
               "name": "message",
-              "type": "String?",
+              "type": "string",
               "description": "A description of what this hotkey does (currently unused, for future features)",
               "optional": false,
               "tsType": null
@@ -5659,7 +5625,7 @@
             }
           ],
           "returns": {
-            "type": "HSHotkey?",
+            "type": "HSHotkey",
             "description": "A hotkey object, or nil if binding failed"
           },
           "examples": [
@@ -5680,7 +5646,7 @@
           "description": "Get the system-wide mapping of key names to key codes",
           "params": [],
           "returns": {
-            "type": "[String: UInt32]",
+            "type": "Object<String, UInt32>",
             "description": "A dictionary mapping key names to numeric key codes"
           },
           "examples": [
@@ -5701,7 +5667,7 @@
           "description": "Get the mapping of modifier names to modifier flags",
           "params": [],
           "returns": {
-            "type": "[String: UInt32]",
+            "type": "Object<String, UInt32>",
             "description": "A dictionary mapping modifier names to their numeric values"
           },
           "examples": [
@@ -5731,7 +5697,7 @@
               "description": "Enable the hotkey",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "True if the hotkey was enabled, otherwise False"
               },
               "examples": [
@@ -5770,7 +5736,7 @@
               "description": "Check if the hotkey is currently enabled",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "True if the hotkey is enabled, otherwise False"
               },
               "examples": [
@@ -5833,14 +5799,14 @@
           "params": [
             {
               "name": "address",
-              "type": "String",
+              "type": "string",
               "description": "a free-form address string in any locale",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "a Promise resolving to an array of placemarkTables",
             "promiseType": "placemarkTable[]"
           },
@@ -5870,7 +5836,7 @@
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "a Promise resolving to an array of placemarkTables",
             "promiseType": "placemarkTable[]"
           },
@@ -5892,7 +5858,7 @@
           "description": "Returns true if Location Services are enabled system-wide.",
           "params": [],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if enabled, false otherwise"
           },
           "examples": [
@@ -5913,7 +5879,7 @@
           "description": "Returns the app's current Location Services authorization status as a string.",
           "params": [],
           "returns": {
-            "type": "String",
+            "type": "string",
             "description": "`\"authorized\"`, `\"denied\"`, `\"restricted\"`, or `\"notDetermined\"`"
           },
           "examples": [
@@ -5934,7 +5900,7 @@
           "description": "Returns the most recently cached location as a locationTable, or null.\nActivates Location Services if not already running. The cache is updated\nperiodically while any watcher is running.",
           "params": [],
           "returns": {
-            "type": "[AnyHashable: Any]?",
+            "type": "Object<AnyHashable, Any>",
             "description": "a locationTable, or null if no cached location is available"
           },
           "examples": [
@@ -5970,7 +5936,7 @@
             }
           ],
           "returns": {
-            "type": "Double",
+            "type": "number",
             "description": "distance in metres, or `-1` if either table is invalid"
           },
           "examples": [
@@ -5985,21 +5951,21 @@
         },
         {
           "name": "sunrise",
-          "signature": "func sunrise(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> NSNumber?",
+          "signature": "func sunrise(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> number?",
           "isStatic": false,
           "rawDocumentation": "Returns the time of sunrise for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not rise on that date (polar\nnight). Pass a JS `Date` for `date`, or omit/pass null to use today.\n- Parameters:\n  - latitude: degrees north (positive) or south (negative)\n  - longitude: degrees east (positive) or west (negative)\n  - date: optional JS `Date`; defaults to today\n- Returns: seconds since epoch of sunrise, or null\n- Example:\n```js\nconst rise = hs.location.sunrise(51.5, -0.1)\nconsole.log(new Date(rise * 1000).toTimeString())\n```",
           "description": "Returns the time of sunrise for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not rise on that date (polar\nnight). Pass a JS `Date` for `date`, or omit/pass null to use today.",
           "params": [
             {
               "name": "latitude",
-              "type": "Double",
+              "type": "number",
               "description": "degrees north (positive) or south (negative)",
               "optional": false,
               "tsType": null
             },
             {
               "name": "longitude",
-              "type": "Double",
+              "type": "number",
               "description": "degrees east (positive) or west (negative)",
               "optional": false,
               "tsType": null
@@ -6013,7 +5979,7 @@
             }
           ],
           "returns": {
-            "type": "NSNumber?",
+            "type": "number",
             "description": "seconds since epoch of sunrise, or null"
           },
           "examples": [
@@ -6028,21 +5994,21 @@
         },
         {
           "name": "sunset",
-          "signature": "func sunset(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> NSNumber?",
+          "signature": "func sunset(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> number?",
           "isStatic": false,
           "rawDocumentation": "Returns the time of sunset for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not set on that date (midnight\nsun). Pass a JS `Date` for `date`, or omit/pass null to use today.\n- Parameters:\n  - latitude: degrees north (positive) or south (negative)\n  - longitude: degrees east (positive) or west (negative)\n  - date: optional JS `Date`; defaults to today\n- Returns: seconds since epoch of sunset, or null\n- Example:\n```js\nconst set = hs.location.sunset(51.5, -0.1)\nconsole.log(new Date(set * 1000).toTimeString())\n```",
           "description": "Returns the time of sunset for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not set on that date (midnight\nsun). Pass a JS `Date` for `date`, or omit/pass null to use today.",
           "params": [
             {
               "name": "latitude",
-              "type": "Double",
+              "type": "number",
               "description": "degrees north (positive) or south (negative)",
               "optional": false,
               "tsType": null
             },
             {
               "name": "longitude",
-              "type": "Double",
+              "type": "number",
               "description": "degrees east (positive) or west (negative)",
               "optional": false,
               "tsType": null
@@ -6056,7 +6022,7 @@
             }
           ],
           "returns": {
-            "type": "NSNumber?",
+            "type": "number",
             "description": "seconds since epoch of sunset, or null"
           },
           "examples": [
@@ -6220,7 +6186,7 @@
               "description": "Returns the most recently received location, or null if none yet.",
               "params": [],
               "returns": {
-                "type": "[AnyHashable: Any]?",
+                "type": "Object<AnyHashable, Any>",
                 "description": "a locationTable, or null"
               },
               "examples": [
@@ -6278,12 +6244,12 @@
           "name": "create",
           "signature": "func create(_ hidden: Bool) -> HSMenuBarItem",
           "isStatic": false,
-          "rawDocumentation": "Create a new menu bar item\n- Parameter hidden?: Pass true to create the item hidden (not shown in the menu bar). Defaults to false (immediately visible).\n- Returns: A new HSMenuBarItem\n- Example:\n```js\nconst item = hs.menubar.create()\nconst hidden = hs.menubar.create(true)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()\n```",
+          "rawDocumentation": "Create a new menu bar item\n- Parameter hidden?: Pass true to create the item hidden (not shown in the menu bar). Defaults to false (immediately visible).\n- Returns: A new HSMenuBarItem\n- Example:\n```js\nconst item = hs.menubar.create()\nconst hidden = hs.menubar.create(true)  // not shown yet\nhidden.title = \"Ready\"\nhidden.show()\n```",
           "description": "Create a new menu bar item",
           "params": [
             {
               "name": "hidden",
-              "type": "Bool",
+              "type": "boolean",
               "description": "Pass true to create the item hidden (not shown in the menu bar). Defaults to false (immediately visible).",
               "optional": true,
               "tsType": null
@@ -6296,7 +6262,7 @@
           "examples": [
             {
               "lang": "js",
-              "code": "const item = hs.menubar.create()\nconst hidden = hs.menubar.create(true)  // not shown yet\nhidden.setTitle(\"Ready\")\nhidden.show()"
+              "code": "const item = hs.menubar.create()\nconst hidden = hs.menubar.create(true)  // not shown yet\nhidden.title = \"Ready\"\nhidden.show()"
             }
           ],
           "source": "swift",
@@ -6313,41 +6279,15 @@
           "description": "Object representing a macOS system menu bar item.\nCreate instances with `hs.menubar.create()`.",
           "methods": [
             {
-              "name": "setTitle",
-              "signature": "func setTitle(_ title: JSValue)",
-              "isStatic": false,
-              "rawDocumentation": "Set the text title displayed in the menu bar\n- Parameter title: Text to display, or null to remove the title\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.setTitle(\"Hello\")\n```",
-              "description": "Set the text title displayed in the menu bar",
-              "params": [
-                {
-                  "name": "title",
-                  "type": "JSValue",
-                  "description": "Text to display, or null to remove the title",
-                  "optional": false,
-                  "tsType": null
-                }
-              ],
-              "returns": null,
-              "examples": [
-                {
-                  "lang": "js",
-                  "code": "const item = hs.menubar.create()\nitem.setTitle(\"Hello\")"
-                }
-              ],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 22
-            },
-            {
               "name": "setIcon",
-              "signature": "func setIcon(_ image: JSValue)",
+              "signature": "func setIcon(_ image: HSImage?)",
               "isStatic": false,
               "rawDocumentation": "Set the icon displayed in the menu bar\n- Parameter image: An HSImage object, or null to remove the icon\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.setIcon(HSImage.fromSymbol(\"star.fill\"))\n```",
               "description": "Set the icon displayed in the menu bar",
               "params": [
                 {
                   "name": "image",
-                  "type": "JSValue",
+                  "type": "HSImage",
                   "description": "An HSImage object, or null to remove the icon",
                   "optional": false,
                   "tsType": null
@@ -6362,18 +6302,18 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 31
+              "lineNumber": 22
             },
             {
               "name": "setTooltip",
-              "signature": "func setTooltip(_ tooltip: JSValue)",
+              "signature": "func setTooltip(_ tooltip: String?)",
               "isStatic": false,
               "rawDocumentation": "Set the tooltip shown when hovering over the menu bar item\n- Parameter tooltip: Tooltip text, or null to remove the tooltip\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.setTooltip(\"My menu bar item\")\n```",
               "description": "Set the tooltip shown when hovering over the menu bar item",
               "params": [
                 {
                   "name": "tooltip",
-                  "type": "JSValue",
+                  "type": "string",
                   "description": "Tooltip text, or null to remove the tooltip",
                   "optional": false,
                   "tsType": null
@@ -6388,13 +6328,13 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 40
+              "lineNumber": 31
             },
             {
               "name": "setClickCallback",
               "signature": "func setClickCallback(_ fn: JSFunction)",
               "isStatic": false,
-              "rawDocumentation": "Set a callback invoked when the item is clicked (only fires when no menu is set)\n- Parameter fn: A function to call on click, or null to remove the callback\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.setTitle(\"Click me\")\nitem.setClickCallback(() => console.log(\"clicked!\"))\n```",
+              "rawDocumentation": "Set a callback invoked when the item is clicked (only fires when no menu is set)\n- Parameter fn: A function to call on click, or null to remove the callback\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.title = \"Click me\"\nitem.setClickCallback(() => console.log(\"clicked!\"))\n```",
               "description": "Set a callback invoked when the item is clicked (only fires when no menu is set)",
               "params": [
                 {
@@ -6409,18 +6349,18 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const item = hs.menubar.create()\nitem.setTitle(\"Click me\")\nitem.setClickCallback(() => console.log(\"clicked!\"))"
+                  "code": "const item = hs.menubar.create()\nitem.title = \"Click me\"\nitem.setClickCallback(() => console.log(\"clicked!\"))"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 50
+              "lineNumber": 41
             },
             {
               "name": "setMenu",
               "signature": "func setMenu(_ menuOrFn: JSValue)",
               "isStatic": false,
-              "rawDocumentation": "Set the menu for this item. Pass an array of menu item objects for a static menu,\nor a function that returns an array for a dynamic menu populated each time it opens.\n\nMenu item object keys:\n- `title` (string, required): The item label. Use `\"-\"` for a separator line.\n- `fn` (function): Callback invoked when the item is chosen.\n- `checked` (boolean): If true, a checkmark is shown next to the item.\n- `disabled` (boolean): If true, the item is greyed out and cannot be chosen.\n- `tooltip` (string): Tooltip shown when hovering over the item.\n- `icon` (HSImage): Icon shown to the left of the title.\n- `menu` (array): Nested array of menu item objects to create a submenu.\n\n- Parameter menuOrFn: Array of menu item objects, a function returning such an array, or null to remove the menu\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.setTitle(\"Menu\")\nitem.setMenu([\n    { title: \"Option A\", fn: () => console.log(\"A\") },\n    { title: \"-\" },\n    { title: \"Option B\", checked: true, fn: () => console.log(\"B\") }\n])\n```",
+              "rawDocumentation": "Set the menu for this item. Pass an array of menu item objects for a static menu,\nor a function that returns an array for a dynamic menu populated each time it opens.\n\nMenu item object keys:\n- `title` (string, required): The item label. Use `\"-\"` for a separator line.\n- `fn` (function): Callback invoked when the item is chosen.\n- `checked` (boolean): If true, a checkmark is shown next to the item.\n- `disabled` (boolean): If true, the item is greyed out and cannot be chosen.\n- `tooltip` (string): Tooltip shown when hovering over the item.\n- `icon` (HSImage): Icon shown to the left of the title.\n- `menu` (array): Nested array of menu item objects to create a submenu.\n\n- Parameter menuOrFn: Array of menu item objects, a function returning such an array, or null to remove the menu\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.title = \"Menu\"\nitem.setMenu([\n    { title: \"Option A\", fn: () => console.log(\"A\") },\n    { title: \"-\" },\n    { title: \"Option B\", checked: true, fn: () => console.log(\"B\") }\n])\n```",
               "description": "Set the menu for this item. Pass an array of menu item objects for a static menu,\nor a function that returns an array for a dynamic menu populated each time it opens.",
               "params": [
                 {
@@ -6435,12 +6375,12 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const item = hs.menubar.create()\nitem.setTitle(\"Menu\")\nitem.setMenu([\n    { title: \"Option A\", fn: () => console.log(\"A\") },\n    { title: \"-\" },\n    { title: \"Option B\", checked: true, fn: () => console.log(\"B\") }\n])"
+                  "code": "const item = hs.menubar.create()\nitem.title = \"Menu\"\nitem.setMenu([\n    { title: \"Option A\", fn: () => console.log(\"A\") },\n    { title: \"-\" },\n    { title: \"Option B\", checked: true, fn: () => console.log(\"B\") }\n])"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 75
+              "lineNumber": 66
             },
             {
               "name": "hide",
@@ -6458,7 +6398,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 83
+              "lineNumber": 74
             },
             {
               "name": "show",
@@ -6476,7 +6416,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 90
+              "lineNumber": 81
             },
             {
               "name": "isVisible",
@@ -6486,7 +6426,7 @@
               "description": "Check if this item is currently visible in the menu bar.",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if the item is visible in the menu bar"
               },
               "examples": [
@@ -6497,30 +6437,30 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 98
+              "lineNumber": 89
             }
           ],
           "properties": [
             {
               "name": "title",
-              "signature": "var title: String? { get }",
-              "rawDocumentation": "The current title text, or null if none is set\n- Example:\n```js\nconsole.log(item.title)\n```",
-              "description": "The current title text, or null if none is set",
+              "signature": "var title: String? { get set }",
+              "rawDocumentation": "Get or set the menu item's title.\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.title = \"Hello\"\nconsole.log(item.title)\n```\n```",
+              "description": "Get or set the menu item's title.",
               "examples": [
                 {
                   "lang": "js",
-                  "code": "console.log(item.title)"
+                  "code": "const item = hs.menubar.create()\nitem.title = \"Hello\"\nconsole.log(item.title)"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.menubar/HSMenuBarItem.swift",
-              "lineNumber": 105
+              "lineNumber": 100
             }
           ]
         }
       ],
-      "description": "Module for creating and managing macOS system menu bar items.\nMenu bar items appear in the right side of the macOS menu bar (alongside the clock, Wi-Fi icon, etc.).\nEach item can display a title, an icon, or both, and can open a menu or invoke a callback when clicked.\n## Creating a simple title item\n```js\nconst item = hs.menubar.create()\nitem.setTitle(\"Hello\")\nitem.setClickCallback(() => console.log(\"clicked!\"))\n```\n## Creating an icon item with a static menu\n```js\nconst item = hs.menubar.create()\nitem.setIcon(HSImage.fromSymbol(\"star.fill\"))\nitem.setTooltip(\"My automation\")\nitem.setMenu([\n    { title: \"Reload config\", fn: () => hs.reload() },\n    { title: \"-\" },\n    { title: \"Remove from menubar\", fn: () => item.hide() }\n])\n```\n## Creating an item with a dynamic menu\n```js\nconst item = hs.menubar.create()\nitem.setTitle(\"Dynamic\")\nitem.setMenu(() => [\n    { title: \"Time: \" + new Date().toLocaleTimeString() },\n    { title: \"-\" },\n    { title: \"Remove from menubar\", fn: () => item.hide() }\n])\n```",
-      "rawDocumentation": "Module for creating and managing macOS system menu bar items.\n\nMenu bar items appear in the right side of the macOS menu bar (alongside the clock, Wi-Fi icon, etc.).\nEach item can display a title, an icon, or both, and can open a menu or invoke a callback when clicked.\n\n## Creating a simple title item\n\n```js\nconst item = hs.menubar.create()\nitem.setTitle(\"Hello\")\nitem.setClickCallback(() => console.log(\"clicked!\"))\n```\n\n## Creating an icon item with a static menu\n\n```js\nconst item = hs.menubar.create()\nitem.setIcon(HSImage.fromSymbol(\"star.fill\"))\nitem.setTooltip(\"My automation\")\nitem.setMenu([\n    { title: \"Reload config\", fn: () => hs.reload() },\n    { title: \"-\" },\n    { title: \"Remove from menubar\", fn: () => item.hide() }\n])\n```\n\n## Creating an item with a dynamic menu\n\n```js\nconst item = hs.menubar.create()\nitem.setTitle(\"Dynamic\")\nitem.setMenu(() => [\n    { title: \"Time: \" + new Date().toLocaleTimeString() },\n    { title: \"-\" },\n    { title: \"Remove from menubar\", fn: () => item.hide() }\n])\n```"
+      "description": "Module for creating and managing macOS system menu bar items.\nMenu bar items appear in the right side of the macOS menu bar (alongside the clock, Wi-Fi icon, etc.).\nEach item can display a title, an icon, or both, and can open a menu or invoke a callback when clicked.\n## Creating a simple title item\n```js\nconst item = hs.menubar.create()\nitem.title = \"Hello\"\nitem.setClickCallback(() => console.log(\"clicked!\"))\n```\n## Creating an icon item with a static menu\n```js\nconst item = hs.menubar.create()\nitem.setIcon(HSImage.fromSymbol(\"star.fill\"))\nitem.setTooltip(\"My automation\")\nitem.setMenu([\n    { title: \"Reload config\", fn: () => hs.reload() },\n    { title: \"-\" },\n    { title: \"Remove from menubar\", fn: () => item.hide() }\n])\n```\n## Creating an item with a dynamic menu\n```js\nconst item = hs.menubar.create()\nitem.title = \"Dynamic\"\nitem.setMenu(() => [\n    { title: \"Time: \" + new Date().toLocaleTimeString() },\n    { title: \"-\" },\n    { title: \"Remove from menubar\", fn: () => item.hide() }\n])\n```",
+      "rawDocumentation": "Module for creating and managing macOS system menu bar items.\n\nMenu bar items appear in the right side of the macOS menu bar (alongside the clock, Wi-Fi icon, etc.).\nEach item can display a title, an icon, or both, and can open a menu or invoke a callback when clicked.\n\n## Creating a simple title item\n\n```js\nconst item = hs.menubar.create()\nitem.title = \"Hello\"\nitem.setClickCallback(() => console.log(\"clicked!\"))\n```\n\n## Creating an icon item with a static menu\n\n```js\nconst item = hs.menubar.create()\nitem.setIcon(HSImage.fromSymbol(\"star.fill\"))\nitem.setTooltip(\"My automation\")\nitem.setMenu([\n    { title: \"Reload config\", fn: () => hs.reload() },\n    { title: \"-\" },\n    { title: \"Remove from menubar\", fn: () => item.hide() }\n])\n```\n\n## Creating an item with a dynamic menu\n\n```js\nconst item = hs.menubar.create()\nitem.title = \"Dynamic\"\nitem.setMenu(() => [\n    { title: \"Time: \" + new Date().toLocaleTimeString() },\n    { title: \"-\" },\n    { title: \"Remove from menubar\", fn: () => item.hide() }\n])\n```"
     },
     {
       "name": "hs.notify",
@@ -6534,14 +6474,14 @@
           "params": [
             {
               "name": "title",
-              "type": "String",
+              "type": "string",
               "description": "The notification title",
               "optional": false,
               "tsType": null
             },
             {
               "name": "body",
-              "type": "String",
+              "type": "string",
               "description": "The notification body text",
               "optional": false,
               "tsType": null
@@ -6581,7 +6521,7 @@
             }
           ],
           "returns": {
-            "type": "HSNotification?",
+            "type": "HSNotification",
             "description": "An `HSNotification` object. Call `.send()` on it to deliver the notification."
           },
           "examples": [
@@ -6713,21 +6653,21 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Absolute path to the image file.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "options",
-              "type": "JSValue?",
+              "type": "JSValue",
               "description": "Optional configuration object (see description).",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "Resolves with the recognition result.",
             "promiseType": "HSOCRResult"
           },
@@ -6753,7 +6693,7 @@
           "description": "Returns the BCP-47 language codes supported by the Vision text recognizer\non this device.\nThe set of languages varies between macOS versions and hardware. Call\nthis at runtime to discover which codes are valid for the `languages`\noption passed to `recognizeText()`.",
           "params": [],
           "returns": {
-            "type": "[String]",
+            "type": "Array<String>",
             "description": "An array of BCP-47 language code strings (e.g. `[\"en-US\", \"fr-FR\"]`)."
           },
           "examples": [
@@ -6908,14 +6848,14 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "The AppleScript source code to compile and execute.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A `Promise` resolving to `{ success, result, raw }`."
           },
           "examples": [
@@ -6937,14 +6877,14 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "The OSA JavaScript source code to compile and execute.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A `Promise` resolving to `{ success, result, raw }`."
           },
           "examples": [
@@ -6966,14 +6906,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Absolute path to the AppleScript source file.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A `Promise` resolving to `{ success, result, raw }`."
           },
           "examples": [
@@ -6995,14 +6935,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Absolute path to the OSA JavaScript source file.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A `Promise` resolving to `{ success, result, raw }`."
           },
           "examples": [
@@ -7024,21 +6964,21 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "The script source code.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "language",
-              "type": "String",
+              "type": "string",
               "description": "The OSA language name — must be `\"AppleScript\"` or `\"JavaScript\"`.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A `Promise` resolving to `{ success, result, raw }`."
           },
           "examples": [
@@ -7060,14 +7000,14 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "The AppleScript source code to compile and execute.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String: Any]?",
+            "type": "Object<String, Any>",
             "description": "An object `{ success, result, raw }`, or `null` on XPC failure."
           },
           "examples": [
@@ -7089,14 +7029,14 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "The OSA JavaScript source code to compile and execute.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String: Any]?",
+            "type": "Object<String, Any>",
             "description": "An object `{ success, result, raw }`, or `null` on XPC failure."
           },
           "examples": [
@@ -7118,14 +7058,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Absolute path to the AppleScript source file.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String: Any]?",
+            "type": "Object<String, Any>",
             "description": "An object `{ success, result, raw }`, or `null` on XPC failure."
           },
           "examples": [
@@ -7147,14 +7087,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Absolute path to the OSA JavaScript source file.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String: Any]?",
+            "type": "Object<String, Any>",
             "description": "An object `{ success, result, raw }`, or `null` on XPC failure."
           },
           "examples": [
@@ -7176,21 +7116,21 @@
           "params": [
             {
               "name": "source",
-              "type": "String",
+              "type": "string",
               "description": "The script source code.",
               "optional": false,
               "tsType": null
             },
             {
               "name": "language",
-              "type": "String",
+              "type": "string",
               "description": "The OSA language name — must be `\"AppleScript\"` or `\"JavaScript\"`.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[String: Any]?",
+            "type": "Object<String, Any>",
             "description": "An object `{ success, result, raw }`, or `null` on XPC failure."
           },
           "examples": [
@@ -7220,7 +7160,7 @@
           "description": "Read plain text from the pasteboard",
           "params": [],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The plain text string, or null if not available"
           },
           "examples": [
@@ -7241,7 +7181,7 @@
           "description": "Read HTML from the pasteboard",
           "params": [],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The HTML string, or null if not available"
           },
           "examples": [
@@ -7262,7 +7202,7 @@
           "description": "Read RTF from the pasteboard",
           "params": [],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The RTF string, or null if not available"
           },
           "examples": [
@@ -7283,7 +7223,7 @@
           "description": "Read a URL from the pasteboard",
           "params": [],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "The URL as a string, or null if not available"
           },
           "examples": [
@@ -7304,7 +7244,7 @@
           "description": "Read an image from the pasteboard",
           "params": [],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "An HSImage, or null if not available"
           },
           "examples": [
@@ -7326,14 +7266,14 @@
           "params": [
             {
               "name": "uti",
-              "type": "String",
+              "type": "string",
               "description": "A UTI type string (e.g. \"com.adobe.pdf\")",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "String?",
+            "type": "string",
             "description": "A base64-encoded string, or null if the type is not available"
           },
           "examples": [
@@ -7355,14 +7295,14 @@
           "params": [
             {
               "name": "str",
-              "type": "String",
+              "type": "string",
               "description": "The text string to write",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if the write succeeded"
           },
           "examples": [
@@ -7384,14 +7324,14 @@
           "params": [
             {
               "name": "html",
-              "type": "String",
+              "type": "string",
               "description": "The HTML string to write",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if the write succeeded"
           },
           "examples": [
@@ -7413,14 +7353,14 @@
           "params": [
             {
               "name": "rtf",
-              "type": "String",
+              "type": "string",
               "description": "The RTF string to write",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if the write succeeded"
           },
           "examples": [
@@ -7442,14 +7382,14 @@
           "params": [
             {
               "name": "url",
-              "type": "String",
+              "type": "string",
               "description": "The URL string to write",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if the write succeeded"
           },
           "examples": [
@@ -7478,7 +7418,7 @@
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if the write succeeded"
           },
           "examples": [
@@ -7500,21 +7440,21 @@
           "params": [
             {
               "name": "base64",
-              "type": "String",
+              "type": "string",
               "description": "The data encoded as a base64 string",
               "optional": false,
               "tsType": null
             },
             {
               "name": "uti",
-              "type": "String",
+              "type": "string",
               "description": "A UTI type string (e.g. \"com.adobe.pdf\")",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if the write succeeded"
           },
           "examples": [
@@ -7543,7 +7483,7 @@
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if the write succeeded"
           },
           "examples": [
@@ -7564,7 +7504,7 @@
           "description": "Get all UTI type strings currently on the pasteboard, across all items",
           "params": [],
           "returns": {
-            "type": "[String]",
+            "type": "Array<String>",
             "description": "An array of UTI strings (e.g. [\"public.utf8-plain-text\", \"public.html\"])"
           },
           "examples": [
@@ -7586,14 +7526,14 @@
           "params": [
             {
               "name": "uti",
-              "type": "String",
+              "type": "string",
               "description": "A UTI type string to check for",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if the type is available"
           },
           "examples": [
@@ -7724,7 +7664,7 @@
           "description": "Check if the app has Accessibility permission",
           "params": [],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if permission is granted, false otherwise"
           },
           "examples": [
@@ -7763,7 +7703,7 @@
           "description": "Check if the app has Screen Recording permission",
           "params": [],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if permission is granted, false otherwise"
           },
           "examples": [
@@ -7802,7 +7742,7 @@
           "description": "Check if the app has Camera permission",
           "params": [],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if permission is granted, false otherwise"
           },
           "examples": [
@@ -7823,7 +7763,7 @@
           "description": "Request Camera permission (shows system dialog if not granted)",
           "params": [],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A Promise that resolves to true if granted, false if denied",
             "promiseType": "boolean"
           },
@@ -7845,7 +7785,7 @@
           "description": "Check if the app has Microphone permission",
           "params": [],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if permission is granted, false otherwise"
           },
           "examples": [
@@ -7866,7 +7806,7 @@
           "description": "Request Microphone permission (shows system dialog if not granted)",
           "params": [],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A Promise that resolves to true if granted, false if denied",
             "promiseType": "boolean"
           },
@@ -7888,7 +7828,7 @@
           "description": "Check if the app has permission to display notifications.\nThe result is cached from the last request or check; the cache is refreshed asynchronously,\nso the very first call in a session may return `false` before the cached value is populated.\nUse `requestNotifications()` on first launch to ensure the result is accurate.",
           "params": [],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if notification permission is granted"
           },
           "examples": [
@@ -7909,7 +7849,7 @@
           "description": "Request notification permission (shows the system dialog if the user has not yet decided).\nIt is safe to call this on every launch — the dialog only appears once; subsequent calls\nresolve immediately with the previously granted or denied state.",
           "params": [],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A Promise that resolves to true if granted, false if denied",
             "promiseType": "boolean"
           },
@@ -7931,7 +7871,7 @@
           "description": "Check if the app has Location permission.",
           "params": [],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if permission is granted, false otherwise"
           },
           "examples": [
@@ -7952,7 +7892,7 @@
           "description": "Request Location permission (shows the system dialog if the user has not yet decided).",
           "params": [],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A Promise that resolves to true if granted, false if denied",
             "promiseType": "boolean"
           },
@@ -7984,14 +7924,14 @@
           "params": [
             {
               "name": "type",
-              "type": "String",
+              "type": "string",
               "description": "The sleep type to prevent. One of: `\"display\"` (prevent display",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if the assertion was created successfully."
           },
           "examples": [
@@ -8013,14 +7953,14 @@
           "params": [
             {
               "name": "type",
-              "type": "String",
+              "type": "string",
               "description": "The sleep type to allow again. One of: `\"display\"`, `\"systemIdle\"`, `\"system\"`.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if an assertion existed and was released, `false` if none was active."
           },
           "examples": [
@@ -8042,14 +7982,14 @@
           "params": [
             {
               "name": "type",
-              "type": "String",
+              "type": "string",
               "description": "The sleep type to check. One of: `\"display\"`, `\"systemIdle\"`, `\"system\"`.",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "`true` if this sleep type is currently being prevented."
           },
           "examples": [
@@ -8163,7 +8103,7 @@
           "description": "Returns a snapshot of all available battery information, or `null` if no battery is present.",
           "params": [],
           "returns": {
-            "type": "NSDictionary?",
+            "type": "NSDictionary",
             "description": "An object with battery fields, or `null` if no battery is present."
           },
           "examples": [
@@ -8373,7 +8313,7 @@
           "description": "All connected screens.",
           "params": [],
           "returns": {
-            "type": "[HSScreen]",
+            "type": "Array<HSScreen>",
             "description": "An array of HSScreen objects"
           },
           "examples": [
@@ -8394,7 +8334,7 @@
           "description": "The screen that currently contains the focused window, or the screen\nwith the keyboard focus if no window is focused.",
           "params": [],
           "returns": {
-            "type": "HSScreen?",
+            "type": "HSScreen",
             "description": "An HSScreen object or `null` if no main screen can be determined."
           },
           "examples": [
@@ -8415,7 +8355,7 @@
           "description": "The primary display — the one that contains the global menu bar.",
           "params": [],
           "returns": {
-            "type": "HSScreen?",
+            "type": "HSScreen",
             "description": "An HSScreen object or `null` if no primary screen can be determined."
           },
           "examples": [
@@ -8446,35 +8386,35 @@
               "params": [
                 {
                   "name": "width",
-                  "type": "Int",
+                  "type": "number",
                   "description": "Horizontal resolution in pixels.",
                   "optional": false,
                   "tsType": null
                 },
                 {
                   "name": "height",
-                  "type": "Int",
+                  "type": "number",
                   "description": "Vertical resolution in pixels.",
                   "optional": false,
                   "tsType": null
                 },
                 {
                   "name": "scale",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Backing scale factor (e.g. `2` for HiDPI, `1` for non-HiDPI). Pass `0` to ignore.",
                   "optional": false,
                   "tsType": null
                 },
                 {
                   "name": "frequency",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Refresh rate in Hz. Pass `0` to ignore.",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success."
               },
               "examples": [
@@ -8495,7 +8435,7 @@
               "description": "Capture the current contents of this screen as an image.\nRequires **Screen Recording** permission.",
               "params": [],
               "returns": {
-                "type": "JSPromise?",
+                "type": "JSPromise",
                 "description": "Resolves with the captured image, or rejects if the capture fails (e.g. permission denied).",
                 "promiseType": "HSImage"
               },
@@ -8559,7 +8499,7 @@
               "description": "The nearest screen whose left edge is at or beyond this screen's right edge, or `null`.",
               "params": [],
               "returns": {
-                "type": "HSScreen?",
+                "type": "HSScreen",
                 "description": "An HSScreen object"
               },
               "examples": [
@@ -8580,7 +8520,7 @@
               "description": "The nearest screen whose right edge is at or before this screen's left edge, or `null`.",
               "params": [],
               "returns": {
-                "type": "HSScreen?",
+                "type": "HSScreen",
                 "description": "An HSScreen object"
               },
               "examples": [
@@ -8601,7 +8541,7 @@
               "description": "The nearest screen that is physically above this screen, or `null`.",
               "params": [],
               "returns": {
-                "type": "HSScreen?",
+                "type": "HSScreen",
                 "description": "An HSScreen object"
               },
               "examples": [
@@ -8622,7 +8562,7 @@
               "description": "The nearest screen that is physically below this screen, or `null`.",
               "params": [],
               "returns": {
-                "type": "HSScreen?",
+                "type": "HSScreen",
                 "description": "An HSScreen object"
               },
               "examples": [
@@ -8644,21 +8584,21 @@
               "params": [
                 {
                   "name": "x",
-                  "type": "Double",
+                  "type": "number",
                   "description": "The X coordinate to move to",
                   "optional": false,
                   "tsType": null
                 },
                 {
                   "name": "y",
-                  "type": "Double",
+                  "type": "number",
                   "description": "The Y coordinate to move to",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success."
               },
               "examples": [
@@ -8679,7 +8619,7 @@
               "description": "Designate this screen as the primary display (moves the menu bar here).",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success."
               },
               "examples": [
@@ -8708,7 +8648,7 @@
                 }
               ],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success."
               },
               "examples": [
@@ -8729,7 +8669,7 @@
               "description": "Stop mirroring, restoring this screen to an independent display.",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "`true` on success."
               },
               "examples": [
@@ -8758,7 +8698,7 @@
                 }
               ],
               "returns": {
-                "type": "HSRect?",
+                "type": "HSRect",
                 "description": "The rect offset to be relative to this screen's top-left, or `null` if the input is invalid."
               },
               "examples": [
@@ -8787,7 +8727,7 @@
                 }
               ],
               "returns": {
-                "type": "HSRect?",
+                "type": "HSRect",
                 "description": "The rect in global Hammerspoon coordinates, or `null` if the input is invalid."
               },
               "examples": [
@@ -8991,7 +8931,7 @@
           "params": [
             {
               "name": "predicate",
-              "type": "String",
+              "type": "string",
               "description": "An NSPredicate-format query string",
               "optional": false,
               "tsType": null
@@ -9066,7 +9006,7 @@
               "description": "The shared value of the grouping attribute for all results in this group.\nReturns `null` only in the unlikely case that the underlying value cannot be bridged.",
               "params": [],
               "returns": {
-                "type": "NSObject?",
+                "type": "NSObject",
                 "description": "The attribute value (string, number, Date, etc.) or null"
               },
               "examples": [
@@ -9087,7 +9027,7 @@
               "description": "Returns the items contained in this group as an array of `HSSpotlightItem` objects.",
               "params": [],
               "returns": {
-                "type": "[HSSpotlightItem]",
+                "type": "Array<HSSpotlightItem>",
                 "description": "An array of `HSSpotlightItem` objects"
               },
               "examples": [
@@ -9108,7 +9048,7 @@
               "description": "Returns nested subgroups when multiple grouping attributes were specified.\nReturns an empty array if no subgroups exist for this group.",
               "params": [],
               "returns": {
-                "type": "[HSSpotlightGroup]",
+                "type": "Array<HSSpotlightGroup>",
                 "description": "An array of `HSSpotlightGroup` objects"
               },
               "examples": [
@@ -9179,7 +9119,7 @@
               "description": "Returns the list of metadata attribute names present on this item.\nThe list is typically not exhaustive — some attributes (such as `kMDItemPath`)\nmay be readable via `valueForAttribute()` even when absent from this list.",
               "params": [],
               "returns": {
-                "type": "[String]",
+                "type": "Array<String>",
                 "description": "An array of attribute name strings"
               },
               "examples": [
@@ -9201,14 +9141,14 @@
               "params": [
                 {
                   "name": "key",
-                  "type": "String",
+                  "type": "string",
                   "description": "An attribute key such as `\"kMDItemPath\"` or `hs.spotlight.attribute.path`",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "NSObject?",
+                "type": "NSObject",
                 "description": "The attribute value, or null"
               },
               "examples": [
@@ -9250,7 +9190,7 @@
               "params": [
                 {
                   "name": "predicate",
-                  "type": "String",
+                  "type": "string",
                   "description": "An NSPredicate-format query string",
                   "optional": false,
                   "tsType": null
@@ -9465,7 +9405,7 @@
               "description": "Returns the current results as an array of `HSSpotlightItem` objects.\nThe result set is briefly frozen during access to ensure consistency. Safe to call\nfrom within a query callback.",
               "params": [],
               "returns": {
-                "type": "[HSSpotlightItem]",
+                "type": "Array<HSSpotlightItem>",
                 "description": "An array of `HSSpotlightItem` objects (may be empty if the query has not run)"
               },
               "examples": [
@@ -9486,7 +9426,7 @@
               "description": "Returns grouped results when grouping attributes have been configured.\nReturns an empty array if `setGroupingAttributes()` was not called.",
               "params": [],
               "returns": {
-                "type": "[HSSpotlightGroup]",
+                "type": "Array<HSSpotlightGroup>",
                 "description": "An array of `HSSpotlightGroup` objects"
               },
               "examples": [
@@ -9595,35 +9535,35 @@
           "params": [
             {
               "name": "launchPath",
-              "type": "String",
+              "type": "string",
               "description": "The full path to the executable to run",
               "optional": false,
               "tsType": null
             },
             {
               "name": "arguments",
-              "type": "[String]",
+              "type": "Array<String>",
               "description": "An array of arguments to pass to the executable",
               "optional": false,
               "tsType": null
             },
             {
               "name": "completionCallback",
-              "type": "JSFunction?",
+              "type": "JSFunction",
               "description": "Optional callback function called when the task terminates",
               "optional": false,
               "tsType": null
             },
             {
               "name": "environment",
-              "type": "JSValue?",
+              "type": "JSValue",
               "description": "Optional dictionary of environment variables for the task",
               "optional": false,
               "tsType": null
             },
             {
               "name": "streamingCallback",
-              "type": "JSFunction?",
+              "type": "JSFunction",
               "description": "Optional callback function called when the task produces output",
               "optional": false,
               "tsType": null
@@ -9997,7 +9937,7 @@
               "params": [
                 {
                   "name": "data",
-                  "type": "String",
+                  "type": "string",
                   "description": "The string data to write",
                   "optional": false,
                   "tsType": null
@@ -10096,7 +10036,7 @@
             },
             {
               "name": "terminationStatus",
-              "signature": "var terminationStatus: NSNumber? { get }",
+              "signature": "var terminationStatus: number? { get }",
               "rawDocumentation": "The termination status of the task\n- Note: Returns the exit code, or nil if the task hasn't terminated\n- Example:\n```js\nconst t = hs.task.new(\"/bin/echo\", [\"hi\"], () => {\n    console.log(t.terminationStatus)\n}).start()\n```",
               "description": "The termination status of the task",
               "examples": [
@@ -10142,7 +10082,7 @@
           "params": [
             {
               "name": "interval",
-              "type": "TimeInterval",
+              "type": "number",
               "description": "The interval in seconds at which the timer should fire",
               "optional": false,
               "tsType": null
@@ -10156,7 +10096,7 @@
             },
             {
               "name": "continueOnError",
-              "type": "Bool",
+              "type": "boolean",
               "description": "If true, the timer will continue running even if the callback throws an error",
               "optional": true,
               "tsType": null
@@ -10185,7 +10125,7 @@
           "params": [
             {
               "name": "seconds",
-              "type": "TimeInterval",
+              "type": "number",
               "description": "Number of seconds to wait before firing",
               "optional": false,
               "tsType": null
@@ -10221,7 +10161,7 @@
           "params": [
             {
               "name": "interval",
-              "type": "TimeInterval",
+              "type": "number",
               "description": "The interval in seconds at which the timer should fire",
               "optional": false,
               "tsType": null
@@ -10257,14 +10197,14 @@
           "params": [
             {
               "name": "time",
-              "type": "TimeInterval",
+              "type": "number",
               "description": "Seconds since midnight (local time) when the timer should first fire",
               "optional": false,
               "tsType": null
             },
             {
               "name": "repeatInterval",
-              "type": "TimeInterval",
+              "type": "number",
               "description": "If provided, the timer will repeat at this interval. Pass 0 for one-shot.",
               "optional": false,
               "tsType": null
@@ -10278,7 +10218,7 @@
             },
             {
               "name": "continueOnError",
-              "type": "Bool",
+              "type": "boolean",
               "description": "If true, the timer will continue running even if the callback throws an error",
               "optional": true,
               "tsType": null
@@ -10307,7 +10247,7 @@
           "params": [
             {
               "name": "microseconds",
-              "type": "UInt32",
+              "type": "number",
               "description": "Number of microseconds to sleep",
               "optional": false,
               "tsType": null
@@ -10332,7 +10272,7 @@
           "description": "Get the current time as seconds since the UNIX epoch with sub-second precision",
           "params": [],
           "returns": {
-            "type": "TimeInterval",
+            "type": "number",
             "description": "Fractional seconds since midnight, January 1, 1970 UTC"
           },
           "examples": [
@@ -10374,7 +10314,7 @@
           "description": "Get the number of seconds since local midnight",
           "params": [],
           "returns": {
-            "type": "TimeInterval",
+            "type": "number",
             "description": "Seconds since midnight in the local timezone"
           },
           "examples": [
@@ -10396,14 +10336,14 @@
           "params": [
             {
               "name": "n",
-              "type": "Double",
+              "type": "number",
               "description": "A number of minutes",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Double",
+            "type": "number",
             "description": "The equivalent number of seconds"
           },
           "examples": [
@@ -10425,14 +10365,14 @@
           "params": [
             {
               "name": "n",
-              "type": "Double",
+              "type": "number",
               "description": "A number of hours",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Double",
+            "type": "number",
             "description": "The equivalent number of seconds"
           },
           "examples": [
@@ -10454,14 +10394,14 @@
           "params": [
             {
               "name": "n",
-              "type": "Double",
+              "type": "number",
               "description": "A number of days",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Double",
+            "type": "number",
             "description": "The equivalent number of seconds"
           },
           "examples": [
@@ -10483,14 +10423,14 @@
           "params": [
             {
               "name": "n",
-              "type": "Double",
+              "type": "number",
               "description": "A number of weeks",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Double",
+            "type": "number",
             "description": "The equivalent number of seconds"
           },
           "examples": [
@@ -10505,7 +10445,7 @@
         },
         {
           "name": "doUntil",
-          "rawDocumentation": "Repeat a function/lambda until a given predicate function/lambda returns true\nParameters:\n- predicateFn: A function/lambda to test if the timer should continue. Return True to end the timer, False to continue it\n- actionFn: A function/lambda to call until the predicateFn returns true\n- checkInterval: How often, in seconds, to call actionFn",
+          "rawDocumentation": "Repeat a function/lambda until a given predicate function/lambda returns true\nParameters:\n- predicateFn: A function/lambda to test if the timer should continue. Return True to end the timer, False to continue it\n- actionFn: A function/lambda to call until the predicateFn returns true\n- checkInterval: How often, in seconds, to call actionFn\nExample:\n```js\nlet count = 0\nhs.timer.doUntil(() => count >= 3, () => { count++; console.log(count) }, 1)\n```",
           "description": "Repeat a function/lambda until a given predicate function/lambda returns true",
           "params": [
             {
@@ -10528,14 +10468,20 @@
             }
           ],
           "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "let count = 0\nhs.timer.doUntil(() => count >= 3, () => { count++; console.log(count) }, 1)"
+            }
+          ],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.timer/hs.timer.js",
-          "lineNumber": 18,
+          "lineNumber": 23,
           "type": "function"
         },
         {
           "name": "doWhile",
-          "rawDocumentation": "Repeat a function/lambda while a given predicate function/lambda returns true\nParameters:\n- predicateFn: A function/lambda to test if the timer should continue. Return True to continue the timer, False to end it\n- actionFn: A function/lambda to call while the predicateFn returns true\n- checkInterval: How often, in seconds, to call actionFn",
+          "rawDocumentation": "Repeat a function/lambda while a given predicate function/lambda returns true\nParameters:\n- predicateFn: A function/lambda to test if the timer should continue. Return True to continue the timer, False to end it\n- actionFn: A function/lambda to call while the predicateFn returns true\n- checkInterval: How often, in seconds, to call actionFn\nExample:\n```js\nlet count = 0\nhs.timer.doWhile(() => count < 3, () => { count++; console.log(count) }, 1)\n```",
           "description": "Repeat a function/lambda while a given predicate function/lambda returns true",
           "params": [
             {
@@ -10558,9 +10504,15 @@
             }
           ],
           "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "let count = 0\nhs.timer.doWhile(() => count < 3, () => { count++; console.log(count) }, 1)"
+            }
+          ],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.timer/hs.timer.js",
-          "lineNumber": 45,
+          "lineNumber": 55,
           "type": "function"
         },
         {
@@ -10588,9 +10540,10 @@
             }
           ],
           "returns": null,
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.timer/hs.timer.js",
-          "lineNumber": 71,
+          "lineNumber": 81,
           "type": "function"
         },
         {
@@ -10618,74 +10571,14 @@
             }
           ],
           "returns": null,
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.timer/hs.timer.js",
-          "lineNumber": 96,
+          "lineNumber": 106,
           "type": "function"
         }
       ],
-      "properties": [
-        {
-          "name": "doUntil",
-          "signature": "var doUntil: JSFunction? { get set }",
-          "rawDocumentation": "Repeat a function until a predicate returns true. Swift-retained storage for the JS implementation.\n- Example:\n```js\nlet count = 0\nhs.timer.doUntil(() => count >= 3, () => { count++; console.log(count) }, 1)\n```",
-          "description": "Repeat a function until a predicate returns true. Swift-retained storage for the JS implementation.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "let count = 0\nhs.timer.doUntil(() => count >= 3, () => { count++; console.log(count) }, 1)"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.timer/HSTimerModule.swift",
-          "lineNumber": 140
-        },
-        {
-          "name": "doWhile",
-          "signature": "var doWhile: JSFunction? { get set }",
-          "rawDocumentation": "Repeat a function while a predicate returns true. Swift-retained storage for the JS implementation.\n- Example:\n```js\nlet count = 0\nhs.timer.doWhile(() => count < 3, () => { count++; console.log(count) }, 1)\n```",
-          "description": "Repeat a function while a predicate returns true. Swift-retained storage for the JS implementation.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "let count = 0\nhs.timer.doWhile(() => count < 3, () => { count++; console.log(count) }, 1)"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.timer/HSTimerModule.swift",
-          "lineNumber": 148
-        },
-        {
-          "name": "waitUntil",
-          "signature": "var waitUntil: JSFunction? { get set }",
-          "rawDocumentation": "Wait to call a function until a predicate returns true. Swift-retained storage for the JS implementation.\n- Example:\n```js\nhs.timer.waitUntil(() => someCondition, () => console.log(\"ready\"), 0.5)\n```",
-          "description": "Wait to call a function until a predicate returns true. Swift-retained storage for the JS implementation.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "hs.timer.waitUntil(() => someCondition, () => console.log(\"ready\"), 0.5)"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.timer/HSTimerModule.swift",
-          "lineNumber": 155
-        },
-        {
-          "name": "waitWhile",
-          "signature": "var waitWhile: JSFunction? { get set }",
-          "rawDocumentation": "Wait to call a function until a predicate returns false. Swift-retained storage for the JS implementation.\n- Example:\n```js\nhs.timer.waitWhile(() => stillLoading, () => console.log(\"done\"), 0.5)\n```",
-          "description": "Wait to call a function until a predicate returns false. Swift-retained storage for the JS implementation.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "hs.timer.waitWhile(() => stillLoading, () => console.log(\"done\"), 0.5)"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.timer/HSTimerModule.swift",
-          "lineNumber": 162
-        }
-      ],
+      "properties": [],
       "types": [
         {
           "name": "HSTimerAPI",
@@ -10755,7 +10648,7 @@
               "description": "Check if the timer is currently running",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if the timer is running, false otherwise"
               },
               "examples": [
@@ -10776,7 +10669,7 @@
               "description": "Get the number of seconds until the timer next fires",
               "params": [],
               "returns": {
-                "type": "TimeInterval",
+                "type": "number",
                 "description": "Seconds until next trigger, or a negative value if the timer is not running"
               },
               "examples": [
@@ -10798,7 +10691,7 @@
               "params": [
                 {
                   "name": "seconds",
-                  "type": "TimeInterval",
+                  "type": "number",
                   "description": "Number of seconds from now when the timer should fire",
                   "optional": false,
                   "tsType": null
@@ -10864,7 +10757,7 @@
           "description": "All language codes supported by the on-device translation engine.\nResolves to an array of BCP-47 identifiers (e.g. `[\"ar\", \"de\", \"en\", \"es\", \"fr\"]`).\nThis covers every language the framework knows about, regardless of whether\nthe packs are installed locally. Use `status()` to distinguish installed\npairs from merely supported ones.",
           "params": [],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "Resolves to an array of BCP-47 language code strings.",
             "promiseType": "string[]"
           },
@@ -10887,21 +10780,21 @@
           "params": [
             {
               "name": "sourceLanguage",
-              "type": "String",
+              "type": "string",
               "description": "BCP-47 code of the source language (e.g. `\"en\"`).",
               "optional": false,
               "tsType": null
             },
             {
               "name": "targetLanguage",
-              "type": "String",
+              "type": "string",
               "description": "BCP-47 code of the target language (e.g. `\"fr\"`).",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "Resolves to `\"installed\"`, `\"supported\"`, or `\"unsupported\"`.",
             "promiseType": "string"
           },
@@ -10924,21 +10817,21 @@
           "params": [
             {
               "name": "sourceLanguage",
-              "type": "String",
+              "type": "string",
               "description": "BCP-47 code of the source language (e.g. `\"en\"`).",
               "optional": false,
               "tsType": null
             },
             {
               "name": "targetLanguage",
-              "type": "String",
+              "type": "string",
               "description": "BCP-47 code of the target language (e.g. `\"fr\"`).",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSTranslationSession?",
+            "type": "HSTranslationSession",
             "description": "An `HSTranslationSession`, or `null` on unsupported versions of macOS."
           },
           "examples": [
@@ -10969,14 +10862,14 @@
               "params": [
                 {
                   "name": "text",
-                  "type": "String",
+                  "type": "string",
                   "description": "The text to translate.",
                   "optional": false,
                   "tsType": null
                 }
               ],
               "returns": {
-                "type": "JSPromise?",
+                "type": "JSPromise",
                 "description": "A Promise resolving to the translated string,",
                 "promiseType": "string"
               },
@@ -11055,7 +10948,7 @@
           "params": [
             {
               "name": "dict",
-              "type": "[String: Any]",
+              "type": "Object<String, Any>",
               "description": "Dictionary with keys: `x`, `y`, `w`, `h` (all numbers)",
               "optional": false,
               "tsType": null
@@ -11084,7 +10977,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "The message text to display",
               "optional": false,
               "tsType": null
@@ -11113,7 +11006,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "The main message text",
               "optional": false,
               "tsType": null
@@ -11142,7 +11035,7 @@
           "params": [
             {
               "name": "message",
-              "type": "String",
+              "type": "string",
               "description": "The prompt message",
               "optional": false,
               "tsType": null
@@ -11171,7 +11064,7 @@
           "params": [
             {
               "name": "initialValue",
-              "type": "String",
+              "type": "string",
               "description": "The starting string value",
               "optional": false,
               "tsType": null
@@ -11528,7 +11421,7 @@
               "params": [
                 {
                   "name": "width",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Width in points",
                   "optional": false,
                   "tsType": null
@@ -11552,7 +11445,7 @@
               "params": [
                 {
                   "name": "radius",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Corner radius in points",
                   "optional": false,
                   "tsType": null
@@ -11576,7 +11469,7 @@
               "params": [
                 {
                   "name": "dict",
-                  "type": "[String: Any]",
+                  "type": "Object<String, Any>",
                   "description": "Dictionary with `w` and/or `h` (can be numbers or percentage strings like \"50%\")",
                   "optional": false,
                   "tsType": null
@@ -11600,7 +11493,7 @@
               "params": [
                 {
                   "name": "value",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Opacity from 0.0 (transparent) to 1.0 (opaque)",
                   "optional": false,
                   "tsType": null
@@ -11688,7 +11581,7 @@
               "params": [
                 {
                   "name": "mode",
-                  "type": "String",
+                  "type": "string",
                   "description": "\"fit\" (scales to fit within frame) or \"fill\" (scales to fill frame)",
                   "optional": false,
                   "tsType": null
@@ -11712,7 +11605,7 @@
               "params": [
                 {
                   "name": "value",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Padding in points",
                   "optional": false,
                   "tsType": null
@@ -11736,7 +11629,7 @@
               "params": [
                 {
                   "name": "value",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Spacing in points",
                   "optional": false,
                   "tsType": null
@@ -11846,7 +11739,7 @@
               "params": [
                 {
                   "name": "seconds",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Duration in seconds (default: 5.0)",
                   "optional": false,
                   "tsType": null
@@ -11875,7 +11768,7 @@
               "params": [
                 {
                   "name": "points",
-                  "type": "Double",
+                  "type": "number",
                   "description": "Padding in points (default: 20)",
                   "optional": false,
                   "tsType": null
@@ -11904,7 +11797,7 @@
               "params": [
                 {
                   "name": "dict",
-                  "type": "[String: Any]",
+                  "type": "Object<String, Any>",
                   "description": "Dictionary with `x` and `y` coordinates",
                   "optional": false,
                   "tsType": null
@@ -11981,7 +11874,7 @@
               "params": [
                 {
                   "name": "text",
-                  "type": "String",
+                  "type": "string",
                   "description": "The informative text",
                   "optional": false,
                   "tsType": null
@@ -12010,7 +11903,7 @@
               "params": [
                 {
                   "name": "labels",
-                  "type": "[String]",
+                  "type": "Array<String>",
                   "description": "Array of button labels (default: [\"OK\"])",
                   "optional": false,
                   "tsType": null
@@ -12039,7 +11932,7 @@
               "params": [
                 {
                   "name": "style",
-                  "type": "String",
+                  "type": "string",
                   "description": "Style name (e.g., \"informational\", \"warning\", \"critical\")",
                   "optional": false,
                   "tsType": null
@@ -12145,7 +12038,7 @@
               "params": [
                 {
                   "name": "text",
-                  "type": "String",
+                  "type": "string",
                   "description": "The message text",
                   "optional": false,
                   "tsType": null
@@ -12174,7 +12067,7 @@
               "params": [
                 {
                   "name": "path",
-                  "type": "String",
+                  "type": "string",
                   "description": "Path to directory (supports `~` for home)",
                   "optional": false,
                   "tsType": null
@@ -12203,7 +12096,7 @@
               "params": [
                 {
                   "name": "value",
-                  "type": "Bool",
+                  "type": "boolean",
                   "description": "true to allow file selection (default: true)",
                   "optional": false,
                   "tsType": null
@@ -12232,7 +12125,7 @@
               "params": [
                 {
                   "name": "value",
-                  "type": "Bool",
+                  "type": "boolean",
                   "description": "true to allow directory selection (default: false)",
                   "optional": false,
                   "tsType": null
@@ -12261,7 +12154,7 @@
               "params": [
                 {
                   "name": "value",
-                  "type": "Bool",
+                  "type": "boolean",
                   "description": "true to allow multiple selection (default: false)",
                   "optional": false,
                   "tsType": null
@@ -12290,7 +12183,7 @@
               "params": [
                 {
                   "name": "types",
-                  "type": "[String]",
+                  "type": "Array<String>",
                   "description": "Array of file extensions (e.g., [\"txt\", \"md\"])",
                   "optional": false,
                   "tsType": null
@@ -12319,7 +12212,7 @@
               "params": [
                 {
                   "name": "value",
-                  "type": "Bool",
+                  "type": "boolean",
                   "description": "true to resolve aliases (default: true)",
                   "optional": false,
                   "tsType": null
@@ -12404,7 +12297,7 @@
               "params": [
                 {
                   "name": "text",
-                  "type": "String",
+                  "type": "string",
                   "description": "The informative text",
                   "optional": false,
                   "tsType": null
@@ -12433,7 +12326,7 @@
               "params": [
                 {
                   "name": "text",
-                  "type": "String",
+                  "type": "string",
                   "description": "Default text value",
                   "optional": false,
                   "tsType": null
@@ -12462,7 +12355,7 @@
               "params": [
                 {
                   "name": "labels",
-                  "type": "[String]",
+                  "type": "Array<String>",
                   "description": "Array of button labels (default: [\"OK\", \"Cancel\"])",
                   "optional": false,
                   "tsType": null
@@ -12547,7 +12440,7 @@
           "description": "Get the currently focused window",
           "params": [],
           "returns": {
-            "type": "HSWindow?",
+            "type": "HSWindow",
             "description": "The focused window, or nil if none"
           },
           "examples": [
@@ -12568,7 +12461,7 @@
           "description": "Get all windows from all applications",
           "params": [],
           "returns": {
-            "type": "[HSWindow]",
+            "type": "Array<HSWindow>",
             "description": "An array of all windows"
           },
           "examples": [
@@ -12589,7 +12482,7 @@
           "description": "Get all visible (not minimized) windows",
           "params": [],
           "returns": {
-            "type": "[HSWindow]",
+            "type": "Array<HSWindow>",
             "description": "An array of visible windows"
           },
           "examples": [
@@ -12618,7 +12511,7 @@
             }
           ],
           "returns": {
-            "type": "[HSWindow]",
+            "type": "Array<HSWindow>",
             "description": "An array of windows for that application"
           },
           "examples": [
@@ -12640,14 +12533,14 @@
           "params": [
             {
               "name": "screenIndex",
-              "type": "Int",
+              "type": "number",
               "description": "The screen index (0 for main screen)",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[HSWindow]",
+            "type": "Array<HSWindow>",
             "description": "An array of windows on that screen"
           },
           "examples": [
@@ -12676,7 +12569,7 @@
             }
           ],
           "returns": {
-            "type": "HSWindow?",
+            "type": "HSWindow",
             "description": "The topmost window at that position, or nil if none"
           },
           "examples": [
@@ -12697,7 +12590,7 @@
           "description": "Get ordered windows (front to back)",
           "params": [],
           "returns": {
-            "type": "[HSWindow]",
+            "type": "Array<HSWindow>",
             "description": "An array of windows in z-order"
           },
           "examples": [
@@ -12726,6 +12619,7 @@
             "type": "any",
             "description": "An array of HSWindow objects with matching titles"
           },
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.window/hs.window.js",
           "lineNumber": 12,
@@ -12740,6 +12634,7 @@
             "type": "any",
             "description": "An array of HSWindow objects"
           },
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.window/hs.window.js",
           "lineNumber": 21,
@@ -12761,6 +12656,7 @@
             "type": "any",
             "description": "True if the operation was successful, otherwise False"
           },
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.window/hs.window.js",
           "lineNumber": 32,
@@ -12782,6 +12678,7 @@
             "type": "any",
             "description": "True if the operation was successful, otherwise False"
           },
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.window/hs.window.js",
           "lineNumber": 53,
@@ -12803,6 +12700,7 @@
             "type": "any",
             "description": "True if the operation was successful, otherwise false"
           },
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.window/hs.window.js",
           "lineNumber": 75,
@@ -12814,6 +12712,7 @@
           "description": "SKIP_DOCS",
           "params": [],
           "returns": null,
+          "examples": [],
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.window/hs.window.js",
           "lineNumber": 93,
@@ -12836,7 +12735,7 @@
               "description": "Focus this window",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if successful"
               },
               "examples": [
@@ -12857,7 +12756,7 @@
               "description": "Minimize this window",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if successful"
               },
               "examples": [
@@ -12878,7 +12777,7 @@
               "description": "Unminimize this window",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if successful"
               },
               "examples": [
@@ -12899,7 +12798,7 @@
               "description": "Raise this window to the front",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if successful"
               },
               "examples": [
@@ -12920,7 +12819,7 @@
               "description": "Toggle fullscreen mode",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if successful"
               },
               "examples": [
@@ -12941,7 +12840,7 @@
               "description": "Close this window",
               "params": [],
               "returns": {
-                "type": "Bool",
+                "type": "boolean",
                 "description": "true if successful"
               },
               "examples": [
@@ -13213,28 +13112,28 @@
           "params": [
             {
               "name": "r",
-              "type": "Double",
+              "type": "number",
               "description": "Red component (0.0-1.0)",
               "optional": false,
               "tsType": null
             },
             {
               "name": "g",
-              "type": "Double",
+              "type": "number",
               "description": "Green component (0.0-1.0)",
               "optional": false,
               "tsType": null
             },
             {
               "name": "b",
-              "type": "Double",
+              "type": "number",
               "description": "Blue component (0.0-1.0)",
               "optional": false,
               "tsType": null
             },
             {
               "name": "a",
-              "type": "Double",
+              "type": "number",
               "description": "Alpha component (0.0-1.0)",
               "optional": false,
               "tsType": null
@@ -13258,7 +13157,7 @@
           "params": [
             {
               "name": "hex",
-              "type": "String",
+              "type": "string",
               "description": "Hex string (e.g. \"#FF0000\" or \"FF0000\")",
               "optional": false,
               "tsType": null
@@ -13282,7 +13181,7 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "Name of the system color (e.g. \"red\", \"blue\", \"systemBlue\")",
               "optional": false,
               "tsType": null
@@ -13332,7 +13231,7 @@
           "params": [
             {
               "name": "hex",
-              "type": "String",
+              "type": "string",
               "description": "Hex color string (e.g. \"#FF0000\" or \"FF0000\")",
               "optional": false,
               "tsType": null
@@ -13351,7 +13250,8 @@
         }
       ],
       "properties": [],
-      "category": "type"
+      "category": "type",
+      "types": []
     },
     {
       "name": "HSFontAPI",
@@ -13544,7 +13444,7 @@
           "params": [
             {
               "name": "size",
-              "type": "Double",
+              "type": "number",
               "description": "The font size in points",
               "optional": false,
               "tsType": null
@@ -13568,14 +13468,14 @@
           "params": [
             {
               "name": "size",
-              "type": "Double",
+              "type": "number",
               "description": "The font size in points",
               "optional": false,
               "tsType": null
             },
             {
               "name": "weight",
-              "type": "String",
+              "type": "string",
               "description": "The font weight as a string (e.g. \"ultralight\", \"thin\", \"light\", \"regular\", \"medium\", \"semibold\", \"bold\", \"heavy\", \"black\")",
               "optional": false,
               "tsType": null
@@ -13599,14 +13499,14 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "A string containing the name of the font to instantiate",
               "optional": false,
               "tsType": null
             },
             {
               "name": "size",
-              "type": "Double",
+              "type": "number",
               "description": "The font size in points",
               "optional": false,
               "tsType": null
@@ -13623,7 +13523,8 @@
         }
       ],
       "properties": [],
-      "category": "type"
+      "category": "type",
+      "types": []
     },
     {
       "name": "HSImageAPI",
@@ -13640,14 +13541,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the image file",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "An HSImage object, or null if the file couldn't be loaded"
           },
           "examples": [
@@ -13669,14 +13570,14 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "Name of the system image (e.g., \"NSComputer\", \"NSFolder\")",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "An HSImage object, or null if the image couldn't be found"
           },
           "examples": [
@@ -13698,14 +13599,14 @@
           "params": [
             {
               "name": "name",
-              "type": "String",
+              "type": "string",
               "description": "Name of the symbol (e.g., \"hammer\", \"questionmark.circle\")",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "An HSImage object, or null if the symbol couldn't be found"
           },
           "examples": [
@@ -13727,21 +13628,21 @@
           "params": [
             {
               "name": "bundleID",
-              "type": "String",
+              "type": "string",
               "description": "Bundle identifier of the application",
               "optional": false,
               "tsType": null
             },
             {
               "name": "withFallbackSymbol",
-              "type": "String",
+              "type": "string",
               "description": "The name of an SF Symbol to use if no bundle image could be loaded. Defaults to questionmark.circle",
               "optional": true,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "An HSImage object, or null if the app couldn't be found"
           },
           "examples": [
@@ -13763,14 +13664,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the file",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "An HSImage object representing the file's icon"
           },
           "examples": [
@@ -13792,14 +13693,14 @@
           "params": [
             {
               "name": "fileType",
-              "type": "String",
+              "type": "string",
               "description": "File extension or UTI (e.g., \"png\", \"public.png\")",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "An HSImage object representing the file type's icon"
           },
           "examples": [
@@ -13821,14 +13722,14 @@
           "params": [
             {
               "name": "url",
-              "type": "String",
+              "type": "string",
               "description": "URL string of the image",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "JSPromise?",
+            "type": "JSPromise",
             "description": "A Promise that resolves to the loaded image, or rejects on error",
             "promiseType": "HSImage"
           },
@@ -13850,7 +13751,7 @@
           "description": "Create a copy of the image",
           "params": [],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "A new HSImage copy"
           },
           "examples": [
@@ -13879,7 +13780,7 @@
             }
           ],
           "returns": {
-            "type": "HSImage?",
+            "type": "HSImage",
             "description": "A new cropped HSImage, or null if the rect falls outside the image bounds"
           },
           "examples": [
@@ -13901,14 +13802,14 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Destination file path (extension determines format: png, jpg, tiff, bmp, gif)",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "Bool",
+            "type": "boolean",
             "description": "true if saved successfully, false otherwise"
           },
           "examples": [
@@ -13930,7 +13831,7 @@
           "params": [
             {
               "name": "path",
-              "type": "String",
+              "type": "string",
               "description": "Path to the image file. `~` is expanded.",
               "optional": false,
               "tsType": null
@@ -14021,7 +13922,8 @@
           "lineNumber": 153
         }
       ],
-      "category": "type"
+      "category": "type",
+      "types": []
     },
     {
       "name": "HSPointAPI",
@@ -14038,14 +13940,14 @@
           "params": [
             {
               "name": "x",
-              "type": "Double",
+              "type": "number",
               "description": "A coordinate for this point on the x-axis",
               "optional": false,
               "tsType": null
             },
             {
               "name": "y",
-              "type": "Double",
+              "type": "number",
               "description": "A coordinate for this point on the y-axis",
               "optional": false,
               "tsType": null
@@ -14080,7 +13982,8 @@
           "lineNumber": 22
         }
       ],
-      "category": "type"
+      "category": "type",
+      "types": []
     },
     {
       "name": "HSRectAPI",
@@ -14097,28 +14000,28 @@
           "params": [
             {
               "name": "x",
-              "type": "Double",
+              "type": "number",
               "description": "The x-axis coordinate of the top-left corner",
               "optional": false,
               "tsType": null
             },
             {
               "name": "y",
-              "type": "Double",
+              "type": "number",
               "description": "The y-axis coordinate of the top-left corner",
               "optional": false,
               "tsType": null
             },
             {
               "name": "w",
-              "type": "Double",
+              "type": "number",
               "description": "The width of the rectangle",
               "optional": false,
               "tsType": null
             },
             {
               "name": "h",
-              "type": "Double",
+              "type": "number",
               "description": "The height of the rectangle",
               "optional": false,
               "tsType": null
@@ -14193,7 +14096,8 @@
           "lineNumber": 34
         }
       ],
-      "category": "type"
+      "category": "type",
+      "types": []
     },
     {
       "name": "HSSizeAPI",
@@ -14210,14 +14114,14 @@
           "params": [
             {
               "name": "w",
-              "type": "Double",
+              "type": "number",
               "description": "The width of the rectangle",
               "optional": false,
               "tsType": null
             },
             {
               "name": "h",
-              "type": "Double",
+              "type": "number",
               "description": "The height of the rectangle",
               "optional": false,
               "tsType": null
@@ -14252,7 +14156,8 @@
           "lineNumber": 22
         }
       ],
-      "category": "type"
+      "category": "type",
+      "types": []
     },
     {
       "name": "HSStringAPI",
@@ -14269,7 +14174,7 @@
           "params": [
             {
               "name": "newValue",
-              "type": "String",
+              "type": "string",
               "description": "The new string",
               "optional": false,
               "tsType": null
@@ -14294,8 +14199,9 @@
           "lineNumber": 20
         }
       ],
-      "category": "type"
+      "category": "type",
+      "types": []
     }
   ],
-  "generatedAt": "2026-06-23T19:54:40.393Z"
+  "generatedAt": "2026-06-24T23:22:16.345Z"
 }
