@@ -138,14 +138,14 @@ import SwiftUI
     // MARK: Shape Modifiers
 
     /// Fill a shape with a color
-    /// - Parameter colorValue: Color as hex string or HSColor
+    /// - Parameter colorValue: Color as an HSColor
     /// - Returns: Self for chaining
-    @objc func fill(_ colorValue: JSValue) -> HSUIWindow
+    @objc func fill(_ colorValue: HSColor) -> HSUIWindow
 
     /// Add a stroke (border) to a shape
-    /// - Parameter colorValue: Color as hex string or HSColor
+    /// - Parameter colorValue: Color as an HSColor
     /// - Returns: Self for chaining
-    @objc func stroke(_ colorValue: JSValue) -> HSUIWindow
+    @objc func stroke(_ colorValue: HSColor) -> HSUIWindow
 
     /// Set the stroke width
     /// - Parameter width: Width in points
@@ -431,18 +431,16 @@ import SwiftUI
 
     // MARK: - Shape Modifiers
 
-    @objc func fill(_ colorValue: JSValue) -> HSUIWindow {
-        if let shapeable = currentElement as? any ShapeModifiable,
-           let hsColor = HSColor.fromJSValue(colorValue) {
-            shapeable.fillColor = hsColor
+    @objc func fill(_ colorValue: HSColor) -> HSUIWindow {
+        if let shapeable = currentElement as? any ShapeModifiable {
+            shapeable.fillColor = colorValue
         }
         return self
     }
 
-    @objc func stroke(_ colorValue: JSValue) -> HSUIWindow {
-        if let shapeable = currentElement as? any ShapeModifiable,
-           let hsColor = HSColor.fromJSValue(colorValue) {
-            shapeable.strokeColor = hsColor
+    @objc func stroke(_ colorValue: HSColor) -> HSUIWindow {
+        if let shapeable = currentElement as? any ShapeModifiable {
+            shapeable.strokeColor = colorValue
         }
         return self
     }
