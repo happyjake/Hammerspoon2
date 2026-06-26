@@ -5401,6 +5401,150 @@
       "rawDocumentation": "Module for creating and managing system-wide hotkeys"
     },
     {
+      "name": "hs.http",
+      "methods": [
+        {
+          "name": "request",
+          "signature": "func request(_ options: JSValue, _ callback: JSValue?) -> HSHttpClientRequest",
+          "rawDocumentation": "Start an HTTP request. Returns immediately with a cancellable handle; the\nresult is delivered to `callback(err, res)`.\n- Parameter options: An object with: `url` (absolute URL, required); `method`\n  (default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`\n  (string, for small payloads); `bodyFile` (path to stream the request body FROM —\n  large uploads; wins over `body`); `saveTo` (path to stream the response body TO —\n  large downloads; omits `res.body`).\n- Parameter callback: `(err, res)` — `err` is a string or null; `res` is\n  `{ status, headers, bytes, body?, path? }` or null on error.\n- Returns: a request handle with `.cancel()` and `.isRunning`.\n- Example:\n```js\nconst req = hs.http.request({ url: 'http://127.0.0.1:8473/clip?wait=25000', timeout: 30 },\n  (err, res) => { if (!err) console.log(res.status + ' ' + res.body) })\n// later: req.cancel()\n```",
+          "description": "Start an HTTP request. Returns immediately with a cancellable handle; the\nresult is delivered to `callback(err, res)`.\n(default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`\n(string, for small payloads); `bodyFile` (path to stream the request body FROM —\nlarge uploads; wins over `body`); `saveTo` (path to stream the response body TO —\nlarge downloads; omits `res.body`).\n`{ status, headers, bytes, body?, path? }` or null on error.",
+          "params": [
+            {
+              "name": "options",
+              "type": "JSValue",
+              "description": "An object with: `url` (absolute URL, required); `method`"
+            },
+            {
+              "name": "callback",
+              "type": "JSValue?",
+              "description": "`(err, res)` — `err` is a string or null; `res` is"
+            }
+          ],
+          "returns": {
+            "type": "HSHttpClientRequest",
+            "description": "a request handle with `.cancel()` and `.isRunning`."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const req = hs.http.request({ url: 'http://127.0.0.1:8473/clip?wait=25000', timeout: 30 },\n  (err, res) => { if (!err) console.log(res.status + ' ' + res.body) })\n// later: req.cancel()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpModule.swift",
+          "lineNumber": 45
+        }
+      ],
+      "properties": [
+        {
+          "name": "fetch",
+          "signature": "var fetch: JSValue? { get set }",
+          "rawDocumentation": "Promise sugar: `hs.http.fetch(options) -> Promise<res>`. Swift-retained storage for the JS implementation.\n- Example:\n```js\nconst res = await hs.http.fetch({ url: 'http://127.0.0.1:8473/healthz' })\n```",
+          "description": "Promise sugar: `hs.http.fetch(options) -> Promise<res>`. Swift-retained storage for the JS implementation.",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const res = await hs.http.fetch({ url: 'http://127.0.0.1:8473/healthz' })"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpModule.swift",
+          "lineNumber": 52
+        },
+        {
+          "name": "get",
+          "signature": "var get: JSValue? { get set }",
+          "rawDocumentation": "Promise sugar: `hs.http.get(url, options?) -> Promise<res>`. Swift-retained storage for the JS implementation.\n- Example:\n```js\nconst res = await hs.http.get('http://127.0.0.1:8473/clip')\n```",
+          "description": "Promise sugar: `hs.http.get(url, options?) -> Promise<res>`. Swift-retained storage for the JS implementation.",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const res = await hs.http.get('http://127.0.0.1:8473/clip')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpModule.swift",
+          "lineNumber": 59
+        },
+        {
+          "name": "post",
+          "signature": "var post: JSValue? { get set }",
+          "rawDocumentation": "Promise sugar: `hs.http.post(url, body, options?) -> Promise<res>`. Swift-retained storage for the JS implementation.\n- Example:\n```js\nawait hs.http.post('http://127.0.0.1:8473/clip', JSON.stringify({ value: 'hi' }))\n```",
+          "description": "Promise sugar: `hs.http.post(url, body, options?) -> Promise<res>`. Swift-retained storage for the JS implementation.",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "await hs.http.post('http://127.0.0.1:8473/clip', JSON.stringify({ value: 'hi' }))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpModule.swift",
+          "lineNumber": 66
+        }
+      ],
+      "types": [
+        {
+          "name": "HSHttpClientRequestAPI",
+          "type": "typedef",
+          "rawDocumentation": "A handle to an in-flight HTTP request.",
+          "description": "A handle to an in-flight HTTP request.",
+          "methods": [
+            {
+              "name": "cancel",
+              "signature": "func cancel()",
+              "rawDocumentation": "Cancel the request. The callback (if any) fires with err `'cancelled'`.\n- Example:\n```js\nconst req = hs.http.request({ url }, cb)\nreq.cancel()\n```",
+              "description": "Cancel the request. The callback (if any) fires with err `'cancelled'`.",
+              "params": [],
+              "returns": null,
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const req = hs.http.request({ url }, cb)\nreq.cancel()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpClientRequest.swift",
+              "lineNumber": 24
+            }
+          ],
+          "properties": [
+            {
+              "name": "isRunning",
+              "signature": "var isRunning: Bool { get }",
+              "rawDocumentation": "Whether the request is still running.\n- Example:\n```js\nif (req.isRunning) req.cancel()\n```",
+              "description": "Whether the request is still running.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (req.isRunning) req.cancel()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpClientRequest.swift",
+              "lineNumber": 31
+            },
+            {
+              "name": "identifier",
+              "signature": "var identifier: String { get }",
+              "rawDocumentation": "A unique identifier for this request.\n- Example:\n```js\nconsole.log(req.identifier)\n```",
+              "description": "A unique identifier for this request.",
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log(req.identifier)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpClientRequest.swift",
+              "lineNumber": 38
+            }
+          ]
+        }
+      ],
+      "description": "Module for making HTTP(S) requests.",
+      "rawDocumentation": "Module for making HTTP(S) requests."
+    },
+    {
       "name": "hs.httpserver",
       "methods": [
         {
@@ -15179,5 +15323,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-18T07:29:38.739Z"
+  "generatedAt": "2026-06-26T10:00:22.083Z"
 }

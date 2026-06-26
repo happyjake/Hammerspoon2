@@ -2435,6 +2435,62 @@ declare class HSDoubleTapHotkey {
 }
 
 /**
+ * Module for making HTTP(S) requests.
+ */
+declare namespace hs.http {
+    /**
+     * Start an HTTP request. Returns immediately with a cancellable handle; the
+result is delivered to `callback(err, res)`.
+(default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`
+(string, for small payloads); `bodyFile` (path to stream the request body FROM —
+large uploads; wins over `body`); `saveTo` (path to stream the response body TO —
+large downloads; omits `res.body`).
+`{ status, headers, bytes, body?, path? }` or null on error.
+     * @param options An object with: `url` (absolute URL, required); `method`
+     * @param callback `(err, res)` — `err` is a string or null; `res` is
+     * @returns a request handle with `.cancel()` and `.isRunning`.
+     */
+    function request(options: JSValue, callback: JSValue | undefined): HSHttpClientRequest;
+
+    /**
+     * Promise sugar: `hs.http.fetch(options) -> Promise<res>`. Swift-retained storage for the JS implementation.
+     */
+    const fetch: JSValue | undefined;
+
+    /**
+     * Promise sugar: `hs.http.get(url, options?) -> Promise<res>`. Swift-retained storage for the JS implementation.
+     */
+    const get: JSValue | undefined;
+
+    /**
+     * Promise sugar: `hs.http.post(url, body, options?) -> Promise<res>`. Swift-retained storage for the JS implementation.
+     */
+    const post: JSValue | undefined;
+
+}
+
+/**
+ * A handle to an in-flight HTTP request.
+ */
+declare class HSHttpClientRequest {
+    /**
+     * Cancel the request. The callback (if any) fires with err `'cancelled'`.
+     */
+    static cancel(): void;
+
+    /**
+     * Whether the request is still running.
+     */
+    isRunning: boolean;
+
+    /**
+     * A unique identifier for this request.
+     */
+    identifier: string;
+
+}
+
+/**
  * Multi-map of HTTP header name → value(s), with case-insensitive lookup
 per RFC 7230 §3.2. Backs both incoming `HSHttpRequest.headers` and
 outgoing `HSHttpResponse.headers`. Mirrors the WHATWG Fetch `Headers`

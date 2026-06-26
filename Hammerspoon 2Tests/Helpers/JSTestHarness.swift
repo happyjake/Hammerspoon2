@@ -410,6 +410,10 @@ extension JSTestHarness {
                 loadModule(HSWindowModule.self, as: name)
             case "vision":
                 loadModule(HSVisionModule.self, as: name)
+            case "http":
+                loadModule(HSHttpModule.self, as: name)
+            case "httpserver":
+                loadModule(HSHttpServerModule.self, as: name)
             default:
                 print("⚠️ Unknown module: \(name)")
             }

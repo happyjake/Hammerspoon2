@@ -64,13 +64,20 @@ nonisolated final class HSHttpServer: NSObject, HSHttpServerAPI, @unchecked Send
 
         let nwPort = NWEndpoint.Port(rawValue: UInt16(port)) ?? NWEndpoint.Port.any
         let params = NWParameters.tcp
+        let listener: NWListener
         if hostname != "0.0.0.0" {
+            // Bind a specific local address (e.g. 127.0.0.1). The port travels
+            // in requiredLocalEndpoint; ALSO passing it via `on:` is the
+            // redundant-port combination NWListener rejects with EINVAL (22),
+            // which used to make any non-0.0.0.0 bind fail.
             params.requiredLocalEndpoint = NWEndpoint.hostPort(
                 host: NWEndpoint.Host(hostname),
                 port: nwPort
             )
+            listener = try NWListener(using: params)
+        } else {
+            listener = try NWListener(using: params, on: nwPort)
         }
-        let listener = try NWListener(using: params, on: nwPort)
         self.listener = listener
         super.init()
 

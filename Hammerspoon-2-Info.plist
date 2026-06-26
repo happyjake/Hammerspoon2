@@ -15,6 +15,14 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- CrossWin reaches the Windows agent over an SSH local-forward at
+		     http://127.0.0.1:8473. Permit insecure HTTP to local/loopback
+		     destinations (loopback is a reserved range covered by this key). -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>Hammerspoon 2 requires accessibility permissions to control your Mac</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
