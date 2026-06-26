@@ -2720,7 +2720,7 @@ Receives a response object (see module docs for shape).
      * @param options A JavaScript object — see module documentation for supported keys.
      * @returns An `HSNotification` object. Call `.send()` on it to deliver the notification.
      */
-    function create(options: JSValue): HSNotification | undefined;
+    function create(options: Record<string, any>): HSNotification | undefined;
 
     /**
      * Remove all delivered Hammerspoon notifications from Notification Center.
@@ -2787,7 +2787,7 @@ Overrides `languages` when set.
      * @param options Optional configuration object (see description).
      * @returns Resolves with the recognition result.
      */
-    function recognizeText(path: string, options: JSValue | undefined): Promise<HSOCRResult>;
+    function recognizeText(path: string, options: Record<string, any> | undefined): Promise<HSOCRResult>;
 
     /**
      * Returns the BCP-47 language codes supported by the Vision text recognizer
@@ -4225,7 +4225,7 @@ declare namespace hs.timer {
      * Get the number of nanoseconds since the system was booted (excluding sleep time)
      * @returns Nanoseconds since boot
      */
-    function absoluteTime(): UInt64;
+    function absoluteTime(): number;
 
     /**
      * Get the number of seconds since local midnight

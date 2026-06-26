@@ -85,7 +85,7 @@ import JavaScriptCore
     /// ```js
     /// console.log(hs.timer.absoluteTime())
     /// ```
-    @objc func absoluteTime() -> UInt64
+    @objc func absoluteTime() -> Int
 
     /// Get the number of seconds since local midnight
     /// - Returns: Seconds since midnight in the local timezone
@@ -239,13 +239,13 @@ import JavaScriptCore
         return Date().timeIntervalSince1970
     }
 
-    @objc func absoluteTime() -> UInt64 {
+    @objc func absoluteTime() -> Int {
         var info = mach_timebase_info_data_t()
         unsafe mach_timebase_info(&info)
 
         let currentTime = mach_absolute_time()
         let nanos = currentTime * UInt64(info.numer) / UInt64(info.denom)
-        return nanos
+        return Int(nanos)
     }
 
     @objc func localTime() -> TimeInterval {

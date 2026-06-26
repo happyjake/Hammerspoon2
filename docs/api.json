@@ -6507,14 +6507,14 @@
         },
         {
           "name": "create",
-          "signature": "func create(_ options: JSValue) -> HSNotification?",
+          "signature": "func create(_ options: [String: Any]) -> HSNotification?",
           "isStatic": false,
           "rawDocumentation": "Create a richly configured notification without sending it yet.\n\n- Parameter options: A JavaScript object — see module documentation for supported keys.\n- Returns: An `HSNotification` object. Call `.send()` on it to deliver the notification.\n- Example:\n```js\nconst n = hs.notify.create({ title: \"Hello\", body: \"World\" })\nn.send()\n```",
           "description": "Create a richly configured notification without sending it yet.",
           "params": [
             {
               "name": "options",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "A JavaScript object — see module documentation for supported keys.",
               "optional": false,
               "tsType": null
@@ -6646,7 +6646,7 @@
       "methods": [
         {
           "name": "recognizeText",
-          "signature": "func recognizeText(_ path: String, _ options: JSValue?) -> JSPromise?",
+          "signature": "func recognizeText(_ path: String, _ options: [String: Any]?) -> JSPromise?",
           "isStatic": false,
           "rawDocumentation": "Recognize text in the image at the given file path.\n\nReturns a Promise that resolves with an `HSOCRResult` containing all\nrecognized text and per-region observations. The image must exist on\ndisk; URLs and data buffers are not supported.\n\nRecognition is performed on a background thread; the main thread is\nnot blocked during the operation.\n\nThe optional `options` object may contain:\n- `recognitionLevel` (`\"accurate\"` | `\"fast\"`, default `\"accurate\"`):\n  `\"accurate\"` uses a larger neural network for better results;\n  `\"fast\"` trades accuracy for speed.\n- `minimumConfidence` (number 0–1, default `0`):\n  Observations whose `confidence` is below this threshold are excluded\n  from `result.observations` (and therefore from `result.text`).\n- `languages` (array of BCP-47 strings, e.g. `[\"en-US\", \"fr-FR\"]`):\n  Hints Vision toward specific languages. Use `supportedLanguages()` to\n  enumerate the available codes for the current device.\n- `automaticallyDetectsLanguage` (boolean, default `false`):\n  When `true`, Vision selects recognition languages automatically.\n  Overrides `languages` when set.\n\n- Parameter path: Absolute path to the image file.\n- Parameter options: Optional configuration object (see description).\n- Returns: {Promise<HSOCRResult>} Resolves with the recognition result.\n\n- Example:\n```js\n// Async/await style\nasync function getTextFromImage(imagePath) {\n    const result = await hs.ocr.recognizeText(imagePath)\n    return result.text\n}\n```\n\n- Example:\n```js\n// Promise chain style, with options\nhs.ocr.recognizeText('/tmp/image.png', { minimumConfidence: 0.75 })\n    .then(result => console.log('Found ' + result.observations.length + ' regions'))\n    .catch(err => console.log('Error: ' + err))\n```",
           "description": "Recognize text in the image at the given file path.\nReturns a Promise that resolves with an `HSOCRResult` containing all\nrecognized text and per-region observations. The image must exist on\ndisk; URLs and data buffers are not supported.\nRecognition is performed on a background thread; the main thread is\nnot blocked during the operation.\n`\"accurate\"` uses a larger neural network for better results;\n`\"fast\"` trades accuracy for speed.\nObservations whose `confidence` is below this threshold are excluded\nfrom `result.observations` (and therefore from `result.text`).\nHints Vision toward specific languages. Use `supportedLanguages()` to\nenumerate the available codes for the current device.\nWhen `true`, Vision selects recognition languages automatically.\nOverrides `languages` when set.",
@@ -6660,7 +6660,7 @@
             },
             {
               "name": "options",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "Optional configuration object (see description).",
               "optional": false,
               "tsType": null
@@ -10227,13 +10227,13 @@
         },
         {
           "name": "absoluteTime",
-          "signature": "func absoluteTime() -> UInt64",
+          "signature": "func absoluteTime() -> Int",
           "isStatic": false,
           "rawDocumentation": "Get the number of nanoseconds since the system was booted (excluding sleep time)\n- Returns: Nanoseconds since boot\n- Example:\n```js\nconsole.log(hs.timer.absoluteTime())\n```",
           "description": "Get the number of nanoseconds since the system was booted (excluding sleep time)",
           "params": [],
           "returns": {
-            "type": "UInt64",
+            "type": "number",
             "description": "Nanoseconds since boot"
           },
           "examples": [
@@ -14143,5 +14143,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-06-26T21:00:10.989Z"
+  "generatedAt": "2026-06-26T21:16:04.803Z"
 }
