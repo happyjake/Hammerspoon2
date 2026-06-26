@@ -113,8 +113,16 @@ private final class PendingRequest {
             cfg.requestCachePolicy = .reloadIgnoringLocalCacheData
             cfg.waitsForConnectivity = false
             // A loopback SSH tunnel must not be routed through a system HTTP
-            // proxy (e.g. Surge/Proxyman), which would intercept 127.0.0.1.
-            if direct { cfg.connectionProxyDictionary = [:] }
+            // proxy (e.g. Surge/Proxyman), which would intercept 127.0.0.1. An
+            // empty dictionary is treated as "use system config" on some macOS
+            // versions, so disable each proxy type explicitly.
+            if direct {
+                cfg.connectionProxyDictionary = [
+                    kCFNetworkProxiesHTTPEnable as String: 0,
+                    kCFNetworkProxiesHTTPSEnable as String: 0,
+                    kCFNetworkProxiesSOCKSEnable as String: 0,
+                ]
+            }
             return cfg
         }
         self.session = URLSession(configuration: makeConfig(direct: false))
@@ -207,7 +215,14 @@ private final class PendingRequest {
             for (k, v) in http.allHeaderFields { out.headers["\(k)"] = "\(v)" }
         }
         let fm = FileManager.default
+        // On an error status, never write the (error-body) response to the
+        // caller's destination file — surface the status instead.
+        let isError = out.status >= 400
         if let downloadTmp {
+            if isError {
+                try? fm.removeItem(at: downloadTmp)
+                return out
+            }
             guard let saveTo else { out.errString = "internal: download without saveTo"; return out }
             let dest = URL(fileURLWithPath: (saveTo as NSString).expandingTildeInPath)
             do {
@@ -223,7 +238,7 @@ private final class PendingRequest {
         }
         if let data {
             out.bytes = data.count
-            if let saveTo {
+            if let saveTo, !isError {
                 let dest = URL(fileURLWithPath: (saveTo as NSString).expandingTildeInPath)
                 do {
                     try fm.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
