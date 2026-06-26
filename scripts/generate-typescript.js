@@ -48,6 +48,7 @@ function swiftTypeToTS(swiftType, promiseType = null) {
         'TimeInterval': 'number',
         'UInt32': 'number',
         'NSNumber': 'number',
+        'NSDate': 'Date',
         'Any': 'any',
         'Void': 'void'
     };

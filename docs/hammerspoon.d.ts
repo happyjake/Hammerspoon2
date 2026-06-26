@@ -2434,25 +2434,23 @@ Does not require Location Services.
 
     /**
      * Returns the time of sunrise for the given coordinates and date as seconds
-since the Unix epoch, or null if the sun does not rise on that date (polar
-night). Pass a JS `Date` for `date`, or omit/pass null to use today.
+since the Unix epoch, or null if the sun does not rise on that date (polar night).
      * @param latitude degrees north (positive) or south (negative)
      * @param longitude degrees east (positive) or west (negative)
-     * @param date optional JS `Date`; defaults to today
+     * @param date the date to calculate for; pass null or omit to use today
      * @returns seconds since epoch of sunrise, or null
      */
-    function sunrise(latitude: number, longitude: number, date: JSValue): number | undefined;
+    function sunrise(latitude: number, longitude: number, date: Date | undefined): number | undefined;
 
     /**
      * Returns the time of sunset for the given coordinates and date as seconds
-since the Unix epoch, or null if the sun does not set on that date (midnight
-sun). Pass a JS `Date` for `date`, or omit/pass null to use today.
+since the Unix epoch, or null if the sun does not set on that date (midnight sun).
      * @param latitude degrees north (positive) or south (negative)
      * @param longitude degrees east (positive) or west (negative)
-     * @param date optional JS `Date`; defaults to today
+     * @param date the date to calculate for; pass null or omit to use today
      * @returns seconds since epoch of sunset, or null
      */
-    function sunset(latitude: number, longitude: number, date: JSValue): number | undefined;
+    function sunset(latitude: number, longitude: number, date: Date | undefined): number | undefined;
 
     /**
      * Creates a new location watcher object. Call `.start()` on it to begin

@@ -5951,10 +5951,10 @@
         },
         {
           "name": "sunrise",
-          "signature": "func sunrise(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> number?",
+          "signature": "func sunrise(_ latitude: Double, _ longitude: Double, _ date: NSDate?) -> number?",
           "isStatic": false,
-          "rawDocumentation": "Returns the time of sunrise for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not rise on that date (polar\nnight). Pass a JS `Date` for `date`, or omit/pass null to use today.\n- Parameters:\n  - latitude: degrees north (positive) or south (negative)\n  - longitude: degrees east (positive) or west (negative)\n  - date: optional JS `Date`; defaults to today\n- Returns: seconds since epoch of sunrise, or null\n- Example:\n```js\nconst rise = hs.location.sunrise(51.5, -0.1)\nconsole.log(new Date(rise * 1000).toTimeString())\n```",
-          "description": "Returns the time of sunrise for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not rise on that date (polar\nnight). Pass a JS `Date` for `date`, or omit/pass null to use today.",
+          "rawDocumentation": "Returns the time of sunrise for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not rise on that date (polar night).\n- Parameters:\n  - latitude: degrees north (positive) or south (negative)\n  - longitude: degrees east (positive) or west (negative)\n  - date: the date to calculate for; pass null or omit to use today\n- Returns: seconds since epoch of sunrise, or null\n- Example:\n```js\nconst rise = hs.location.sunrise(51.5, -0.1)\nconsole.log(new Date(rise * 1000).toTimeString())\n```",
+          "description": "Returns the time of sunrise for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not rise on that date (polar night).",
           "params": [
             {
               "name": "latitude",
@@ -5972,8 +5972,8 @@
             },
             {
               "name": "date",
-              "type": "JSValue",
-              "description": "optional JS `Date`; defaults to today",
+              "type": "Date",
+              "description": "the date to calculate for; pass null or omit to use today",
               "optional": false,
               "tsType": null
             }
@@ -5990,14 +5990,14 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
-          "lineNumber": 97
+          "lineNumber": 96
         },
         {
           "name": "sunset",
-          "signature": "func sunset(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> number?",
+          "signature": "func sunset(_ latitude: Double, _ longitude: Double, _ date: NSDate?) -> number?",
           "isStatic": false,
-          "rawDocumentation": "Returns the time of sunset for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not set on that date (midnight\nsun). Pass a JS `Date` for `date`, or omit/pass null to use today.\n- Parameters:\n  - latitude: degrees north (positive) or south (negative)\n  - longitude: degrees east (positive) or west (negative)\n  - date: optional JS `Date`; defaults to today\n- Returns: seconds since epoch of sunset, or null\n- Example:\n```js\nconst set = hs.location.sunset(51.5, -0.1)\nconsole.log(new Date(set * 1000).toTimeString())\n```",
-          "description": "Returns the time of sunset for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not set on that date (midnight\nsun). Pass a JS `Date` for `date`, or omit/pass null to use today.",
+          "rawDocumentation": "Returns the time of sunset for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not set on that date (midnight sun).\n- Parameters:\n  - latitude: degrees north (positive) or south (negative)\n  - longitude: degrees east (positive) or west (negative)\n  - date: the date to calculate for; pass null or omit to use today\n- Returns: seconds since epoch of sunset, or null\n- Example:\n```js\nconst set = hs.location.sunset(51.5, -0.1)\nconsole.log(new Date(set * 1000).toTimeString())\n```",
+          "description": "Returns the time of sunset for the given coordinates and date as seconds\nsince the Unix epoch, or null if the sun does not set on that date (midnight sun).",
           "params": [
             {
               "name": "latitude",
@@ -6015,8 +6015,8 @@
             },
             {
               "name": "date",
-              "type": "JSValue",
-              "description": "optional JS `Date`; defaults to today",
+              "type": "Date",
+              "description": "the date to calculate for; pass null or omit to use today",
               "optional": false,
               "tsType": null
             }
@@ -6033,7 +6033,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
-          "lineNumber": 112
+          "lineNumber": 110
         },
         {
           "name": "addWatcher",
@@ -6054,7 +6054,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
-          "lineNumber": 124
+          "lineNumber": 122
         },
         {
           "name": "removeWatcher",
@@ -6080,7 +6080,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
-          "lineNumber": 134
+          "lineNumber": 132
         }
       ],
       "properties": [
@@ -6097,7 +6097,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
-          "lineNumber": 143
+          "lineNumber": 141
         }
       ],
       "types": [
@@ -14203,5 +14203,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-06-26T13:38:15.195Z"
+  "generatedAt": "2026-06-26T13:45:12.739Z"
 }

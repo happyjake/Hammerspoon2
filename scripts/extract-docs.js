@@ -848,6 +848,7 @@ function swiftTypeToJSDoc(swiftType) {
         'TimeInterval': 'number',
         'UInt32': 'number',
         'NSNumber': 'number',
+        'NSDate': 'Date',
         'Any': '*'
     };
     
