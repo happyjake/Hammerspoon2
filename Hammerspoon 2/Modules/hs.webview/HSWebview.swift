@@ -291,6 +291,34 @@ import WebKit
     /// - Returns: self for chaining
     @objc func windowCallback(_ callback: JSValue) -> HSWebview
 
+    /// Register a callback for native file drops onto the webview. When set,
+    /// dragging files from Finder onto the page is handled natively and the
+    /// callback fires with an array of absolute filesystem paths — so you can
+    /// stream the real file from disk instead of reading its bytes through the
+    /// JS bridge. The page's own HTML5 `drop` event does NOT fire for files
+    /// while a handler is registered; non-file drags (text, images from other
+    /// apps) fall through to WebKit unchanged. While a file drag is over the
+    /// window the page is notified via `window.__hsFileDrag(active)` (a boolean)
+    /// so it can show a drop highlight. Pass `null` to unregister (file drops
+    /// then revert to the page's own HTML5 handling).
+    /// - Parameter callback: `(paths) => void` where `paths` is an array of
+    ///   absolute file paths, or null to unregister
+    /// - Returns: self for chaining
+    /// - Example:
+    /// ```js
+    /// wv.onFileDrop((paths) => {
+    ///   paths.forEach((p) => hs.http.request({ url, method: 'POST', bodyFile: p }, () => {}))
+    /// })
+    /// // in the page: window.__hsFileDrag = (on) => dropZone.classList.toggle('over', on)
+    /// ```
+    @objc func onFileDrop(_ callback: JSValue) -> HSWebview
+
+    /// Test hook: invoke the registered `onFileDrop` callback directly with
+    /// `paths`, bypassing the AppKit drag session (which a unit test can't
+    /// stage). No-op if the webview isn't shown or no handler is registered.
+    /// - Parameter paths: absolute file paths to deliver to the handler
+    @objc(_simulateFileDrop:) func _simulateFileDrop(_ paths: [String])
+
     /// Enable Safari "Inspect Element" right-click for this webview. Off by default.
     /// - Parameter enabled: whether to enable
     /// - Returns: self for chaining
@@ -349,6 +377,7 @@ import WebKit
 
     // Callbacks
     private var lifecycleCallback: JSValue?
+    private var fileDropCallback: JSValue?
 
     init(frame: CGRect, module: HSWebviewModule) {
         self.windowFrame = frame
@@ -663,15 +692,17 @@ import WebKit
         for s in pendingUserScripts { ucc.addUserScript(s) }
         configuration.userContentController = ucc
 
-        // Build the WKWebView and configure its visual style first.
-        let wv = WKWebView(frame: CGRect(origin: .zero, size: windowFrame.size),
-                           configuration: configuration)
+        // Build the WKWebView and configure its visual style first. A
+        // HSWebviewDropView so native file drops can be intercepted (see onFileDrop).
+        let wv = HSWebviewDropView(frame: CGRect(origin: .zero, size: windowFrame.size),
+                                   configuration: configuration)
         wv.autoresizingMask = [.width, .height]
         wv.navigationDelegate = self
         if isTransparent {
             wv.setValue(false, forKey: "drawsBackground")
         }
         self.webView = wv
+        wireDropHandlers() // (re)attach native drop handlers if onFileDrop was set pre-show
 
         // Move stashed handler callbacks (pendingHandlers) into handlerCallbacks
         // — the actual JSValue refs live here, the WKUserContentController only
@@ -791,6 +822,7 @@ import WebKit
         }
         installedHandlerNames.removeAll()
         handlerCallbacks.removeAll()
+        fileDropCallback = nil
 
         webView?.navigationDelegate = nil
         webView?.removeFromSuperview()
@@ -933,6 +965,42 @@ import WebKit
         return self
     }
 
+    @objc func onFileDrop(_ callback: JSValue) -> HSWebview {
+        let isNullish = callback.isNull || callback.isUndefined
+        if !isNullish, !callback.isObject {
+            AKWarning("hs.webview.onFileDrop: callback must be a function")
+            return self
+        }
+        fileDropCallback = isNullish ? nil : callback
+        wireDropHandlers()
+        return self
+    }
+
+    /// Point the drop view's native handlers at the current `fileDropCallback`
+    /// (or clear them when unregistered). The non-nil `onFileDrop` closure is
+    /// also what the drop view checks to decide whether to intercept a file
+    /// drag vs. defer to WebKit — so leaving it nil keeps default web behavior.
+    /// Called when `onFileDrop` changes and once the drop view is built.
+    private func wireDropHandlers() {
+        guard let dv = webView as? HSWebviewDropView else { return }
+        guard fileDropCallback != nil else {
+            dv.onFileDrop = nil
+            dv.onFileDragActive = nil
+            return
+        }
+        dv.onFileDrop = { [weak self] paths in
+            self?.fileDropCallback?.callSafely(withArguments: [paths], context: "hs.webview onFileDrop")
+        }
+        dv.onFileDragActive = { [weak self] active in
+            self?.webView?.evaluateJavaScript("window.__hsFileDrag && window.__hsFileDrag(\(active))",
+                                              completionHandler: nil)
+        }
+    }
+
+    @objc(_simulateFileDrop:) func _simulateFileDrop(_ paths: [String]) {
+        (webView as? HSWebviewDropView)?.onFileDrop?(paths)
+    }
+
     // MARK: - WKScriptMessageHandler dispatch (via WeakScriptHandler)
 
     fileprivate func dispatchScriptMessage(_ message: WKScriptMessage) {
@@ -964,6 +1032,7 @@ import WebKit
             }
             installedHandlerNames.removeAll()
             handlerCallbacks.removeAll()
+            fileDropCallback = nil
             webView = nil
             nsWindow?.delegate = nil
             nsWindow = nil
@@ -1007,5 +1076,96 @@ private final class WeakScriptHandler: NSObject, WKScriptMessageHandler {
         MainActor.assumeIsolated {
             target?.userContentController(userContentController, didReceive: message)
         }
+    }
+}
+
+// MARK: - Native file drop
+
+/// A WKWebView that surfaces native file drops. WKWebView already registers as a
+/// file-URL drag destination (to support `<input type=file>` / contentEditable),
+/// so overriding the dragging-destination entry points lets us intercept a file
+/// drop, hand JS the real filesystem paths, and stream the file from disk —
+/// instead of the page reading the bytes through the JS bridge. Only file drags
+/// are intercepted, and only while `onFileDrop` is set; every other drag (and
+/// all drags when no handler is registered) defers to WebKit via `super`.
+@MainActor
+private final class HSWebviewDropView: WKWebView {
+    /// Set when JS registers `onFileDrop`; nil means "behave like a plain WKWebView".
+    var onFileDrop: (([String]) -> Void)?
+    /// Fires true/false as a file drag enters/leaves, to drive the page highlight.
+    var onFileDragActive: ((Bool) -> Void)?
+
+    // Per-drag-session state. The drag pasteboard is immutable for the session,
+    // so we read it once on entry and cache the result (draggingUpdated fires
+    // continuously); `didSignalActive` guarantees every highlight `true` is
+    // paired with exactly one `false`, even if the handler is removed mid-drag.
+    private var sessionFiles: [URL]?
+    private var didSignalActive = false
+
+    /// Regular on-disk files in the drag (directories and promise/non-file drags
+    /// are excluded — the path feeds a streamed upload, which needs a real file).
+    /// Read once per session from the immutable drag pasteboard, then cached.
+    private func filesForSession(_ sender: NSDraggingInfo) -> [URL] {
+        if let cached = sessionFiles { return cached }
+        var files: [URL] = []
+        if onFileDrop != nil {
+            let opts: [NSPasteboard.ReadingOptionKey: Any] = [.urlReadingFileURLsOnly: true]
+            let urls = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: opts) as? [URL] ?? []
+            files = urls.filter { (try? $0.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true }
+        }
+        sessionFiles = files
+        return files
+    }
+
+    /// End the drag session: emit the paired `false` iff we signalled `true`,
+    /// and forget the cached files.
+    private func endSession() {
+        if didSignalActive { onFileDragActive?(false); didSignalActive = false }
+        sessionFiles = nil
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        // Defensive: ensure we're a file-URL drag destination even if a WebKit
+        // build didn't register one. Append so WebKit's own types are preserved.
+        if window != nil, !registeredDraggedTypes.contains(.fileURL) {
+            registerForDraggedTypes(registeredDraggedTypes + [.fileURL])
+        }
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        sessionFiles = nil // start a fresh session
+        if !filesForSession(sender).isEmpty {
+            if !didSignalActive { onFileDragActive?(true); didSignalActive = true }
+            return .copy
+        }
+        return super.draggingEntered(sender)
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if !filesForSession(sender).isEmpty { return .copy }
+        return super.draggingUpdated(sender)
+    }
+
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        endSession()
+        super.draggingExited(sender)
+    }
+
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        if !filesForSession(sender).isEmpty { return true }
+        return super.prepareForDragOperation(sender)
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let files = filesForSession(sender)
+        guard !files.isEmpty else {
+            endSession()
+            return super.performDragOperation(sender)
+        }
+        let deliver = onFileDrop
+        endSession() // clear the highlight before the (possibly slow) send
+        deliver?(files.map { $0.path })
+        return true
     }
 }

@@ -5923,6 +5923,31 @@ the string `'closing'` when the window is about to close.
     static windowCallback(callback: JSValue): HSWebview;
 
     /**
+     * Register a callback for native file drops onto the webview. When set,
+dragging files from Finder onto the page is handled natively and the
+callback fires with an array of absolute filesystem paths — so you can
+stream the real file from disk instead of reading its bytes through the
+JS bridge. The page's own HTML5 `drop` event does NOT fire for files
+while a handler is registered; non-file drags (text, images from other
+apps) fall through to WebKit unchanged. While a file drag is over the
+window the page is notified via `window.__hsFileDrag(active)` (a boolean)
+so it can show a drop highlight. Pass `null` to unregister (file drops
+then revert to the page's own HTML5 handling).
+absolute file paths, or null to unregister
+     * @param callback `(paths) => void` where `paths` is an array of
+     * @returns self for chaining
+     */
+    static onFileDrop(callback: JSValue): HSWebview;
+
+    /**
+     * Test hook: invoke the registered `onFileDrop` callback directly with
+`paths`, bypassing the AppKit drag session (which a unit test can't
+stage). No-op if the webview isn't shown or no handler is registered.
+     * @param paths absolute file paths to deliver to the handler
+     */
+    static _simulateFileDrop(paths: string[]): void;
+
+    /**
      * Enable Safari "Inspect Element" right-click for this webview. Off by default.
      * @param enabled whether to enable
      * @returns self for chaining

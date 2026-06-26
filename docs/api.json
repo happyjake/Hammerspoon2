@@ -13590,6 +13590,50 @@
               "lineNumber": 292
             },
             {
+              "name": "onFileDrop",
+              "signature": "func onFileDrop(_ callback: JSValue) -> HSWebview",
+              "rawDocumentation": "Register a callback for native file drops onto the webview. When set,\ndragging files from Finder onto the page is handled natively and the\ncallback fires with an array of absolute filesystem paths — so you can\nstream the real file from disk instead of reading its bytes through the\nJS bridge. The page's own HTML5 `drop` event does NOT fire for files\nwhile a handler is registered; non-file drags (text, images from other\napps) fall through to WebKit unchanged. While a file drag is over the\nwindow the page is notified via `window.__hsFileDrag(active)` (a boolean)\nso it can show a drop highlight. Pass `null` to unregister (file drops\nthen revert to the page's own HTML5 handling).\n- Parameter callback: `(paths) => void` where `paths` is an array of\n  absolute file paths, or null to unregister\n- Returns: self for chaining\n- Example:\n```js\nwv.onFileDrop((paths) => {\n  paths.forEach((p) => hs.http.request({ url, method: 'POST', bodyFile: p }, () => {}))\n})\n// in the page: window.__hsFileDrag = (on) => dropZone.classList.toggle('over', on)\n```",
+              "description": "Register a callback for native file drops onto the webview. When set,\ndragging files from Finder onto the page is handled natively and the\ncallback fires with an array of absolute filesystem paths — so you can\nstream the real file from disk instead of reading its bytes through the\nJS bridge. The page's own HTML5 `drop` event does NOT fire for files\nwhile a handler is registered; non-file drags (text, images from other\napps) fall through to WebKit unchanged. While a file drag is over the\nwindow the page is notified via `window.__hsFileDrag(active)` (a boolean)\nso it can show a drop highlight. Pass `null` to unregister (file drops\nthen revert to the page's own HTML5 handling).\nabsolute file paths, or null to unregister",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSValue",
+                  "description": "`(paths) => void` where `paths` is an array of"
+                }
+              ],
+              "returns": {
+                "type": "HSWebview",
+                "description": "self for chaining"
+              },
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "wv.onFileDrop((paths) => {\n  paths.forEach((p) => hs.http.request({ url, method: 'POST', bodyFile: p }, () => {}))\n})\n// in the page: window.__hsFileDrag = (on) => dropZone.classList.toggle('over', on)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
+              "lineNumber": 314
+            },
+            {
+              "name": "_simulateFileDrop",
+              "signature": "func _simulateFileDrop(_ paths: [String])",
+              "rawDocumentation": "Test hook: invoke the registered `onFileDrop` callback directly with\n`paths`, bypassing the AppKit drag session (which a unit test can't\nstage). No-op if the webview isn't shown or no handler is registered.\n- Parameter paths: absolute file paths to deliver to the handler",
+              "description": "Test hook: invoke the registered `onFileDrop` callback directly with\n`paths`, bypassing the AppKit drag session (which a unit test can't\nstage). No-op if the webview isn't shown or no handler is registered.",
+              "params": [
+                {
+                  "name": "paths",
+                  "type": "[String]",
+                  "description": "absolute file paths to deliver to the handler"
+                }
+              ],
+              "returns": null,
+              "examples": [],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
+              "lineNumber": 320
+            },
+            {
               "name": "developerExtras",
               "signature": "func developerExtras(_ enabled: Bool) -> HSWebview",
               "rawDocumentation": "Enable Safari \"Inspect Element\" right-click for this webview. Off by default.\n- Parameter enabled: whether to enable\n- Returns: self for chaining",
@@ -13608,7 +13652,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.webview/HSWebview.swift",
-              "lineNumber": 297
+              "lineNumber": 325
             }
           ],
           "properties": []
@@ -15323,5 +15367,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-26T10:11:06.077Z"
+  "generatedAt": "2026-06-26T21:47:51.277Z"
 }

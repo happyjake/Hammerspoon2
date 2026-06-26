@@ -46,6 +46,7 @@ struct HSWebviewStructureTests {
         h.expectTrue("typeof wv.injectUserScript === 'function'")
         h.expectTrue("typeof wv.evaluateJavaScript === 'function'")
         h.expectTrue("typeof wv.windowCallback === 'function'")
+        h.expectTrue("typeof wv.onFileDrop === 'function'")
         h.expectTrue("typeof wv.currentFrame === 'function'")
         h.expectTrue("typeof wv.bringToFront === 'function'")
     }
@@ -73,6 +74,8 @@ struct HSWebviewStructureTests {
         h.expectTrue("wv.injectUserScript('window.__x = 1') === wv")
         h.expectTrue("wv.setMessageHandler('vc', (m) => {}) === wv")
         h.expectTrue("wv.windowCallback((e) => {}) === wv")
+        h.expectTrue("wv.onFileDrop((paths) => {}) === wv")
+        h.expectTrue("wv.onFileDrop(null) === wv")
     }
 
     @Test("setMessageHandler accepts null to unregister") @MainActor func testUnregisterHandler() {
@@ -236,5 +239,30 @@ struct HSWebviewLifecycleTests {
         h.eval("wv.close()")
         // After close, currentFrame should be null again.
         h.expectTrue("wv.currentFrame() == null")
+    }
+
+    @Test("onFileDrop delivers native drop paths to JS") @MainActor func testFileDropDelivery() {
+        // The real AppKit drag session can't be staged in the test host, so this
+        // drives the _simulateFileDrop hook — which invokes the same wired
+        // closure a real drop would — to verify the JS callback plumbing
+        // (registration before show, array bridging, and unregister).
+        let h = makeHarness()
+        h.eval("""
+            globalThis.__dropped = null
+            const wv = hs.webview.new({x:200, y:200, w:400, h:300})
+                .windowStyle({titled:false, closable:false})
+                .onFileDrop((paths) => { globalThis.__dropped = paths })
+                .html('<!doctype html><html><body>drop</body></html>', null)
+                .show()
+            wv._simulateFileDrop(['/tmp/a.txt', '/tmp/pic.png'])
+        """)
+        #expect(!h.hasException)
+        h.expectTrue("Array.isArray(globalThis.__dropped) && __dropped.length === 2")
+        h.expectTrue("__dropped[0] === '/tmp/a.txt' && __dropped[1] === '/tmp/pic.png'")
+        // After unregister, a later simulated drop must not fire the old handler.
+        h.eval("globalThis.__dropped = null; wv.onFileDrop(null); wv._simulateFileDrop(['/tmp/b.txt'])")
+        h.expectTrue("globalThis.__dropped === null")
+        h.eval("wv.close()")
+        #expect(!h.hasException)
     }
 }
