@@ -2444,7 +2444,8 @@ result is delivered to `callback(err, res)`.
 (default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`
 (string, for small payloads); `bodyFile` (path to stream the request body FROM —
 large uploads; wins over `body`); `saveTo` (path to stream the response body TO —
-large downloads; omits `res.body`).
+large downloads; omits `res.body`); `directConnection` (bool — bypass any
+system HTTP proxy, for talking to a loopback SSH tunnel).
 `{ status, headers, bytes, body?, path? }` or null on error.
      * @param options An object with: `url` (absolute URL, required); `method`
      * @param callback `(err, res)` — `err` is a string or null; `res` is

@@ -5406,8 +5406,8 @@
         {
           "name": "request",
           "signature": "func request(_ options: JSValue, _ callback: JSValue?) -> HSHttpClientRequest",
-          "rawDocumentation": "Start an HTTP request. Returns immediately with a cancellable handle; the\nresult is delivered to `callback(err, res)`.\n- Parameter options: An object with: `url` (absolute URL, required); `method`\n  (default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`\n  (string, for small payloads); `bodyFile` (path to stream the request body FROM —\n  large uploads; wins over `body`); `saveTo` (path to stream the response body TO —\n  large downloads; omits `res.body`).\n- Parameter callback: `(err, res)` — `err` is a string or null; `res` is\n  `{ status, headers, bytes, body?, path? }` or null on error.\n- Returns: a request handle with `.cancel()` and `.isRunning`.\n- Example:\n```js\nconst req = hs.http.request({ url: 'http://127.0.0.1:8473/clip?wait=25000', timeout: 30 },\n  (err, res) => { if (!err) console.log(res.status + ' ' + res.body) })\n// later: req.cancel()\n```",
-          "description": "Start an HTTP request. Returns immediately with a cancellable handle; the\nresult is delivered to `callback(err, res)`.\n(default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`\n(string, for small payloads); `bodyFile` (path to stream the request body FROM —\nlarge uploads; wins over `body`); `saveTo` (path to stream the response body TO —\nlarge downloads; omits `res.body`).\n`{ status, headers, bytes, body?, path? }` or null on error.",
+          "rawDocumentation": "Start an HTTP request. Returns immediately with a cancellable handle; the\nresult is delivered to `callback(err, res)`.\n- Parameter options: An object with: `url` (absolute URL, required); `method`\n  (default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`\n  (string, for small payloads); `bodyFile` (path to stream the request body FROM —\n  large uploads; wins over `body`); `saveTo` (path to stream the response body TO —\n  large downloads; omits `res.body`); `directConnection` (bool — bypass any\n  system HTTP proxy, for talking to a loopback SSH tunnel).\n- Parameter callback: `(err, res)` — `err` is a string or null; `res` is\n  `{ status, headers, bytes, body?, path? }` or null on error.\n- Returns: a request handle with `.cancel()` and `.isRunning`.\n- Example:\n```js\nconst req = hs.http.request({ url: 'http://127.0.0.1:8473/clip?wait=25000', timeout: 30 },\n  (err, res) => { if (!err) console.log(res.status + ' ' + res.body) })\n// later: req.cancel()\n```",
+          "description": "Start an HTTP request. Returns immediately with a cancellable handle; the\nresult is delivered to `callback(err, res)`.\n(default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`\n(string, for small payloads); `bodyFile` (path to stream the request body FROM —\nlarge uploads; wins over `body`); `saveTo` (path to stream the response body TO —\nlarge downloads; omits `res.body`); `directConnection` (bool — bypass any\nsystem HTTP proxy, for talking to a loopback SSH tunnel).\n`{ status, headers, bytes, body?, path? }` or null on error.",
           "params": [
             {
               "name": "options",
@@ -5432,7 +5432,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpModule.swift",
-          "lineNumber": 45
+          "lineNumber": 46
         }
       ],
       "properties": [
@@ -5449,7 +5449,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpModule.swift",
-          "lineNumber": 52
+          "lineNumber": 53
         },
         {
           "name": "get",
@@ -5464,7 +5464,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpModule.swift",
-          "lineNumber": 59
+          "lineNumber": 60
         },
         {
           "name": "post",
@@ -5479,7 +5479,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.http/HSHttpModule.swift",
-          "lineNumber": 66
+          "lineNumber": 67
         }
       ],
       "types": [
@@ -15323,5 +15323,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-26T10:00:22.083Z"
+  "generatedAt": "2026-06-26T10:11:06.077Z"
 }

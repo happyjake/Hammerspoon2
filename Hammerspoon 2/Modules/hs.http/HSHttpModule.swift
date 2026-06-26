@@ -31,7 +31,8 @@ import JavaScriptCore
     ///   (default `'GET'`); `headers` (object); `timeout` (seconds, default 30); `body`
     ///   (string, for small payloads); `bodyFile` (path to stream the request body FROM —
     ///   large uploads; wins over `body`); `saveTo` (path to stream the response body TO —
-    ///   large downloads; omits `res.body`).
+    ///   large downloads; omits `res.body`); `directConnection` (bool — bypass any
+    ///   system HTTP proxy, for talking to a loopback SSH tunnel).
     /// - Parameter callback: `(err, res)` — `err` is a string or null; `res` is
     ///   `{ status, headers, bytes, body?, path? }` or null on error.
     /// - Returns: a request handle with `.cancel()` and `.isRunning`.
@@ -100,16 +101,24 @@ private final class PendingRequest {
     @objc var get: JSValue? = nil
     @objc var post: JSValue? = nil
 
-    private let session: URLSession
+    private let session: URLSession        // honours the system proxy
+    private let directSession: URLSession  // bypasses the system proxy (loopback tunnels)
     private var pending: [String: PendingRequest] = [:]
 
     // MARK: - Lifecycle
     required init(engineID: UUID) {
         self.engineID = engineID
-        let cfg = URLSessionConfiguration.ephemeral
-        cfg.requestCachePolicy = .reloadIgnoringLocalCacheData
-        cfg.waitsForConnectivity = false
-        self.session = URLSession(configuration: cfg)
+        func makeConfig(direct: Bool) -> URLSessionConfiguration {
+            let cfg = URLSessionConfiguration.ephemeral
+            cfg.requestCachePolicy = .reloadIgnoringLocalCacheData
+            cfg.waitsForConnectivity = false
+            // A loopback SSH tunnel must not be routed through a system HTTP
+            // proxy (e.g. Surge/Proxyman), which would intercept 127.0.0.1.
+            if direct { cfg.connectionProxyDictionary = [:] }
+            return cfg
+        }
+        self.session = URLSession(configuration: makeConfig(direct: false))
+        self.directSession = URLSession(configuration: makeConfig(direct: true))
         super.init()
         AKTrace("Init of \(name): \(engineID)")
     }
@@ -118,6 +127,7 @@ private final class PendingRequest {
         for (_, p) in pending { p.handle.cancel() }
         pending.removeAll()
         session.invalidateAndCancel()
+        directSession.invalidateAndCancel()
     }
 
     isolated deinit {
@@ -152,22 +162,24 @@ private final class PendingRequest {
         let bodyFile = string(options, "bodyFile")
         let saveTo = string(options, "saveTo")
         let id = handle.identifier
+        let useSession = (options.objectForKeyedSubscript("directConnection")?.toBool() ?? false)
+            ? directSession : session
 
         let task: URLSessionTask
         if let bodyFile {
             let src = URL(fileURLWithPath: (bodyFile as NSString).expandingTildeInPath)
-            task = session.uploadTask(with: req, fromFile: src) { [weak self] data, resp, err in
+            task = useSession.uploadTask(with: req, fromFile: src) { [weak self] data, resp, err in
                 let outcome = Self.makeOutcome(data: data, resp: resp, err: err, downloadTmp: nil, saveTo: saveTo)
                 Task { @MainActor in self?.finish(id: id, outcome: outcome) }
             }
         } else if let saveTo {
-            task = session.downloadTask(with: req) { [weak self] tmp, resp, err in
+            task = useSession.downloadTask(with: req) { [weak self] tmp, resp, err in
                 let outcome = Self.makeOutcome(data: nil, resp: resp, err: err, downloadTmp: tmp, saveTo: saveTo)
                 Task { @MainActor in self?.finish(id: id, outcome: outcome) }
             }
         } else {
             if let body = string(options, "body") { req.httpBody = body.data(using: .utf8) }
-            task = session.dataTask(with: req) { [weak self] data, resp, err in
+            task = useSession.dataTask(with: req) { [weak self] data, resp, err in
                 let outcome = Self.makeOutcome(data: data, resp: resp, err: err, downloadTmp: nil, saveTo: nil)
                 Task { @MainActor in self?.finish(id: id, outcome: outcome) }
             }
