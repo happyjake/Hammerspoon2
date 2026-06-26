@@ -94,7 +94,7 @@ import IOKit.pwr_mgt
     ///   ```js
     ///   hs.power.currentAssertions().forEach(a => console.log(a.pid + " " + a.name))
     ///   ```
-    func currentAssertions() -> NSArray
+    func currentAssertions() -> [[String: Any]]
 
     // MARK: System Actions
 
@@ -393,11 +393,11 @@ import IOKit.pwr_mgt
         )
     }
 
-    func currentAssertions() -> NSArray {
+    func currentAssertions() -> [[String: Any]] {
         var ref: Unmanaged<CFDictionary>?
         guard unsafe IOPMCopyAssertionsByProcess(&ref) == kIOReturnSuccess,
               let dict = unsafe ref?.takeRetainedValue() as? [NSNumber: [[String: Any]]] else {
-            return NSArray()
+            return []
         }
 
         var result: [[String: Any]] = []
@@ -409,7 +409,7 @@ import IOKit.pwr_mgt
                 result.append(item)
             }
         }
-        return result as NSArray
+        return result
     }
 
     // MARK: - System Actions
