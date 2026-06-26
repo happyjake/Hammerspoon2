@@ -4788,10 +4788,10 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
 
     /**
      * Add an image element
-     * @param imageValue Image as HSImage object or file path string
+     * @param imageValue Image as HSImage object
      * @returns Self for chaining (apply modifiers like `resizable()`, `aspectRatio()`, `frame()`)
      */
-    image(imageValue: JSValue): HSUIWindow;
+    image(imageValue: HSImage): HSUIWindow;
 
     /**
      * Add a button element

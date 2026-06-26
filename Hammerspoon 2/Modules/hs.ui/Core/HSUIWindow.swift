@@ -102,9 +102,9 @@ import SwiftUI
     @objc func text(_ content: JSValue) -> HSUIWindow
 
     /// Add an image element
-    /// - Parameter imageValue: Image as HSImage object or file path string
+    /// - Parameter imageValue: Image as HSImage object
     /// - Returns: Self for chaining (apply modifiers like `resizable()`, `aspectRatio()`, `frame()`)
-    @objc func image(_ imageValue: JSValue) -> HSUIWindow
+    @objc func image(_ imageValue: HSImage) -> HSUIWindow
 
     /// Add a button element
     /// - Parameter label: The button label — a plain JS string for static text,
@@ -354,9 +354,8 @@ import SwiftUI
         return self
     }
 
-    @objc func image(_ imageValue: JSValue) -> HSUIWindow {
-        let hsImage = HSImage.fromJSValue(imageValue)
-        let imageElement = UIImage(hsImage: hsImage)
+    @objc func image(_ imageValue: HSImage) -> HSUIWindow {
+        let imageElement = UIImage(hsImage: imageValue)
         currentElement = imageElement
         addToCurrentContainer(imageElement)
         return self

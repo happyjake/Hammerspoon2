@@ -11178,15 +11178,15 @@
             },
             {
               "name": "image",
-              "signature": "func image(_ imageValue: JSValue) -> HSUIWindow",
+              "signature": "func image(_ imageValue: HSImage) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Add an image element\n- Parameter imageValue: Image as HSImage object or file path string\n- Returns: Self for chaining (apply modifiers like `resizable()`, `aspectRatio()`, `frame()`)",
+              "rawDocumentation": "Add an image element\n- Parameter imageValue: Image as HSImage object\n- Returns: Self for chaining (apply modifiers like `resizable()`, `aspectRatio()`, `frame()`)",
               "description": "Add an image element",
               "params": [
                 {
                   "name": "imageValue",
-                  "type": "JSValue",
-                  "description": "Image as HSImage object or file path string",
+                  "type": "HSImage",
+                  "description": "Image as HSImage object",
                   "optional": false,
                   "tsType": null
                 }
@@ -14143,5 +14143,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-06-26T14:09:13.923Z"
+  "generatedAt": "2026-06-26T15:00:33.204Z"
 }
