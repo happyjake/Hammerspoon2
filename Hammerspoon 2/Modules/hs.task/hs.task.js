@@ -15,6 +15,8 @@
      * @param {string} options.workingDirectory - Working directory (optional)
      * @param {Function} options.onOutput - Callback for streaming output: (stream, data) => {} (optional)
      * @param {Function} legacyStreamCallback - Legacy streaming callback (optional)
+     * @example
+     * hs.task.runAsync("/bin/echo", ["hi"]).then(r => console.log(r.stdout))
      * @returns {Promise<{exitCode: number, stdout: string, stderr: string}>}
      */
     hs.task.runAsync = function(launchPath, args, options, legacyStreamCallback) {
@@ -90,6 +92,8 @@
      * Run a shell command asynchronously
      * @param {string} command - Shell command to execute
      * @param {Object} options - Options (same as run)
+     * @example
+     * hs.task.shell("ls -la /tmp").then(r => console.log(r.stdout))
      * @returns {Promise<{exitCode: number, stdout: string, stderr: string}>}
      */
     hs.task.shell = function(command, options) {
@@ -99,6 +103,11 @@
     /**
      * Run multiple tasks in parallel
      * @param {Array} tasks - Array of task specifications: [{path, args, options}, ...]
+     * @example
+     * hs.task.parallel([
+     *   ["/bin/echo", ["one"]],
+     *   ["/bin/echo", ["two"]]
+     * ]).then(results => console.log(results))
      * @returns {Promise<Array>} Array of results
      */
     hs.task.parallel = function(tasks) {

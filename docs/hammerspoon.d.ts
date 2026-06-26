@@ -4074,21 +4074,6 @@ declare namespace hs.task {
     function builder(launchPath: string): any;
 
     /**
-     * Run a task, returning a Promise. Swift-retained storage for the JS implementation.
-     */
-    const runAsync: ((...args: any[]) => any) | undefined;
-
-    /**
-     * Run a shell command. Swift-retained storage for the JS implementation.
-     */
-    const shell: ((...args: any[]) => any) | undefined;
-
-    /**
-     * Run multiple tasks in parallel. Swift-retained storage for the JS implementation.
-     */
-    const parallel: ((...args: any[]) => any) | undefined;
-
-    /**
      * Run multiple tasks in sequence. Swift-retained storage for the JS implementation.
      */
     const sequence: ((...args: any[]) => any) | undefined;
@@ -4164,7 +4149,7 @@ declare class HSTask {
     /**
      * The process ID of the running task
      */
-    pid: Int32;
+    pid: number;
 
     /**
      * The environment variables for the task

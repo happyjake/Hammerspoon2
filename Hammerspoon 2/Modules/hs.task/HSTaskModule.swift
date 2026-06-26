@@ -31,28 +31,13 @@ import JavaScriptCoreExtras
     @objc(create:::::)
     func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction?, _ environment: JSValue?, _ streamingCallback: JSFunction?) -> HSTask
 
-    /// Run a task, returning a Promise. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// hs.task.runAsync("/bin/echo", ["hi"]).then(r => console.log(r.stdout))
-    /// ```
+    /// SKIP_DOCS
     @objc var runAsync: JSFunction? { get set }
 
-    /// Run a shell command. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// hs.task.shell("ls -la /tmp").then(r => console.log(r.stdout))
-    /// ```
+    /// SKIP_DOCS
     @objc var shell: JSFunction? { get set }
 
-    /// Run multiple tasks in parallel. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// hs.task.parallel([
-    ///     ["/bin/echo", ["one"]],
-    ///     ["/bin/echo", ["two"]]
-    /// ]).then(results => console.log(results))
-    /// ```
+    /// SKIP_DOCS
     @objc var parallel: JSFunction? { get set }
 
     /// Run multiple tasks in sequence. Swift-retained storage for the JS implementation.
