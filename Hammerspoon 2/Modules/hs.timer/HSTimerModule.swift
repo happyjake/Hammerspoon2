@@ -184,6 +184,18 @@ import JavaScriptCore
     var name = "hs.timer"
     let engineID: UUID
 
+    /// Weak set of every timer this module has handed out, so shutdown() can stop
+    /// them all. A scheduled repeating Timer is retained by the run loop (which
+    /// retains its HSTimer target), so it never deinits on its own — without an
+    /// explicit stop it outlives an engine reload and keeps firing into the dead
+    /// JSContext. Weak so a timer JS has already dropped can still deallocate.
+    ///
+    /// NSHashTable is not thread-safe; this is sound only because every access is
+    /// on the main actor: add() here, allObjects()/removeAllObjects() in shutdown(),
+    /// and the weak-slot zeroing on HSTimer dealloc (forced onto main by HSTimer's
+    /// isolated deinit). Keep HSTimer main-isolated or this needs a lock.
+    private let liveTimers = NSHashTable<HSTimer>.weakObjects()
+
     // MARK: - Module lifecycle
     required init(engineID: UUID) {
         self.engineID = engineID
@@ -192,7 +204,15 @@ import JavaScriptCore
     }
 
     func shutdown() {
-        // Timers clean themselves up in their deinit
+        // Stop every timer we created. They're retained by the run loop, not by
+        // this module, so they'd otherwise survive an engine reload and keep firing
+        // their callbacks into the torn-down JSContext. (Such a stale fire is how a
+        // request reached an already-invalidated hs.http session and aborted the
+        // process.) stop() removes the run-loop anchor that keeps a fired-and-done
+        // timer alive; it doesn't by itself free the old JSContext (the callback is
+        // a strong JSValue), but it ends the firing that caused the crash.
+        for timer in liveTimers.allObjects { timer.stop() }
+        liveTimers.removeAllObjects()
     }
 
     isolated deinit {
@@ -207,8 +227,14 @@ import JavaScriptCore
 
     // MARK: - Timer constructors
 
+    /// Register a freshly-created timer so shutdown() can stop it on engine teardown.
+    @discardableResult private func track(_ timer: HSTimer) -> HSTimer {
+        liveTimers.add(timer)
+        return timer
+    }
+
     @objc func create(_ interval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool = false) -> HSTimer {
-        return HSTimer(interval: interval, repeats: true, callback: callback, continueOnError: continueOnError)
+        return track(HSTimer(interval: interval, repeats: true, callback: callback, continueOnError: continueOnError))
     }
 
     @objc(new:::)
@@ -217,13 +243,13 @@ import JavaScriptCore
     }
 
     @objc func doAfter(_ seconds: TimeInterval, _ callback: JSValue) -> HSTimer {
-        let timer = HSTimer(interval: seconds, repeats: false, callback: callback)
+        let timer = track(HSTimer(interval: seconds, repeats: false, callback: callback))
         timer.start()
         return timer
     }
 
     @objc func doEvery(_ interval: TimeInterval, _ callback: JSValue) -> HSTimer {
-        let timer = HSTimer(interval: interval, repeats: true, callback: callback)
+        let timer = track(HSTimer(interval: interval, repeats: true, callback: callback))
         timer.start()
         return timer
     }
@@ -239,7 +265,7 @@ import JavaScriptCore
         }
 
         // Create initial one-shot timer to fire at the target time
-        let timer = HSTimer(interval: secondsUntilTarget, repeats: false, callback: callback, continueOnError: continueOnError)
+        let timer = track(HSTimer(interval: secondsUntilTarget, repeats: false, callback: callback, continueOnError: continueOnError))
 
         // If repeatInterval is specified, we'll need to reschedule after each fire
         // This is handled in JavaScript for simplicity

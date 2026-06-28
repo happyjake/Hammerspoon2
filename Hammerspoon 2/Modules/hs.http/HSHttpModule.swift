@@ -104,6 +104,7 @@ private final class PendingRequest {
     private let session: URLSession        // honours the system proxy
     private let directSession: URLSession  // bypasses the system proxy (loopback tunnels)
     private var pending: [String: PendingRequest] = [:]
+    private var invalidated = false        // set by shutdown(); guards task creation on a dead session
 
     // MARK: - Lifecycle
     required init(engineID: UUID) {
@@ -132,6 +133,7 @@ private final class PendingRequest {
     }
 
     func shutdown() {
+        invalidated = true
         for (_, p) in pending { p.handle.cancel() }
         pending.removeAll()
         session.invalidateAndCancel()
@@ -147,6 +149,16 @@ private final class PendingRequest {
     @objc(request::)
     func request(_ options: JSValue, _ callback: JSValue?) -> HSHttpClientRequest {
         let handle = HSHttpClientRequest()
+
+        // A request can still arrive after shutdown() — e.g. a stale hs.timer from
+        // a previous engine generation firing into a torn-down module. Both sessions
+        // are invalidated by then, and creating a task on an invalidated URLSession
+        // raises an uncaught ObjC exception (CFNetwork -taskForClassInfo:) that Swift
+        // cannot catch, which aborts the process. Fail the request cleanly instead.
+        guard !invalidated else {
+            deliver(callback, handle, HTTPOutcome(errString: "hs.http: module has been shut down"))
+            return handle
+        }
 
         guard let urlStr = string(options, "url"), !urlStr.isEmpty, let url = URL(string: urlStr) else {
             deliver(callback, handle, HTTPOutcome(errString: "hs.http.request: missing or invalid 'url'"))
