@@ -293,8 +293,9 @@ import JavaScriptCoreExtras
             try process.run()
         } catch {
             AKError("hs.task:start(): Failed to start task: \(error.localizedDescription)")
-            // Unregister if we failed to start
+            // Unregister and free the pipe fds if we never launched
             module?.unregisterActiveTask(self)
+            releasePipes()
         }
 
         return self
@@ -441,11 +442,8 @@ import JavaScriptCoreExtras
     private func callTerminationCallbackIfReady() {
         guard processExited && stdoutEOF && stderrEOF else { return }
 
-        if let callback = terminationCallback, callback.isFunction, !callback.isUndefined {
-            guard let context = callback.context else {
-                module?.unregisterActiveTask(self)
-                return
-            }
+        if let callback = terminationCallback, callback.isFunction, !callback.isUndefined,
+           let context = callback.context {
             callback.call(withArguments: [exitCode ?? 0, exitReason ?? "unknown"])
             if let exception = context.exception, !exception.isUndefined {
                 AKError("hs.task: Error in termination callback: \(exception.toString() ?? "unknown error")")
@@ -454,6 +452,35 @@ import JavaScriptCoreExtras
         }
 
         module?.unregisterActiveTask(self)
+        releasePipes()
+    }
+
+    // Close the parent-side pipe descriptors the moment the child exits, instead
+    // of waiting for JSC to garbage-collect this wrapper. Each task holds three
+    // open fds (stdout + stderr read ends, stdin write end); because the JS
+    // wrapper is tiny it creates almost no heap pressure, so GC rarely runs and
+    // the fds accumulate ~3 per task. Left unchecked they exhaust the process
+    // descriptor limit and every later open() fails with EMFILE — which surfaces
+    // far from here (e.g. ImageIO "could not create destination" when the
+    // clipboard watcher transcodes an image, dropped sockets, etc.). Idempotent:
+    // niling the pipes means a later deinit has nothing left to close.
+    private func releasePipes() {
+        // Tear down any streaming read sources BEFORE closing the underlying fds.
+        // Closing an fd still monitored by a readabilityHandler's dispatch source
+        // is a libdispatch contract violation — the source can fire on a closed
+        // handle and raise an uncatchable NSFileHandleOperationException (SIGABRT).
+        // The normal-exit path already nils these in the EOF branch; doing it here
+        // too makes the launch-failure path (run() threw after the handlers were
+        // installed) safe as well. Idempotent — niling an already-nil handler is a
+        // no-op, as is the non-streaming case where none were ever installed.
+        stdoutPipe?.fileHandleForReading.readabilityHandler = nil
+        stderrPipe?.fileHandleForReading.readabilityHandler = nil
+        try? stdoutPipe?.fileHandleForReading.close()
+        try? stderrPipe?.fileHandleForReading.close()
+        try? stdinPipe?.fileHandleForWriting.close()
+        stdoutPipe = nil
+        stderrPipe = nil
+        stdinPipe = nil
     }
 
     private func getTerminationReasonString(_ reason: Process.TerminationReason) -> String {
