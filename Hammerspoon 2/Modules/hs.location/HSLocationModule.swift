@@ -131,13 +131,7 @@ import CoreLocation
     /// ```
     @objc func removeWatcher(_ watcher: HSLocationWatcher)
 
-    /// The geocoder subobject for forward and reverse geocoding.
-    /// - Example:
-    /// ```js
-    /// hs.location.geocoder.lookupAddress("1 Infinite Loop, Cupertino").then(places => {
-    ///     console.log(places[0].locality)
-    /// })
-    /// ```
+    /// SKIP_DOCS
     @objc var geocoder: HSLocationGeocoder { get }
 }
 

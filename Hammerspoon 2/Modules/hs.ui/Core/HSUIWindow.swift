@@ -81,9 +81,9 @@ import SwiftUI
     // MARK: Window Styling
 
     /// Set the window's background color
-    /// - Parameter colorValue: Color as hex string (e.g., "#FF0000") or HSColor object
+    /// - Parameter colorValue: Color as an HSColor object
     /// - Returns: Self for chaining
-    @objc func backgroundColor(_ colorValue: JSValue) -> HSUIWindow
+    @objc func backgroundColor(_ colorValue: HSColor) -> HSUIWindow
 
     // MARK: Shape Elements
 
@@ -175,9 +175,9 @@ import SwiftUI
     @objc func font(_ font: HSFont) -> HSUIWindow
 
     /// Set the text color
-    /// - Parameter colorValue: Color as hex string or HSColor
+    /// - Parameter colorValue: Color as HSColor
     /// - Returns: Self for chaining
-    @objc func foregroundColor(_ colorValue: JSValue) -> HSUIWindow
+    @objc func foregroundColor(_ colorValue: HSColor) -> HSUIWindow
 
     // MARK: Image Modifiers
 
@@ -323,10 +323,8 @@ import SwiftUI
 
     // MARK: - Background Styling
 
-    @objc func backgroundColor(_ colorValue: JSValue) -> HSUIWindow {
-        if let color = colorValue.toColor() {
-            windowBackgroundColor = color
-        }
+    @objc func backgroundColor(_ colorValue: HSColor) -> HSUIWindow {
+        windowBackgroundColor = colorValue.color
         return self
     }
 
@@ -482,10 +480,9 @@ import SwiftUI
         return self
     }
 
-    @objc func foregroundColor(_ colorValue: JSValue) -> HSUIWindow {
-        if let textable = currentElement as? any TextModifiable,
-           let hsColor = HSColor.fromJSValue(colorValue) {
-            textable.foregroundColor = hsColor
+    @objc func foregroundColor(_ colorValue: HSColor) -> HSUIWindow {
+        if let textable = currentElement as? any TextModifiable {
+            textable.foregroundColor = colorValue
         }
         return self
     }

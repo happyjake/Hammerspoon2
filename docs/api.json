@@ -6083,23 +6083,7 @@
           "lineNumber": 132
         }
       ],
-      "properties": [
-        {
-          "name": "geocoder",
-          "signature": "var geocoder: HSLocationGeocoder { get }",
-          "rawDocumentation": "The geocoder subobject for forward and reverse geocoding.\n- Example:\n```js\nhs.location.geocoder.lookupAddress(\"1 Infinite Loop, Cupertino\").then(places => {\n    console.log(places[0].locality)\n})\n```",
-          "description": "The geocoder subobject for forward and reverse geocoding.",
-          "examples": [
-            {
-              "lang": "js",
-              "code": "hs.location.geocoder.lookupAddress(\"1 Infinite Loop, Cupertino\").then(places => {\n    console.log(places[0].locality)\n})"
-            }
-          ],
-          "source": "swift",
-          "filePath": "Hammerspoon 2/Modules/hs.location/HSLocationModule.swift",
-          "lineNumber": 141
-        }
-      ],
+      "properties": [],
       "types": [
         {
           "name": "HSLocationWatcherAPI",
@@ -11076,15 +11060,15 @@
             },
             {
               "name": "backgroundColor",
-              "signature": "func backgroundColor(_ colorValue: JSValue) -> HSUIWindow",
+              "signature": "func backgroundColor(_ colorValue: HSColor) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Set the window's background color\n- Parameter colorValue: Color as hex string (e.g., \"#FF0000\") or HSColor object\n- Returns: Self for chaining",
+              "rawDocumentation": "Set the window's background color\n- Parameter colorValue: Color as an HSColor object\n- Returns: Self for chaining",
               "description": "Set the window's background color",
               "params": [
                 {
                   "name": "colorValue",
-                  "type": "JSValue",
-                  "description": "Color as hex string (e.g., \"#FF0000\") or HSColor object",
+                  "type": "HSColor",
+                  "description": "Color as an HSColor object",
                   "optional": false,
                   "tsType": null
                 }
@@ -11452,15 +11436,15 @@
             },
             {
               "name": "foregroundColor",
-              "signature": "func foregroundColor(_ colorValue: JSValue) -> HSUIWindow",
+              "signature": "func foregroundColor(_ colorValue: HSColor) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Set the text color\n- Parameter colorValue: Color as hex string or HSColor\n- Returns: Self for chaining",
+              "rawDocumentation": "Set the text color\n- Parameter colorValue: Color as HSColor\n- Returns: Self for chaining",
               "description": "Set the text color",
               "params": [
                 {
                   "name": "colorValue",
-                  "type": "JSValue",
-                  "description": "Color as hex string or HSColor",
+                  "type": "HSColor",
+                  "description": "Color as HSColor",
                   "optional": false,
                   "tsType": null
                 }
@@ -14121,5 +14105,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-06-29T21:31:22.369Z"
+  "generatedAt": "2026-06-29T21:36:21.950Z"
 }

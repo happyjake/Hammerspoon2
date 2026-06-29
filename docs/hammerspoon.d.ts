@@ -2466,11 +2466,6 @@ shuts down.
      */
     function removeWatcher(watcher: HSLocationWatcher): void;
 
-    /**
-     * The geocoder subobject for forward and reverse geocoding.
-     */
-    const geocoder: HSLocationGeocoder;
-
 }
 
 /**
@@ -4755,10 +4750,10 @@ declare class HSUIWindow {
 
     /**
      * Set the window's background color
-     * @param colorValue Color as hex string (e.g., "#FF0000") or HSColor object
+     * @param colorValue Color as an HSColor object
      * @returns Self for chaining
      */
-    backgroundColor(colorValue: JSValue): HSUIWindow;
+    backgroundColor(colorValue: HSColor): HSUIWindow;
 
     /**
      * Add a rectangle shape
@@ -4876,10 +4871,10 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
 
     /**
      * Set the text color
-     * @param colorValue Color as hex string or HSColor
+     * @param colorValue Color as HSColor
      * @returns Self for chaining
      */
-    foregroundColor(colorValue: JSValue): HSUIWindow;
+    foregroundColor(colorValue: HSColor): HSUIWindow;
 
     /**
      * Make an image resizable (allows it to scale with frame size)
