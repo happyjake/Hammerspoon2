@@ -102,13 +102,13 @@
 
     /**
      * Run multiple tasks in parallel
-     * @param {Array} tasks - Array of task specifications: [{path, args, options}, ...]
+     * @param {Array<{string, string[], Object|Function, Function}>} tasks - Array of task specifications: [{path, args, options}, ...]
      * @example
      * hs.task.parallel([
      *   ["/bin/echo", ["one"]],
      *   ["/bin/echo", ["two"]]
      * ]).then(results => console.log(results))
-     * @returns {Promise<Array>} Array of results
+     * @returns {Promise<Array<{exitCode: number, stdout: string, stderr: string}>>} Array of results
      */
     hs.task.parallel = function(tasks) {
         const promises = tasks.map(task =>

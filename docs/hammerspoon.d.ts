@@ -3188,7 +3188,7 @@ fallback and a richer representation (such as HTML) in a single clipboard operat
      * @param representations A JavaScript object whose keys are UTI strings and values are strings
      * @returns true if the write succeeded
      */
-    function writeObjects(representations: JSValue): boolean;
+    function writeObjects(representations: Record<string, any>): boolean;
 
     /**
      * Get all UTI type strings currently on the pasteboard, across all items
@@ -4036,7 +4036,7 @@ declare namespace hs.task {
      * @param streamingCallback Optional callback function called when the task produces output
      * @returns A task object. Call start() to begin execution.
      */
-    function create(launchPath: string, arguments: string[], completionCallback: ((...args: any[]) => any) | undefined, environment: JSValue | undefined, streamingCallback: ((...args: any[]) => any) | undefined): HSTask;
+    function create(launchPath: string, arguments: string[], completionCallback: ((...args: any[]) => any) | undefined, environment: Record<string, string> | undefined, streamingCallback: ((...args: any[]) => any) | undefined): HSTask;
 
     /**
      * Create and run a task asynchronously
@@ -4058,10 +4058,9 @@ declare namespace hs.task {
 
     /**
      * Run multiple tasks in parallel
-     * @param tasks - Array of task specifications: [{path, args, options}, ...]
-     * @returns Array of results
+     * @returns {Promise<Array<{exitCode: number, stdout: string, stderr: string}>>} Array of results
      */
-    function parallel(tasks: Array): Promise<Array>;
+    function parallel(): any;
 
     /**
      * Create a task builder for fluent API

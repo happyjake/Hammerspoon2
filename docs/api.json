@@ -7469,14 +7469,14 @@
         },
         {
           "name": "writeObjects",
-          "signature": "func writeObjects(_ representations: JSValue) -> Bool",
+          "signature": "func writeObjects(_ representations: [String: Any]) -> Bool",
           "isStatic": false,
           "rawDocumentation": "Write multiple type representations to the pasteboard atomically, replacing all current contents.\nKeys must be UTI type strings; values must be strings. This is how you provide both a plain-text\nfallback and a richer representation (such as HTML) in a single clipboard operation.\n\n- Parameter representations: A JavaScript object whose keys are UTI strings and values are strings\n- Returns: true if the write succeeded\n- Example:\n```js\nhs.pasteboard.writeObjects({\n    \"public.utf8-plain-text\": \"Hello\",\n    \"public.html\":            \"<b>Hello</b>\"\n})\n```",
           "description": "Write multiple type representations to the pasteboard atomically, replacing all current contents.\nKeys must be UTI type strings; values must be strings. This is how you provide both a plain-text\nfallback and a richer representation (such as HTML) in a single clipboard operation.",
           "params": [
             {
               "name": "representations",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "A JavaScript object whose keys are UTI strings and values are strings",
               "optional": false,
               "tsType": null
@@ -9528,7 +9528,7 @@
       "methods": [
         {
           "name": "create",
-          "signature": "func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction?, _ environment: JSValue?, _ streamingCallback: JSFunction?) -> HSTask",
+          "signature": "func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction?, _ environment: [String: String]?, _ streamingCallback: JSFunction?) -> HSTask",
           "isStatic": false,
           "rawDocumentation": "Create a new task\n- Parameters:\n  - launchPath: The full path to the executable to run\n  - arguments: An array of arguments to pass to the executable\n  - completionCallback: Optional callback function called when the task terminates\n  - environment: Optional dictionary of environment variables for the task\n  - streamingCallback: Optional callback function called when the task produces output\n- Returns: A task object. Call start() to begin execution.\n- Example:\n```js\nconst task = hs.task.create(\"/usr/bin/env\", [\"printenv\", \"PATH\"], (code, reason) => {\n    console.log(\"exited\", code)\n})\ntask.start()\n```",
           "description": "Create a new task",
@@ -9556,7 +9556,7 @@
             },
             {
               "name": "environment",
-              "type": "JSValue",
+              "type": "Object<String, String>",
               "description": "Optional dictionary of environment variables for the task",
               "optional": false,
               "tsType": null
@@ -9645,19 +9645,12 @@
         },
         {
           "name": "parallel",
-          "rawDocumentation": "* Run multiple tasks in parallel\n     * @param {Array} tasks - Array of task specifications: [{path, args, options}, ...]\n     * @example\n     * hs.task.parallel([\n     *   [\"/bin/echo\", [\"one\"]],\n     *   [\"/bin/echo\", [\"two\"]]\n     * ]).then(results => console.log(results))\n     * @returns {Promise<Array>} Array of results",
+          "rawDocumentation": "* Run multiple tasks in parallel\n     * @param {Array<{string, string[], Object|Function, Function}>} tasks - Array of task specifications: [{path, args, options}, ...]\n     * @example\n     * hs.task.parallel([\n     *   [\"/bin/echo\", [\"one\"]],\n     *   [\"/bin/echo\", [\"two\"]]\n     * ]).then(results => console.log(results))\n     * @returns {Promise<Array<{exitCode: number, stdout: string, stderr: string}>>} Array of results",
           "description": "Run multiple tasks in parallel",
-          "params": [
-            {
-              "name": "tasks",
-              "type": "Array",
-              "description": "- Array of task specifications: [{path, args, options}, ...]"
-            }
-          ],
+          "params": [],
           "returns": {
-            "type": "Promise<Array>",
-            "description": "Array of results",
-            "promiseType": "Array"
+            "type": "any",
+            "description": "{Promise<Array<{exitCode: number, stdout: string, stderr: string}>>} Array of results"
           },
           "source": "javascript",
           "filePath": "Hammerspoon 2/Modules/hs.task/hs.task.js",
@@ -14143,5 +14136,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-06-26T21:16:04.803Z"
+  "generatedAt": "2026-06-29T20:02:26.722Z"
 }

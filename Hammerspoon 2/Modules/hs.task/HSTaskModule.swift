@@ -29,7 +29,7 @@ import JavaScriptCoreExtras
     /// task.start()
     /// ```
     @objc(create:::::)
-    func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction?, _ environment: JSValue?, _ streamingCallback: JSFunction?) -> HSTask
+    func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction?, _ environment: [String: String]?, _ streamingCallback: JSFunction?) -> HSTask
 
     /// SKIP_DOCS
     @objc var runAsync: JSFunction? { get set }
@@ -164,17 +164,12 @@ struct TaskTracker {
 
     // MARK: - Task constructors
 
-    @objc func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction? = nil, _ environment: JSValue? = nil, _ streamingCallback: JSFunction? = nil) -> HSTask {
-        // Parse environment dictionary if provided
-        var envDict: [String: String]? = nil
-        if let envValue = environment, envValue.isObject && !envValue.isFunction {
-            envDict = envValue.toDictionary() as? [String: String]
-        }
+    @objc func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction? = nil, _ environment: [String: String]? = nil, _ streamingCallback: JSFunction? = nil) -> HSTask {
 
         let task = HSTask(
             launchPath: launchPath,
             arguments: arguments,
-            environment: envDict,
+            environment: environment,
             terminationCallback: completionCallback,
             streamingCallback: streamingCallback,
             module: self
