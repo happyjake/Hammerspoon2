@@ -41,11 +41,15 @@ import AppKit
     @objc var typeName = "HSEventTap"
     private let callback: JSValue
     private let eventMask: CGEventMask
+    private let wantsGesture: Bool   // caller tapped 'gesture' (raw touch frames)
+    private let wantsMagnify: Bool   // caller tapped 'magnify' (pinch-zoom)
     private var tap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
     init(eventTypes: [String], callback: JSValue) {
         self.callback = callback
+        self.wantsGesture = eventTypes.contains("gesture")
+        self.wantsMagnify = eventTypes.contains("magnify")
         var mask: CGEventMask = 0
         for t in eventTypes {
             switch t {
@@ -67,7 +71,11 @@ import AppKit
             // NSEvent-layer types — CGEventType has no cases for these, but CGEventTap
             // delivers them when the mask bit is set (mask bit == NSEvent.EventType raw value).
             case "systemDefined":     mask |= CGEventMask(1 << NSEvent.EventType.systemDefined.rawValue) // media keys (NX aux control buttons)
-            case "gesture":           mask |= CGEventMask(1 << NSEvent.EventType.gesture.rawValue)       // trackpad touch events
+            // A trackpad pinch is delivered as a GESTURE (29) event whose bridged NSEvent.type is
+            // .magnify — there is NO standalone magnify (30) event at the session-tap layer. So both
+            // 'gesture' (raw touches) and 'magnify' (pinch) ride the same 29 mask bit; handleGesture()
+            // splits them by the bridged NSEvent type. (Mirrors Hammerspoon 1.)
+            case "gesture", "magnify": mask |= CGEventMask(1 << NSEvent.EventType.gesture.rawValue)
             default: break
             }
         }
@@ -139,7 +147,7 @@ import AppKit
         case NSEvent.EventType.systemDefined.rawValue:
             return dispatch(Self.systemDefinedJSEvent(event: event, modifiers: mods), typeName: "systemDefined", event: event)
         case NSEvent.EventType.gesture.rawValue:
-            return dispatch(Self.gestureJSEvent(event: event, modifiers: mods), typeName: "gesture", event: event)
+            return handleGesture(event: event, modifiers: mods)
         default:
             break
         }
@@ -252,6 +260,22 @@ import AppKit
         return js
     }
 
+    /// A trackpad gesture (CG type 29). Its BRIDGED NSEvent type tells a pinch (`.magnify`) apart
+    /// from raw touch frames — at the session-tap layer the CG type is always 29, so we can't switch
+    /// on it. Deliver whichever the tap asked for: 'magnify' → the pinch's `magnification`, 'gesture'
+    /// → the touch set. A pinch reports BOTH (it has touches too), so a 'gesture' tap still sees the
+    /// touches during a pinch, while a 'magnify' tap ignores non-pinch gesture frames (passes through).
+    private func handleGesture(event: CGEvent, modifiers: [String]) -> Unmanaged<CGEvent>? {
+        let ns = NSEvent(cgEvent: event)
+        if wantsMagnify, ns?.type == .magnify {
+            return dispatch(Self.magnifyJSEvent(ns: ns, modifiers: modifiers), typeName: "magnify", event: event)
+        }
+        if wantsGesture {
+            return dispatch(Self.gestureJSEvent(event: event, modifiers: modifiers), typeName: "gesture", event: event)
+        }
+        return Unmanaged.passUnretained(event)   // requested the other variant — don't consume
+    }
+
     /// NSEventTypeGesture (type 29) — raw trackpad touch frames. Each touch carries a per-finger
     /// stable `id`, its phase, and its normalized pad position (x/y in 0–1, origin bottom-left).
     private static func gestureJSEvent(event: CGEvent, modifiers: [String]) -> [String: Any] {
@@ -271,6 +295,19 @@ import AppKit
         return js
     }
 
+    /// A pinch frame — a gesture (CG type 29) event whose bridged NSEvent type is `.magnify`.
+    /// `magnification` is the per-frame scale delta (positive = fingers apart = zoom in; sum it for
+    /// the total — see Apple's `NSEvent.magnification`). `phase` is derived from the gesture's TOUCH
+    /// set, because `NSEvent.phase` is unreliable for tapped gesture events; it brackets the pinch
+    /// began → changed → ended so the JS consumer can drive a zoom modifier.
+    private static func magnifyJSEvent(ns: NSEvent?, modifiers: [String]) -> [String: Any] {
+        var js: [String: Any] = ["type": "magnify", "modifiers": modifiers, "magnification": 0.0, "phase": "changed"]
+        guard let ns = ns else { return js }
+        js["magnification"] = Double(ns.magnification)
+        js["phase"] = touchPhase(ns.touches(matching: .any, in: nil))
+        return js
+    }
+
     private static func phaseName(_ p: NSTouch.Phase) -> String {
         switch p {
         case .began: return "began"
@@ -280,5 +317,25 @@ import AppKit
         case .cancelled: return "cancelled"
         default: return "touching"
         }
+    }
+
+    /// Aggregate a gesture's TOUCH set into one lifecycle phase. Terminal first: an empty/all-lifted
+    /// set ends the gesture (so the JS side always releases the zoom modifier); a newly-landed finger
+    /// begins it; otherwise it's changing. NSTouch.phase is the reliable signal here (NSEvent.phase
+    /// is not, for tapped gesture events), and the watchdog on the JS side covers any missed end.
+    private static func touchPhase(_ touches: Set<NSTouch>) -> String {
+        if touches.isEmpty { return "ended" }
+        var anyBegan = false
+        var allEnded = true
+        for t in touches {
+            switch t.phase {
+            case .began: anyBegan = true; allEnded = false
+            case .ended, .cancelled: break
+            default: allEnded = false
+            }
+        }
+        if allEnded { return "ended" }
+        if anyBegan { return "began" }
+        return "changed"
     }
 }

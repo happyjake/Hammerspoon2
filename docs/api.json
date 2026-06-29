@@ -3652,13 +3652,13 @@
         {
           "name": "makeTap",
           "signature": "func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap",
-          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture'.\n  'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n  'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n\n// Watch media keys (volume/brightness):\nconst media = hs.eventtap.make(['systemDefined'], e => {\n  if (e.subtype === 8 && e.down) console.log(e.key)\n  return false\n})\nmedia.start()\n```",
-          "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).",
+          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture', 'magnify'.\n  'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n  'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).\n  'magnify' delivers trackpad pinch-zoom gestures: `{type, modifiers, magnification, phase}` where `magnification` is the incremental scale delta for the frame (positive = zoom in) and `phase` is 'began' | 'changed' | 'ended' | 'cancelled'.\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n\n// Watch media keys (volume/brightness):\nconst media = hs.eventtap.make(['systemDefined'], e => {\n  if (e.subtype === 8 && e.down) console.log(e.key)\n  return false\n})\nmedia.start()\n```",
+          "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).\n'magnify' delivers trackpad pinch-zoom gestures: `{type, modifiers, magnification, phase}` where `magnification` is the incremental scale delta for the frame (positive = zoom in) and `phase` is 'began' | 'changed' | 'ended' | 'cancelled'.",
           "params": [
             {
               "name": "eventTypes",
               "type": "[String]",
-              "description": "Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture'."
+              "description": "Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture', 'magnify'."
             },
             {
               "name": "callback",
@@ -3678,7 +3678,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 37
+          "lineNumber": 38
         },
         {
           "name": "keyStroke",
@@ -3711,7 +3711,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 51
+          "lineNumber": 52
         },
         {
           "name": "scrollWheel",
@@ -3744,7 +3744,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 64
+          "lineNumber": 65
         },
         {
           "name": "leftClick",
@@ -3772,7 +3772,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 77
+          "lineNumber": 78
         },
         {
           "name": "typeText",
@@ -3795,7 +3795,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 85
+          "lineNumber": 86
         }
       ],
       "properties": [],
@@ -15367,5 +15367,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-06-26T21:47:51.277Z"
+  "generatedAt": "2026-06-29T13:46:01.270Z"
 }
