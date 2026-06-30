@@ -96,10 +96,10 @@ import SwiftUI
     @objc func circle() -> HSUIWindow
 
     /// Add a text element
-    /// - Parameter content: The text to display — a plain JS string for static text,
+    /// - Parameter content: {string | HSString} The text to display — a plain JS string for static text,
     ///   or an `HSString` object (from `hs.ui.string()`) for reactive text
     /// - Returns: Self for chaining (apply modifiers like `font()`, `foregroundColor()`)
-    @objc func text(_ content: Any) -> HSUIWindow
+    @objc func text(_ content: JSValue) -> HSUIWindow
 
     /// Add an image element
     /// - Parameter imageValue: Image as HSImage object
@@ -107,11 +107,11 @@ import SwiftUI
     @objc func image(_ imageValue: HSImage) -> HSUIWindow
 
     /// Add a button element
-    /// - Parameter label: The button label — a plain JS string for static text,
+    /// - Parameter label: {string | HSString} The button label — a plain JS string for static text,
     ///   or an `HSString` object (from `hs.ui.string()`) for reactive text
     /// - Returns: Self for chaining (apply `.fill()`, `.cornerRadius()`, `.font()`,
     ///   `.foregroundColor()`, `.frame()`, `.onClick()` etc.)
-    @objc func button(_ label: Any) -> HSUIWindow
+    @objc func button(_ label: JSValue) -> HSUIWindow
 
     // MARK: Layout Containers
 
@@ -344,7 +344,7 @@ import SwiftUI
         return self
     }
 
-    @objc func text(_ content: Any) -> HSUIWindow {
+    @objc func text(_ content: JSValue) -> HSUIWindow {
         guard let hsString = HSString.fromJSValue(content) else { return self }
         let textElement = UIText(content: hsString)
         currentElement = textElement
@@ -359,7 +359,7 @@ import SwiftUI
         return self
     }
 
-    @objc func button(_ label: Any) -> HSUIWindow {
+    @objc func button(_ label: JSValue) -> HSUIWindow {
         guard let hsString = HSString.fromJSValue(label) else { return self }
         let buttonElement = UIButton(label: hsString)
         currentElement = buttonElement

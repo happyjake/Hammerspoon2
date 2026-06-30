@@ -52,7 +52,7 @@ import JavaScriptCore
     /// - `icon` (HSImage): Icon shown to the left of the title.
     /// - `menu` (array): Nested array of menu item objects to create a submenu.
     ///
-    /// - Parameter menuOrFn: Array of menu item objects, a function returning such an array, or null to remove the menu
+    /// - Parameter menuOrFn: {Array<Record<string, any>> | (() => Array<Record<string, any>>) | null} Array of menu item objects, a function returning such an array, or null to remove the menu
     /// - Example:
     /// ```js
     /// const item = hs.menubar.create()
@@ -63,7 +63,7 @@ import JavaScriptCore
     ///     { title: "Option B", checked: true, fn: () => console.log("B") }
     /// ])
     /// ```
-    @objc func setMenu(_ menuOrFn: Any)
+    @objc func setMenu(_ menuOrFn: JSValue)
 
     /// Remove this item from the menu bar. The item is retained and can be shown again with show().
     /// - Example:
@@ -176,7 +176,7 @@ import JavaScriptCore
         }
     }
 
-    @objc func setMenu(_ menuOrFn: Any) {
+    @objc func setMenu(_ menuOrFn: JSValue) {
         _menuCallback?.detach(from: self)
         _menuCallback = nil
         menuDelegate = nil
