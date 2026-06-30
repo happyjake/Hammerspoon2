@@ -6342,14 +6342,14 @@
             },
             {
               "name": "setMenu",
-              "signature": "func setMenu(_ menuOrFn: JSValue)",
+              "signature": "func setMenu(_ menuOrFn: Any)",
               "isStatic": false,
               "rawDocumentation": "Set the menu for this item. Pass an array of menu item objects for a static menu,\nor a function that returns an array for a dynamic menu populated each time it opens.\n\nMenu item object keys:\n- `title` (string, required): The item label. Use `\"-\"` for a separator line.\n- `fn` (function): Callback invoked when the item is chosen.\n- `checked` (boolean): If true, a checkmark is shown next to the item.\n- `disabled` (boolean): If true, the item is greyed out and cannot be chosen.\n- `tooltip` (string): Tooltip shown when hovering over the item.\n- `icon` (HSImage): Icon shown to the left of the title.\n- `menu` (array): Nested array of menu item objects to create a submenu.\n\n- Parameter menuOrFn: Array of menu item objects, a function returning such an array, or null to remove the menu\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.title = \"Menu\"\nitem.setMenu([\n    { title: \"Option A\", fn: () => console.log(\"A\") },\n    { title: \"-\" },\n    { title: \"Option B\", checked: true, fn: () => console.log(\"B\") }\n])\n```",
               "description": "Set the menu for this item. Pass an array of menu item objects for a static menu,\nor a function that returns an array for a dynamic menu populated each time it opens.",
               "params": [
                 {
                   "name": "menuOrFn",
-                  "type": "JSValue",
+                  "type": "*",
                   "description": "Array of menu item objects, a function returning such an array, or null to remove the menu",
                   "optional": false,
                   "tsType": null
@@ -11116,14 +11116,14 @@
             },
             {
               "name": "text",
-              "signature": "func text(_ content: JSValue) -> HSUIWindow",
+              "signature": "func text(_ content: Any) -> HSUIWindow",
               "isStatic": false,
               "rawDocumentation": "Add a text element\n- Parameter content: The text to display — a plain JS string for static text,\n  or an `HSString` object (from `hs.ui.string()`) for reactive text\n- Returns: Self for chaining (apply modifiers like `font()`, `foregroundColor()`)",
               "description": "Add a text element\nor an `HSString` object (from `hs.ui.string()`) for reactive text",
               "params": [
                 {
                   "name": "content",
-                  "type": "JSValue",
+                  "type": "*",
                   "description": "The text to display — a plain JS string for static text,",
                   "optional": false,
                   "tsType": null
@@ -11164,14 +11164,14 @@
             },
             {
               "name": "button",
-              "signature": "func button(_ label: JSValue) -> HSUIWindow",
+              "signature": "func button(_ label: Any) -> HSUIWindow",
               "isStatic": false,
               "rawDocumentation": "Add a button element\n- Parameter label: The button label — a plain JS string for static text,\n  or an `HSString` object (from `hs.ui.string()`) for reactive text\n- Returns: Self for chaining (apply `.fill()`, `.cornerRadius()`, `.font()`,\n  `.foregroundColor()`, `.frame()`, `.onClick()` etc.)",
               "description": "Add a button element\nor an `HSString` object (from `hs.ui.string()`) for reactive text",
               "params": [
                 {
                   "name": "label",
-                  "type": "JSValue",
+                  "type": "*",
                   "description": "The button label — a plain JS string for static text,",
                   "optional": false,
                   "tsType": null
@@ -14105,5 +14105,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-06-29T21:36:21.950Z"
+  "generatedAt": "2026-06-30T07:44:42.566Z"
 }

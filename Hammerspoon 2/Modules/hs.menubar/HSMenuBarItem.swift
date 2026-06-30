@@ -63,7 +63,7 @@ import JavaScriptCore
     ///     { title: "Option B", checked: true, fn: () => console.log("B") }
     /// ])
     /// ```
-    @objc func setMenu(_ menuOrFn: JSValue)
+    @objc func setMenu(_ menuOrFn: Any)
 
     /// Remove this item from the menu bar. The item is retained and can be shown again with show().
     /// - Example:
@@ -176,7 +176,7 @@ import JavaScriptCore
         }
     }
 
-    @objc func setMenu(_ menuOrFn: JSValue) {
+    @objc func setMenu(_ menuOrFn: Any) {
         _menuCallback?.detach(from: self)
         _menuCallback = nil
         menuDelegate = nil

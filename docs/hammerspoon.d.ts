@@ -2587,7 +2587,7 @@ declare class HSMenuBarItem {
 or a function that returns an array for a dynamic menu populated each time it opens.
      * @param menuOrFn Array of menu item objects, a function returning such an array, or null to remove the menu
      */
-    setMenu(menuOrFn: JSValue): void;
+    setMenu(menuOrFn: any): void;
 
     /**
      * Remove this item from the menu bar. The item is retained and can be shown again with show().
@@ -4773,7 +4773,7 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
      * @param content The text to display — a plain JS string for static text,
      * @returns Self for chaining (apply modifiers like `font()`, `foregroundColor()`)
      */
-    text(content: JSValue): HSUIWindow;
+    text(content: any): HSUIWindow;
 
     /**
      * Add an image element
@@ -4788,7 +4788,7 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
      * @param label The button label — a plain JS string for static text,
      * @returns Self for chaining (apply `.fill()`, `.cornerRadius()`, `.font()`,
      */
-    button(label: JSValue): HSUIWindow;
+    button(label: any): HSUIWindow;
 
     /**
      * Begin a vertical stack (elements arranged top to bottom)
