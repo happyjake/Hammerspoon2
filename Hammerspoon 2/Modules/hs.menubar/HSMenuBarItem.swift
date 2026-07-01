@@ -95,8 +95,6 @@ import JavaScriptCore
     /// item.title = "Hello"
     /// console.log(item.title)
     /// ```
-
-    /// ```
     @objc var title: String? { get set }
 }
 
