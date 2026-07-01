@@ -1616,7 +1616,7 @@ any interface where you want fast, keyboard-driven selection.
 ```javascript
 const chooser = hs.chooser.create()
 
-chooser.setStaticChoices([
+chooser.setChoices([
     { text: "Open Safari", subText: "Web browser", action: "safari" },
     { text: "Open Terminal", subText: "Command line", action: "terminal" }
 ])
@@ -1631,7 +1631,7 @@ chooser.show()
 ```javascript
 const allApps = hs.application.runningApplications()
 
-chooser.setChoicesCallback((query) => {
+chooser.setChoices((query) => {
     const q = query.toLowerCase()
     return allApps
         .filter(a => a.title.toLowerCase().includes(q))
@@ -1643,7 +1643,7 @@ chooser.setChoicesCallback((query) => {
 let debounceTimer = null
 let cachedResults = []
 
-chooser.setChoicesCallback(() => cachedResults)
+chooser.setChoices(() => cachedResults)
 
 chooser.onQueryChange = (query) => {
     if (debounceTimer) debounceTimer.invalidate()
@@ -1687,20 +1687,11 @@ The `contextMenu` array defines per-row right-click menu entries. Each entry is 
  */
 declare class HSChooser {
     /**
-     * Set choices from a static array of choice objects.
-The chooser automatically filters the array as the user types.
-     * @param choices An array of choice objects, each with `text`, optional `subText`, `image`, `valid`, and custom fields
+     * on show. The function is responsible for filtering; the chooser displays all items it returns.
+     * @param choices An array of choice objects, or a function `(query) => [...]`
      * @returns Self for chaining
      */
-    setStaticChoices(choices: any[]): HSChooser;
-
-    /**
-     * Set choices from a function called with the current query on each `refreshChoices()` and on show.
-The function is responsible for filtering; the chooser displays all items it returns.
-     * @param fn A function called with the current query string that returns choice objects
-     * @returns Self for chaining
-     */
-    setChoicesCallback(fn: (query: string) => object[]): HSChooser;
+    setChoices(choices: Array<Record<string, any>> | ((query: string) => Array<Record<string, any>>)): HSChooser;
 
     /**
      * Re-apply filtering (static choices) or re-invoke the choices function (dynamic).
@@ -1722,34 +1713,21 @@ Call after updating an external data source in an async `onQueryChange` handler.
     hide(): HSChooser;
 
     /**
-     * Programmatically confirm the selection at a specific row index.
-Fires `onSelect` (or `onInvalid` for rows with `valid: false`) and hides the chooser.
-     * @param index Zero-based row index to select
+     * Programmatically confirm a selection.
+Omit `row` to confirm the currently highlighted row. Fires `onSelect` (or `onInvalid`
+for rows with `valid: false`) and hides the chooser.
+     * @param row Zero-based row index, or omit to use the current selection.
      * @returns Self for chaining
      */
-    selectRow(index: number): HSChooser;
+    select(row: number | null): HSChooser;
 
     /**
-     * Programmatically confirm the currently highlighted row.
-Fires `onSelect` (or `onInvalid` for rows with `valid: false`) and hides the chooser.
-     * @returns Self for chaining
-     */
-    selectCurrentRow(): HSChooser;
-
-    /**
-     * Returns the dict for a specific row by index.
+     * Returns the dict for the highlighted row, or for a specific row by index.
 Returns `null` if the index is out of range or no choices are set.
-     * @param index Zero-based row index
+     * @param row Zero-based row index, or omit to query the highlighted row.
      * @returns The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.
      */
-    rowContents(index: number): Record<string, any> | undefined;
-
-    /**
-     * Returns the dict for the currently highlighted row.
-Returns `null` if no choices are set or the chooser is empty.
-     * @returns The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.
-     */
-    currentRowContents(): Record<string, any> | undefined;
+    selectedRowContents(row: number | null): Record<string, any> | undefined;
 
     /**
      * Read-only type identifier.

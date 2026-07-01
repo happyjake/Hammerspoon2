@@ -3514,7 +3514,7 @@
           "name": "create",
           "signature": "func create() -> HSChooser",
           "isStatic": false,
-          "rawDocumentation": "Create a new chooser.\n- Returns: A new `HSChooser` object ready for configuration\n- Example:\n```js\nconst c = hs.chooser.create()\nc.setStaticChoices([{text: \"Hello\"}]).onSelect = item => console.log(item.text)\nc.show()\n```",
+          "rawDocumentation": "Create a new chooser.\n- Returns: A new `HSChooser` object ready for configuration\n- Example:\n```js\nconst c = hs.chooser.create()\nc.setChoices([{text: \"Hello\"}]).onSelect = item => console.log(item.text)\nc.show()\n```",
           "description": "Create a new chooser.",
           "params": [],
           "returns": {
@@ -3524,7 +3524,7 @@
           "examples": [
             {
               "lang": "js",
-              "code": "const c = hs.chooser.create()\nc.setStaticChoices([{text: \"Hello\"}]).onSelect = item => console.log(item.text)\nc.show()"
+              "code": "const c = hs.chooser.create()\nc.setChoices([{text: \"Hello\"}]).onSelect = item => console.log(item.text)\nc.show()"
             }
           ],
           "source": "swift",
@@ -3541,18 +3541,18 @@
           "description": "A keyboard-driven floating chooser panel.\nCreate via `hs.chooser.create()`. Configure choices, set callbacks, then call `.show()`.\n## Choice format\nEach choice is a plain object with required `text` and optional `subText`, `image`, `valid`,\nand `contextMenu` fields. All other fields are passed through to the `onSelect` callback unchanged.\nThe `contextMenu` array defines per-row right-click menu entries. Each entry is either\n```javascript\n{\n  text: \"Open Safari\", subText: \"com.apple.Safari\",\n  image: HSImage.fromAppBundle(\"com.apple.Safari\"), valid: true, myData: 42,\n  contextMenu: [\n    { title: \"Open\", action: () => hs.urlevent.openURL(\"https://apple.com\") },\n    { type: \"divider\" },\n    { title: \"Copy bundle ID\", action: () => hs.pasteboard.writeString(\"com.apple.Safari\") }\n  ]\n}\n```\n## Keyboard shortcuts",
           "methods": [
             {
-              "name": "setStaticChoices",
-              "signature": "func setStaticChoices(_ choices: [Any]) -> HSChooser",
+              "name": "setChoices",
+              "signature": "func setChoices(_ choices: JSValue) -> HSChooser",
               "isStatic": false,
-              "rawDocumentation": "Set choices from a static array of choice objects.\n\nThe chooser automatically filters the array as the user types.\n\n- Parameter choices: An array of choice objects, each with `text`, optional `subText`, `image`, `valid`, and custom fields\n- Returns: Self for chaining\n- Example:\n```js\nchooser.setStaticChoices([{text: \"Foo\"}, {text: \"Bar\"}])\n```",
-              "description": "Set choices from a static array of choice objects.\nThe chooser automatically filters the array as the user types.",
+              "rawDocumentation": "Set the choices list. Pass a static array or a function:\n\n- **Array** — the chooser filters it automatically as the user types.\n- **Function** — called with the current query string on every `refreshChoices()` and\n  on show. The function is responsible for filtering; the chooser displays all items it returns.\n\n- Parameter choices: {Array<Record<string, any>> | ((query: string) => Array<Record<string, any>>)} An array of choice objects, or a function `(query) => [...]`\n- Returns: Self for chaining\n- Example:\n```js\n// Static\nchooser.setChoices([{text: \"Foo\"}, {text: \"Bar\"}])\n\n// Dynamic\nchooser.setChoices(q => items.filter(i => i.text.toLowerCase().includes(q.toLowerCase())))\n```",
+              "description": "on show. The function is responsible for filtering; the chooser displays all items it returns.",
               "params": [
                 {
                   "name": "choices",
-                  "type": "Array<Any>",
-                  "description": "An array of choice objects, each with `text`, optional `subText`, `image`, `valid`, and custom fields",
+                  "type": "JSValue",
+                  "description": "An array of choice objects, or a function `(query) => [...]`",
                   "optional": false,
-                  "tsType": null
+                  "tsType": "Array<Record<string, any>> | ((query: string) => Array<Record<string, any>>)"
                 }
               ],
               "returns": {
@@ -3562,41 +3562,12 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "chooser.setStaticChoices([{text: \"Foo\"}, {text: \"Bar\"}])"
+                  "code": "// Static\nchooser.setChoices([{text: \"Foo\"}, {text: \"Bar\"}])\n\n// Dynamic\nchooser.setChoices(q => items.filter(i => i.text.toLowerCase().includes(q.toLowerCase())))"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 93
-            },
-            {
-              "name": "setChoicesCallback",
-              "signature": "func setChoicesCallback(_ fn: JSFunction) -> HSChooser",
-              "isStatic": false,
-              "rawDocumentation": "Set choices from a function called with the current query on each `refreshChoices()` and on show.\n\nThe function is responsible for filtering; the chooser displays all items it returns.\n\n- Parameter fn: {(query: string) => object[]} A function called with the current query string that returns choice objects\n- Returns: Self for chaining\n- Example:\n```js\nchooser.setChoicesCallback(q => items.filter(i => i.text.toLowerCase().includes(q.toLowerCase())))\n```",
-              "description": "Set choices from a function called with the current query on each `refreshChoices()` and on show.\nThe function is responsible for filtering; the chooser displays all items it returns.",
-              "params": [
-                {
-                  "name": "fn",
-                  "type": "JSFunction",
-                  "description": "A function called with the current query string that returns choice objects",
-                  "optional": false,
-                  "tsType": "(query: string) => object[]"
-                }
-              ],
-              "returns": {
-                "type": "HSChooser",
-                "description": "Self for chaining"
-              },
-              "examples": [
-                {
-                  "lang": "js",
-                  "code": "chooser.setChoicesCallback(q => items.filter(i => i.text.toLowerCase().includes(q.toLowerCase())))"
-                }
-              ],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 105
+              "lineNumber": 99
             },
             {
               "name": "refreshChoices",
@@ -3617,7 +3588,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 114
+              "lineNumber": 108
             },
             {
               "name": "show",
@@ -3638,7 +3609,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 149
+              "lineNumber": 143
             },
             {
               "name": "hide",
@@ -3659,21 +3630,21 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 157
+              "lineNumber": 151
             },
             {
-              "name": "selectRow",
-              "signature": "func selectRow(_ index: Int) -> HSChooser",
+              "name": "select",
+              "signature": "func select(_ row: JSValue) -> HSChooser",
               "isStatic": false,
-              "rawDocumentation": "Programmatically confirm the selection at a specific row index.\n\nFires `onSelect` (or `onInvalid` for rows with `valid: false`) and hides the chooser.\n\n- Parameter index: Zero-based row index to select\n- Returns: Self for chaining\n- Example:\n```js\nchooser.selectRow(2)\n```",
-              "description": "Programmatically confirm the selection at a specific row index.\nFires `onSelect` (or `onInvalid` for rows with `valid: false`) and hides the chooser.",
+              "rawDocumentation": "Programmatically confirm a selection.\n\nOmit `row` to confirm the currently highlighted row. Fires `onSelect` (or `onInvalid`\nfor rows with `valid: false`) and hides the chooser.\n\n- Parameter row: {number | null} Zero-based row index, or omit to use the current selection.\n- Returns: Self for chaining\n- Example:\n```js\nchooser.select()     // confirm highlighted row\nchooser.select(2)    // confirm row at index 2\n```",
+              "description": "Programmatically confirm a selection.\nOmit `row` to confirm the currently highlighted row. Fires `onSelect` (or `onInvalid`\nfor rows with `valid: false`) and hides the chooser.",
               "params": [
                 {
-                  "name": "index",
-                  "type": "number",
-                  "description": "Zero-based row index to select",
+                  "name": "row",
+                  "type": "JSValue",
+                  "description": "Zero-based row index, or omit to use the current selection.",
                   "optional": false,
-                  "tsType": null
+                  "tsType": "number | null"
                 }
               ],
               "returns": {
@@ -3683,47 +3654,26 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "chooser.selectRow(2)"
+                  "code": "chooser.select()     // confirm highlighted row\nchooser.select(2)    // confirm row at index 2"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 228
+              "lineNumber": 224
             },
             {
-              "name": "selectCurrentRow",
-              "signature": "func selectCurrentRow() -> HSChooser",
+              "name": "selectedRowContents",
+              "signature": "func selectedRowContents(_ row: JSValue) -> [String: Any]?",
               "isStatic": false,
-              "rawDocumentation": "Programmatically confirm the currently highlighted row.\n\nFires `onSelect` (or `onInvalid` for rows with `valid: false`) and hides the chooser.\n\n- Returns: Self for chaining\n- Example:\n```js\nchooser.selectCurrentRow()\n```",
-              "description": "Programmatically confirm the currently highlighted row.\nFires `onSelect` (or `onInvalid` for rows with `valid: false`) and hides the chooser.",
-              "params": [],
-              "returns": {
-                "type": "HSChooser",
-                "description": "Self for chaining"
-              },
-              "examples": [
-                {
-                  "lang": "js",
-                  "code": "chooser.selectCurrentRow()"
-                }
-              ],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 239
-            },
-            {
-              "name": "rowContents",
-              "signature": "func rowContents(_ index: Int) -> [String: Any]?",
-              "isStatic": false,
-              "rawDocumentation": "Returns the dict for a specific row by index.\nReturns `null` if the index is out of range or no choices are set.\n\n- Parameter index: Zero-based row index\n- Returns: The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.\n- Example:\n```js\nconst item = chooser.rowContents(2)\n```",
-              "description": "Returns the dict for a specific row by index.\nReturns `null` if the index is out of range or no choices are set.",
+              "rawDocumentation": "Returns the dict for the highlighted row, or for a specific row by index.\nReturns `null` if the index is out of range or no choices are set.\n\n- Parameter row: {number | null} Zero-based row index, or omit to query the highlighted row.\n- Returns: The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.\n- Example:\n```js\nconst item = chooser.selectedRowContents()\nconst item = chooser.selectedRowContents(2)\n```",
+              "description": "Returns the dict for the highlighted row, or for a specific row by index.\nReturns `null` if the index is out of range or no choices are set.",
               "params": [
                 {
-                  "name": "index",
-                  "type": "number",
-                  "description": "Zero-based row index",
+                  "name": "row",
+                  "type": "JSValue",
+                  "description": "Zero-based row index, or omit to query the highlighted row.",
                   "optional": false,
-                  "tsType": null
+                  "tsType": "number | null"
                 }
               ],
               "returns": {
@@ -3733,33 +3683,12 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const item = chooser.rowContents(2)"
+                  "code": "const item = chooser.selectedRowContents()\nconst item = chooser.selectedRowContents(2)"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 250
-            },
-            {
-              "name": "currentRowContents",
-              "signature": "func currentRowContents() -> [String: Any]?",
-              "isStatic": false,
-              "rawDocumentation": "Returns the dict for the currently highlighted row.\nReturns `null` if no choices are set or the chooser is empty.\n\n- Returns: The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.\n- Example:\n```js\nconst item = chooser.currentRowContents()\n```",
-              "description": "Returns the dict for the currently highlighted row.\nReturns `null` if no choices are set or the chooser is empty.",
-              "params": [],
-              "returns": {
-                "type": "Object<String, Any>",
-                "description": "The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`."
-              },
-              "examples": [
-                {
-                  "lang": "js",
-                  "code": "const item = chooser.currentRowContents()"
-                }
-              ],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 260
+              "lineNumber": 236
             }
           ],
           "properties": [
@@ -3856,7 +3785,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 123
+              "lineNumber": 117
             },
             {
               "name": "width",
@@ -3871,7 +3800,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 132
+              "lineNumber": 126
             },
             {
               "name": "visibleRows",
@@ -3886,7 +3815,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 139
+              "lineNumber": 133
             },
             {
               "name": "isVisible",
@@ -3901,7 +3830,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 164
+              "lineNumber": 158
             },
             {
               "name": "onSelect",
@@ -3916,7 +3845,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 181
+              "lineNumber": 175
             },
             {
               "name": "onQueryChange",
@@ -3931,7 +3860,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 193
+              "lineNumber": 187
             },
             {
               "name": "onShow",
@@ -3946,7 +3875,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 200
+              "lineNumber": 194
             },
             {
               "name": "onHide",
@@ -3961,7 +3890,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 207
+              "lineNumber": 201
             },
             {
               "name": "onInvalid",
@@ -3976,13 +3905,13 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
-              "lineNumber": 216
+              "lineNumber": 210
             }
           ]
         }
       ],
-      "description": "# hs.chooser\n**A Spotlight-style chooser for presenting options to the user**\n`hs.chooser` lets you show a floating search panel that users can type into to filter and\nselect from a list of items. It's ideal for launchers, emoji pickers, command palettes, and\nany interface where you want fast, keyboard-driven selection.\n## Quick Start\n```javascript\nconst chooser = hs.chooser.create()\n\nchooser.setStaticChoices([\n    { text: \"Open Safari\", subText: \"Web browser\", action: \"safari\" },\n    { text: \"Open Terminal\", subText: \"Command line\", action: \"terminal\" }\n])\n\nchooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text + \" (\" + item.action + \")\")\n}\n\nchooser.show()\n```\n## Dynamic Choices\n```javascript\nconst allApps = hs.application.runningApplications()\n\nchooser.setChoicesCallback((query) => {\n    const q = query.toLowerCase()\n    return allApps\n        .filter(a => a.title.toLowerCase().includes(q))\n        .map(a => ({ text: a.title, subText: a.bundleID }))\n})\n```\n## Async Choices (with debounce)\n```javascript\nlet debounceTimer = null\nlet cachedResults = []\n\nchooser.setChoicesCallback(() => cachedResults)\n\nchooser.onQueryChange = (query) => {\n    if (debounceTimer) debounceTimer.invalidate()\n    debounceTimer = hs.timer.doAfter(0.05, () => {\n        fetchFromAPI(query).then(results => {\n            cachedResults = results\n            chooser.refreshChoices()\n        })\n    })\n}\n```",
-      "rawDocumentation": "# hs.chooser\n\n**A Spotlight-style chooser for presenting options to the user**\n\n`hs.chooser` lets you show a floating search panel that users can type into to filter and\nselect from a list of items. It's ideal for launchers, emoji pickers, command palettes, and\nany interface where you want fast, keyboard-driven selection.\n\n## Quick Start\n\n```javascript\nconst chooser = hs.chooser.create()\n\nchooser.setStaticChoices([\n    { text: \"Open Safari\", subText: \"Web browser\", action: \"safari\" },\n    { text: \"Open Terminal\", subText: \"Command line\", action: \"terminal\" }\n])\n\nchooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text + \" (\" + item.action + \")\")\n}\n\nchooser.show()\n```\n\n## Dynamic Choices\n\nFor search-as-you-type filtering powered by your own data:\n\n```javascript\nconst allApps = hs.application.runningApplications()\n\nchooser.setChoicesCallback((query) => {\n    const q = query.toLowerCase()\n    return allApps\n        .filter(a => a.title.toLowerCase().includes(q))\n        .map(a => ({ text: a.title, subText: a.bundleID }))\n})\n```\n\n## Async Choices (with debounce)\n\nFor results fetched from an external source:\n\n```javascript\nlet debounceTimer = null\nlet cachedResults = []\n\nchooser.setChoicesCallback(() => cachedResults)\n\nchooser.onQueryChange = (query) => {\n    if (debounceTimer) debounceTimer.invalidate()\n    debounceTimer = hs.timer.doAfter(0.05, () => {\n        fetchFromAPI(query).then(results => {\n            cachedResults = results\n            chooser.refreshChoices()\n        })\n    })\n}\n```"
+      "description": "# hs.chooser\n**A Spotlight-style chooser for presenting options to the user**\n`hs.chooser` lets you show a floating search panel that users can type into to filter and\nselect from a list of items. It's ideal for launchers, emoji pickers, command palettes, and\nany interface where you want fast, keyboard-driven selection.\n## Quick Start\n```javascript\nconst chooser = hs.chooser.create()\n\nchooser.setChoices([\n    { text: \"Open Safari\", subText: \"Web browser\", action: \"safari\" },\n    { text: \"Open Terminal\", subText: \"Command line\", action: \"terminal\" }\n])\n\nchooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text + \" (\" + item.action + \")\")\n}\n\nchooser.show()\n```\n## Dynamic Choices\n```javascript\nconst allApps = hs.application.runningApplications()\n\nchooser.setChoices((query) => {\n    const q = query.toLowerCase()\n    return allApps\n        .filter(a => a.title.toLowerCase().includes(q))\n        .map(a => ({ text: a.title, subText: a.bundleID }))\n})\n```\n## Async Choices (with debounce)\n```javascript\nlet debounceTimer = null\nlet cachedResults = []\n\nchooser.setChoices(() => cachedResults)\n\nchooser.onQueryChange = (query) => {\n    if (debounceTimer) debounceTimer.invalidate()\n    debounceTimer = hs.timer.doAfter(0.05, () => {\n        fetchFromAPI(query).then(results => {\n            cachedResults = results\n            chooser.refreshChoices()\n        })\n    })\n}\n```",
+      "rawDocumentation": "# hs.chooser\n\n**A Spotlight-style chooser for presenting options to the user**\n\n`hs.chooser` lets you show a floating search panel that users can type into to filter and\nselect from a list of items. It's ideal for launchers, emoji pickers, command palettes, and\nany interface where you want fast, keyboard-driven selection.\n\n## Quick Start\n\n```javascript\nconst chooser = hs.chooser.create()\n\nchooser.setChoices([\n    { text: \"Open Safari\", subText: \"Web browser\", action: \"safari\" },\n    { text: \"Open Terminal\", subText: \"Command line\", action: \"terminal\" }\n])\n\nchooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text + \" (\" + item.action + \")\")\n}\n\nchooser.show()\n```\n\n## Dynamic Choices\n\nFor search-as-you-type filtering powered by your own data:\n\n```javascript\nconst allApps = hs.application.runningApplications()\n\nchooser.setChoices((query) => {\n    const q = query.toLowerCase()\n    return allApps\n        .filter(a => a.title.toLowerCase().includes(q))\n        .map(a => ({ text: a.title, subText: a.bundleID }))\n})\n```\n\n## Async Choices (with debounce)\n\nFor results fetched from an external source:\n\n```javascript\nlet debounceTimer = null\nlet cachedResults = []\n\nchooser.setChoices(() => cachedResults)\n\nchooser.onQueryChange = (query) => {\n    if (debounceTimer) debounceTimer.invalidate()\n    debounceTimer = hs.timer.doAfter(0.05, () => {\n        fetchFromAPI(query).then(results => {\n            cachedResults = results\n            chooser.refreshChoices()\n        })\n    })\n}\n```"
     },
     {
       "name": "hs.console",
@@ -14053,5 +13982,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-01T12:08:28.107Z"
+  "generatedAt": "2026-07-01T19:54:23.767Z"
 }

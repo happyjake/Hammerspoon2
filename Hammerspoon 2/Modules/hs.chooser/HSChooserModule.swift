@@ -19,7 +19,7 @@ import JavaScriptCore
 /// ```javascript
 /// const chooser = hs.chooser.create()
 ///
-/// chooser.setStaticChoices([
+/// chooser.setChoices([
 ///     { text: "Open Safari", subText: "Web browser", action: "safari" },
 ///     { text: "Open Terminal", subText: "Command line", action: "terminal" }
 /// ])
@@ -38,7 +38,7 @@ import JavaScriptCore
 /// ```javascript
 /// const allApps = hs.application.runningApplications()
 ///
-/// chooser.setChoicesCallback((query) => {
+/// chooser.setChoices((query) => {
 ///     const q = query.toLowerCase()
 ///     return allApps
 ///         .filter(a => a.title.toLowerCase().includes(q))
@@ -54,7 +54,7 @@ import JavaScriptCore
 /// let debounceTimer = null
 /// let cachedResults = []
 ///
-/// chooser.setChoicesCallback(() => cachedResults)
+/// chooser.setChoices(() => cachedResults)
 ///
 /// chooser.onQueryChange = (query) => {
 ///     if (debounceTimer) debounceTimer.invalidate()
@@ -73,7 +73,7 @@ import JavaScriptCore
     /// - Example:
     /// ```js
     /// const c = hs.chooser.create()
-    /// c.setStaticChoices([{text: "Hello"}]).onSelect = item => console.log(item.text)
+    /// c.setChoices([{text: "Hello"}]).onSelect = item => console.log(item.text)
     /// c.show()
     /// ```
     @objc func create() -> HSChooser
