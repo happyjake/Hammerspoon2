@@ -79,14 +79,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Extract documentation
-        run: node scripts/extract-docs.js
-
-      - name: Generate HTML documentation
-        run: node scripts/generate-html.js
-
-      - name: Generate TypeScript definitions
-        run: node scripts/generate-typescript.js
+      - name: Generate documentation
+        run: npm run docs:generate
 
       - name: Copy TypeScript files to HTML output
         run: |
