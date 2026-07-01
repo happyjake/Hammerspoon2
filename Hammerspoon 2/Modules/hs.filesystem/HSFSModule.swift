@@ -95,7 +95,7 @@ import UniformTypeIdentifiers
     ///     return true
     /// })
     /// ```
-    @objc func readLines(_ path: String, _ callback: JSValue) -> Bool
+    @objc func readLines(_ path: String, _ callback: JSFunction) -> Bool
 
     /// Write a UTF-8 string to a file, creating it or overwriting any existing content.
     ///
@@ -386,7 +386,7 @@ import UniformTypeIdentifiers
     /// const info = hs.fs.attributes("/etc/hosts")
     /// console.log(info.size, info.type)
     /// ```
-    @objc func attributes(_ path: String) -> NSDictionary?
+    @objc func attributes(_ path: String) -> [String: Any]?
 
     /// Update the modification timestamp of a file to the current time.
     ///
@@ -600,7 +600,7 @@ import UniformTypeIdentifiers
         return result
     }
 
-    @objc func readLines(_ path: String, _ callback: JSValue) -> Bool {
+    @objc func readLines(_ path: String, _ callback: JSFunction) -> Bool {
         guard let handle = FileHandle(forReadingAtPath: expand(path)) else {
             AKError("hs.fs.readLines: could not open \(path)")
             return false
@@ -825,7 +825,7 @@ import UniformTypeIdentifiers
 
     // MARK: - File Attributes
 
-    @objc func attributes(_ path: String) -> NSDictionary? {
+    @objc func attributes(_ path: String) -> [String: Any]? {
         let expandedPath = expand(path)
         var st = Darwin.stat()
         // Use lstat so the type field correctly reports symlinks.
@@ -848,7 +848,7 @@ import UniformTypeIdentifiers
             "inode":            Int(st.st_ino),
             "creationDate":     creationDate,
             "modificationDate": modDate,
-        ] as NSDictionary
+        ]
     }
 
     @objc func touch(_ path: String) -> Bool {

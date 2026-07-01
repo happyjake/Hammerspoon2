@@ -334,10 +334,40 @@ function parseSwiftFile(filePath, repoRoot) {
 }
 
 /**
+ * Parse a parameter description that may start with a TypeScript type hint.
+ * A hint looks like "{(path: string) => void} Called when done" — the braced
+ * expression becomes the explicit TS type and the rest is the human description.
+ * Returns { description, tsType: string|null }.
+ */
+function parseParamDescription(raw) {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('{')) {
+        // Find the closing brace at depth 0
+        let depth = 0;
+        let end = -1;
+        for (let i = 0; i < trimmed.length; i++) {
+            if (trimmed[i] === '{') depth++;
+            else if (trimmed[i] === '}') {
+                depth--;
+                if (depth === 0) { end = i; break; }
+            }
+        }
+        if (end !== -1) {
+            const tsType = trimmed.slice(1, end).trim();
+            const description = trimmed.slice(end + 1).trim();
+            return { description, tsType };
+        }
+    }
+    return { description: trimmed, tsType: null };
+}
+
+/**
  * Extract parameter descriptions from documentation.
- * Returns a map of { paramName: { description, optional } }.
+ * Returns a map of { paramName: { description, optional, tsType } }.
  * A parameter name suffixed with '?' in the doc comment (e.g. "- Parameter allWindows?: ...")
  * sets optional: true, which causes the TypeScript generator to emit `name?: type`.
+ * A description starting with "{TypeScript type}" (e.g. "{(x: number) => void}")
+ * sets tsType, which overrides the Swift-derived TypeScript type in the output.
  */
 function extractParamDescriptions(docLines) {
     const descriptions = {};
@@ -357,9 +387,11 @@ function extractParamDescriptions(docLines) {
         // The parameter name may be suffixed with '?' to mark it as optional in TypeScript.
         const singleParamMatch = trimmed.match(/^-?\s*Parameter\s+(\w+)(\?)?\s*:\s*(.+)$/);
         if (singleParamMatch) {
+            const { description, tsType } = parseParamDescription(singleParamMatch[3]);
             descriptions[singleParamMatch[1]] = {
-                description: singleParamMatch[3].trim(),
-                optional: !!singleParamMatch[2]
+                description,
+                optional: !!singleParamMatch[2],
+                tsType
             };
             continue;
         }
@@ -368,9 +400,11 @@ function extractParamDescriptions(docLines) {
         if (inParams) {
             const paramMatch = trimmed.match(/^-\s+(\w+)(\?)?\s*:\s*(.+)$/);
             if (paramMatch) {
+                const { description, tsType } = parseParamDescription(paramMatch[3]);
                 descriptions[paramMatch[1]] = {
-                    description: paramMatch[3].trim(),
-                    optional: !!paramMatch[2]
+                    description,
+                    optional: !!paramMatch[2],
+                    tsType
                 };
                 continue;
             }
@@ -407,12 +441,13 @@ function extractParams(signature, docLines = []) {
         const paramMatch = part.match(/(?:_\s+)?(\w+)\s*:\s*([^=]+)/);
         if (paramMatch) {
             const paramName = paramMatch[1];
-            const paramInfo = descriptions[paramName] || { description: '', optional: false };
+            const paramInfo = descriptions[paramName] || { description: '', optional: false, tsType: null };
             params.push({
                 name: paramName,
                 type: paramMatch[2].trim(),
                 description: paramInfo.description,
-                optional: paramInfo.optional
+                optional: paramInfo.optional,
+                tsType: paramInfo.tsType || null
             });
         }
     }
@@ -637,6 +672,7 @@ function parseJavaScriptFile(filePath, moduleName = null, repoRoot = REPO_ROOT) 
                     description: formatDocCToJSDoc(docText),
                     params: parsed.params,
                     returns: parsed.returns,
+                    examples: extractExamples(docLines),
                     source: 'javascript',
                     filePath: relativePath,
                     lineNumber: i + 1, // Line numbers are 1-indexed
@@ -741,8 +777,11 @@ function parseJSDoc(docText) {
     for (const line of lines) {
         if (line.startsWith('@param')) {
             currentSection = 'param';
-            const paramMatch = line.match(/@param\s+(?:\{([^}]+)\}\s+)?(\w+)\s*(.*)/);
-            if (paramMatch) {
+            // Use [\w.]+ to capture dotted names like options.environment (JSDoc property paths)
+            const paramMatch = line.match(/@param\s+(?:\{([^}]+)\}\s+)?([\w.]+)\s*(.*)/);
+            if (paramMatch && !paramMatch[2].includes('.')) {
+                // Skip property-path docs (e.g. @param options.foo) — they document sub-fields of an
+                // existing param and must not appear as separate parameters in the TypeScript output.
                 doc.params.push({
                     name: paramMatch[2],
                     type: paramMatch[1] || 'any',
@@ -811,6 +850,8 @@ function swiftTypeToJSDoc(swiftType) {
         'Bool': 'boolean',
         'TimeInterval': 'number',
         'UInt32': 'number',
+        'NSNumber': 'number',
+        'NSDate': 'Date',
         'Any': '*'
     };
     
@@ -1267,11 +1308,37 @@ function main() {
     fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2));
     console.log(`\n✓ Saved module index: ${indexPath}`);
 
-    // Save combined api.json file with all modules and types
+    // Save combined api.json file with all modules and types.
+    // Normalize Swift type names to their JS equivalents for Swift-sourced items.
+    // This covers param/return types AND raw signature strings so NSNumber etc. don't
+    // appear verbatim in api.json.
+    const swiftTypeTokenRe = /\bNSNumber\b/g;
+    const normalizeSignature = sig => (sig || '').replace(swiftTypeTokenRe, 'number');
+    const normalizeMethod = m => {
+        if (m.source !== 'swift') return m;
+        return {
+            ...m,
+            signature: normalizeSignature(m.signature),
+            params: (m.params || []).map(p => ({ ...p, type: swiftTypeToJSDoc(p.type || '') })),
+            returns: m.returns ? { ...m.returns, type: swiftTypeToJSDoc(m.returns.type || '') } : m.returns
+        };
+    };
+    const normalizeProperty = p => ({ ...p, signature: normalizeSignature(p.signature) });
+    const normalizeModule = mod => ({
+        ...mod,
+        methods: (mod.methods || []).map(normalizeMethod),
+        properties: (mod.properties || []).map(normalizeProperty),
+        types: (mod.types || []).map(t => ({
+            ...t,
+            methods: (t.methods || []).map(normalizeMethod),
+            properties: (t.properties || []).map(normalizeProperty)
+        }))
+    });
+
     const apiJsonPath = path.join(__dirname, '..', 'docs', 'api.json');
     const apiJsonData = {
-        modules: allModules,
-        types: typesData ? (typesData.types || []) : [],
+        modules: allModules.map(normalizeModule),
+        types: typesData ? (typesData.types || []).map(normalizeModule) : [],
         generatedAt: new Date().toISOString()
     };
     fs.writeFileSync(apiJsonPath, JSON.stringify(apiJsonData, null, 2));

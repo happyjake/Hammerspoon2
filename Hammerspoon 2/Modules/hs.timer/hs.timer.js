@@ -15,6 +15,11 @@
 ///  - predicateFn: A function/lambda to test if the timer should continue. Return True to end the timer, False to continue it
 ///  - actionFn: A function/lambda to call until the predicateFn returns true
 ///  - checkInterval: How often, in seconds, to call actionFn
+/// Example:
+/// ```js
+/// let count = 0
+/// hs.timer.doUntil(() => count >= 3, () => { count++; console.log(count) }, 1)
+/// ```
 hs.timer.doUntil = function(predicateFn, actionFn, checkInterval) {
     if (typeof predicateFn !== 'function') {
         throw new Error("hs.timer.doUntil(): predicate must be a function");
@@ -42,6 +47,11 @@ hs.timer.doUntil = function(predicateFn, actionFn, checkInterval) {
 ///  - predicateFn: A function/lambda to test if the timer should continue. Return True to continue the timer, False to end it
 ///  - actionFn: A function/lambda to call while the predicateFn returns true
 ///  - checkInterval: How often, in seconds, to call actionFn
+/// Example:
+/// ```js
+/// let count = 0
+/// hs.timer.doWhile(() => count < 3, () => { count++; console.log(count) }, 1)
+/// ```
 hs.timer.doWhile = function(predicateFn, actionFn, checkInterval) {
     if (typeof predicateFn !== 'function') {
         throw new Error("hs.timer.doWhile(): predicate must be a function");

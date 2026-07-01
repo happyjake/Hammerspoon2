@@ -72,6 +72,11 @@ hs.ax._watcherEmitter = new AXModuleWatcherEmitter();
 // Convenience function to get the focused element
 /// Fetch the focused UI element
 /// Returns: An HSAXElement representing the focused UI element, or null if none was found
+/// Example:
+/// ```js
+/// const el = hs.ax.focusedElement()
+/// console.log(el.role, el.title)
+/// ```
 hs.ax.focusedElement = function() {
     const focusedApp = hs.application.frontmost();
     if (!focusedApp) {
@@ -100,6 +105,11 @@ hs.ax.focusedElement = function() {
 ///  - role: The role name to search for
 ///  - parent: An HSAXElement object to search. If none is supplied, the search will be conducted system-wide
 /// Returns: An array of found elements
+/// Example:
+/// ```js
+/// const app = hs.application.frontmost()
+/// const buttons = hs.ax.findByRole(app, "AXButton")
+/// ```
 hs.ax.findByRole = function(role, parent) {
     const searchRoot = parent || hs.ax.systemWideElement();
     if (!searchRoot) {
@@ -131,6 +141,11 @@ hs.ax.findByRole = function(role, parent) {
 ///  - title: The name to search for
 ///  - parent: An HSAXElement object to search. If none is supplied, the search will be conducted system-wide
 /// Returns: An array of found elements
+/// Example:
+/// ```js
+/// const app = hs.application.frontmost()
+/// const matches = hs.ax.findByTitle(app, "OK")
+/// ```
 hs.ax.findByTitle = function(title, parent) {
     const searchRoot = parent || hs.ax.systemWideElement();
     if (!searchRoot) {
@@ -161,6 +176,11 @@ hs.ax.findByTitle = function(title, parent) {
 /// Parameters:
 ///  - element: An HSAXElement
 ///  - depth: This parameter should not be supplied
+/// Example:
+/// ```js
+/// const app = hs.application.frontmost()
+/// hs.ax.printHierarchy(app)
+/// ```
 hs.ax.printHierarchy = function(element, depth = 0) {
     element = element || hs.ax.systemWideElement();
     if (!element) {

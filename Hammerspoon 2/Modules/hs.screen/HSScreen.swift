@@ -95,7 +95,7 @@ import ScreenCaptureKit
     /// const s = hs.screen.primary()
     /// console.log(s.mode)
     /// ```
-    @objc var mode: NSDictionary { get }
+    @objc var mode: [String: Any] { get }
 
     /// All display modes supported by this screen.
     ///
@@ -105,7 +105,7 @@ import ScreenCaptureKit
     /// const s = hs.screen.primary()
     /// console.log(s.availableModes.length)
     /// ```
-    @objc var availableModes: [NSDictionary] { get }
+    @objc var availableModes: [[String: Any]] { get }
 
     /// Switch to the given display mode.
     ///
@@ -256,7 +256,7 @@ import ScreenCaptureKit
     /// const s = hs.screen.main()
     /// const local = s.absoluteToLocal({x: 1000, y: 500, w: 200, h: 100})
     /// ```
-    @objc func absoluteToLocal(_ rect: JSValue) -> HSRect?
+    @objc func absoluteToLocal(_ rect: HSRect) -> HSRect
 
     /// Convert a rect in local screen coordinates to global Hammerspoon coordinates.
     ///
@@ -267,7 +267,7 @@ import ScreenCaptureKit
     /// const s = hs.screen.main()
     /// const abs = s.localToAbsolute({x: 10, y: 10, w: 100, h: 100})
     /// ```
-    @objc func localToAbsolute(_ rect: JSValue) -> HSRect?
+    @objc func localToAbsolute(_ rect: HSRect) -> HSRect
 
     // MARK: - Desktop
 
@@ -291,7 +291,7 @@ private extension CGDisplayMode {
     }
 
     /// Serialised representation passed to JavaScript.
-    var asDictionary: NSDictionary {
+    var asDictionary: [String: Any] {
         ["width": width, "height": height, "scale": modeScale, "frequency": refreshRate]
     }
 }
@@ -356,12 +356,12 @@ private extension CGDisplayMode {
     // rule (caller owns +1).  Swift bridges CGDisplayMode as an ARC-managed class, so the
     // compiler inserts releases automatically — no manual CFRelease needed.
 
-    @objc var mode: NSDictionary {
+    @objc var mode: [String: Any] {
         guard let cgMode = CGDisplayCopyDisplayMode(displayID) else { return [:] }
         return cgMode.asDictionary
     }
 
-    @objc var availableModes: [NSDictionary] {
+    @objc var availableModes: [[String: Any]] {
         // kCGDisplayShowDuplicateLowResolutionModes is required to surface HiDPI (Retina) modes
         // that CGDisplayCopyAllDisplayModes would otherwise omit when called with nil options.
         let options = [kCGDisplayShowDuplicateLowResolutionModes: true] as CFDictionary
@@ -536,16 +536,14 @@ private extension CGDisplayMode {
 
     // MARK: - Coordinate Conversion
 
-    @objc func absoluteToLocal(_ rect: JSValue) -> HSRect? {
-        guard let hsRect = rect.toObjectOf(HSRect.self) as? HSRect else { return nil }
+    @objc func absoluteToLocal(_ hsRect: HSRect) -> HSRect {
         let screenOrigin = flip(screen.frame).origin
         return HSRect(x: hsRect.x - Double(screenOrigin.x),
                       y: hsRect.y - Double(screenOrigin.y),
                       w: hsRect.w, h: hsRect.h)
     }
 
-    @objc func localToAbsolute(_ rect: JSValue) -> HSRect? {
-        guard let hsRect = rect.toObjectOf(HSRect.self) as? HSRect else { return nil }
+    @objc func localToAbsolute(_ hsRect: HSRect) -> HSRect {
         let screenOrigin = flip(screen.frame).origin
         return HSRect(x: hsRect.x + Double(screenOrigin.x),
                       y: hsRect.y + Double(screenOrigin.y),

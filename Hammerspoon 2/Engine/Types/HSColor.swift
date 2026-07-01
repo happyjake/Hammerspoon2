@@ -35,8 +35,16 @@ import Observation
     /// - Returns: An HSColor object
     @objc static func named(_ name: String) -> HSColor
 
-    /// Update this color's value
-    /// - Parameter value: New color as a hex string (e.g. "#FF0000") or another HSColor object
+    /// Update this color's value.
+    ///
+    /// If this color is bound to a UI element, the canvas re-renders automatically.
+    /// - Parameter value: {string | HSColor} A hex color string (e.g. "#FF0000") or another HSColor object
+    /// - Example:
+    /// ```js
+    /// const reactive = HSColor.hex("#4A90E2")
+    /// reactive.set("#E24A4A")
+    /// reactive.set(HSColor.named("red"))
+    /// ```
     @objc func set(_ value: JSValue)
 }
 
@@ -112,7 +120,7 @@ import Observation
         return color.toBridge()
     }
 
-    // MARK: - Mutation
+    // MARK: - Reactive Mutation
 
     @objc func set(_ value: JSValue) {
         if let newColor = HSColor.fromJSValue(value) {

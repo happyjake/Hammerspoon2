@@ -12,15 +12,6 @@ import JavaScriptCore
 /// Object representing a macOS system menu bar item.
 /// Create instances with `hs.menubar.create()`.
 @objc protocol HSMenuBarItemAPI: HSTypeAPI, JSExport {
-    /// Set the text title displayed in the menu bar
-    /// - Parameter title: Text to display, or null to remove the title
-    /// - Example:
-    /// ```js
-    /// const item = hs.menubar.create()
-    /// item.setTitle("Hello")
-    /// ```
-    @objc func setTitle(_ title: JSValue)
-
     /// Set the icon displayed in the menu bar
     /// - Parameter image: An HSImage object, or null to remove the icon
     /// - Example:
@@ -28,7 +19,7 @@ import JavaScriptCore
     /// const item = hs.menubar.create()
     /// item.setIcon(HSImage.fromSymbol("star.fill"))
     /// ```
-    @objc func setIcon(_ image: JSValue)
+    @objc func setIcon(_ image: HSImage?)
 
     /// Set the tooltip shown when hovering over the menu bar item
     /// - Parameter tooltip: Tooltip text, or null to remove the tooltip
@@ -37,17 +28,17 @@ import JavaScriptCore
     /// const item = hs.menubar.create()
     /// item.setTooltip("My menu bar item")
     /// ```
-    @objc func setTooltip(_ tooltip: JSValue)
+    @objc func setTooltip(_ tooltip: String?)
 
     /// Set a callback invoked when the item is clicked (only fires when no menu is set)
     /// - Parameter fn: A function to call on click, or null to remove the callback
     /// - Example:
     /// ```js
     /// const item = hs.menubar.create()
-    /// item.setTitle("Click me")
+    /// item.title = "Click me"
     /// item.setClickCallback(() => console.log("clicked!"))
     /// ```
-    @objc func setClickCallback(_ fn: JSValue)
+    @objc func setClickCallback(_ fn: JSFunction)
 
     /// Set the menu for this item. Pass an array of menu item objects for a static menu,
     /// or a function that returns an array for a dynamic menu populated each time it opens.
@@ -61,11 +52,11 @@ import JavaScriptCore
     /// - `icon` (HSImage): Icon shown to the left of the title.
     /// - `menu` (array): Nested array of menu item objects to create a submenu.
     ///
-    /// - Parameter menuOrFn: Array of menu item objects, a function returning such an array, or null to remove the menu
+    /// - Parameter menuOrFn: {Array<Record<string, any>> | (() => Array<Record<string, any>>) | null} Array of menu item objects, a function returning such an array, or null to remove the menu
     /// - Example:
     /// ```js
     /// const item = hs.menubar.create()
-    /// item.setTitle("Menu")
+    /// item.title = "Menu"
     /// item.setMenu([
     ///     { title: "Option A", fn: () => console.log("A") },
     ///     { title: "-" },
@@ -97,12 +88,14 @@ import JavaScriptCore
     /// ```
     @objc func isVisible() -> Bool
 
-    /// The current title text, or null if none is set
+    /// Get or set the menu item's title.
     /// - Example:
     /// ```js
+    /// const item = hs.menubar.create()
+    /// item.title = "Hello"
     /// console.log(item.title)
     /// ```
-    @objc var title: String? { get }
+    @objc var title: String? { get set }
 }
 
 // MARK: - Implementation
@@ -157,36 +150,22 @@ import JavaScriptCore
 
     // MARK: - API
 
-    @objc func setTitle(_ titleValue: JSValue) {
-        if titleValue.isNull || titleValue.isUndefined {
-            _title = nil
-        } else {
-            _title = titleValue.toString()
-        }
-        updateButton()
-    }
-
-    @objc func setIcon(_ imageValue: JSValue) {
-        if imageValue.isNull || imageValue.isUndefined {
+    @objc func setIcon(_ imageValue: HSImage?) {
+        guard let imageValue else {
             _icon = nil
-        } else if let hsImage = imageValue.toObjectOf(HSImage.self) as? HSImage {
-            _icon = hsImage.image
-        } else {
-            AKError("hs.menubar.setIcon: Expected an HSImage object or null")
+            updateButton()
             return
         }
+        _icon = imageValue.image
+
         updateButton()
     }
 
-    @objc func setTooltip(_ tooltipValue: JSValue) {
-        if tooltipValue.isNull || tooltipValue.isUndefined {
-            statusItem?.button?.toolTip = nil
-        } else {
-            statusItem?.button?.toolTip = tooltipValue.toString()
-        }
+    @objc func setTooltip(_ tooltipValue: String?) {
+        statusItem?.button?.toolTip = tooltipValue
     }
 
-    @objc func setClickCallback(_ fnValue: JSValue) {
+    @objc func setClickCallback(_ fnValue: JSFunction) {
         _clickCallback?.detach(from: self)
         if fnValue.isNull || fnValue.isUndefined || !fnValue.isObject {
             _clickCallback = nil
@@ -232,7 +211,14 @@ import JavaScriptCore
     }
 
     @objc var title: String? {
-        return _title
+        get { return _title }
+        set {
+            if newValue == "" {
+                _title = nil
+            } else {
+                _title = newValue
+            }
+        }
     }
 
     // MARK: - Dynamic menu population (called by delegate)

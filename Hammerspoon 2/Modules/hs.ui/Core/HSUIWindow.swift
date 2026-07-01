@@ -81,9 +81,9 @@ import SwiftUI
     // MARK: Window Styling
 
     /// Set the window's background color
-    /// - Parameter colorValue: Color as hex string (e.g., "#FF0000") or HSColor object
+    /// - Parameter colorValue: Color as an HSColor object
     /// - Returns: Self for chaining
-    @objc func backgroundColor(_ colorValue: JSValue) -> HSUIWindow
+    @objc func backgroundColor(_ colorValue: HSColor) -> HSUIWindow
 
     // MARK: Shape Elements
 
@@ -96,18 +96,18 @@ import SwiftUI
     @objc func circle() -> HSUIWindow
 
     /// Add a text element
-    /// - Parameter content: The text to display — a plain JS string for static text,
+    /// - Parameter content: {string | HSString} The text to display — a plain JS string for static text,
     ///   or an `HSString` object (from `hs.ui.string()`) for reactive text
     /// - Returns: Self for chaining (apply modifiers like `font()`, `foregroundColor()`)
     @objc func text(_ content: JSValue) -> HSUIWindow
 
     /// Add an image element
-    /// - Parameter imageValue: Image as HSImage object or file path string
+    /// - Parameter imageValue: Image as HSImage object
     /// - Returns: Self for chaining (apply modifiers like `resizable()`, `aspectRatio()`, `frame()`)
-    @objc func image(_ imageValue: JSValue) -> HSUIWindow
+    @objc func image(_ imageValue: HSImage) -> HSUIWindow
 
     /// Add a button element
-    /// - Parameter label: The button label — a plain JS string for static text,
+    /// - Parameter label: {string | HSString} The button label — a plain JS string for static text,
     ///   or an `HSString` object (from `hs.ui.string()`) for reactive text
     /// - Returns: Self for chaining (apply `.fill()`, `.cornerRadius()`, `.font()`,
     ///   `.foregroundColor()`, `.frame()`, `.onClick()` etc.)
@@ -138,14 +138,14 @@ import SwiftUI
     // MARK: Shape Modifiers
 
     /// Fill a shape with a color
-    /// - Parameter colorValue: Color as hex string or HSColor
+    /// - Parameter colorValue: Color as an HSColor
     /// - Returns: Self for chaining
-    @objc func fill(_ colorValue: JSValue) -> HSUIWindow
+    @objc func fill(_ colorValue: HSColor) -> HSUIWindow
 
     /// Add a stroke (border) to a shape
-    /// - Parameter colorValue: Color as hex string or HSColor
+    /// - Parameter colorValue: Color as an HSColor
     /// - Returns: Self for chaining
-    @objc func stroke(_ colorValue: JSValue) -> HSUIWindow
+    @objc func stroke(_ colorValue: HSColor) -> HSUIWindow
 
     /// Set the stroke width
     /// - Parameter width: Width in points
@@ -175,9 +175,9 @@ import SwiftUI
     @objc func font(_ font: HSFont) -> HSUIWindow
 
     /// Set the text color
-    /// - Parameter colorValue: Color as hex string or HSColor
+    /// - Parameter colorValue: Color as HSColor
     /// - Returns: Self for chaining
-    @objc func foregroundColor(_ colorValue: JSValue) -> HSUIWindow
+    @objc func foregroundColor(_ colorValue: HSColor) -> HSUIWindow
 
     // MARK: Image Modifiers
 
@@ -207,12 +207,12 @@ import SwiftUI
     /// Set a callback to fire when the element is clicked
     /// - Parameter callback: A JavaScript function to call on click
     /// - Returns: Self for chaining
-    @objc func onClick(_ callback: JSValue) -> HSUIWindow
+    @objc func onClick(_ callback: JSFunction) -> HSUIWindow
 
     /// Set a callback to fire when the cursor enters or leaves the element
     /// - Parameter callback: A JavaScript function called with a boolean: true when entering, false when leaving
     /// - Returns: Self for chaining
-    @objc func onHover(_ callback: JSValue) -> HSUIWindow
+    @objc func onHover(_ callback: JSFunction) -> HSUIWindow
 }
 
 @MainActor
@@ -323,10 +323,8 @@ import SwiftUI
 
     // MARK: - Background Styling
 
-    @objc func backgroundColor(_ colorValue: JSValue) -> HSUIWindow {
-        if let color = colorValue.toColor() {
-            windowBackgroundColor = color
-        }
+    @objc func backgroundColor(_ colorValue: HSColor) -> HSUIWindow {
+        windowBackgroundColor = colorValue.color
         return self
     }
 
@@ -354,9 +352,8 @@ import SwiftUI
         return self
     }
 
-    @objc func image(_ imageValue: JSValue) -> HSUIWindow {
-        let hsImage = HSImage.fromJSValue(imageValue)
-        let imageElement = UIImage(hsImage: hsImage)
+    @objc func image(_ imageValue: HSImage) -> HSUIWindow {
+        let imageElement = UIImage(hsImage: imageValue)
         currentElement = imageElement
         addToCurrentContainer(imageElement)
         return self
@@ -431,18 +428,16 @@ import SwiftUI
 
     // MARK: - Shape Modifiers
 
-    @objc func fill(_ colorValue: JSValue) -> HSUIWindow {
-        if let shapeable = currentElement as? any ShapeModifiable,
-           let hsColor = HSColor.fromJSValue(colorValue) {
-            shapeable.fillColor = hsColor
+    @objc func fill(_ colorValue: HSColor) -> HSUIWindow {
+        if let shapeable = currentElement as? any ShapeModifiable {
+            shapeable.fillColor = colorValue
         }
         return self
     }
 
-    @objc func stroke(_ colorValue: JSValue) -> HSUIWindow {
-        if let shapeable = currentElement as? any ShapeModifiable,
-           let hsColor = HSColor.fromJSValue(colorValue) {
-            shapeable.strokeColor = hsColor
+    @objc func stroke(_ colorValue: HSColor) -> HSUIWindow {
+        if let shapeable = currentElement as? any ShapeModifiable {
+            shapeable.strokeColor = colorValue
         }
         return self
     }
@@ -485,10 +480,9 @@ import SwiftUI
         return self
     }
 
-    @objc func foregroundColor(_ colorValue: JSValue) -> HSUIWindow {
-        if let textable = currentElement as? any TextModifiable,
-           let hsColor = HSColor.fromJSValue(colorValue) {
-            textable.foregroundColor = hsColor
+    @objc func foregroundColor(_ colorValue: HSColor) -> HSUIWindow {
+        if let textable = currentElement as? any TextModifiable {
+            textable.foregroundColor = colorValue
         }
         return self
     }
@@ -534,7 +528,7 @@ import SwiftUI
 
     // MARK: - Interaction Callbacks
 
-    @objc func onClick(_ callback: JSValue) -> HSUIWindow {
+    @objc func onClick(_ callback: JSFunction) -> HSUIWindow {
         if let interactive = currentElement as? any InteractiveModifiable {
             interactive.clickCallback = { callback.call(withArguments: []) }
         } else {
@@ -543,7 +537,7 @@ import SwiftUI
         return self
     }
 
-    @objc func onHover(_ callback: JSValue) -> HSUIWindow {
+    @objc func onHover(_ callback: JSFunction) -> HSUIWindow {
         if let interactive = currentElement as? any InteractiveModifiable {
             interactive.hoverCallback = { isHovered in callback.call(withArguments: [isHovered]) }
         } else {

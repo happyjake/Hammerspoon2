@@ -26,10 +26,10 @@ import AppKit
 /// - **Text Input**: Prompt users for text input
 /// - **File Pickers**: Let users select files or directories
 /// - **Reactive Colors**: Pass an `HSColor` object to `.fill()`, `.stroke()`, or `.foregroundColor()`,
-///   then call `.set()` on it from any callback to re-render the canvas automatically
+///   then call `.replaceWithColor()` or `.replaceWithHex()` on it from any callback to re-render the canvas automatically
 /// - **Reactive Text**: Create a string with `hs.ui.string()`, pass it to `.text()`,
 ///   then call `.set()` on it to update the displayed content live
-/// - **Reactive Images**: Pass an `HSImage` object to `.image()`, then call `.set()` on it
+/// - **Reactive Images**: Pass an `HSImage` object to `.image()`, then call `.replaceWithImage()` or `.replaceFromFile()` on it
 ///   to swap the image without rebuilding the window
 ///
 /// ## Basic Examples
@@ -102,7 +102,7 @@ import AppKit
 ///         .cornerRadius(8)
 ///         .frame({w: "100%", h: "100%"})
 ///         .onHover((isHovered) => {
-///             btnColor.set(isHovered ? "#E24A4A" : "#4A90E2");
+///             btnColor.replaceWithHex(isHovered ? "#E24A4A" : "#4A90E2");
 ///         })
 ///     .show();
 /// ```
@@ -133,10 +133,10 @@ import AppKit
 ///         .aspectRatio("fit")
 ///         .frame({w: 64, h: 64})
 ///         .onClick(() => {
-///             const next = (icon.name() === "NSStatusAvailable")
+///             const next = (icon.name === "NSStatusAvailable")
 ///                 ? HSImage.fromName("NSStatusUnavailable")
 ///                 : HSImage.fromName("NSStatusAvailable");
-///             icon.set(next);
+///             icon.replaceWithImage(next);
 ///         })
 ///     .show();
 /// ```
@@ -250,7 +250,7 @@ import AppKit
 ///             .cornerRadius(10)
 ///             .frame({w: "100%", h: 60})
 ///             .onHover((isHovered) => {
-///                 cardColor.set(isHovered ? "#E74C3C" : "#3498DB");
+///                 cardColor.replaceWithHex(isHovered ? "#E74C3C" : "#3498DB");
 ///                 cardLabel.set(isHovered ? "You found it!" : "Hover the card");
 ///             })
 ///         .text(cardLabel)

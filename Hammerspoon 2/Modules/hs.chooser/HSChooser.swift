@@ -86,7 +86,7 @@ import SwiftUI
     /// - **Function** — called with the current query string on every `refreshChoices()` and
     ///   on show. The function is responsible for filtering; the chooser displays all items it returns.
     ///
-    /// - Parameter choices: An array of choice objects, or a function `(query) => [...]`
+    /// - Parameter choices: {Array<Record<string, any>> | ((query: string) => Array<Record<string, any>>)} An array of choice objects, or a function `(query) => [...]`
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
@@ -172,7 +172,7 @@ import SwiftUI
     ///     else console.log("Dismissed")
     /// }
     /// ```
-    @objc var onSelect: JSValue? { get set }
+    @objc var onSelect: JSFunction? { get set }
 
     /// Called on every keystroke with the new query string.
     ///
@@ -184,21 +184,21 @@ import SwiftUI
     ///     hs.timer.doAfter(0.05, () => { fetchResults(q).then(r => { cache = r; chooser.refreshChoices() }) })
     /// }
     /// ```
-    @objc var onQueryChange: JSValue? { get set }
+    @objc var onQueryChange: JSFunction? { get set }
 
     /// Called after the panel becomes visible.
     /// - Example:
     /// ```js
     /// chooser.onShow = () => console.log("Chooser appeared")
     /// ```
-    @objc var onShow: JSValue? { get set }
+    @objc var onShow: JSFunction? { get set }
 
     /// Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).
     /// - Example:
     /// ```js
     /// chooser.onHide = () => console.log("Chooser hidden")
     /// ```
-    @objc var onHide: JSValue? { get set }
+    @objc var onHide: JSFunction? { get set }
 
     /// Called when the user activates a row whose `valid` field is `false`.
     /// The chooser stays open; the argument is the row dict (same shape as `onSelect`).
@@ -207,14 +207,14 @@ import SwiftUI
     /// ```js
     /// chooser.onInvalid = (item) => console.log("Tapped invalid row: " + item.text)
     /// ```
-    @objc var onInvalid: JSValue? { get set }
+    @objc var onInvalid: JSFunction? { get set }
 
     /// Programmatically confirm a selection.
     ///
     /// Omit `row` to confirm the currently highlighted row. Fires `onSelect` (or `onInvalid`
     /// for rows with `valid: false`) and hides the chooser.
     ///
-    /// - Parameter row: Zero-based row index, or omit to use the current selection.
+    /// - Parameter row: {number | null} Zero-based row index, or omit to use the current selection.
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
@@ -226,14 +226,14 @@ import SwiftUI
     /// Returns the dict for the highlighted row, or for a specific row by index.
     /// Returns `null` if the index is out of range or no choices are set.
     ///
-    /// - Parameter row: Zero-based row index, or omit to query the highlighted row.
+    /// - Parameter row: {number | null} Zero-based row index, or omit to query the highlighted row.
     /// - Returns: The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.
     /// - Example:
     /// ```js
     /// const item = chooser.selectedRowContents()
     /// const item = chooser.selectedRowContents(2)
     /// ```
-    @objc func selectedRowContents(_ row: JSValue) -> NSDictionary?
+    @objc func selectedRowContents(_ row: JSValue) -> [String: Any]?
 }
 
 // MARK: -
@@ -431,7 +431,7 @@ import SwiftUI
         return self
     }
 
-    @objc func selectedRowContents(_ row: JSValue) -> NSDictionary? {
+    @objc func selectedRowContents(_ row: JSValue) -> [String: Any]? {
         let index = row.isNumber ? Int(row.toInt32()) : viewModel.selectedIndex
         guard index >= 0, index < viewModel.filteredChoices.count else { return nil }
         return buildReturnDict(for: viewModel.filteredChoices[index])
@@ -631,8 +631,8 @@ import SwiftUI
         }
     }
 
-    private func buildReturnDict(for item: ChooserItem) -> NSMutableDictionary {
-        let dict = NSMutableDictionary(dictionary: item.extra)
+    private func buildReturnDict(for item: ChooserItem) -> [String: Any] {
+        var dict: [String: Any] = item.extra
         dict["text"] = item.text
         if let subText = item.subText { dict["subText"] = subText }
         if let image = item.image { dict["image"] = HSImage(image: image) }

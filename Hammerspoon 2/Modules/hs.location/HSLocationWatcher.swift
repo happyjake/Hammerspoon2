@@ -67,7 +67,7 @@ import CoreLocation
     ///     if (event === 'location') console.log(data.latitude, data.longitude)
     /// })
     /// ```
-    @objc func setCallback(_ fn: JSValue) -> HSLocationWatcher
+    @objc func setCallback(_ fn: JSFunction) -> HSLocationWatcher
 
     /// Returns the most recently received location, or null if none yet.
     /// - Returns: a locationTable, or null
@@ -76,7 +76,7 @@ import CoreLocation
     /// const loc = w.location()
     /// if (loc) console.log(`${loc.latitude}, ${loc.longitude}`)
     /// ```
-    @objc func location() -> [AnyHashable: Any]?
+    @objc func location() -> [String: Any]?
 
     /// The minimum distance in metres the device must move before a new update
     /// is delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).
@@ -131,13 +131,13 @@ import CoreLocation
         return self
     }
 
-    @objc func setCallback(_ fn: JSValue) -> HSLocationWatcher {
+    @objc func setCallback(_ fn: JSFunction) -> HSLocationWatcher {
         callback?.detach(from: self)
         callback = JSCallback(value: fn, owner: self)
         return self
     }
 
-    @objc func location() -> [AnyHashable: Any]? {
+    @objc func location() -> [String: Any]? {
         _lastLocation.map { HSLocationModule.locationTable(from: $0) }
     }
 

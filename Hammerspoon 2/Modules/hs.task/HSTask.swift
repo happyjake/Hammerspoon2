@@ -102,7 +102,7 @@ import JavaScriptCoreExtras
     /// const t = hs.task.new("/bin/sleep", ["10"]).start()
     /// console.log(t.pid)
     /// ```
-    @objc var pid: Int32 { get }
+    @objc var pid: Int { get }
 
     /// The environment variables for the task
     /// - Note: Can only be modified before calling start()
@@ -201,15 +201,15 @@ import JavaScriptCoreExtras
         }
     }
 
-    @objc var pid: Int32 {
-        process?.processIdentifier ?? -1
+    @objc var pid: Int {
+        Int(process?.processIdentifier ?? -1)
     }
 
     @objc var isRunning: Bool {
         return process?.isRunning ?? false
     }
 
-    init(launchPath: String, arguments: [String], environment: [String: String]?, terminationCallback: JSValue?, streamingCallback: JSValue?, module: HSTaskModule?) {
+    init(launchPath: String, arguments: [String], environment: [String: String]?, terminationCallback: JSFunction?, streamingCallback: JSFunction?, module: HSTaskModule?) {
         self.launchPath = launchPath
         self.arguments = arguments
         self._environment = environment ?? ProcessInfo.processInfo.environment

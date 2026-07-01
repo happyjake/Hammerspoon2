@@ -63,7 +63,7 @@ import CoreLocation
     /// const loc = hs.location.get()
     /// if (loc) console.log(loc.latitude, loc.longitude)
     /// ```
-    @objc func get() -> [AnyHashable: Any]?
+    @objc func get() -> [String: Any]?
 
     /// Calculates the straight-line distance in metres between two locationTables.
     ///
@@ -79,37 +79,35 @@ import CoreLocation
     ///     { latitude: 48.8566, longitude:  2.3522 }
     /// ) // → ~341,000 metres
     /// ```
-    @objc(distance::) func distance(_ from: JSValue, _ to: JSValue) -> Double
+    @objc(distance::) func distance(_ from: [String: Double], _ to: [String: Double]) -> Double
 
     /// Returns the time of sunrise for the given coordinates and date as seconds
-    /// since the Unix epoch, or null if the sun does not rise on that date (polar
-    /// night). Pass a JS `Date` for `date`, or omit/pass null to use today.
+    /// since the Unix epoch, or null if the sun does not rise on that date (polar night).
     /// - Parameters:
     ///   - latitude: degrees north (positive) or south (negative)
     ///   - longitude: degrees east (positive) or west (negative)
-    ///   - date: optional JS `Date`; defaults to today
-    /// - Returns: seconds since epoch of sunrise, or null
+    ///   - date: the date to calculate for; pass null or omit to use today
+    /// - Returns: A Date object representing the time of sunrise, or null
     /// - Example:
     /// ```js
     /// const rise = hs.location.sunrise(51.5, -0.1)
     /// console.log(new Date(rise * 1000).toTimeString())
     /// ```
-    @objc(sunrise:::) func sunrise(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> NSNumber?
+    @objc(sunrise:::) func sunrise(_ latitude: Double, _ longitude: Double, _ date: NSDate?) -> NSDate?
 
     /// Returns the time of sunset for the given coordinates and date as seconds
-    /// since the Unix epoch, or null if the sun does not set on that date (midnight
-    /// sun). Pass a JS `Date` for `date`, or omit/pass null to use today.
+    /// since the Unix epoch, or null if the sun does not set on that date (midnight sun).
     /// - Parameters:
     ///   - latitude: degrees north (positive) or south (negative)
     ///   - longitude: degrees east (positive) or west (negative)
-    ///   - date: optional JS `Date`; defaults to today
-    /// - Returns: seconds since epoch of sunset, or null
+    ///   - date: the date to calculate for; pass null or omit to use today
+    /// - Returns: A Date object representing the time of sunset, or null
     /// - Example:
     /// ```js
     /// const set = hs.location.sunset(51.5, -0.1)
     /// console.log(new Date(set * 1000).toTimeString())
     /// ```
-    @objc(sunset:::) func sunset(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> NSNumber?
+    @objc(sunset:::) func sunset(_ latitude: Double, _ longitude: Double, _ date: NSDate?) -> NSDate?
 
     /// Creates a new location watcher object. Call `.start()` on it to begin
     /// receiving updates. The watcher is automatically stopped when the module
@@ -133,13 +131,7 @@ import CoreLocation
     /// ```
     @objc func removeWatcher(_ watcher: HSLocationWatcher)
 
-    /// The geocoder subobject for forward and reverse geocoding.
-    /// - Example:
-    /// ```js
-    /// hs.location.geocoder.lookupAddress("1 Infinite Loop, Cupertino").then(places => {
-    ///     console.log(places[0].locality)
-    /// })
-    /// ```
+    /// SKIP_DOCS
     @objc var geocoder: HSLocationGeocoder { get }
 }
 
@@ -207,7 +199,7 @@ import CoreLocation
         }
     }
 
-    func get() -> [AnyHashable: Any]? {
+    func get() -> [String: Any]? {
         if CLLocationManager.locationServicesEnabled() {
             locationManager.requestLocation()  // one-shot; result arrives in delegate
         }
@@ -215,20 +207,20 @@ import CoreLocation
         return HSLocationModule.locationTable(from: loc)
     }
 
-    @objc(distance::) func distance(_ from: JSValue, _ to: JSValue) -> Double {
+    @objc(distance::) func distance(_ from: [String: Double], _ to: [String: Double]) -> Double {
         guard let fromLoc = Self.clLocation(from: from),
               let toLoc   = Self.clLocation(from: to) else { return -1 }
         return fromLoc.distance(from: toLoc)
     }
 
-    @objc(sunrise:::) func sunrise(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> NSNumber? {
-        let d = Self.date(from: date)
-        return Self.sunTime(latitude: latitude, longitude: longitude, date: d, isSunrise: true).map { NSNumber(value: $0.timeIntervalSince1970) }
+    @objc(sunrise:::) func sunrise(_ latitude: Double, _ longitude: Double, _ date: NSDate?) -> NSDate? {
+        let d = (date as Date?) ?? Date()
+        return Self.sunTime(latitude: latitude, longitude: longitude, date: d, isSunrise: true) as? NSDate
     }
 
-    @objc(sunset:::) func sunset(_ latitude: Double, _ longitude: Double, _ date: JSValue) -> NSNumber? {
-        let d = Self.date(from: date)
-        return Self.sunTime(latitude: latitude, longitude: longitude, date: d, isSunrise: false).map { NSNumber(value: $0.timeIntervalSince1970) }
+    @objc(sunset:::) func sunset(_ latitude: Double, _ longitude: Double, _ date: NSDate?) -> NSDate? {
+        let d = (date as Date?) ?? Date()
+        return Self.sunTime(latitude: latitude, longitude: longitude, date: d, isSunrise: false) as? NSDate
     }
 
     func addWatcher() -> HSLocationWatcher {
@@ -244,7 +236,7 @@ import CoreLocation
 
     // MARK: - Helpers
 
-    static func locationTable(from loc: CLLocation) -> [AnyHashable: Any] {
+    static func locationTable(from loc: CLLocation) -> [String: Any] {
         [
             "latitude":           loc.coordinate.latitude,
             "longitude":          loc.coordinate.longitude,
@@ -257,20 +249,10 @@ import CoreLocation
         ]
     }
 
-    static func clLocation(from val: JSValue) -> CLLocation? {
-        guard val.isObject,
-              let dict = val.toDictionary(),
-              let lat  = dict["latitude"]  as? Double,
-              let lon  = dict["longitude"] as? Double else { return nil }
+    static func clLocation(from val: [String: Double]) -> CLLocation? {
+        guard let lat  = val["latitude"],
+              let lon  = val["longitude"] else { return nil }
         return CLLocation(latitude: lat, longitude: lon)
-    }
-
-    private static func date(from val: JSValue) -> Date {
-        if !val.isUndefined, !val.isNull,
-           let ns = val.toObject() as? NSDate {
-            return ns as Date
-        }
-        return Date()
     }
 
     // USNO algorithm for sunrise/sunset

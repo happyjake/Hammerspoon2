@@ -244,7 +244,7 @@ import AppKit
     ///     "public.html":            "<b>Hello</b>"
     /// })
     /// ```
-    @objc func writeObjects(_ representations: JSValue) -> Bool
+    @objc func writeObjects(_ representations: [String: Any]) -> Bool
 
     // MARK: Introspection
 
@@ -303,7 +303,7 @@ import AppKit
     ///     console.log("Pasteboard changed:", count)
     /// })
     /// ```
-    @objc func addWatcher(_ listener: JSValue)
+    @objc func addWatcher(_ listener: JSFunction)
 
     /// Remove a previously registered pasteboard watcher
     /// - Parameter listener: The function previously passed to `addWatcher`
@@ -311,15 +311,15 @@ import AppKit
     /// ```js
     /// hs.pasteboard.removeWatcher(myHandler)
     /// ```
-    @objc func removeWatcher(_ listener: JSValue)
+    @objc func removeWatcher(_ listener: JSFunction)
 
     // NOTE: Private API consumed only by hs.pasteboard.js
     /// SKIP_DOCS
-    @objc(_startWatcher::) func _startWatcher(_ interval: Double, _ callback: JSValue)
+    @objc(_startWatcher::) func _startWatcher(_ interval: Double, _ callback: JSFunction)
     /// SKIP_DOCS
     @objc func _stopWatcher()
     /// SKIP_DOCS
-    @objc var _watcherEmitter: JSValue? { get set }
+    @objc var _watcherEmitter: JSFunction? { get set }
 }
 
 // MARK: - Implementation
@@ -331,10 +331,10 @@ import AppKit
     let engineID: UUID
 
     @objc var watcherInterval: Double = 0.5
-    @objc var _watcherEmitter: JSValue? = nil
+    @objc var _watcherEmitter: JSFunction? = nil
 
     private var watcherTimer: Timer? = nil
-    private var watcherCallback: JSValue? = nil
+    private var watcherCallback: JSFunction? = nil
     private var lastChangeCount: Int = 0
 
     required init(engineID: UUID) {
@@ -424,17 +424,15 @@ import AppKit
         return NSPasteboard.general.setData(data, forType: NSPasteboard.PasteboardType(uti))
     }
 
-    @objc func writeObjects(_ representations: JSValue) -> Bool {
-        guard representations.isObject, let rawDict = representations.toDictionary() else {
-            AKError("hs.pasteboard.writeObjects(): Expected a JavaScript object with UTI string keys and string values")
-            return false
-        }
+    @objc func writeObjects(_ representations: [String: Any]) -> Bool {
+        let rawDict = representations
 
         let item = NSPasteboardItem()
         var wroteAtLeastOne = false
 
         for (key, value) in rawDict {
-            guard let uti = key as? String, let str = value as? String else { continue }
+            let uti = key
+            guard let str = value as? String else { continue }
             item.setString(str, forType: NSPasteboard.PasteboardType(uti))
             wroteAtLeastOne = true
         }
@@ -470,15 +468,15 @@ import AppKit
 
     // MARK: - Watcher
 
-    @objc func addWatcher(_ listener: JSValue) {
+    @objc func addWatcher(_ listener: JSFunction) {
         _watcherEmitter?.invokeMethod("on", withArguments: [listener])
     }
 
-    @objc func removeWatcher(_ listener: JSValue) {
+    @objc func removeWatcher(_ listener: JSFunction) {
         _watcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
     }
 
-    @objc(_startWatcher::) func _startWatcher(_ interval: Double, _ callback: JSValue) {
+    @objc(_startWatcher::) func _startWatcher(_ interval: Double, _ callback: JSFunction) {
         _stopWatcher()
         lastChangeCount = NSPasteboard.general.changeCount
         watcherCallback = callback

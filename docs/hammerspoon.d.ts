@@ -35,10 +35,11 @@ declare class HSColor {
     static named(name: string): HSColor;
 
     /**
-     * Update this color's value
-     * @param value New color as a hex string (e.g. "#FF0000") or another HSColor object
+     * Update this color's value.
+If this color is bound to a UI element, the canvas re-renders automatically.
+     * @param value A hex color string (e.g. "#FF0000") or another HSColor object
      */
-    set(value: JSValue): void;
+    set(value: string | HSColor): void;
 
 }
 
@@ -154,7 +155,7 @@ const appIcon = HSImage.fromAppBundle("com.apple.Safari")
 
 // Load from URL (asynchronous with Promise)
 HSImage.fromURL("https://example.com/image.png")
-    .then(image => console.log("Image loaded:", image.size()))
+    .then(image => console.log("Image loaded:", image.size))
     .catch(err => console.error("Failed to load image:", err))
 
 // Or with async/await
@@ -165,13 +166,13 @@ const image = await HSImage.fromURL("https://example.com/image.png")
 const img = HSImage.fromPath("/path/to/image.png")
 
 // Get size
-const size = img.size()  // Returns HSSize
+const size = img.size  // Returns HSSize
 
-// Resize image
-const resized = img.setSize({w: 100, h: 100}, false)  // Proportional
+// Resize image (mutates in place)
+img.size = HSSize(100, 100)
 
 // Crop image
-const cropped = img.croppedCopy({x: 10, y: 10, w: 50, h: 50})
+const cropped = img.croppedCopy(HSRect(10, 10, 50, 50))
 
 // Save to file
 img.saveToFile("/path/to/output.png")
@@ -205,7 +206,7 @@ declare class HSImage {
      * @param withFallbackSymbol The name of an SF Symbol to use if no bundle image could be loaded. Defaults to questionmark.circle
      * @returns An HSImage object, or null if the app couldn't be found
      */
-    static fromAppBundle(bundleID: string, withFallbackSymbol: string): HSImage | undefined;
+    static fromAppBundle(bundleID: string, withFallbackSymbol?: string): HSImage | undefined;
 
     /**
      * Get the icon for a file
@@ -229,28 +230,6 @@ declare class HSImage {
     static fromURL(url: string): Promise<HSImage>;
 
     /**
-     * Get or set the image size
-     * @param size Optional HSSize to set (if provided, returns a resized copy)
-     * @returns The current size as HSSize, or a resized copy if size was provided
-     */
-    size(size: JSValue): JSValue;
-
-    /**
-     * Get or set the image name
-     * @param name Optional name to set
-     * @returns The current or new name
-     */
-    name(name: JSValue): string | undefined;
-
-    /**
-     * Create a resized copy of the image
-     * @param size Target size as HSSize
-     * @param absolute If true, resize exactly to specified dimensions. If false, maintain aspect ratio
-     * @returns A new resized HSImage
-     */
-    setSize(size: JSValue, absolute: boolean): HSImage | undefined;
-
-    /**
      * Create a copy of the image
      * @returns A new HSImage copy
      */
@@ -258,10 +237,10 @@ declare class HSImage {
 
     /**
      * Create a cropped copy of the image
-     * @param rect HSRect defining the crop area
-     * @returns A new cropped HSImage, or null if cropping failed
+     * @param rect HSRect defining the crop area (x, y, w, h)
+     * @returns A new cropped HSImage, or null if the rect falls outside the image bounds
      */
-    croppedCopy(rect: JSValue): HSImage | undefined;
+    croppedCopy(rect: HSRect): HSImage | undefined;
 
     /**
      * Save the image to a file
@@ -271,17 +250,27 @@ declare class HSImage {
     saveToFile(path: string): boolean;
 
     /**
-     * Get or set the template image flag
-     * @param state Optional boolean to set template state
-     * @returns Current template state
+     * Replace this image's content.
+If this image is bound to a UI element, the canvas re-renders automatically.
+     * @param value A file path string (`~` is expanded) or another HSImage object
      */
-    template(state: JSValue): boolean;
+    set(value: string | HSImage): void;
 
     /**
-     * Replace the image with a new one, triggering a re-render if bound to a UI element
-     * @param value New image as an HSImage object or a file path string
+     * The size of the image. Setting this resizes the image in place to the exact dimensions.
      */
-    set(value: JSValue): void;
+    size: HSSize;
+
+    /**
+     * The name of the image, or null if not set.
+     */
+    name: string | undefined;
+
+    /**
+     * Whether the image is a template image.
+Template images are tinted by the system to match the appearance context (e.g. menu bar icons).
+     */
+    template: boolean;
 
 }
 
@@ -567,13 +556,13 @@ declare namespace hs.application {
      * Create a watcher for application events
      * @param listener A javascript function/lambda to call when any application event is received. The function will be called with two parameters: the name of the event, and the associated HSApplication object
      */
-    function addWatcher(listener: JSValue): void;
+    function addWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Remove a watcher for application events
      * @param listener The javascript function/lambda that was previously being used to handle events
      */
-    function removeWatcher(listener: JSValue): void;
+    function removeWatcher(listener: (...args: any[]) => any): void;
 
 }
 
@@ -804,13 +793,13 @@ declare namespace hs.audiodevice {
      * Register a listener for all system-level audio configuration events.
      * @param listener A JavaScript function that receives the event name string
      */
-    function addWatcher(listener: JSValue): void;
+    function addWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Remove a previously registered system-level listener.
      * @param listener The JavaScript function that was passed to ``addWatcher(_:)``
      */
-    function removeWatcher(listener: JSValue): void;
+    function removeWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * SKIP_DOCS
@@ -846,25 +835,25 @@ declare class HSAudioDevice {
      * The current output data source as `{ id, name }`, or `null` if unavailable.
      * @returns A dictionary containing the id and name of the current output data source
      */
-    currentOutputDataSource(): NSDictionary | undefined;
+    currentOutputDataSource(): Record<string, any> | undefined;
 
     /**
      * The current input data source as `{ id, name }`, or `null` if unavailable.
      * @returns A dictionary containing the id and name of the current input data source
      */
-    currentInputDataSource(): NSDictionary | undefined;
+    currentInputDataSource(): Record<string, any> | undefined;
 
     /**
      * All available output data sources as an array of `{ id, name }` objects.
      * @returns A dictionary containing the ids and names of all available output data sources
      */
-    outputDataSources(): NSDictionary[];
+    outputDataSources(): Record<string, any>[];
 
     /**
      * All available input data sources as an array of `{ id, name }` objects.
      * @returns A dictionary containing the ids and names of all available input data sources
      */
-    inputDataSources(): NSDictionary[];
+    inputDataSources(): Record<string, any>[];
 
     /**
      * Select an output data source by its numeric ID.
@@ -902,13 +891,13 @@ declare class HSAudioDevice {
      * Register a listener for a per-device property-change event.
      * @param listener A JavaScript function that receives an event name string
      */
-    addWatcher(listener: JSValue): void;
+    addWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Remove a previously registered per-device listener.
      * @param listener The JavaScript function that was passed to ``addWatcher(_:)``
      */
-    removeWatcher(listener: JSValue): void;
+    removeWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * The CoreAudio object ID of this device.
@@ -956,7 +945,7 @@ declare class HSAudioDevice {
      * Output volume scalar in the range `0.0`–`1.0`, or `null` if the device has
 no controllable output volume. Setting `null` is a no-op.
      */
-    volume: NSNumber | undefined;
+    volume: number | undefined;
 
     /**
      * Whether output is muted. Always `false` if the device has no mutable output.
@@ -967,13 +956,13 @@ no controllable output volume. Setting `null` is a no-op.
      * Output stereo balance in the range `0.0` (full left)–`1.0` (full right),
 or `null` if balance control is not available.
      */
-    balance: NSNumber | undefined;
+    balance: number | undefined;
 
     /**
      * Input (microphone) volume scalar in the range `0.0`–`1.0`, or `null` if
 the device has no controllable input volume.
      */
-    inputVolume: NSNumber | undefined;
+    inputVolume: number | undefined;
 
     /**
      * Whether input is muted. Always `false` if the device has no mutable input.
@@ -983,13 +972,13 @@ the device has no controllable input volume.
     /**
      * The current nominal sample rate in Hz (e.g. `44100`), or `null` if unknown.
      */
-    sampleRate: NSNumber | undefined;
+    sampleRate: number | undefined;
 
     /**
      * All sample rates (in Hz) that this device supports.
 For devices that support a range, both the minimum and maximum are included.
      */
-    availableSampleRates: NSNumber[];
+    availableSampleRates: number[];
 
 }
 
@@ -1043,7 +1032,7 @@ declare namespace hs.ax {
      * @param notification An event name
      * @param listener A function/lambda to be called when the event is fired. The function/lambda will be called with two arguments: the name of the event, and the element it applies to
      */
-    function addWatcher(application: HSApplication, notification: string, listener: JSValue): void;
+    function addWatcher(application: HSApplication, notification: string, listener: (...args: any[]) => any): void;
 
     /**
      * Remove a watcher for application AX events
@@ -1051,7 +1040,7 @@ declare namespace hs.ax {
      * @param notification The event name to stop watching
      * @param listener The function/lambda provided when adding the watcher
      */
-    function removeWatcher(application: HSApplication, notification: string, listener: JSValue): void;
+    function removeWatcher(application: HSApplication, notification: string, listener: (...args: any[]) => any): void;
 
     /**
      * Fetch the focused UI element
@@ -1086,26 +1075,6 @@ declare namespace hs.ax {
      * A dictionary containing all of the notification types that can be used with hs.ax.addWatcher()
      */
     const notificationTypes: Record<string, string>;
-
-    /**
-     * Fetch the focused UI element. Swift-retained storage for the JS implementation.
-     */
-    const focusedElement: JSValue | undefined;
-
-    /**
-     * Find AX elements by role. Swift-retained storage for the JS implementation.
-     */
-    const findByRole: JSValue | undefined;
-
-    /**
-     * Find AX elements by title. Swift-retained storage for the JS implementation.
-     */
-    const findByTitle: JSValue | undefined;
-
-    /**
-     * Print the element hierarchy. Swift-retained storage for the JS implementation.
-     */
-    const printHierarchy: JSValue | undefined;
 
 }
 
@@ -1289,10 +1258,10 @@ defaults to `"local."`.
      * @param name human-readable name shown to browsers (e.g. `"My Web Server"`)
      * @param type service type in `"_proto._tcp."` or `"_proto._udp."` form
      * @param port port number the service listens on
-     * @param domain mDNS domain; defaults to `"local."` if omitted
+     * @param domain mDNS domain; defaults to `"local."` if an empty string is passed
      * @param callback optional `function(event, data?)` called on status changes
      */
-    function advertise(name: string, type: string, port: Int32, domain: JSValue, callback: JSValue): void;
+    function advertise(name: string, type: string, port: number, domain: string, callback?: (...args: any[]) => any): void;
 
     /**
      * Stops advertising a service previously started with `advertise()`.
@@ -1351,7 +1320,7 @@ complete event table.
      * @param callback `function(event, service, moreComing)` called for each result
      * @returns self, for chaining
      */
-    findServices(type: string, domain: string, callback: JSValue): HSBonjourSearch;
+    findServices(type: string, domain: string, callback: (...args: any[]) => any): HSBonjourSearch;
 
     /**
      * Searches for domains visible to this machine (browsable domains).
@@ -1361,7 +1330,7 @@ unaffected. The callback receives `(event, domain, moreComing)`.
      * @param callback `function(event, domain, moreComing)` called for each result
      * @returns self, for chaining
      */
-    findBrowsableDomains(callback: JSValue): HSBonjourSearch;
+    findBrowsableDomains(callback: (...args: any[]) => any): HSBonjourSearch;
 
     /**
      * Searches for domains on which this machine can register services.
@@ -1371,7 +1340,7 @@ unaffected. The callback receives `(event, domain, moreComing)`.
      * @param callback `function(event, domain, moreComing)` called for each result
      * @returns self, for chaining
      */
-    findRegistrationDomains(callback: JSValue): HSBonjourSearch;
+    findRegistrationDomains(callback: (...args: any[]) => any): HSBonjourSearch;
 
     /**
      * Stops all active searches. Safe to call when no search is active.
@@ -1413,7 +1382,7 @@ declare class HSBonjourService {
      * @param callback `function(event, data?)` called on status changes
      * @returns self, for chaining
      */
-    resolve(timeout: number, callback: JSValue): HSBonjourService;
+    resolve(timeout: number, callback: (...args: any[]) => any): HSBonjourService;
 
     /**
      * Starts monitoring the TXT record for changes. The callback fires whenever
@@ -1422,7 +1391,7 @@ Call `stopMonitoring()` to unsubscribe.
      * @param callback `function(txtRecord)` called when TXT data changes
      * @returns self, for chaining
      */
-    monitor(callback: JSValue): HSBonjourService;
+    monitor(callback: (...args: any[]) => any): HSBonjourService;
 
     /**
      * Stops any active resolution.
@@ -1549,13 +1518,13 @@ declare namespace hs.camera {
      * Register a listener for camera device connect/disconnect events.
      * @param listener A JavaScript function receiving `(event: string, camera: HSCamera)`
      */
-    function addWatcher(listener: JSValue): void;
+    function addWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Remove a previously registered module-level event listener.
      * @param listener The function originally passed to ``addWatcher(_:)``
      */
-    function removeWatcher(listener: JSValue): void;
+    function removeWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * SKIP_DOCS
@@ -1597,13 +1566,13 @@ The listener receives one argument: a boolean that is `true` when the camera
 starts being used and `false` when it is released.
      * @param listener A JavaScript function receiving `(isInUse: boolean)`
      */
-    addWatcher(listener: JSValue): void;
+    addWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Remove a previously registered per-camera in-use listener.
      * @param listener The function originally passed to ``addWatcher(_:)``
      */
-    removeWatcher(listener: JSValue): void;
+    removeWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Capture a still image from this camera.
@@ -1722,7 +1691,7 @@ declare class HSChooser {
      * @param choices An array of choice objects, or a function `(query) => [...]`
      * @returns Self for chaining
      */
-    setChoices(choices: JSValue): HSChooser;
+    setChoices(choices: Array<Record<string, any>> | ((query: string) => Array<Record<string, any>>)): HSChooser;
 
     /**
      * Re-apply filtering (static choices) or re-invoke the choices function (dynamic).
@@ -1750,7 +1719,7 @@ for rows with `valid: false`) and hides the chooser.
      * @param row Zero-based row index, or omit to use the current selection.
      * @returns Self for chaining
      */
-    select(row: JSValue): HSChooser;
+    select(row: number | null): HSChooser;
 
     /**
      * Returns the dict for the highlighted row, or for a specific row by index.
@@ -1758,7 +1727,7 @@ Returns `null` if the index is out of range or no choices are set.
      * @param row Zero-based row index, or omit to query the highlighted row.
      * @returns The row dict (`{ text, subText?, image?, valid, ...extras }`) or `null`.
      */
-    selectedRowContents(row: JSValue): NSDictionary | undefined;
+    selectedRowContents(row: number | null): Record<string, any> | undefined;
 
     /**
      * Read-only type identifier.
@@ -1819,30 +1788,30 @@ The argument is the chosen row object (the original dict you passed to `setChoic
 with `text`, `subText`, `image`, `valid`, and any custom fields intact).
 The argument is `null` when dismissed (Escape).
      */
-    onSelect: JSValue | undefined;
+    onSelect: ((...args: any[]) => any) | undefined;
 
     /**
      * Called on every keystroke with the new query string.
 Use this to debounce expensive searches or trigger async data fetching.
      */
-    onQueryChange: JSValue | undefined;
+    onQueryChange: ((...args: any[]) => any) | undefined;
 
     /**
      * Called after the panel becomes visible.
      */
-    onShow: JSValue | undefined;
+    onShow: ((...args: any[]) => any) | undefined;
 
     /**
      * Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).
      */
-    onHide: JSValue | undefined;
+    onHide: ((...args: any[]) => any) | undefined;
 
     /**
      * Called when the user activates a row whose `valid` field is `false`.
 The chooser stays open; the argument is the row dict (same shape as `onSelect`).
 If unset, activating an invalid row is silently ignored.
      */
-    onInvalid: JSValue | undefined;
+    onInvalid: ((...args: any[]) => any) | undefined;
 
 }
 
@@ -1956,7 +1925,7 @@ Lines are delivered with newline characters stripped. Both `\n` and `\r\n` line 
      * @param callback Called once per line with the line text. Return `true` to continue reading, or `false` to stop early.
      * @returns `true` if the file was read successfully (including early stops requested by the callback), or `false` if the file could not be opened.
      */
-    function readLines(path: string, callback: JSValue): boolean;
+    function readLines(path: string, callback: (...args: any[]) => any): boolean;
 
     /**
      * Write a UTF-8 string to a file, creating it or overwriting any existing content.
@@ -2139,7 +2108,7 @@ Does not follow symbolic links. Use `isSymlink` to detect links before calling t
      * @param path Path to inspect. `~` is expanded.
      * @returns Attributes object, or `null` if the path cannot be accessed.
      */
-    function attributes(path: string): NSDictionary | undefined;
+    function attributes(path: string): Record<string, any> | undefined;
 
     /**
      * Update the modification timestamp of a file to the current time.
@@ -2300,7 +2269,7 @@ declare namespace hs.hotkey {
      * @param callbackReleased A JavaScript function to call when the hotkey is released
      * @returns A hotkey object, or nil if binding failed
      */
-    function bind(mods: JSValue, key: string, callbackPressed: JSValue, callbackReleased: JSValue): HSHotkey | undefined;
+    function bind(mods: string[], key: string, callbackPressed: (...args: any[]) => any, callbackReleased: (...args: any[]) => any): HSHotkey | undefined;
 
     /**
      * Bind a hotkey with a message description
@@ -2311,7 +2280,7 @@ declare namespace hs.hotkey {
      * @param callbackReleased A JavaScript function to call when the hotkey is released
      * @returns A hotkey object, or nil if binding failed
      */
-    function bindSpec(mods: JSValue, key: string, message: string | undefined, callbackPressed: JSValue, callbackReleased: JSValue): HSHotkey | undefined;
+    function bindSpec(mods: string[], key: string, message: string | undefined, callbackPressed: (...args: any[]) => any, callbackReleased: (...args: any[]) => any): HSHotkey | undefined;
 
     /**
      * Get the system-wide mapping of key names to key codes
@@ -2351,12 +2320,12 @@ declare class HSHotkey {
     /**
      * The callback function to be called when the hotkey is pressed
      */
-    callbackPressed: JSValue | undefined;
+    callbackPressed: ((...args: any[]) => any) | undefined;
 
     /**
      * The callback function to be called when the hotkey is released
      */
-    callbackReleased: JSValue | undefined;
+    callbackReleased: ((...args: any[]) => any) | undefined;
 
 }
 
@@ -2387,7 +2356,7 @@ Returns a Promise that resolves with an array of placemarkTable objects
      * @param address a free-form address string in any locale
      * @returns a Promise resolving to an array of placemarkTables
      */
-    function lookupAddress(address: string): Promise<placemarkTable[]>;
+    function lookupAddress(address: string): Promise<Record<string, any>[]>;
 
     /**
      * Reverse-geocodes a locationTable into an array of placemarkTables.
@@ -2396,7 +2365,7 @@ an error.
      * @param locationTable an object with at least `latitude` and `longitude`
      * @returns a Promise resolving to an array of placemarkTables
      */
-    function lookupLocation(locationTable: JSValue): Promise<placemarkTable[]>;
+    function lookupLocation(locationTable: Record<string, number>): Promise<Record<string, any>[]>;
 
     /**
      * Returns true if Location Services are enabled system-wide.
@@ -2416,7 +2385,7 @@ Activates Location Services if not already running. The cache is updated
 periodically while any watcher is running.
      * @returns a locationTable, or null if no cached location is available
      */
-    function get(): Record<AnyHashable, any> | undefined;
+    function get(): Record<string, any> | undefined;
 
     /**
      * Calculates the straight-line distance in metres between two locationTables.
@@ -2425,29 +2394,27 @@ Does not require Location Services.
      * @param to locationTable with at least `latitude` and `longitude`
      * @returns distance in metres, or `-1` if either table is invalid
      */
-    function distance(from: JSValue, to: JSValue): number;
+    function distance(from: Record<string, number>, to: Record<string, number>): number;
 
     /**
      * Returns the time of sunrise for the given coordinates and date as seconds
-since the Unix epoch, or null if the sun does not rise on that date (polar
-night). Pass a JS `Date` for `date`, or omit/pass null to use today.
+since the Unix epoch, or null if the sun does not rise on that date (polar night).
      * @param latitude degrees north (positive) or south (negative)
      * @param longitude degrees east (positive) or west (negative)
-     * @param date optional JS `Date`; defaults to today
+     * @param date the date to calculate for; pass null or omit to use today
      * @returns seconds since epoch of sunrise, or null
      */
-    function sunrise(latitude: number, longitude: number, date: JSValue): NSNumber | undefined;
+    function sunrise(latitude: number, longitude: number, date: Date | undefined): number | undefined;
 
     /**
      * Returns the time of sunset for the given coordinates and date as seconds
-since the Unix epoch, or null if the sun does not set on that date (midnight
-sun). Pass a JS `Date` for `date`, or omit/pass null to use today.
+since the Unix epoch, or null if the sun does not set on that date (midnight sun).
      * @param latitude degrees north (positive) or south (negative)
      * @param longitude degrees east (positive) or west (negative)
-     * @param date optional JS `Date`; defaults to today
+     * @param date the date to calculate for; pass null or omit to use today
      * @returns seconds since epoch of sunset, or null
      */
-    function sunset(latitude: number, longitude: number, date: JSValue): NSNumber | undefined;
+    function sunset(latitude: number, longitude: number, date: Date | undefined): number | undefined;
 
     /**
      * Creates a new location watcher object. Call `.start()` on it to begin
@@ -2462,11 +2429,6 @@ shuts down.
      * @param watcher the watcher returned by `addWatcher()`
      */
     function removeWatcher(watcher: HSLocationWatcher): void;
-
-    /**
-     * The geocoder subobject for forward and reverse geocoding.
-     */
-    const geocoder: HSLocationGeocoder;
 
 }
 
@@ -2498,13 +2460,13 @@ declare class HSLocationWatcher {
      * @param fn `function(event, data)` — see type documentation for event names
      * @returns self, for chaining
      */
-    setCallback(fn: JSValue): HSLocationWatcher;
+    setCallback(fn: (...args: any[]) => any): HSLocationWatcher;
 
     /**
      * Returns the most recently received location, or null if none yet.
      * @returns a locationTable, or null
      */
-    location(): Record<AnyHashable, any> | undefined;
+    location(): Record<string, any> | undefined;
 
     /**
      * The unique identifier assigned to this watcher.
@@ -2526,7 +2488,7 @@ Each item can display a title, an icon, or both, and can open a menu or invoke a
 ## Creating a simple title item
 ```js
 const item = hs.menubar.create()
-item.setTitle("Hello")
+item.title = "Hello"
 item.setClickCallback(() => console.log("clicked!"))
 ```
 ## Creating an icon item with a static menu
@@ -2537,17 +2499,17 @@ item.setTooltip("My automation")
 item.setMenu([
     { title: "Reload config", fn: () => hs.reload() },
     { title: "-" },
-    { title: "Remove item", fn: () => item.hide() }
+    { title: "Remove from menubar", fn: () => item.hide() }
 ])
 ```
 ## Creating an item with a dynamic menu
 ```js
 const item = hs.menubar.create()
-item.setTitle("Dynamic")
+item.title = "Dynamic"
 item.setMenu(() => [
     { title: "Time: " + new Date().toLocaleTimeString() },
     { title: "-" },
-    { title: "Close", fn: () => item.hide() }
+    { title: "Remove from menubar", fn: () => item.hide() }
 ])
 ```
  */
@@ -2567,35 +2529,29 @@ Create instances with `hs.menubar.create()`.
  */
 declare class HSMenuBarItem {
     /**
-     * Set the text title displayed in the menu bar
-     * @param title Text to display, or null to remove the title
-     */
-    setTitle(title: JSValue): void;
-
-    /**
      * Set the icon displayed in the menu bar
      * @param image An HSImage object, or null to remove the icon
      */
-    setIcon(image: JSValue): void;
+    setIcon(image: HSImage | undefined): void;
 
     /**
      * Set the tooltip shown when hovering over the menu bar item
      * @param tooltip Tooltip text, or null to remove the tooltip
      */
-    setTooltip(tooltip: JSValue): void;
+    setTooltip(tooltip: string | undefined): void;
 
     /**
      * Set a callback invoked when the item is clicked (only fires when no menu is set)
      * @param fn A function to call on click, or null to remove the callback
      */
-    setClickCallback(fn: JSValue): void;
+    setClickCallback(fn: (...args: any[]) => any): void;
 
     /**
      * Set the menu for this item. Pass an array of menu item objects for a static menu,
 or a function that returns an array for a dynamic menu populated each time it opens.
      * @param menuOrFn Array of menu item objects, a function returning such an array, or null to remove the menu
      */
-    setMenu(menuOrFn: JSValue): void;
+    setMenu(menuOrFn: Array<Record<string, any>> | (() => Array<Record<string, any>>) | null): void;
 
     /**
      * Remove this item from the menu bar. The item is retained and can be shown again with show().
@@ -2614,7 +2570,7 @@ or a function that returns an array for a dynamic menu populated each time it op
     isVisible(): boolean;
 
     /**
-     * The current title text, or null if none is set
+     * Get or set the menu item's title.
      */
     title: string | undefined;
 
@@ -2716,14 +2672,14 @@ Receives a response object (see module docs for shape).
      * @param body The notification body text
      * @param callback Optional function called when the user taps the notification.
      */
-    function show(title: string, body: string, callback: JSValue): void;
+    function show(title: string, body: string, callback: (...args: any[]) => any): void;
 
     /**
      * Create a richly configured notification without sending it yet.
      * @param options A JavaScript object — see module documentation for supported keys.
      * @returns An `HSNotification` object. Call `.send()` on it to deliver the notification.
      */
-    function create(options: JSValue): HSNotification | undefined;
+    function create(options: Record<string, any>): HSNotification | undefined;
 
     /**
      * Remove all delivered Hammerspoon notifications from Notification Center.
@@ -2790,7 +2746,7 @@ Overrides `languages` when set.
      * @param options Optional configuration object (see description).
      * @returns Resolves with the recognition result.
      */
-    function recognizeText(path: string, options: JSValue | undefined): Promise<HSOCRResult>;
+    function recognizeText(path: string, options: Record<string, any> | undefined): Promise<HSOCRResult>;
 
     /**
      * Returns the BCP-47 language codes supported by the Vision text recognizer
@@ -3191,7 +3147,7 @@ fallback and a richer representation (such as HTML) in a single clipboard operat
      * @param representations A JavaScript object whose keys are UTI strings and values are strings
      * @returns true if the write succeeded
      */
-    function writeObjects(representations: JSValue): boolean;
+    function writeObjects(representations: Record<string, any>): boolean;
 
     /**
      * Get all UTI type strings currently on the pasteboard, across all items
@@ -3218,13 +3174,13 @@ Because macOS provides no pasteboard change notification API, this is implemente
 by polling `changeCount` at the interval specified by `watcherInterval`.
      * @param listener A function called with one argument: the new `changeCount` integer
      */
-    function addWatcher(listener: JSValue): void;
+    function addWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Remove a previously registered pasteboard watcher
      * @param listener The function previously passed to `addWatcher`
      */
-    function removeWatcher(listener: JSValue): void;
+    function removeWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * The pasteboard change count. Increments each time any application writes to the pasteboard.
@@ -3381,7 +3337,7 @@ Equivalent to moving the mouse — does not create a persistent assertion.
      * Returns the active power management assertions from all processes on the system.
      * @returns An array of objects with `pid` (number), `name` (string), and `type` (string) properties.
      */
-    function currentAssertions(): NSArray;
+    function currentAssertions(): Record<string, any>[];
 
     /**
      * Puts the system to sleep immediately.
@@ -3403,7 +3359,7 @@ Requires the Automation permission for System Events.
      * Returns a snapshot of all available battery information, or `null` if no battery is present.
      * @returns An object with battery fields, or `null` if no battery is present.
      */
-    function batteryInfo(): NSDictionary | undefined;
+    function batteryInfo(): Record<string, any> | undefined;
 
     /**
      * Registers a listener that fires when system power events occur.
@@ -3415,13 +3371,13 @@ The OS notification subscription starts lazily on the first listener and
 is released automatically when the last listener is removed.
      * @param listener A function receiving `(eventName: string)`.
      */
-    function addEventWatcher(listener: JSValue): void;
+    function addEventWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Removes a previously registered power event listener.
      * @param listener The function originally passed to `addEventWatcher`.
      */
-    function removeEventWatcher(listener: JSValue): void;
+    function removeEventWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Registers a listener that fires whenever battery state changes.
@@ -3431,13 +3387,13 @@ The OS notification subscription starts lazily on the first listener and
 is released automatically when the last listener is removed.
      * @param listener A function called with no arguments on battery state change.
      */
-    function addBatteryWatcher(listener: JSValue): void;
+    function addBatteryWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * Removes a previously registered battery change listener.
      * @param listener The function originally passed to `addBatteryWatcher`.
      */
-    function removeBatteryWatcher(listener: JSValue): void;
+    function removeBatteryWatcher(listener: (...args: any[]) => any): void;
 
     /**
      * The current battery charge percentage (0–100), or `-1` if no battery is present.
@@ -3624,14 +3580,14 @@ The result origin is relative to this screen's top-left corner.
      * @param rect An `HSRect` in global Hammerspoon coordinates.
      * @returns The rect offset to be relative to this screen's top-left, or `null` if the input is invalid.
      */
-    absoluteToLocal(rect: JSValue): HSRect | undefined;
+    absoluteToLocal(rect: HSRect): HSRect;
 
     /**
      * Convert a rect in local screen coordinates to global Hammerspoon coordinates.
      * @param rect An `HSRect` relative to this screen's top-left corner.
      * @returns The rect in global Hammerspoon coordinates, or `null` if the input is invalid.
      */
-    localToAbsolute(rect: JSValue): HSRect | undefined;
+    localToAbsolute(rect: HSRect): HSRect;
 
     /**
      * Unique display identifier (matches `CGDirectDisplayID`).
@@ -3667,13 +3623,13 @@ The result origin is relative to this screen's top-left corner.
      * The currently active display mode.
 An object with keys: `width`, `height`, `scale`, `frequency`.
      */
-    mode: NSDictionary;
+    mode: Record<string, any>;
 
     /**
      * All display modes supported by this screen.
 Each element has keys: `width`, `height`, `scale`, `frequency`.
      */
-    availableModes: NSDictionary[];
+    availableModes: Record<string, any>[];
 
     /**
      * The current screen rotation in degrees (0, 90, 180, or 270).
@@ -3775,7 +3731,7 @@ the search once you have what you need.
      * @param callback A function called with `(event, update?)` lifecycle events
      * @returns The `HSSpotlightQuery` object (use to stop the search early)
      */
-    function search(predicate: string, callback: JSValue): HSSpotlightQuery;
+    function search(predicate: string, callback: (...args: any[]) => any): HSSpotlightQuery;
 
     /**
      * Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.
@@ -3834,7 +3790,7 @@ declare class HSSpotlightGroup {
 Returns `null` only in the unlikely case that the underlying value cannot be bridged.
      * @returns The attribute value (string, number, Date, etc.) or null
      */
-    value(): NSObject | undefined;
+    value(): any | undefined;
 
     /**
      * Returns the items contained in this group as an array of `HSSpotlightItem` objects.
@@ -3891,7 +3847,7 @@ to their string representation.
      * @param key An attribute key such as `"kMDItemPath"` or `hs.spotlight.attribute.path`
      * @returns The attribute value, or null
      */
-    valueForAttribute(key: string): NSObject | undefined;
+    valueForAttribute(key: string): any | undefined;
 
     /**
      * A unique identifier for this result object (UUID string).
@@ -3929,14 +3885,14 @@ When not set, the query defaults to `hs.spotlight.scope.computer`.
      * @param scopes An array of scope-constant strings or absolute directory paths
      * @returns this query, for chaining
      */
-    setScopes(scopes: JSValue): HSSpotlightQuery;
+    setScopes(scopes: string[]): HSSpotlightQuery;
 
     /**
      * Sets sort descriptors that control the order of results.
      * @param descriptors An array of sort descriptor objects
      * @returns this query, for chaining
      */
-    setSortDescriptors(descriptors: JSValue): HSSpotlightQuery;
+    setSortDescriptors(descriptors: Record<string, any>[]): HSSpotlightQuery;
 
     /**
      * Sets the attributes by which results will be grouped.
@@ -3946,7 +3902,7 @@ accessible via `group.subgroups()`.
      * @param attrs An array of attribute name strings
      * @returns this query, for chaining
      */
-    setGroupingAttributes(attrs: JSValue): HSSpotlightQuery;
+    setGroupingAttributes(attrs: string[]): HSSpotlightQuery;
 
     /**
      * Sets the attributes for which aggregate value-list summaries are computed.
@@ -3955,7 +3911,7 @@ attribute: distinct values and the number of results carrying each value.
      * @param attrs An array of attribute name strings
      * @returns this query, for chaining
      */
-    setValueListAttributes(attrs: JSValue): HSSpotlightQuery;
+    setValueListAttributes(attrs: string[]): HSSpotlightQuery;
 
     /**
      * Registers a callback that receives query lifecycle events.
@@ -3963,7 +3919,7 @@ of `HSSpotlightItem` objects describing what changed in this update cycle
      * @param fn A JavaScript function `(event, update?) => void`
      * @returns this query, for chaining
      */
-    setCallback(fn: JSValue): HSSpotlightQuery;
+    setCallback(fn: (...args: any[]) => any): HSSpotlightQuery;
 
     /**
      * Starts the query.
@@ -4039,20 +3995,17 @@ declare namespace hs.task {
      * @param streamingCallback Optional callback function called when the task produces output
      * @returns A task object. Call start() to begin execution.
      */
-    function create(launchPath: string, arguments: string[], completionCallback: JSValue | undefined, environment: JSValue | undefined, streamingCallback: JSValue | undefined): HSTask;
+    function create(launchPath: string, arguments: string[], completionCallback: ((...args: any[]) => any) | undefined, environment: Record<string, string> | undefined, streamingCallback: ((...args: any[]) => any) | undefined): HSTask;
 
     /**
      * Create and run a task asynchronously
      * @param launchPath - Full path to the executable
      * @param args - Array of arguments
      * @param options - Options object or legacy callback
-     * @param options .environment - Environment variables (optional)
-     * @param options .workingDirectory - Working directory (optional)
-     * @param options .onOutput - Callback for streaming output: (stream, data) => {} (optional)
      * @param legacyStreamCallback - Legacy streaming callback (optional)
      * @returns {Promise<{exitCode: number, stdout: string, stderr: string}>}
      */
-    function runAsync(launchPath: string, args: string[], options: Object|Function, options: Object, options: string, options: Function, legacyStreamCallback: Function): any;
+    function runAsync(launchPath: string, args: string[], options: Object|Function, legacyStreamCallback: Function): any;
 
     /**
      * Run a shell command asynchronously
@@ -4064,10 +4017,9 @@ declare namespace hs.task {
 
     /**
      * Run multiple tasks in parallel
-     * @param tasks - Array of task specifications: [{path, args, options}, ...]
-     * @returns Array of results
+     * @returns {Promise<Array<{exitCode: number, stdout: string, stderr: string}>>} Array of results
      */
-    function parallel(tasks: Array): Promise<Array>;
+    function parallel(): any;
 
     /**
      * Create a task builder for fluent API
@@ -4077,34 +4029,14 @@ declare namespace hs.task {
     function builder(launchPath: string): any;
 
     /**
-     * Run a task, returning a Promise. Swift-retained storage for the JS implementation.
-     */
-    const runAsync: JSValue | undefined;
-
-    /**
-     * Run a shell command. Swift-retained storage for the JS implementation.
-     */
-    const shell: JSValue | undefined;
-
-    /**
-     * Run multiple tasks in parallel. Swift-retained storage for the JS implementation.
-     */
-    const parallel: JSValue | undefined;
-
-    /**
      * Run multiple tasks in sequence. Swift-retained storage for the JS implementation.
      */
-    const sequence: JSValue | undefined;
-
-    /**
-     * Create a task builder. Swift-retained storage for the JS implementation.
-     */
-    const builder: JSValue | undefined;
+    const sequence: ((...args: any[]) => any) | undefined;
 
     /**
      * TaskBuilder class. Swift-retained storage for the JS implementation.
      */
-    const TaskBuilder: JSValue | undefined;
+    const TaskBuilder: ((...args: any[]) => any) | undefined;
 
 }
 
@@ -4167,7 +4099,7 @@ declare class HSTask {
     /**
      * The process ID of the running task
      */
-    pid: Int32;
+    pid: number;
 
     /**
      * The environment variables for the task
@@ -4182,7 +4114,7 @@ declare class HSTask {
     /**
      * The termination status of the task
      */
-    terminationStatus: NSNumber | undefined;
+    terminationStatus: number | undefined;
 
     /**
      * The termination reason
@@ -4202,7 +4134,7 @@ declare namespace hs.timer {
      * @param continueOnError If true, the timer will continue running even if the callback throws an error
      * @returns A timer object. Call start() to begin the timer.
      */
-    function create(interval: number, callback: JSValue, continueOnError?: boolean): HSTimer;
+    function create(interval: number, callback: (...args: any[]) => any, continueOnError?: boolean): HSTimer;
 
     /**
      * Create and start a one-shot timer
@@ -4210,7 +4142,7 @@ declare namespace hs.timer {
      * @param callback A JavaScript function to call when the timer fires
      * @returns A timer object (already started)
      */
-    function doAfter(seconds: number, callback: JSValue): HSTimer;
+    function doAfter(seconds: number, callback: (...args: any[]) => any): HSTimer;
 
     /**
      * Create and start a repeating timer
@@ -4218,7 +4150,7 @@ declare namespace hs.timer {
      * @param callback A JavaScript function to call when the timer fires
      * @returns A timer object (already started)
      */
-    function doEvery(interval: number, callback: JSValue): HSTimer;
+    function doEvery(interval: number, callback: (...args: any[]) => any): HSTimer;
 
     /**
      * Create and start a timer that fires at a specific time
@@ -4228,7 +4160,7 @@ declare namespace hs.timer {
      * @param continueOnError If true, the timer will continue running even if the callback throws an error
      * @returns A timer object (already started)
      */
-    function doAt(time: number, repeatInterval: number, callback: JSValue, continueOnError?: boolean): HSTimer;
+    function doAt(time: number, repeatInterval: number, callback: (...args: any[]) => any, continueOnError?: boolean): HSTimer;
 
     /**
      * Block execution for a specified number of microseconds (strongly discouraged)
@@ -4246,7 +4178,7 @@ declare namespace hs.timer {
      * Get the number of nanoseconds since the system was booted (excluding sleep time)
      * @returns Nanoseconds since boot
      */
-    function absoluteTime(): UInt64;
+    function absoluteTime(): number;
 
     /**
      * Get the number of seconds since local midnight
@@ -4313,26 +4245,6 @@ declare namespace hs.timer {
      * @param checkInterval How often, in seconds, to call predicateFn
      */
     function waitWhile(predicateFn: any, actionFn: any, checkInterval: any): void;
-
-    /**
-     * Repeat a function until a predicate returns true. Swift-retained storage for the JS implementation.
-     */
-    const doUntil: JSValue | undefined;
-
-    /**
-     * Repeat a function while a predicate returns true. Swift-retained storage for the JS implementation.
-     */
-    const doWhile: JSValue | undefined;
-
-    /**
-     * Wait to call a function until a predicate returns true. Swift-retained storage for the JS implementation.
-     */
-    const waitUntil: JSValue | undefined;
-
-    /**
-     * Wait to call a function until a predicate returns false. Swift-retained storage for the JS implementation.
-     */
-    const waitWhile: JSValue | undefined;
 
 }
 
@@ -4472,7 +4384,7 @@ declare class HSTranslationSession {
 The `hs.ui` module provides a set of tools for creating custom user interfaces
 in Hammerspoon with SwiftUI-like declarative syntax.
 ## Key Features
-then call `.set()` on it from any callback to re-render the canvas automatically
+then call `.replaceWithColor()` or `.replaceWithHex()` on it from any callback to re-render the canvas automatically
 then call `.set()` on it to update the displayed content live
 to swap the image without rebuilding the window
 ## Basic Examples
@@ -4539,7 +4451,7 @@ hs.ui.window({x: 100, y: 100, w: 160, h: 60})
         .cornerRadius(8)
         .frame({w: "100%", h: "100%"})
         .onHover((isHovered) => {
-            btnColor.set(isHovered ? "#E24A4A" : "#4A90E2");
+            btnColor.replaceWithHex(isHovered ? "#E24A4A" : "#4A90E2");
         })
     .show();
 ```
@@ -4568,10 +4480,10 @@ hs.ui.window({x: 100, y: 300, w: 80, h: 80})
         .aspectRatio("fit")
         .frame({w: 64, h: 64})
         .onClick(() => {
-            const next = (icon.name() === "NSStatusAvailable")
+            const next = (icon.name === "NSStatusAvailable")
                 ? HSImage.fromName("NSStatusUnavailable")
                 : HSImage.fromName("NSStatusAvailable");
-            icon.set(next);
+            icon.replaceWithImage(next);
         })
     .show();
 ```
@@ -4677,7 +4589,7 @@ hs.ui.window({x: 100, y: 100, w: 220, h: 120})
             .cornerRadius(10)
             .frame({w: "100%", h: 60})
             .onHover((isHovered) => {
-                cardColor.set(isHovered ? "#E74C3C" : "#3498DB");
+                cardColor.replaceWithHex(isHovered ? "#E74C3C" : "#3498DB");
                 cardLabel.set(isHovered ? "You found it!" : "Hover the card");
             })
         .text(cardLabel)
@@ -4802,10 +4714,10 @@ declare class HSUIWindow {
 
     /**
      * Set the window's background color
-     * @param colorValue Color as hex string (e.g., "#FF0000") or HSColor object
+     * @param colorValue Color as an HSColor object
      * @returns Self for chaining
      */
-    backgroundColor(colorValue: JSValue): HSUIWindow;
+    backgroundColor(colorValue: HSColor): HSUIWindow;
 
     /**
      * Add a rectangle shape
@@ -4825,14 +4737,14 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
      * @param content The text to display — a plain JS string for static text,
      * @returns Self for chaining (apply modifiers like `font()`, `foregroundColor()`)
      */
-    text(content: JSValue): HSUIWindow;
+    text(content: string | HSString): HSUIWindow;
 
     /**
      * Add an image element
-     * @param imageValue Image as HSImage object or file path string
+     * @param imageValue Image as HSImage object
      * @returns Self for chaining (apply modifiers like `resizable()`, `aspectRatio()`, `frame()`)
      */
-    image(imageValue: JSValue): HSUIWindow;
+    image(imageValue: HSImage): HSUIWindow;
 
     /**
      * Add a button element
@@ -4840,7 +4752,7 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
      * @param label The button label — a plain JS string for static text,
      * @returns Self for chaining (apply `.fill()`, `.cornerRadius()`, `.font()`,
      */
-    button(label: JSValue): HSUIWindow;
+    button(label: string | HSString): HSUIWindow;
 
     /**
      * Begin a vertical stack (elements arranged top to bottom)
@@ -4874,17 +4786,17 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
 
     /**
      * Fill a shape with a color
-     * @param colorValue Color as hex string or HSColor
+     * @param colorValue Color as an HSColor
      * @returns Self for chaining
      */
-    fill(colorValue: JSValue): HSUIWindow;
+    fill(colorValue: HSColor): HSUIWindow;
 
     /**
      * Add a stroke (border) to a shape
-     * @param colorValue Color as hex string or HSColor
+     * @param colorValue Color as an HSColor
      * @returns Self for chaining
      */
-    stroke(colorValue: JSValue): HSUIWindow;
+    stroke(colorValue: HSColor): HSUIWindow;
 
     /**
      * Set the stroke width
@@ -4923,10 +4835,10 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
 
     /**
      * Set the text color
-     * @param colorValue Color as hex string or HSColor
+     * @param colorValue Color as HSColor
      * @returns Self for chaining
      */
-    foregroundColor(colorValue: JSValue): HSUIWindow;
+    foregroundColor(colorValue: HSColor): HSUIWindow;
 
     /**
      * Make an image resizable (allows it to scale with frame size)
@@ -4960,14 +4872,14 @@ or an `HSString` object (from `hs.ui.string()`) for reactive text
      * @param callback A JavaScript function to call on click
      * @returns Self for chaining
      */
-    onClick(callback: JSValue): HSUIWindow;
+    onClick(callback: (...args: any[]) => any): HSUIWindow;
 
     /**
      * Set a callback to fire when the cursor enters or leaves the element
      * @param callback A JavaScript function called with a boolean: true when entering, false when leaving
      * @returns Self for chaining
      */
-    onHover(callback: JSValue): HSUIWindow;
+    onHover(callback: (...args: any[]) => any): HSUIWindow;
 
 }
 
@@ -5074,7 +4986,7 @@ declare class HSUIDialog {
      * @param callback Function receiving button index (0-based)
      * @returns Self for chaining
      */
-    onButton(callback: JSValue): HSUIDialog;
+    onButton(callback: (...args: any[]) => any): HSUIDialog;
 
     /**
      * Show the dialog
@@ -5179,7 +5091,7 @@ declare class HSUIFilePicker {
      * @param callback Function receiving selected path(s) or null if cancelled
      * @returns Self for chaining
      */
-    onSelection(callback: JSValue): HSUIFilePicker;
+    onSelection(callback: (...args: any[]) => any): HSUIFilePicker;
 
     /**
      * Show the file picker dialog
@@ -5234,7 +5146,7 @@ declare class HSUITextPrompt {
      * @param callback Function receiving (buttonIndex, inputText)
      * @returns Self for chaining
      */
-    onButton(callback: JSValue): HSUITextPrompt;
+    onButton(callback: (...args: any[]) => any): HSUITextPrompt;
 
     /**
      * Show the prompt dialog

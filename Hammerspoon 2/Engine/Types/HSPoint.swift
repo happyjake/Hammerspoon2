@@ -64,10 +64,4 @@ extension CGPoint: JSConvertible {
     }
 }
 
-// Optional: detect and auto-unbox from JSValue
-extension JSValue {
-    func toCGPoint() -> CGPoint? {
-        guard let bridge = toObjectOf(HSPoint.self) as? HSPoint else { return nil }
-        return CGPoint(from: bridge)
-    }
-}
+
