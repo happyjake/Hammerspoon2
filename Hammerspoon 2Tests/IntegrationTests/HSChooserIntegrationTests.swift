@@ -94,14 +94,9 @@ struct HSChooserStructureTests {
         harness.expectTrue("c.isVisible === false")
     }
 
-    @Test("setStaticChoices is a function")
-    func testSetStaticChoicesIsFunction() {
-        makeHarness().expectTrue("typeof hs.chooser.create().setStaticChoices === 'function'")
-    }
-
-    @Test("setChoicesCallback is a function")
-    func testSetChoicesCallbackIsFunction() {
-        makeHarness().expectTrue("typeof hs.chooser.create().setChoicesCallback === 'function'")
+    @Test("setChoices is a function")
+    func testSetChoicesIsFunction() {
+        makeHarness().expectTrue("typeof hs.chooser.create().setChoices === 'function'")
     }
 
     @Test("refreshChoices is a function")
@@ -161,24 +156,14 @@ struct HSChooserStructureTests {
         #expect(!harness.hasException)
     }
 
-    @Test("selectRow is a function")
-    func testSelectRowIsFunction() {
-        makeHarness().expectTrue("typeof hs.chooser.create().selectRow === 'function'")
+    @Test("select is a function")
+    func testSelectIsFunction() {
+        makeHarness().expectTrue("typeof hs.chooser.create().select === 'function'")
     }
 
-    @Test("selectCurrentRow is a function")
-    func testSelectCurrentRowIsFunction() {
-        makeHarness().expectTrue("typeof hs.chooser.create().selectCurrentRow === 'function'")
-    }
-
-    @Test("rowContents is a function")
-    func testRowContentsIsFunction() {
-        makeHarness().expectTrue("typeof hs.chooser.create().rowContents === 'function'")
-    }
-
-    @Test("currentRowContents is a function")
-    func testCurrentRowContentsIsFunction() {
-        makeHarness().expectTrue("typeof hs.chooser.create().currentRowContents === 'function'")
+    @Test("selectedRowContents is a function")
+    func testSelectedRowContentsIsFunction() {
+        makeHarness().expectTrue("typeof hs.chooser.create().selectedRowContents === 'function'")
     }
 }
 
@@ -206,32 +191,32 @@ struct HSChooserBehaviourTests {
         #expect(!harness.hasException)
     }
 
-    @Test("setStaticChoices with array does not throw")
-    func testSetStaticChoices() {
+    @Test("setChoices with array does not throw")
+    func testSetChoicesArray() {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([{text: "Foo"}, {text: "Bar"}])
+            c.setChoices([{text: "Foo"}, {text: "Bar"}])
         """)
         #expect(!harness.hasException)
     }
 
-    @Test("setChoicesCallback with function does not throw")
-    func testSetChoicesCallback() {
+    @Test("setChoices with function does not throw")
+    func testSetChoicesFunction() {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            c.setChoicesCallback(function(q) { return [{text: "Result"}] })
+            c.setChoices(function(q) { return [{text: "Result"}] })
         """)
         #expect(!harness.hasException)
     }
 
-    @Test("setStaticChoices returns self for chaining")
-    func testSetStaticChoicesChaining() {
+    @Test("setChoices returns self for chaining")
+    func testSetChoicesChaining() {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            var result = c.setStaticChoices([{text: "Foo"}])
+            var result = c.setChoices([{text: "Foo"}])
             var isSelf = result === c
         """)
         harness.expectTrue("isSelf")
@@ -243,7 +228,7 @@ struct HSChooserBehaviourTests {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([{text: "Foo"}])
+            c.setChoices([{text: "Foo"}])
             var result = c.refreshChoices()
             var isSelf = result === c
         """)
@@ -315,7 +300,7 @@ struct HSChooserBehaviourTests {
             c.width = 0.45
             c.visibleRows = 8
             c.searchSubText = true
-            c.setStaticChoices([
+            c.setChoices([
                 {text: "Safari", subText: "com.apple.Safari"},
                 {text: "Terminal", subText: "com.apple.Terminal"}
             ])
@@ -327,12 +312,12 @@ struct HSChooserBehaviourTests {
         #expect(!harness.hasException)
     }
 
-    @Test("setStaticChoices with empty array does not throw")
-    func testSetStaticChoicesEmpty() {
+    @Test("setChoices with empty array does not throw")
+    func testSetChoicesEmpty() {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([])
+            c.setChoices([])
         """)
         #expect(!harness.hasException)
     }
@@ -342,7 +327,7 @@ struct HSChooserBehaviourTests {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([{text: "A"}, {text: "B"}])
+            c.setChoices([{text: "A"}, {text: "B"}])
             c.selectedRow = 1
         """)
         #expect(!harness.hasException)
@@ -359,13 +344,13 @@ struct HSChooserBehaviourTests {
         #expect(!harness.hasException)
     }
 
-    @Test("currentRowContents returns dict for the highlighted row")
-    func testCurrentRowContents() {
+    @Test("selectedRowContents returns dict for the highlighted row")
+    func testSelectedRowContentsHighlighted() {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([{text: "Alpha", subText: "sub", extra: 99}])
-            var item = c.currentRowContents()
+            c.setChoices([{text: "Alpha", subText: "sub", extra: 99}])
+            var item = c.selectedRowContents()
         """)
         harness.expectTrue("item !== null && item !== undefined")
         harness.expectEqual("item.text", "Alpha")
@@ -374,32 +359,32 @@ struct HSChooserBehaviourTests {
         #expect(!harness.hasException)
     }
 
-    @Test("rowContents returns dict for an explicit index")
-    func testRowContentsByIndex() {
+    @Test("selectedRowContents returns dict for an explicit index")
+    func testSelectedRowContentsByIndex() {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([{text: "First"}, {text: "Second"}])
-            var item = c.rowContents(1)
+            c.setChoices([{text: "First"}, {text: "Second"}])
+            var item = c.selectedRowContents(1)
         """)
         harness.expectEqual("item.text", "Second")
         #expect(!harness.hasException)
     }
 
-    @Test("rowContents returns null for out-of-range index")
-    func testRowContentsOutOfRange() {
+    @Test("selectedRowContents returns null for out-of-range index")
+    func testSelectedRowContentsOutOfRange() {
         let harness = makeHarness()
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([{text: "Only"}])
-            var item = c.rowContents(99)
+            c.setChoices([{text: "Only"}])
+            var item = c.selectedRowContents(99)
         """)
         harness.expectTrue("item === null || item === undefined")
         #expect(!harness.hasException)
     }
 
-    @Test("selectRow fires onSelect with the item dict")
-    func testSelectRowFiresOnSelect() {
+    @Test("select fires onSelect with the item dict")
+    func testSelectFiresOnSelect() {
         let harness = makeHarness()
         var fired = false
         harness.registerCallback("onSelect") {
@@ -407,14 +392,14 @@ struct HSChooserBehaviourTests {
         }
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([{text: "Pick me", valid: true}])
+            c.setChoices([{text: "Pick me", valid: true}])
             c.onSelect = function(item) {
                 if (item) __test_callback('onSelect')
             }
-            c.selectRow(0)
+            c.select(0)
         """)
         let ok = harness.waitFor(timeout: 0.2) { fired }
-        #expect(ok, "onSelect should fire when selectRow(0) is called")
+        #expect(ok, "onSelect should fire when select(0) is called")
         #expect(!harness.hasException)
     }
 
@@ -427,10 +412,10 @@ struct HSChooserBehaviourTests {
         harness.registerCallback("onSelect") { selectFired = true }
         harness.eval("""
             var c = hs.chooser.create()
-            c.setStaticChoices([{text: "Building…", valid: false}])
+            c.setChoices([{text: "Building…", valid: false}])
             c.onSelect  = function(item) { __test_callback('onSelect') }
             c.onInvalid = function(item) { __test_callback('onInvalid') }
-            c.selectRow(0)
+            c.select(0)
         """)
         let ok = harness.waitFor(timeout: 0.2) { invalidFired }
         #expect(ok, "onInvalid should fire for an invalid row")
