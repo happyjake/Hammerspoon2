@@ -298,11 +298,11 @@ struct HSSpotlightQueryConfigTests {
         #expect(!harness.hasException)
     }
 
-    @Test("setScopes with non-array logs warning, does not throw")
-    func testSetScopesWithNonArrayDoesNotThrow() {
+    @Test("setScopes with non-array, throws")
+    func testSetScopesWithNonArrayThrows() {
         let harness = makeHarness()
         harness.eval("hs.spotlight.create().setScopes('not an array')")
-        #expect(!harness.hasException)
+        #expect(harness.hasException)
     }
 
     @Test("setSortDescriptors with empty array does not throw")
