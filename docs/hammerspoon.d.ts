@@ -2008,6 +2008,18 @@ Lines are delivered with newline characters stripped. Both `\n` and `\r\n` line 
     function readLines(path: string, callback: JSValue): boolean;
 
     /**
+     * Read a mozLz4 file and return its decompressed contents as a string.
+mozLz4 is Mozilla's LZ4 container: an 8-byte `mozLz40\0` magic, a
+little-endian uint32 decompressed size, then a raw LZ4 block. Firefox
+uses it for the live session store
+(`sessionstore-backups/recovery.jsonlz4` — every open window and tab)
+and for `bookmarkbackups/*.jsonlz4`.
+     * @param path Path to the `.jsonlz4`/`.baklz4` file. `~` is expanded.
+     * @returns The decompressed UTF-8 contents, or `nil` if the file is
+     */
+    function readMozLz4(path: string): string | undefined;
+
+    /**
      * Write a UTF-8 string to a file, creating it or overwriting any existing content.
 Intermediate directories are not created automatically; use `mkdir` first if needed.
      * @param path Path to the file. `~` is expanded.

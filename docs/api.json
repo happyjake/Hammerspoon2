@@ -3903,7 +3903,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 80
+          "lineNumber": 81
         },
         {
           "name": "readLines",
@@ -3934,7 +3934,33 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 98
+          "lineNumber": 99
+        },
+        {
+          "name": "readMozLz4",
+          "signature": "func readMozLz4(_ path: String) -> String?",
+          "rawDocumentation": "Read a mozLz4 file and return its decompressed contents as a string.\n\nmozLz4 is Mozilla's LZ4 container: an 8-byte `mozLz40\\0` magic, a\nlittle-endian uint32 decompressed size, then a raw LZ4 block. Firefox\nuses it for the live session store\n(`sessionstore-backups/recovery.jsonlz4` — every open window and tab)\nand for `bookmarkbackups/*.jsonlz4`.\n\n- Parameter path: Path to the `.jsonlz4`/`.baklz4` file. `~` is expanded.\n- Returns: The decompressed UTF-8 contents, or `nil` if the file is\n  missing, not mozLz4, or fails to decompress.\n- Example:\n```js\nconst raw = hs.fs.readMozLz4(profile + '/sessionstore-backups/recovery.jsonlz4')\nconst session = JSON.parse(raw)\nconsole.log(session.windows.length, 'windows')\n```",
+          "description": "Read a mozLz4 file and return its decompressed contents as a string.\nmozLz4 is Mozilla's LZ4 container: an 8-byte `mozLz40\\0` magic, a\nlittle-endian uint32 decompressed size, then a raw LZ4 block. Firefox\nuses it for the live session store\n(`sessionstore-backups/recovery.jsonlz4` — every open window and tab)\nand for `bookmarkbackups/*.jsonlz4`.",
+          "params": [
+            {
+              "name": "path",
+              "type": "String",
+              "description": "Path to the `.jsonlz4`/`.baklz4` file. `~` is expanded."
+            }
+          ],
+          "returns": {
+            "type": "String?",
+            "description": "The decompressed UTF-8 contents, or `nil` if the file is"
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const raw = hs.fs.readMozLz4(profile + '/sessionstore-backups/recovery.jsonlz4')\nconst session = JSON.parse(raw)\nconsole.log(session.windows.length, 'windows')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
+          "lineNumber": 118
         },
         {
           "name": "write",
@@ -3970,7 +3996,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 113
+          "lineNumber": 133
         },
         {
           "name": "append",
@@ -4001,7 +4027,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 125
+          "lineNumber": 145
         },
         {
           "name": "exists",
@@ -4027,7 +4053,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 138
+          "lineNumber": 158
         },
         {
           "name": "isFile",
@@ -4053,7 +4079,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 149
+          "lineNumber": 169
         },
         {
           "name": "isDirectory",
@@ -4079,7 +4105,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 160
+          "lineNumber": 180
         },
         {
           "name": "isSymlink",
@@ -4105,7 +4131,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 170
+          "lineNumber": 190
         },
         {
           "name": "isReadable",
@@ -4131,7 +4157,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 180
+          "lineNumber": 200
         },
         {
           "name": "isWritable",
@@ -4157,7 +4183,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 190
+          "lineNumber": 210
         },
         {
           "name": "copy",
@@ -4188,7 +4214,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 213
+          "lineNumber": 233
         },
         {
           "name": "move",
@@ -4219,7 +4245,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 227
+          "lineNumber": 247
         },
         {
           "name": "delete",
@@ -4245,7 +4271,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 240
+          "lineNumber": 260
         },
         {
           "name": "list",
@@ -4271,7 +4297,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 255
+          "lineNumber": 275
         },
         {
           "name": "listRecursive",
@@ -4297,7 +4323,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 267
+          "lineNumber": 287
         },
         {
           "name": "mkdir",
@@ -4323,7 +4349,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 279
+          "lineNumber": 299
         },
         {
           "name": "rmdir",
@@ -4349,7 +4375,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 292
+          "lineNumber": 312
         },
         {
           "name": "currentDir",
@@ -4369,7 +4395,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 303
+          "lineNumber": 323
         },
         {
           "name": "chdir",
@@ -4395,7 +4421,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 313
+          "lineNumber": 333
         },
         {
           "name": "pathToAbsolute",
@@ -4421,7 +4447,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 328
+          "lineNumber": 348
         },
         {
           "name": "displayName",
@@ -4447,7 +4473,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 341
+          "lineNumber": 361
         },
         {
           "name": "temporaryDirectory",
@@ -4467,7 +4493,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 350
+          "lineNumber": 370
         },
         {
           "name": "homeDirectory",
@@ -4487,7 +4513,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 359
+          "lineNumber": 379
         },
         {
           "name": "urlFromPath",
@@ -4513,7 +4539,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 370
+          "lineNumber": 390
         },
         {
           "name": "attributes",
@@ -4539,7 +4565,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 395
+          "lineNumber": 415
         },
         {
           "name": "touch",
@@ -4565,7 +4591,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 407
+          "lineNumber": 427
         },
         {
           "name": "link",
@@ -4596,7 +4622,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 423
+          "lineNumber": 443
         },
         {
           "name": "symlink",
@@ -4627,7 +4653,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 438
+          "lineNumber": 458
         },
         {
           "name": "readlink",
@@ -4653,7 +4679,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 448
+          "lineNumber": 468
         },
         {
           "name": "tags",
@@ -4679,7 +4705,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 460
+          "lineNumber": 480
         },
         {
           "name": "fileUTI",
@@ -4717,7 +4743,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 514
+          "lineNumber": 534
         },
         {
           "name": "pathToBookmark",
@@ -4743,7 +4769,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 529
+          "lineNumber": 549
         },
         {
           "name": "pathFromBookmark",
@@ -4769,7 +4795,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 539
+          "lineNumber": 559
         }
       ],
       "properties": [],
@@ -15419,5 +15445,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-07-02T08:29:07.815Z"
+  "generatedAt": "2026-07-02T09:14:44.320Z"
 }

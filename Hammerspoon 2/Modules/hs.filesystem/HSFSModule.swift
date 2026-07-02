@@ -8,6 +8,7 @@ import JavaScriptCore
 import AppKit          // NSWorkspace (fileUTI)
 import Darwin          // POSIX stat/lstat/rmdir
 import UniformTypeIdentifiers
+import Compression     // readMozLz4 (LZ4 raw block)
 
 // MARK: - JavaScript API
 
@@ -96,6 +97,25 @@ import UniformTypeIdentifiers
     /// })
     /// ```
     @objc func readLines(_ path: String, _ callback: JSValue) -> Bool
+
+    /// Read a mozLz4 file and return its decompressed contents as a string.
+    ///
+    /// mozLz4 is Mozilla's LZ4 container: an 8-byte `mozLz40\0` magic, a
+    /// little-endian uint32 decompressed size, then a raw LZ4 block. Firefox
+    /// uses it for the live session store
+    /// (`sessionstore-backups/recovery.jsonlz4` — every open window and tab)
+    /// and for `bookmarkbackups/*.jsonlz4`.
+    ///
+    /// - Parameter path: Path to the `.jsonlz4`/`.baklz4` file. `~` is expanded.
+    /// - Returns: The decompressed UTF-8 contents, or `nil` if the file is
+    ///   missing, not mozLz4, or fails to decompress.
+    /// - Example:
+    /// ```js
+    /// const raw = hs.fs.readMozLz4(profile + '/sessionstore-backups/recovery.jsonlz4')
+    /// const session = JSON.parse(raw)
+    /// console.log(session.windows.length, 'windows')
+    /// ```
+    @objc func readMozLz4(_ path: String) -> String?
 
     /// Write a UTF-8 string to a file, creating it or overwriting any existing content.
     ///
@@ -650,6 +670,37 @@ import UniformTypeIdentifiers
         }
 
         return true
+    }
+
+    @objc func readMozLz4(_ path: String) -> String? {
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: expand(path))) else {
+            AKError("hs.fs.readMozLz4: could not read \(path)")
+            return nil
+        }
+        guard data.count > 12, data.prefix(8) == Data("mozLz40\0".utf8) else {
+            AKError("hs.fs.readMozLz4: \(path) is not a mozLz4 file")
+            return nil
+        }
+        let declared = data.subdata(in: 8..<12).withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }
+        // A session store is a few MB; anything claiming gigabytes is corrupt.
+        guard declared > 0, declared < 512 * 1024 * 1024 else {
+            AKError("hs.fs.readMozLz4: implausible decompressed size \(declared) in \(path)")
+            return nil
+        }
+        var dst = Data(count: Int(declared))
+        let written = dst.withUnsafeMutableBytes { (d: UnsafeMutableRawBufferPointer) in
+            data.suffix(from: 12).withUnsafeBytes { (s: UnsafeRawBufferPointer) in
+                compression_decode_buffer(
+                    d.baseAddress!.assumingMemoryBound(to: UInt8.self), Int(declared),
+                    s.baseAddress!.assumingMemoryBound(to: UInt8.self), s.count,
+                    nil, COMPRESSION_LZ4_RAW)
+            }
+        }
+        guard written > 0 else {
+            AKError("hs.fs.readMozLz4: LZ4 decompression failed for \(path)")
+            return nil
+        }
+        return String(data: dst.prefix(written), encoding: .utf8)
     }
 
     @objc func write(_ path: String, _ content: String, _ inPlace: Bool = false) -> Bool {

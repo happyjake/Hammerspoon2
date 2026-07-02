@@ -6,6 +6,7 @@
 import Testing
 import Foundation
 import JavaScriptCore
+import Compression
 @testable import Hammerspoon_2
 
 // MARK: - Test-only string helper
@@ -829,5 +830,72 @@ struct HSFSIntegrationTests {
         default:
             break
         }
+    }
+}
+
+@Suite("hs.fs.readMozLz4")
+struct HSFSMozLz4Tests {
+    private func makeHarness() -> JSTestHarness {
+        let harness = JSTestHarness()
+        harness.loadModule(HSFSModule.self, as: "fs")
+        return harness
+    }
+
+    /// Build a valid mozLz4 file the way Firefox writes them: magic + LE
+    /// uint32 decompressed size + raw LZ4 block.
+    private func writeMozLz4Fixture(_ content: String) throws -> String {
+        let src = Data(content.utf8)
+        var dst = Data(count: src.count + 4096)
+        let written = dst.withUnsafeMutableBytes { (d: UnsafeMutableRawBufferPointer) in
+            src.withUnsafeBytes { (s: UnsafeRawBufferPointer) in
+                compression_encode_buffer(
+                    d.baseAddress!.assumingMemoryBound(to: UInt8.self), d.count,
+                    s.baseAddress!.assumingMemoryBound(to: UInt8.self), s.count,
+                    nil, COMPRESSION_LZ4_RAW)
+            }
+        }
+        var file = Data("mozLz40\0".utf8)
+        var size = UInt32(src.count).littleEndian
+        withUnsafeBytes(of: &size) { file.append(contentsOf: $0) }
+        file.append(dst.prefix(written))
+        let path = FileManager.default.temporaryDirectory
+            .appendingPathComponent("hs-mozlz4-\(UUID().uuidString).jsonlz4").path
+        try file.write(to: URL(fileURLWithPath: path))
+        return path
+    }
+
+    @Test("round-trips a Firefox-style session JSON")
+    func testRoundTrip() throws {
+        let json = #"{"windows":[{"tabs":[{"entries":[{"url":"https://x.example/","title":"X"}],"index":1}]}]}"#
+        let path = try writeMozLz4Fixture(json)
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let h = makeHarness()
+        h.eval("var raw = hs.fs.readMozLz4('\(path)')")
+        h.expectTrue("typeof raw === 'string'")
+        h.expectTrue("JSON.parse(raw).windows[0].tabs[0].entries[0].url === 'https://x.example/'")
+        #expect(!h.hasException)
+    }
+
+    @Test("multi-megabyte payloads survive intact")
+    func testLargePayload() throws {
+        let blob = String(repeating: "abcdefgh12345678", count: 300_000)  // ~4.8 MB
+        let path = try writeMozLz4Fixture(blob)
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let h = makeHarness()
+        h.eval("var raw = hs.fs.readMozLz4('\(path)')")
+        h.expectEqual("raw.length", 4_800_000)
+        #expect(!h.hasException)
+    }
+
+    @Test("non-mozLz4 and missing files return null")
+    func testBadInputs() throws {
+        let plain = FileManager.default.temporaryDirectory
+            .appendingPathComponent("hs-notlz4-\(UUID().uuidString).txt").path
+        try "just text".write(toFile: plain, atomically: true, encoding: .utf8)
+        defer { try? FileManager.default.removeItem(atPath: plain) }
+        let h = makeHarness()
+        h.expectTrue("hs.fs.readMozLz4('\(plain)') == null")
+        h.expectTrue("hs.fs.readMozLz4('/nonexistent/nope.jsonlz4') == null")
+        #expect(!h.hasException)
     }
 }

@@ -342,12 +342,14 @@ final class HSSwitcherBinding {
     }
 
     /// Attach parsed tabs to app entries by bundleID; apps with no rows in
-    /// the push lose their tabs (their browser closed them all). Cap per app
-    /// well above the state's visible cap so filtering has a full haystack.
+    /// the push lose their tabs (their browser closed them all). The cap is a
+    /// memory backstop only — it must comfortably exceed real tab counts
+    /// (Firefox sessions with 200+ tabs exist here) because it bounds the
+    /// FILTER haystack; the visible cap lives in HSSwitcherState.
     static func apply(tabs byBundle: [String: [HSSwitcherTab]], to apps: [HSAppEntry]) {
         for app in apps {
             let tabs = app.bundleID.flatMap { byBundle[$0] } ?? []
-            app.switcherTabs = Array(tabs.prefix(40))
+            app.switcherTabs = Array(tabs.prefix(1000))
         }
     }
 
