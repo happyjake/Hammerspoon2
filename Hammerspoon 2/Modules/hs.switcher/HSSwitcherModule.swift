@@ -86,6 +86,22 @@ import AppKit
     /// ```
     @objc func debugFilter(_ text: String) -> Bool
 
+    /// Replace the OPEN picker's browser-tab rows with a fresh inventory —
+    /// the second half of the `tabsProvider` contract: the provider returns
+    /// its cache instantly, kicks an async re-inventory, then calls this so
+    /// a just-closed tab vanishes from the visible list (and the first
+    /// trigger after a reload fills in from empty). Apps with no rows in the
+    /// push lose their tabs. The selection re-aims (filter best-match) or
+    /// clamps so it never points past the shrunken row list. No-op when the
+    /// picker isn't open.
+    /// - Parameter rows: Array of `{bundleID, title, url, windowIndex, tabIndex}`.
+    /// - Returns: true if an open session accepted the update.
+    /// - Example:
+    /// ```js
+    /// tabstore.refresh({force: true}).then(() => hs.switcher.updateTabs(tabstore.list()))
+    /// ```
+    @objc func updateTabs(_ rows: JSValue) -> Bool
+
     /// Programmatically commit the current selection (same path as Enter).
     /// Returns a dict with `frontmostBefore`, `targetApp`, `targetPid`,
     /// `committed` (bool), and the caller can poll `frontmostAfter` via
@@ -139,6 +155,11 @@ import AppKit
     @objc func debugFilter(_ text: String) -> Bool {
         guard let binding = activeBindings.first else { return false }
         return binding.debugFilter(text)
+    }
+
+    @objc func updateTabs(_ rows: JSValue) -> Bool {
+        guard let binding = activeBindings.first else { return false }
+        return binding.updateTabs(rows)
     }
 
     @objc func debugCommit() -> [String: Any] {
@@ -284,13 +305,27 @@ final class HSSwitcherBinding {
     /// Ask the host's tabsProvider (if any) for browser tabs and attach them
     /// to the matching display copies by bundleID. Synchronous — the provider
     /// is expected to return a cached inventory instantly (and refresh it in
-    /// the background for the next trigger). Cap per app well above the
-    /// state's visible cap so filtering has a full haystack to match against.
+    /// the background, pushing the fresh rows via `updateTabs`).
     private func attachTabs(to apps: [HSAppEntry]) {
         guard let provider = config.tabsProvider else { return }
-        guard let result = provider.callSafely(withArguments: [], context: "hs.switcher tabsProvider"),
-              result.isArray,
-              let rows = result.toArray() as? [[String: Any]] else { return }
+        let result = provider.callSafely(withArguments: [], context: "hs.switcher tabsProvider")
+        let byBundle = Self.parseTabRows(result)
+        guard !byBundle.isEmpty else { return }
+        Self.apply(tabs: byBundle, to: apps)
+    }
+
+    /// Push freshly-inventoried tabs into the ACTIVE session (no-op if the
+    /// picker already closed). Returns whether a session accepted them.
+    func updateTabs(_ rows: JSValue) -> Bool {
+        guard let session = activeSession else { return false }
+        session.updateTabs(Self.parseTabRows(rows))
+        return true
+    }
+
+    /// `{bundleID, title, url, windowIndex, tabIndex}` rows → tabs by bundleID.
+    static func parseTabRows(_ result: JSValue?) -> [String: [HSSwitcherTab]] {
+        guard let result, result.isArray,
+              let rows = result.toArray() as? [[String: Any]] else { return [:] }
         var byBundle: [String: [HSSwitcherTab]] = [:]
         for row in rows {
             guard let bundleID = row["bundleID"] as? String,
@@ -303,11 +338,16 @@ final class HSSwitcherBinding {
             )
             byBundle[bundleID, default: []].append(tab)
         }
-        guard !byBundle.isEmpty else { return }
+        return byBundle
+    }
+
+    /// Attach parsed tabs to app entries by bundleID; apps with no rows in
+    /// the push lose their tabs (their browser closed them all). Cap per app
+    /// well above the state's visible cap so filtering has a full haystack.
+    static func apply(tabs byBundle: [String: [HSSwitcherTab]], to apps: [HSAppEntry]) {
         for app in apps {
-            if let bundleID = app.bundleID, let tabs = byBundle[bundleID] {
-                app.switcherTabs = Array(tabs.prefix(40))
-            }
+            let tabs = app.bundleID.flatMap { byBundle[$0] } ?? []
+            app.switcherTabs = Array(tabs.prefix(40))
         }
     }
 

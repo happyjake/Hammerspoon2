@@ -30,6 +30,12 @@ final class HSSwitcherState {
     /// from turning its column into a wall.
     static let maxVisibleTabs = 6
 
+    /// Bumped whenever the apps' `switcherTabs` are replaced mid-session
+    /// (hs.switcher.updateTabs). HSAppEntry is a plain class, so Observation
+    /// can't see those mutations — the tab-reading accessors below touch this
+    /// property instead, which SwiftUI tracks, forcing a repaint.
+    var tabsVersion = 0
+
     /// Cycle mode by default; filter mode entered on first non-cycle keystroke.
     var mode: Mode = .cycle
 
@@ -40,6 +46,7 @@ final class HSSwitcherState {
     /// apps whose name matches (literal substring OR pinyin substring), or
     /// that have at least one window-title or browser-tab match (same rules).
     func filteredApps() -> [HSAppEntry] {
+        _ = tabsVersion   // tab pushes can change which apps match a filter
         guard mode == .filter, !filterText.isEmpty else { return apps }
         let needle = filterText.lowercased()
         return apps.filter { app in
@@ -54,6 +61,7 @@ final class HSSwitcherState {
     /// matched the app by name still shows every tab), capped at
     /// `maxVisibleTabs` either way.
     func visibleTabs(for app: HSAppEntry) -> [HSSwitcherTab] {
+        _ = tabsVersion   // repaint dependency for mid-session tab pushes
         if app.switcherTabs.isEmpty { return [] }
         var tabs = app.switcherTabs
         if mode == .filter, !filterText.isEmpty {

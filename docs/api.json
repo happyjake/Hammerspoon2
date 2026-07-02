@@ -9860,6 +9860,32 @@
           "lineNumber": 87
         },
         {
+          "name": "updateTabs",
+          "signature": "func updateTabs(_ rows: JSValue) -> Bool",
+          "rawDocumentation": "Replace the OPEN picker's browser-tab rows with a fresh inventory —\nthe second half of the `tabsProvider` contract: the provider returns\nits cache instantly, kicks an async re-inventory, then calls this so\na just-closed tab vanishes from the visible list (and the first\ntrigger after a reload fills in from empty). Apps with no rows in the\npush lose their tabs. The selection re-aims (filter best-match) or\nclamps so it never points past the shrunken row list. No-op when the\npicker isn't open.\n- Parameter rows: Array of `{bundleID, title, url, windowIndex, tabIndex}`.\n- Returns: true if an open session accepted the update.\n- Example:\n```js\ntabstore.refresh({force: true}).then(() => hs.switcher.updateTabs(tabstore.list()))\n```",
+          "description": "Replace the OPEN picker's browser-tab rows with a fresh inventory —\nthe second half of the `tabsProvider` contract: the provider returns\nits cache instantly, kicks an async re-inventory, then calls this so\na just-closed tab vanishes from the visible list (and the first\ntrigger after a reload fills in from empty). Apps with no rows in the\npush lose their tabs. The selection re-aims (filter best-match) or\nclamps so it never points past the shrunken row list. No-op when the\npicker isn't open.",
+          "params": [
+            {
+              "name": "rows",
+              "type": "JSValue",
+              "description": "Array of `{bundleID, title, url, windowIndex, tabIndex}`."
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true if an open session accepted the update."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "tabstore.refresh({force: true}).then(() => hs.switcher.updateTabs(tabstore.list()))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
+          "lineNumber": 103
+        },
+        {
           "name": "debugCommit",
           "signature": "func debugCommit() -> [String: Any]",
           "rawDocumentation": "Programmatically commit the current selection (same path as Enter).\nReturns a dict with `frontmostBefore`, `targetApp`, `targetPid`,\n`committed` (bool), and the caller can poll `frontmostAfter` via\n`hs.application.frontmost()` shortly after.\n- Returns: `{ frontmostBefore, targetApp, targetPid, committed }` describing the commit outcome",
@@ -9872,7 +9898,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 94
+          "lineNumber": 110
         }
       ],
       "properties": [],
@@ -15393,5 +15419,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-07-02T08:19:18.778Z"
+  "generatedAt": "2026-07-02T08:29:07.815Z"
 }

@@ -328,3 +328,54 @@ struct HSSwitcherStateFilterSelectionTests {
         #expect(state.selectedAppIndex == -1 && state.selectedWindowIndex == -1)
     }
 }
+
+/// updateTabs push semantics: fresh rows replace, absent apps are cleared.
+@Suite("HSSwitcher tab push (updateTabs)")
+@MainActor
+struct HSSwitcherTabPushTests {
+
+    @Test("apply replaces matching apps' tabs and clears the rest")
+    func testApplyReplacesAndClears() {
+        let safari = HSAppEntry(testOnlyName: "Safari", pid: 100)
+        // testOnly init has nil bundleID — match by the entry that HAS one.
+        let chrome = HSAppEntry(testOnlyName: "Chrome", pid: 200)
+        safari.switcherTabs = [HSSwitcherTab(title: "Old", url: "https://old.example/", windowIndex: 1, tabIndex: 1)]
+        chrome.switcherTabs = [HSSwitcherTab(title: "Closed", url: "https://gone.example/", windowIndex: 1, tabIndex: 1)]
+        // Push contains nothing → both clear (bundleID nil never matches).
+        HSSwitcherBinding.apply(tabs: [:], to: [safari, chrome])
+        #expect(safari.switcherTabs.isEmpty)
+        #expect(chrome.switcherTabs.isEmpty)
+        // Push with rows for one bundleID — nil-bundleID apps still clear.
+        HSSwitcherBinding.apply(
+            tabs: ["com.apple.Safari": [HSSwitcherTab(title: "New", url: "https://new.example/", windowIndex: 1, tabIndex: 2)]],
+            to: [safari, chrome])
+        #expect(safari.switcherTabs.isEmpty && chrome.switcherTabs.isEmpty)
+    }
+
+    @Test("selection re-aim after a push that removes the selected tab")
+    func testSelectionClampAfterShrink() {
+        let state = HSSwitcherState()
+        let app = HSAppEntry(testOnlyName: "Safari", pid: 100)
+        app.windows.append(HSWindowEntry(
+            stableID: 1,
+            axElement: UIElement(AXUIElementCreateSystemWide()),
+            title: "Win"
+        ))
+        app.switcherTabs = [
+            HSSwitcherTab(title: "A", url: "https://a.example/", windowIndex: 1, tabIndex: 1),
+            HSSwitcherTab(title: "B", url: "https://b.example/", windowIndex: 1, tabIndex: 2),
+        ]
+        state.apps = [app]
+        state.selectedAppIndex = 0
+        state.selectedWindowIndex = 2      // tab "B"
+        // The push removed tab B — row list shrank under the selection.
+        app.switcherTabs = [HSSwitcherTab(title: "A", url: "https://a.example/", windowIndex: 1, tabIndex: 1)]
+        state.tabsVersion += 1
+        // Simulate the session's clamp (cycle mode path).
+        if state.selectedWindowIndex >= state.rowCount(for: app) {
+            state.selectedWindowIndex = state.rowCount(for: app) - 1
+        }
+        let sel = state.currentSelection()
+        #expect(sel?.tab?.title == "A")
+    }
+}

@@ -719,6 +719,12 @@ import UniformTypeIdentifiers
     @objc func copy(_ source: String, _ destination: String) -> Bool {
         let src = expand(source)
         let dst = expand(destination)
+        // Capture BEFORE the attempt: a failed copyItem can leave a partial
+        // destination behind, which must not disqualify the fallback (whose
+        // createFile truncates the partial) — only a genuinely pre-existing
+        // destination blocks it, so an "already exists" failure stays an
+        // error instead of becoming a silent overwrite.
+        let dstExisted = fm.fileExists(atPath: dst)
         do {
             try fm.copyItem(atPath: src, toPath: dst)
             return true
@@ -727,11 +733,9 @@ import UniformTypeIdentifiers
             // xattrs) and TCC can deny that clone on files whose *contents*
             // we may read — ~/Library/Safari under Full Disk Access is the
             // canonical case. A contents-only stream copy still serves every
-            // "give me a working copy of this file" use. Never fall back when
-            // the failure was the destination already existing — that must
-            // stay an error, not become a silent overwrite.
+            // "give me a working copy of this file" use.
             var isDir: ObjCBool = false
-            if !fm.fileExists(atPath: dst),
+            if !dstExisted,
                fm.fileExists(atPath: src, isDirectory: &isDir), !isDir.boolValue,
                streamCopyFile(from: src, to: dst) {
                 return true

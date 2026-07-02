@@ -4326,6 +4326,20 @@ selection (tab → window → app). An empty string returns to cycle mode.
     function debugFilter(text: string): boolean;
 
     /**
+     * Replace the OPEN picker's browser-tab rows with a fresh inventory —
+the second half of the `tabsProvider` contract: the provider returns
+its cache instantly, kicks an async re-inventory, then calls this so
+a just-closed tab vanishes from the visible list (and the first
+trigger after a reload fills in from empty). Apps with no rows in the
+push lose their tabs. The selection re-aims (filter best-match) or
+clamps so it never points past the shrunken row list. No-op when the
+picker isn't open.
+     * @param rows Array of `{bundleID, title, url, windowIndex, tabIndex}`.
+     * @returns true if an open session accepted the update.
+     */
+    function updateTabs(rows: JSValue): boolean;
+
+    /**
      * Programmatically commit the current selection (same path as Enter).
 Returns a dict with `frontmostBefore`, `targetApp`, `targetPid`,
 `committed` (bool), and the caller can poll `frontmostAfter` via

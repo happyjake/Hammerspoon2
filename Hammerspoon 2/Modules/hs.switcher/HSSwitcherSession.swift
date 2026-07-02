@@ -189,6 +189,21 @@ final class HSSwitcherSession {
         }
     }
 
+    /// Replace the session's tab rows with a fresh inventory (see
+    /// hs.switcher.updateTabs). Re-aims or clamps the selection so it never
+    /// dangles past a shrunken row list; tabsVersion forces the repaint
+    /// (HSAppEntry mutations are invisible to Observation).
+    func updateTabs(_ byBundle: [String: [HSSwitcherTab]]) {
+        guard !isClosed else { return }
+        HSSwitcherBinding.apply(tabs: byBundle, to: state.apps)
+        state.tabsVersion += 1
+        if state.mode == .filter, !state.filterText.isEmpty {
+            state.selectBestFilterMatch()
+        } else {
+            ensureSelectionInBounds()
+        }
+    }
+
     /// Drive the filter through the same intent pipeline as real typing, so
     /// mode transitions and best-match selection behave identically.
     func debugFilter(_ text: String) {
