@@ -102,7 +102,7 @@ import SwiftUI
 
     isolated deinit {
         close()
-        AKTrace("deinit of HSUIAlert: \(alertID)")
+        AKDebug("deinit of HSUIAlert: \(alertID)")
     }
 
     // MARK: - Builder Methods

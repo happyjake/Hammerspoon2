@@ -96,7 +96,7 @@ import Carbon
 
     isolated deinit {
         destroy()
-        AKTrace("deinit of HSHotkeyObject: id=\(hotkeyID)")
+        AKDebug("deinit of HSHotkeyObject: id=\(hotkeyID)")
     }
 
     func destroy() {

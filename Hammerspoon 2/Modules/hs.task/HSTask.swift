@@ -221,7 +221,7 @@ import JavaScriptCoreExtras
 
     isolated deinit {
         destroy()
-        print("deinit of HSTask: \(launchPath)")
+        AKDebug("deinit of HSTask: \(launchPath)")
     }
 
     func destroy() {
@@ -243,7 +243,7 @@ import JavaScriptCoreExtras
 
             let result = kill(pid, SIGKILL)
             let errorMsg = unsafe String(validatingCString: strerror(result)) ?? "NONE"
-            print("hs.task SIGKILL result: \(pid) (\(errorMsg))")
+            print ("hs.task SIGKILL result: \(pid) (\(errorMsg))")
         }
     }
 

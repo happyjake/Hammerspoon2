@@ -195,17 +195,17 @@ import JavaScriptCore
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     func shutdown() {
         queries.allObjects.forEach { q in q.destroy() }
         queries.removeAllObjects()
-        AKTrace("Shutdown of \(name): \(engineID)")
+        AKDebug("Shutdown of \(name): \(engineID)")
     }
 
     // MARK: - HSSpotlightModuleAPI

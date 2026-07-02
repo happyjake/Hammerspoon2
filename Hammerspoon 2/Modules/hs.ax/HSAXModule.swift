@@ -171,7 +171,7 @@ import AXSwift
             _notificationTypes[name] = notificationType.rawValue
         }
         super.init()
-        AKTrace("Init of \(self.name)")
+        AKDebug("Init of \(self.name)")
     }
 
     func shutdown() {
@@ -209,7 +209,7 @@ import AXSwift
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
         shutdown()
     }
 

@@ -179,7 +179,7 @@ import dnssd
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
@@ -192,7 +192,7 @@ import dnssd
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - HSBonjourModuleAPI
@@ -200,14 +200,14 @@ import dnssd
     @objc func createSearch() -> HSBonjourSearch {
         let search = HSBonjourSearch()
         searches.add(search)
-        AKTrace("HSBonjourModule: Created search \(search.identifier)")
+        AKDebug("HSBonjourModule: Created search \(search.identifier)")
         return search
     }
 
     @objc func removeSearch(_ search: HSBonjourSearch) {
         search.destroy()
         searches.remove(search)
-        AKTrace("HSBonjourModule: Removed search \(search.identifier)")
+        AKDebug("HSBonjourModule: Removed search \(search.identifier)")
     }
 
     @objc func advertise(_ name: String, _ type: String, _ port: Int, _ domain: String, _ callback: JSFunction) {

@@ -25,9 +25,9 @@ import SwiftUI
 ///     .buttons(["Save", "Don't Save", "Cancel"])
 ///     .onButton((index) => {
 ///         if (index === 0) {
-///             print("Saving...");
+///             console.log("Saving...");
 ///         } else if (index === 1) {
-///             print("Discarding changes...");
+///             console.log("Discarding changes...");
 ///         }
 ///     })
 ///     .show();
@@ -110,7 +110,7 @@ import SwiftUI
 
     isolated deinit {
         close()
-        AKTrace("deinit of HSUIDialog: \(dialogID)")
+        AKDebug("deinit of HSUIDialog: \(dialogID)")
     }
 
     // MARK: - Builder Methods

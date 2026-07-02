@@ -488,6 +488,16 @@ declare namespace hs.appinfo {
      */
     const resourcePath: string;
 
+    /**
+     * The filesystem path to the main Hammerspoon 2 configuration file
+     */
+    const configPath: string;
+
+    /**
+     * The filesystem path to the directory Hammerspoon 2 loaded its config from
+     */
+    const configDir: string;
+
 }
 
 /**
@@ -1849,36 +1859,6 @@ declare namespace hs.console {
      * Clear all console output
      */
     function clear(): void;
-
-    /**
-     * Print a message to the console
-     * @param message The message to print
-     */
-    function print(message: string): void;
-
-    /**
-     * Print a debug message to the console
-     * @param message The message to print
-     */
-    function debug(message: string): void;
-
-    /**
-     * Print an info message to the console
-     * @param message The message to print
-     */
-    function info(message: string): void;
-
-    /**
-     * Print a warning message to the console
-     * @param message The message to print
-     */
-    function warning(message: string): void;
-
-    /**
-     * Print an error message to the console
-     * @param message The message to print
-     */
-    function error(message: string): void;
 
 }
 
@@ -4414,7 +4394,7 @@ hs.ui.dialog("Save changes?")
     .informativeText("Your document has unsaved changes.")
     .buttons(["Save", "Don't Save", "Cancel"])
     .onButton((index) => {
-        if (index === 0) print("Saving...");
+        if (index === 0) console.log("Saving...");
     })
     .show();
 ```
@@ -4423,7 +4403,7 @@ hs.ui.dialog("Save changes?")
 hs.ui.textPrompt("Enter your name")
     .defaultText("John Doe")
     .onButton((buttonIndex, text) => {
-        print("User entered: " + text);
+        console.log("User entered: " + text);
     })
     .show();
 ```
@@ -4433,7 +4413,7 @@ hs.ui.filePicker()
     .message("Choose a file")
     .allowedFileTypes(["txt", "md"])
     .onSelection((path) => {
-        if (path) print("Selected: " + path);
+        if (path) console.log("Selected: " + path);
     })
     .show();
 ```
@@ -4965,9 +4945,9 @@ hs.ui.dialog("Save changes?")
     .buttons(["Save", "Don't Save", "Cancel"])
     .onButton((index) => {
         if (index === 0) {
-            print("Saving...");
+            console.log("Saving...");
         } else if (index === 1) {
-            print("Discarding changes...");
+            console.log("Discarding changes...");
         }
     })
     .show();
@@ -5028,9 +5008,9 @@ hs.ui.filePicker()
     .allowedFileTypes(["txt", "md", "js"])
     .onSelection((path) => {
         if (path) {
-            print("Selected: " + path);
+            console.log("Selected: " + path);
         } else {
-            print("User cancelled");
+            console.log("User cancelled");
         }
     })
     .show();
@@ -5044,7 +5024,7 @@ hs.ui.filePicker()
     .allowsMultipleSelection(true)
     .onSelection((paths) => {
         if (paths) {
-            paths.forEach(p => print("Dir: " + p));
+            paths.forEach(p => console.log("Dir: " + p));
         }
     })
     .show();
@@ -5127,7 +5107,7 @@ hs.ui.textPrompt("Enter your name")
     .buttons(["OK", "Cancel"])
     .onButton((buttonIndex, text) => {
         if (buttonIndex === 0) {
-            print("User entered: " + text);
+            console.log("User entered: " + text);
         }
     })
     .show();

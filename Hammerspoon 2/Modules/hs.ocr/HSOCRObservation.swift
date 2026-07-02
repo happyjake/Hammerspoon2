@@ -102,6 +102,6 @@ import JavaScriptCore
     }
 
     isolated deinit {
-        AKTrace("deinit of HSOCRObservation")
+        AKDebug("deinit of HSOCRObservation")
     }
 }

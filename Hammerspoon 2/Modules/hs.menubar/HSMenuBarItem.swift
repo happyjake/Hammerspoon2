@@ -124,7 +124,7 @@ import JavaScriptCore
 
     isolated deinit {
         destroy()
-        AKTrace("deinit of HSMenuBarItem")
+        AKDebug("deinit of HSMenuBarItem")
     }
 
     func destroy() {

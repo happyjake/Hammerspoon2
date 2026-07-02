@@ -403,7 +403,7 @@ import SwiftUI
         startResignKeyObserver()
         window?.makeKeyAndOrderFront(nil)
         _ = _onShow?.call(withArguments: [])
-        AKTrace("hs.chooser.show(): \(identifier)")
+        AKDebug("hs.chooser.show(): \(identifier)")
         return self
     }
 
@@ -420,7 +420,7 @@ import SwiftUI
         previouslyActiveWindow = nil
 
         _ = _onHide?.call(withArguments: [])
-        AKTrace("hs.chooser.hide(): \(identifier)")
+        AKDebug("hs.chooser.hide(): \(identifier)")
         return self
     }
 
@@ -462,12 +462,12 @@ import SwiftUI
         viewModel.filteredChoices = []
         viewModel.onUserQueryChange = nil
         viewModel.onContentSizeChange = nil
-        AKTrace("hs.chooser.destroy(): \(identifier)")
+        AKDebug("hs.chooser.destroy(): \(identifier)")
     }
 
     isolated deinit {
         destroy()
-        AKTrace("deinit of HSChooser(\(identifier))")
+        AKDebug("deinit of HSChooser(\(identifier))")
     }
 
     // MARK: - Key event monitor

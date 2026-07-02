@@ -271,12 +271,12 @@ import JavaScriptCore
     override init() {
         super.init()
         setupNotifications()
-        AKTrace("Init of HSSpotlightQuery(\(identifier))")
+        AKDebug("Init of HSSpotlightQuery(\(identifier))")
     }
 
     isolated deinit {
         destroy()
-        AKTrace("deinit of HSSpotlightQuery(\(identifier))")
+        AKDebug("deinit of HSSpotlightQuery(\(identifier))")
     }
 
     // MARK: - Notification setup

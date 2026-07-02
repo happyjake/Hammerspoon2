@@ -35,46 +35,6 @@ import AppKit
     /// hs.console.clear()
     /// ```
     @objc func clear()
-
-    /// Print a message to the console
-    /// - Parameter message: The message to print
-    /// - Example:
-    /// ```js
-    /// hs.console.print("Hello, world!")
-    /// ```
-    @objc func print(_ message: String)
-
-    /// Print a debug message to the console
-    /// - Parameter message: The message to print
-    /// - Example:
-    /// ```js
-    /// hs.console.debug("debug info")
-    /// ```
-    @objc func debug(_ message: String)
-
-    /// Print an info message to the console
-    /// - Parameter message: The message to print
-    /// - Example:
-    /// ```js
-    /// hs.console.info("Service started")
-    /// ```
-    @objc func info(_ message: String)
-
-    /// Print a warning message to the console
-    /// - Parameter message: The message to print
-    /// - Example:
-    /// ```js
-    /// hs.console.warning("Something looks off")
-    /// ```
-    @objc func warning(_ message: String)
-
-    /// Print an error message to the console
-    /// - Parameter message: The message to print
-    /// - Example:
-    /// ```js
-    /// hs.console.error("Something went wrong")
-    /// ```
-    @objc func error(_ message: String)
 }
 
 // MARK: - Implementation
@@ -88,13 +48,13 @@ import AppKit
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {}
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Window management
@@ -117,25 +77,5 @@ import AppKit
         Task { @MainActor in
             HammerspoonLog.shared.clearLog()
         }
-    }
-
-    @objc func print(_ message: String) {
-        AKConsole(message)
-    }
-
-    @objc func debug(_ message: String) {
-        AKTrace(message)
-    }
-
-    @objc func info(_ message: String) {
-        AKInfo(message)
-    }
-
-    @objc func warning(_ message: String) {
-        AKWarning(message)
-    }
-
-    @objc func error(_ message: String) {
-        AKError(message)
     }
 }

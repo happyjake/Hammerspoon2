@@ -25,7 +25,7 @@ import AppKit
 ///     .buttons(["OK", "Cancel"])
 ///     .onButton((buttonIndex, text) => {
 ///         if (buttonIndex === 0) {
-///             print("User entered: " + text);
+///             console.log("User entered: " + text);
 ///         }
 ///     })
 ///     .show();

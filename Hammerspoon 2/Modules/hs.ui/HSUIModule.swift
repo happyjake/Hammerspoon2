@@ -47,7 +47,7 @@ import AppKit
 ///     .informativeText("Your document has unsaved changes.")
 ///     .buttons(["Save", "Don't Save", "Cancel"])
 ///     .onButton((index) => {
-///         if (index === 0) print("Saving...");
+///         if (index === 0) console.log("Saving...");
 ///     })
 ///     .show();
 /// ```
@@ -57,7 +57,7 @@ import AppKit
 /// hs.ui.textPrompt("Enter your name")
 ///     .defaultText("John Doe")
 ///     .onButton((buttonIndex, text) => {
-///         print("User entered: " + text);
+///         console.log("User entered: " + text);
 ///     })
 ///     .show();
 /// ```
@@ -68,7 +68,7 @@ import AppKit
 ///     .message("Choose a file")
 ///     .allowedFileTypes(["txt", "md"])
 ///     .onSelection((path) => {
-///         if (path) print("Selected: " + path);
+///         if (path) console.log("Selected: " + path);
 ///     })
 ///     .show();
 /// ```
@@ -383,7 +383,7 @@ import AppKit
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
@@ -407,7 +407,7 @@ import AppKit
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Object Registration (called by UI objects when shown/closed)

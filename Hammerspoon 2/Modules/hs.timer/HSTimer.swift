@@ -98,7 +98,7 @@ import JavaScriptCore
 
     isolated deinit {
         destroy()
-        print("HSTimer deinit")
+        AKDebug("HSTimer deinit")
     }
 
     func destroy() {

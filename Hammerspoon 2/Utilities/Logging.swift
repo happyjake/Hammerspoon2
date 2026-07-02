@@ -124,3 +124,11 @@ func AKAutocomplete(_ msg: String) {
     // NOTE: This does not pass into Logger, there's really no need
     AKLog(.Autocomplete, msg)
 }
+
+#if DEBUG
+func AKDebug(_ msg: String) {
+    AKTrace("__\(msg)")
+}
+#else
+func AKDebug(_ msg: String) {}
+#endif

@@ -16,7 +16,7 @@ private var contextTrackerKey: UInt8 = 0
 private final class ContextLifetimeTracker {
     let id: UUID
     init(id: UUID) { self.id = id }
-    deinit { print("JSContext freed: \(id)") }
+    isolated deinit { AKDebug("JSContext freed: \(id)") }
 }
 
 // MARK: -
@@ -32,7 +32,7 @@ class JSEngine {
     // MARK: - JSContext Managing
     private func createContext() throws(HammerspoonError) {
         id = UUID()
-        AKTrace("createContext(): \(id)")
+        AKTrace("Creating JavaScript context: \(id)")
         vm = JSVirtualMachine()
         guard vm != nil else {
             throw HammerspoonError(.vmCreation, msg: "Unknown error (vm)")
@@ -73,7 +73,7 @@ class JSEngine {
     }
 
     private func deleteContext() {
-        AKTrace("deleteContext()")
+        AKTrace("Destroying JavaScript context: \(id)")
 
         if let hs = self["hs"] as? JSValue, let moduleRoot = hs.toObjectOf(ModuleRoot.self) as? ModuleRoot {
             moduleRoot.shutdown()
@@ -114,11 +114,11 @@ class JSEngine {
 extension JSEngine: JSEngineProtocol {
     subscript(key: String) -> Any? {
         get {
-            AKTrace("JSEngine subscript get for: \(key)")
+            AKDebug("JSEngine subscript get for: \(key)")
             return context?.objectForKeyedSubscript(key as (NSCopying & NSObjectProtocol))
         }
         set {
-            AKTrace("JSEngine subscript set for: \(key)")
+            AKDebug("JSEngine subscript set for: \(key)")
             context?.setObject(newValue, forKeyedSubscript: key as (NSCopying & NSObjectProtocol))
         }
     }
@@ -152,7 +152,7 @@ extension JSEngine: JSEngineProtocol {
 
     func resetContext() throws {
         if hasContext() {
-            AKTrace("resetContext()")
+            AKDebug("resetContext()")
             deleteContext()
         }
         try createContext()

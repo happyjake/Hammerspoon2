@@ -249,7 +249,7 @@ import SwiftUI
 
     isolated deinit {
         close()
-        AKTrace("deinit of HSUIWindow: \(windowID)")
+        AKDebug("deinit of HSUIWindow: \(windowID)")
     }
 
     // MARK: - Window Management

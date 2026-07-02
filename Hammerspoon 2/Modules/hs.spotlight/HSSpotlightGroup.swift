@@ -86,7 +86,7 @@ import JavaScriptCore
     }
 
     isolated deinit {
-        AKTrace("deinit of HSSpotlightGroup(\(identifier))")
+        AKDebug("deinit of HSSpotlightGroup(\(identifier))")
     }
 
     @objc var attribute: String { group.attribute }

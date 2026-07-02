@@ -210,7 +210,7 @@ import AXSwift
     }
 
     isolated deinit {
-        AKTrace("deinit of HSAXElement: \(self.role ?? "unknown")")
+        AKDebug("deinit of HSAXElement: \(self.role ?? "unknown")")
     }
 
     // MARK: - Basic Properties

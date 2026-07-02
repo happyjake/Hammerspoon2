@@ -26,9 +26,9 @@ import UniformTypeIdentifiers
 ///     .allowedFileTypes(["txt", "md", "js"])
 ///     .onSelection((path) => {
 ///         if (path) {
-///             print("Selected: " + path);
+///             console.log("Selected: " + path);
 ///         } else {
-///             print("User cancelled");
+///             console.log("User cancelled");
 ///         }
 ///     })
 ///     .show();
@@ -43,7 +43,7 @@ import UniformTypeIdentifiers
 ///     .allowsMultipleSelection(true)
 ///     .onSelection((paths) => {
 ///         if (paths) {
-///             paths.forEach(p => print("Dir: " + p));
+///             paths.forEach(p => console.log("Dir: " + p));
 ///         }
 ///     })
 ///     .show();

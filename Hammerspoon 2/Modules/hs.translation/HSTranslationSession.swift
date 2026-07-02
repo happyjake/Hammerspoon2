@@ -64,7 +64,7 @@ import JavaScriptCore
         self.targetLanguage = targetLanguage
         self.translationSession = session
         super.init()
-        AKTrace("Init of HSTranslationSession: \(sourceLanguage) -> \(targetLanguage)")
+        AKDebug("Init of HSTranslationSession: \(sourceLanguage) -> \(targetLanguage)")
     }
 
     @objc func translate(_ text: String) -> JSPromise? {
@@ -93,6 +93,6 @@ import JavaScriptCore
 
     isolated deinit {
         cancel()
-        AKTrace("Deinit of HSTranslationSession: \(sourceLanguage) -> \(targetLanguage)")
+        AKDebug("Deinit of HSTranslationSession: \(sourceLanguage) -> \(targetLanguage)")
     }
 }

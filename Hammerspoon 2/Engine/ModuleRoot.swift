@@ -83,7 +83,7 @@ import JavaScriptCoreExtras
     func shutdown() {
         let names = Array(modules.keys)
         for moduleName in names {
-            AKTrace("Destroying module \(moduleName)")
+            AKTrace("Destroying module: \(moduleName)")
             modules[moduleName]?.shutdown()
         }
         modules.removeAll()

@@ -13,7 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     static private(set) var instance: AppDelegate! = nil
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        AKTrace("applicationDidFinishLaunching: Creating/booting shared manager")
+        AKDebug("applicationDidFinishLaunching: Creating/booting shared manager")
 
         AppDelegate.instance = self
         ConsoleCompletionEngine.shared.prewarm()
@@ -69,9 +69,6 @@ struct Hammerspoon_2App: App {
             Button("Quit") {
                 managerManager.shutdown()
             }
-        }
-        Window("Content", id: "content") {
-            ContentView()
         }
 
         Window("Console", id: "console") {

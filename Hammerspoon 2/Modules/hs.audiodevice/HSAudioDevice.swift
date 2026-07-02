@@ -481,8 +481,8 @@ private func caDataSourceName(_ objectID: AudioObjectID,
         super.init()
     }
 
-    deinit {
-        print("deinit of HSAudioDevice id=\(objectID)")
+    isolated deinit {
+        AKDebug("deinit of HSAudioDevice id=\(objectID)")
     }
 
     // MARK: - Private helpers

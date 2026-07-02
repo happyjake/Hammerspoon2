@@ -288,7 +288,6 @@ struct ConsoleView: View {
                     // This is handled by SwiftUI for us
                     break
                 case "closeConsole":
-                    AKTrace("Handling closeConsole")
                     Task { @MainActor in
                         dismissWindow(id: "console")
                     }
