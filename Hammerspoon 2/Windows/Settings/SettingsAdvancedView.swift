@@ -41,6 +41,31 @@ struct SettingsAdvancedView: View {
                         Toggle("Relaunch app on config reload", isOn: Bindable(settingsManager).relaunchOnReload)
                             .labelsHidden()
                     }
+                    GridRow {
+                        Divider()
+                            .gridCellColumns(2)
+                    }
+                    GridRow {
+                        Text("Console history length:")
+                            .gridColumnAlignment(.trailing)
+                        TextField("Length", value: $settingsManager.consoleHistoryLength, formatter: NumberFormatter())
+                            .labelsHidden()
+                            .frame(width: 120)
+                            .fixedSize(horizontal: true, vertical: true)
+                    }
+                    GridRow {
+                        Spacer()
+                    }
+                    GridRow {
+                        Divider()
+                            .gridCellColumns(2)
+                    }
+                    GridRow {
+                        Button("Reset all settings") {
+                            settingsManager.resetToDefaults()
+                        }
+                        .gridCellColumns(2)
+                    }
                 }
                 Spacer()
             }
