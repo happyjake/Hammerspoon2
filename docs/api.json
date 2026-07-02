@@ -4162,8 +4162,8 @@
         {
           "name": "copy",
           "signature": "func copy(_ source: String, _ destination: String) -> Bool",
-          "rawDocumentation": "Copy a file or directory to a new location.\n\nThe destination must not already exist. If `source` is a directory, its\nentire contents are copied recursively.\n\n- Parameters:\n  - source: Path to the existing file or directory. `~` is expanded.\n  - destination: Path for the copy. `~` is expanded.\n- Returns: `true` on success, `false` on failure.\n- Example:\n```js\nhs.fs.copy(\"/tmp/a.txt\", \"/tmp/b.txt\")\n```",
-          "description": "Copy a file or directory to a new location.\nThe destination must not already exist. If `source` is a directory, its\nentire contents are copied recursively.",
+          "rawDocumentation": "Copy a file or directory to a new location.\n\nThe destination must not already exist. If `source` is a directory, its\nentire contents are copied recursively.\n\nCopying normally clones metadata too (permissions, extended\nattributes). Some TCC-protected files (e.g. under `~/Library/Safari`\nwith Full Disk Access) allow reads but deny the metadata clone; for\nfiles, `copy` then falls back to a contents-only stream copy, so the\nresult may lack the source's xattrs/ACLs.\n\n- Parameters:\n  - source: Path to the existing file or directory. `~` is expanded.\n  - destination: Path for the copy. `~` is expanded.\n- Returns: `true` on success, `false` on failure.\n- Example:\n```js\nhs.fs.copy(\"/tmp/a.txt\", \"/tmp/b.txt\")\n```",
+          "description": "Copy a file or directory to a new location.\nThe destination must not already exist. If `source` is a directory, its\nentire contents are copied recursively.\nCopying normally clones metadata too (permissions, extended\nattributes). Some TCC-protected files (e.g. under `~/Library/Safari`\nwith Full Disk Access) allow reads but deny the metadata clone; for\nfiles, `copy` then falls back to a contents-only stream copy, so the\nresult may lack the source's xattrs/ACLs.",
           "params": [
             {
               "name": "source",
@@ -4188,7 +4188,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 207
+          "lineNumber": 213
         },
         {
           "name": "move",
@@ -4219,7 +4219,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 221
+          "lineNumber": 227
         },
         {
           "name": "delete",
@@ -4245,7 +4245,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 234
+          "lineNumber": 240
         },
         {
           "name": "list",
@@ -4271,7 +4271,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 249
+          "lineNumber": 255
         },
         {
           "name": "listRecursive",
@@ -4297,7 +4297,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 261
+          "lineNumber": 267
         },
         {
           "name": "mkdir",
@@ -4323,7 +4323,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 273
+          "lineNumber": 279
         },
         {
           "name": "rmdir",
@@ -4349,7 +4349,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 286
+          "lineNumber": 292
         },
         {
           "name": "currentDir",
@@ -4369,7 +4369,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 297
+          "lineNumber": 303
         },
         {
           "name": "chdir",
@@ -4395,7 +4395,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 307
+          "lineNumber": 313
         },
         {
           "name": "pathToAbsolute",
@@ -4421,7 +4421,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 322
+          "lineNumber": 328
         },
         {
           "name": "displayName",
@@ -4447,7 +4447,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 335
+          "lineNumber": 341
         },
         {
           "name": "temporaryDirectory",
@@ -4467,7 +4467,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 344
+          "lineNumber": 350
         },
         {
           "name": "homeDirectory",
@@ -4487,7 +4487,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 353
+          "lineNumber": 359
         },
         {
           "name": "urlFromPath",
@@ -4513,7 +4513,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 364
+          "lineNumber": 370
         },
         {
           "name": "attributes",
@@ -4539,7 +4539,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 389
+          "lineNumber": 395
         },
         {
           "name": "touch",
@@ -4565,7 +4565,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 401
+          "lineNumber": 407
         },
         {
           "name": "link",
@@ -4596,7 +4596,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 417
+          "lineNumber": 423
         },
         {
           "name": "symlink",
@@ -4627,7 +4627,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 432
+          "lineNumber": 438
         },
         {
           "name": "readlink",
@@ -4653,7 +4653,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 442
+          "lineNumber": 448
         },
         {
           "name": "tags",
@@ -4679,7 +4679,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 454
+          "lineNumber": 460
         },
         {
           "name": "fileUTI",
@@ -4717,7 +4717,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 508
+          "lineNumber": 514
         },
         {
           "name": "pathToBookmark",
@@ -4743,7 +4743,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 523
+          "lineNumber": 529
         },
         {
           "name": "pathFromBookmark",
@@ -4769,7 +4769,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.filesystem/HSFSModule.swift",
-          "lineNumber": 533
+          "lineNumber": 539
         }
       ],
       "properties": [],
@@ -9744,8 +9744,8 @@
         {
           "name": "enable",
           "signature": "func enable(_ cfg: JSValue) -> [String: Any]",
-          "rawDocumentation": "Enable the switcher with the given configuration.\n\n- Parameter cfg: Object with optional keys:\n  - `commitDelayMs` (number, default 250) — milliseconds of ctrl-idle\n    after which the highlighted selection is committed.\n  - `filterPlaceholder` (string, default \"Type to filter…\")\n  - `onCommit` (function, args: `{ appName, appPid, windowTitle, windowID }`)\n  - `onCancel` (function, no args)\n  - `onHandoff` (function, args: `{ query }`) — fired when the user\n    presses Tab while filtering. The picker closes and the typed filter\n    text is handed off so a host launcher can search installed (not just\n    running) apps — letting the user launch something that isn't open yet.\n\n- Returns: `{ disable: function }` on success, or `{ error: string }`\n  on failure. The `error` is one of `\"accessibility\"`,\n  `\"inputMonitoring\"`, or a free-form string describing what went wrong.\n\n- Example:\n```js\nconst sw = hs.switcher.enable({\n  onCommit: e => console.log('switched to', e.appName)\n})\nif (sw.error) console.warn('switcher unavailable:', sw.error)\n// later: sw.disable()\n```",
-          "description": "Enable the switcher with the given configuration.\nafter which the highlighted selection is committed.\npresses Tab while filtering. The picker closes and the typed filter\ntext is handed off so a host launcher can search installed (not just\nrunning) apps — letting the user launch something that isn't open yet.",
+          "rawDocumentation": "Enable the switcher with the given configuration.\n\n- Parameter cfg: Object with optional keys:\n  - `commitDelayMs` (number, default 250) — milliseconds of ctrl-idle\n    after which the highlighted selection is committed.\n  - `filterPlaceholder` (string, default \"Type to filter…\")\n  - `onCommit` (function, args: `{ appName, appPid, windowTitle, windowID }`)\n  - `onCancel` (function, no args)\n  - `onHandoff` (function, args: `{ query }`) — fired when the user\n    presses Tab while filtering. The picker closes and the typed filter\n    text is handed off so a host launcher can search installed (not just\n    running) apps — letting the user launch something that isn't open yet.\n  - `tabsProvider` (function, no args) — called synchronously each time\n    the picker opens; returns an array of `{ bundleID, title, url,\n    windowIndex, tabIndex }` browser tabs. Tabs are listed under their\n    browser's app (matched by bundleID) beneath its window rows, and\n    committing one fires `onCommit` with `kind: 'tab'` plus the tab's\n    coordinates — the host is expected to focus it (e.g. AppleScript);\n    the switcher does not raise anything itself for tab commits.\n\n- Returns: `{ disable: function }` on success, or `{ error: string }`\n  on failure. The `error` is one of `\"accessibility\"`,\n  `\"inputMonitoring\"`, or a free-form string describing what went wrong.\n\n- Example:\n```js\nconst sw = hs.switcher.enable({\n  onCommit: e => console.log('switched to', e.appName)\n})\nif (sw.error) console.warn('switcher unavailable:', sw.error)\n// later: sw.disable()\n```",
+          "description": "Enable the switcher with the given configuration.\nafter which the highlighted selection is committed.\npresses Tab while filtering. The picker closes and the typed filter\ntext is handed off so a host launcher can search installed (not just\nrunning) apps — letting the user launch something that isn't open yet.\nthe picker opens; returns an array of `{ bundleID, title, url,\nwindowIndex, tabIndex }` browser tabs. Tabs are listed under their\nbrowser's app (matched by bundleID) beneath its window rows, and\ncommitting one fires `onCommit` with `kind: 'tab'` plus the tab's\ncoordinates — the host is expected to focus it (e.g. AppleScript);\nthe switcher does not raise anything itself for tab commits.",
           "params": [
             {
               "name": "cfg",
@@ -9765,7 +9765,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 42
+          "lineNumber": 49
         },
         {
           "name": "show",
@@ -9785,7 +9785,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 52
+          "lineNumber": 59
         },
         {
           "name": "debugState",
@@ -9805,7 +9805,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 63
+          "lineNumber": 70
         },
         {
           "name": "debugMove",
@@ -9831,7 +9831,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 69
+          "lineNumber": 76
         },
         {
           "name": "debugCommit",
@@ -9846,7 +9846,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 76
+          "lineNumber": 83
         }
       ],
       "properties": [],
@@ -15367,5 +15367,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-07-02T04:34:46.533Z"
+  "generatedAt": "2026-07-02T07:57:13.560Z"
 }

@@ -2074,6 +2074,11 @@ This does **not** follow symlinks; a symlink pointing at a directory returns `fa
      * Copy a file or directory to a new location.
 The destination must not already exist. If `source` is a directory, its
 entire contents are copied recursively.
+Copying normally clones metadata too (permissions, extended
+attributes). Some TCC-protected files (e.g. under `~/Library/Safari`
+with Full Disk Access) allow reads but deny the metadata clone; for
+files, `copy` then falls back to a contents-only stream copy, so the
+result may lack the source's xattrs/ACLs.
      * @param source Path to the existing file or directory. `~` is expanded.
      * @param destination Path for the copy. `~` is expanded.
      * @returns `true` on success, `false` on failure.
@@ -4277,6 +4282,12 @@ after which the highlighted selection is committed.
 presses Tab while filtering. The picker closes and the typed filter
 text is handed off so a host launcher can search installed (not just
 running) apps — letting the user launch something that isn't open yet.
+the picker opens; returns an array of `{ bundleID, title, url,
+windowIndex, tabIndex }` browser tabs. Tabs are listed under their
+browser's app (matched by bundleID) beneath its window rows, and
+committing one fires `onCommit` with `kind: 'tab'` plus the tab's
+coordinates — the host is expected to focus it (e.g. AppleScript);
+the switcher does not raise anything itself for tab commits.
      * @param cfg Object with optional keys:
      * @returns `{ disable: function }` on success, or `{ error: string }`
      */

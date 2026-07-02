@@ -58,8 +58,32 @@ final class HSSwitcherSession {
 
     func commit() {
         guard !isClosed else { return }
-        guard let (app, window) = state.currentSelection() else { cancel(); return }
+        guard let (app, window, tab) = state.currentSelection() else { cancel(); return }
+
+        if let tab = tab {
+            // Browser-tab row: focusing is the JS side's job (AppleScript
+            // raises the right browser window and selects the tab — an AX
+            // raise here would race it). Tear down, then hand the tab's
+            // coordinates to onCommit.
+            let payload: [String: Any] = [
+                "kind": "tab",
+                "appName": app.name,
+                "appPid": Int(app.pid),
+                "bundleID": app.bundleID as Any,
+                "tabTitle": tab.title,
+                "url": tab.url,
+                "tabWindowIndex": tab.windowIndex,
+                "tabIndex": tab.tabIndex,
+            ]
+            isClosed = true
+            tearDown()
+            config.onCommit?.callSafely(withArguments: [payload], context: "hs.switcher onCommit")
+            onClose()
+            return
+        }
+
         let payload: [String: Any] = [
+            "kind": "window",
             "appName": app.name,
             "appPid": Int(app.pid),
             "windowTitle": window?.title as Any,
@@ -143,12 +167,15 @@ final class HSSwitcherSession {
                 "pid": Int(app.pid),
                 "windowCount": app.windows.count,
                 "windowTitles": app.windows.prefix(5).map { $0.title },
+                "tabCount": app.switcherTabs.count,
+                "tabTitles": state.visibleTabs(for: app).map { $0.title },
             ]
         }
         dict["apps"] = Array(apps)
-        if let (selApp, selWin) = state.currentSelection() {
+        if let (selApp, selWin, selTab) = state.currentSelection() {
             dict["currentSelectionApp"] = selApp.name
-            dict["currentSelectionWindow"] = selWin?.title ?? "(no window)"
+            dict["currentSelectionWindow"] = selWin?.title ?? (selTab != nil ? "(tab)" : "(no window)")
+            if let t = selTab { dict["currentSelectionTab"] = t.title }
         }
         return dict
     }
@@ -166,7 +193,7 @@ final class HSSwitcherSession {
     /// harness can compare against NSWorkspace state after the fact.
     func debugCommit() -> [String: Any] {
         let beforeApp = NSWorkspace.shared.frontmostApplication
-        guard let (app, window) = state.currentSelection() else {
+        guard let (app, window, tab) = state.currentSelection() else {
             return [
                 "committed": false,
                 "reason": "no selection",
@@ -181,6 +208,7 @@ final class HSSwitcherSession {
             "targetApp": app.name,
             "targetPid": Int(app.pid),
             "targetWindow": window?.title as Any,
+            "targetTab": tab?.title as Any,
         ]
         commit()
         return dict
@@ -243,10 +271,10 @@ final class HSSwitcherSession {
         if state.selectedAppIndex < 0 || state.selectedAppIndex >= list.count {
             state.selectedAppIndex = 0
         }
-        let w = list[state.selectedAppIndex].windows
-        if w.isEmpty {
+        let rows = state.rowCount(for: list[state.selectedAppIndex])
+        if rows == 0 {
             state.selectedWindowIndex = -1
-        } else if state.selectedWindowIndex < 0 || state.selectedWindowIndex >= w.count {
+        } else if state.selectedWindowIndex < 0 || state.selectedWindowIndex >= rows {
             state.selectedWindowIndex = 0
         }
     }

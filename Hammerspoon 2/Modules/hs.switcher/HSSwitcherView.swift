@@ -37,6 +37,12 @@ struct HSSwitcherView: View {
                                     windowRow(app: app, win: win, appIdx: appIdx, winIdx: winIdx)
                                         .id("w\(win.stableID)")
                                 }
+                                // Browser tabs, beneath the app's windows. Row
+                                // index continues after the window rows.
+                                ForEach(Array(state.visibleTabs(for: app).enumerated()), id: \.offset) { tabIdx, tab in
+                                    tabRow(app: app, tab: tab, appIdx: appIdx, rowIdx: app.windows.count + tabIdx)
+                                        .id("t\(app.pid)-\(tabIdx)")
+                                }
                             }
                         }
                     }
@@ -63,13 +69,14 @@ struct HSSwitcherView: View {
 
     @ViewBuilder
     private func appHeader(app: HSAppEntry, idx: Int) -> some View {
-        let isHighlighted = (idx == state.selectedAppIndex) && app.windows.isEmpty
+        let isHighlighted = (idx == state.selectedAppIndex) && state.rowCount(for: app) == 0
+        let tabCount = state.visibleTabs(for: app).count
         HStack(spacing: 10) {
             iconView(app: app)
             Text(app.name)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(isHighlighted ? .white : .primary)
-            Text("(\(app.windows.count))")
+            Text(tabCount > 0 ? "(\(app.windows.count) · \(tabCount) tabs)" : "(\(app.windows.count))")
                 .font(.system(size: 11))
                 .foregroundColor(isHighlighted ? .white.opacity(0.7) : .secondary)
             Spacer()
@@ -78,6 +85,29 @@ struct HSSwitcherView: View {
         .background(isHighlighted ? Color.accentColor : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture { onPick(idx, -1) }
+    }
+
+    /// A browser tab beneath its app's window rows: deeper indent + a globe
+    /// so it reads as "inside the browser", not another window.
+    @ViewBuilder
+    private func tabRow(app: HSAppEntry, tab: HSSwitcherTab, appIdx: Int, rowIdx: Int) -> some View {
+        let isSelected = (appIdx == state.selectedAppIndex) && (rowIdx == state.selectedWindowIndex)
+        HStack(spacing: 8) {
+            Spacer().frame(width: 44)
+            Image(systemName: "globe")
+                .font(.system(size: 10))
+                .foregroundColor(isSelected ? .white.opacity(0.85) : .secondary)
+            Text(tab.title.isEmpty ? tab.url : tab.title)
+                .font(.system(size: 12.5))
+                .foregroundColor(isSelected ? .white : .primary.opacity(0.85))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer()
+        }
+        .padding(.horizontal, 14).padding(.vertical, 4)
+        .background(isSelected ? Color.accentColor : Color.clear)
+        .contentShape(Rectangle())
+        .onTapGesture { onPick(appIdx, rowIdx) }
     }
 
     @ViewBuilder
@@ -103,8 +133,11 @@ struct HSSwitcherView: View {
         let apps = state.filteredApps()
         guard state.selectedAppIndex >= 0, state.selectedAppIndex < apps.count else { return }
         let app = apps[state.selectedAppIndex]
-        if state.selectedWindowIndex >= 0, state.selectedWindowIndex < app.windows.count {
-            proxy.scrollTo("w\(app.windows[state.selectedWindowIndex].stableID)")
+        let idx = state.selectedWindowIndex
+        if idx >= 0, idx < app.windows.count {
+            proxy.scrollTo("w\(app.windows[idx].stableID)")
+        } else if idx >= app.windows.count, idx < state.rowCount(for: app) {
+            proxy.scrollTo("t\(app.pid)-\(idx - app.windows.count)")
         } else {
             proxy.scrollTo("a\(app.pid)")
         }

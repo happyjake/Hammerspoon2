@@ -196,6 +196,12 @@ import UniformTypeIdentifiers
     /// The destination must not already exist. If `source` is a directory, its
     /// entire contents are copied recursively.
     ///
+    /// Copying normally clones metadata too (permissions, extended
+    /// attributes). Some TCC-protected files (e.g. under `~/Library/Safari`
+    /// with Full Disk Access) allow reads but deny the metadata clone; for
+    /// files, `copy` then falls back to a contents-only stream copy, so the
+    /// result may lack the source's xattrs/ACLs.
+    ///
     /// - Parameters:
     ///   - source: Path to the existing file or directory. `~` is expanded.
     ///   - destination: Path for the copy. `~` is expanded.
@@ -711,12 +717,43 @@ import UniformTypeIdentifiers
     // MARK: - File Operations
 
     @objc func copy(_ source: String, _ destination: String) -> Bool {
+        let src = expand(source)
+        let dst = expand(destination)
         do {
-            try fm.copyItem(atPath: expand(source), toPath: expand(destination))
+            try fm.copyItem(atPath: src, toPath: dst)
             return true
         } catch {
+            // copyItem clones metadata (ACLs, com.apple.macl and other
+            // xattrs) and TCC can deny that clone on files whose *contents*
+            // we may read — ~/Library/Safari under Full Disk Access is the
+            // canonical case. A contents-only stream copy still serves every
+            // "give me a working copy of this file" use. Never fall back when
+            // the failure was the destination already existing — that must
+            // stay an error, not become a silent overwrite.
+            var isDir: ObjCBool = false
+            if !fm.fileExists(atPath: dst),
+               fm.fileExists(atPath: src, isDirectory: &isDir), !isDir.boolValue,
+               streamCopyFile(from: src, to: dst) {
+                return true
+            }
             AKError("hs.fs.copy: \(error.localizedDescription)")
             return false
+        }
+    }
+
+    /// Contents-only file copy via FileHandle streaming — no metadata, works
+    /// wherever plain reads are permitted. 4 MB chunks keep memory flat for
+    /// multi-hundred-MB files (browser history databases).
+    private func streamCopyFile(from src: String, to dst: String) -> Bool {
+        guard let input = FileHandle(forReadingAtPath: src) else { return false }
+        defer { input.closeFile() }
+        guard fm.createFile(atPath: dst, contents: nil) else { return false }
+        guard let output = FileHandle(forWritingAtPath: dst) else { return false }
+        defer { output.closeFile() }
+        while true {
+            let chunk = input.readData(ofLength: 4 << 20)
+            if chunk.isEmpty { return true }
+            output.write(chunk)
         }
     }
 

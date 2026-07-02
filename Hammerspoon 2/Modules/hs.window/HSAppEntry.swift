@@ -7,6 +7,17 @@ import Foundation
 import AppKit
 import AXSwift
 
+/// One browser tab shown by hs.switcher under its browser app, next to the
+/// window rows. Display data only: it is attached to switcher *display
+/// copies* (never to live registry entries), and committing one is handled
+/// by the JS side (AppleScript), not by AX.
+struct HSSwitcherTab {
+    let title: String
+    let url: String
+    let windowIndex: Int    // AppleScript window index within the browser
+    let tabIndex: Int       // AppleScript tab index within that window
+}
+
 /// One app inside the live registry. Holds the AXObserver subscription for that
 /// app's window lifecycle events.
 @MainActor
@@ -17,6 +28,9 @@ final class HSAppEntry {
     let activationPolicy: NSApplication.ActivationPolicy
     var icon: NSImage?
     var windows: [HSWindowEntry]      // MRU-ordered, most-recent first
+    /// Browser tabs for the switcher, populated only on `switcherDisplayCopy()`
+    /// results by hs.switcher's tabsProvider. Always empty on registry entries.
+    var switcherTabs: [HSSwitcherTab] = []
     var lastActivatedAt: Date
     var observer: Observer?           // nil if AXObserverCreate failed for this pid
     var pollTimer: Timer?             // non-nil only when using the polled fallback

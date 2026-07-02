@@ -26,6 +26,13 @@ import AppKit
     ///     presses Tab while filtering. The picker closes and the typed filter
     ///     text is handed off so a host launcher can search installed (not just
     ///     running) apps — letting the user launch something that isn't open yet.
+    ///   - `tabsProvider` (function, no args) — called synchronously each time
+    ///     the picker opens; returns an array of `{ bundleID, title, url,
+    ///     windowIndex, tabIndex }` browser tabs. Tabs are listed under their
+    ///     browser's app (matched by bundleID) beneath its window rows, and
+    ///     committing one fires `onCommit` with `kind: 'tab'` plus the tab's
+    ///     coordinates — the host is expected to focus it (e.g. AppleScript);
+    ///     the switcher does not raise anything itself for tab commits.
     ///
     /// - Returns: `{ disable: function }` on success, or `{ error: string }`
     ///   on failure. The `error` is one of `"accessibility"`,
@@ -159,6 +166,7 @@ struct HSSwitcherConfig: @unchecked Sendable {
     let onCommit: JSValue?
     let onCancel: JSValue?
     let onHandoff: JSValue?
+    let tabsProvider: JSValue?
 
     init(jsValue: JSValue) {
         guard jsValue.isObject else {
@@ -167,6 +175,7 @@ struct HSSwitcherConfig: @unchecked Sendable {
             onCommit = nil
             onCancel = nil
             onHandoff = nil
+            tabsProvider = nil
             return
         }
         let v = jsValue.forProperty("commitDelayMs")
@@ -183,6 +192,9 @@ struct HSSwitcherConfig: @unchecked Sendable {
 
         let oh = jsValue.forProperty("onHandoff")
         onHandoff = (oh?.isObject == true && !(oh?.isNull ?? true) && !(oh?.isUndefined ?? true)) ? oh : nil
+
+        let tp = jsValue.forProperty("tabsProvider")
+        tabsProvider = (tp?.isObject == true && !(tp?.isNull ?? true) && !(tp?.isUndefined ?? true)) ? tp : nil
     }
 }
 
@@ -238,6 +250,7 @@ final class HSSwitcherBinding {
         let snap = HSWindowRegistry.shared.snapshot()
             .filter { $0.isSwitchable }
             .map { $0.switcherDisplayCopy() }
+        attachTabs(to: snap)
         AKTrace("hs.switcher: triggered with \(snap.count) switchable apps")
         let session = HSSwitcherSession(config: config) { [weak self] in
             self?.activeSession = nil
@@ -251,6 +264,36 @@ final class HSSwitcherBinding {
     }
 
     private func onTrigger() { _ = triggerNow() }
+
+    /// Ask the host's tabsProvider (if any) for browser tabs and attach them
+    /// to the matching display copies by bundleID. Synchronous — the provider
+    /// is expected to return a cached inventory instantly (and refresh it in
+    /// the background for the next trigger). Cap per app well above the
+    /// state's visible cap so filtering has a full haystack to match against.
+    private func attachTabs(to apps: [HSAppEntry]) {
+        guard let provider = config.tabsProvider else { return }
+        guard let result = provider.callSafely(withArguments: [], context: "hs.switcher tabsProvider"),
+              result.isArray,
+              let rows = result.toArray() as? [[String: Any]] else { return }
+        var byBundle: [String: [HSSwitcherTab]] = [:]
+        for row in rows {
+            guard let bundleID = row["bundleID"] as? String,
+                  let title = row["title"] as? String else { continue }
+            let tab = HSSwitcherTab(
+                title: title,
+                url: row["url"] as? String ?? "",
+                windowIndex: (row["windowIndex"] as? NSNumber)?.intValue ?? 1,
+                tabIndex: (row["tabIndex"] as? NSNumber)?.intValue ?? 1
+            )
+            byBundle[bundleID, default: []].append(tab)
+        }
+        guard !byBundle.isEmpty else { return }
+        for app in apps {
+            if let bundleID = app.bundleID, let tabs = byBundle[bundleID] {
+                app.switcherTabs = Array(tabs.prefix(40))
+            }
+        }
+    }
 
     /// Returns a JS-friendly snapshot of the current session's state, or nil.
     func debugState() -> [String: Any]? {
