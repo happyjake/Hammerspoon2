@@ -543,6 +543,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Hammerspoon-2-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Hammerspoon 2 scripts use AppleScript/JXA (hs.osascript) to read from and control other applications, such as listing browser tabs.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Hammerspoon 2 requires camera permissions for various modules to function correctly";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "©2025 by its authors. Released under MIT License.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Hammerspoon 2 requires local network permissions for various modules to function correctly";
@@ -598,6 +599,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Hammerspoon-2-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Hammerspoon 2 scripts use AppleScript/JXA (hs.osascript) to read from and control other applications, such as listing browser tabs.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Hammerspoon 2 requires camera permissions for various modules to function correctly";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "©2025 by its authors. Released under MIT License.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Hammerspoon 2 requires local network permissions for various modules to function correctly";
@@ -679,7 +681,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = VQCYSNZB89;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
@@ -692,6 +694,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HammerspoonOSAScriptHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HammerspoonOSAScriptHelper;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Hammerspoon 2 scripts use AppleScript/JXA (hs.osascript) to read from and control other applications, such as listing browser tabs.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
@@ -723,7 +726,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = VQCYSNZB89;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
@@ -736,6 +739,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HammerspoonOSAScriptHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HammerspoonOSAScriptHelper;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Hammerspoon 2 scripts use AppleScript/JXA (hs.osascript) to read from and control other applications, such as listing browser tabs.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
