@@ -75,6 +75,17 @@ import AppKit
     /// - Returns: true if a session was active to move.
     @objc func debugMove(_ axis: String, _ delta: Int) -> Bool
 
+    /// Programmatically set the current session's filter text — the same
+    /// path as typing while the picker is open, including the best-match
+    /// selection (tab → window → app). An empty string returns to cycle mode.
+    /// - Parameter text: The filter text to apply.
+    /// - Returns: true if a session was active to filter.
+    /// - Example:
+    /// ```js
+    /// hs.switcher.show(); hs.switcher.debugFilter('github')
+    /// ```
+    @objc func debugFilter(_ text: String) -> Bool
+
     /// Programmatically commit the current selection (same path as Enter).
     /// Returns a dict with `frontmostBefore`, `targetApp`, `targetPid`,
     /// `committed` (bool), and the caller can poll `frontmostAfter` via
@@ -123,6 +134,11 @@ import AppKit
     @objc func debugMove(_ axis: String, _ delta: Int) -> Bool {
         guard let binding = activeBindings.first else { return false }
         return binding.debugMove(axis: axis, delta: delta)
+    }
+
+    @objc func debugFilter(_ text: String) -> Bool {
+        guard let binding = activeBindings.first else { return false }
+        return binding.debugFilter(text)
     }
 
     @objc func debugCommit() -> [String: Any] {
@@ -306,6 +322,14 @@ final class HSSwitcherBinding {
     func debugMove(axis: String, delta: Int) -> Bool {
         guard let session = activeSession else { return false }
         session.debugMove(axis: axis, delta: delta)
+        return true
+    }
+
+    /// Programmatically drive the active session's filter (same code path as
+    /// typing). Returns false if no session is active.
+    func debugFilter(_ text: String) -> Bool {
+        guard let session = activeSession else { return false }
+        session.debugFilter(text)
         return true
     }
 

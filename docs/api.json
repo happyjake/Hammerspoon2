@@ -9834,6 +9834,32 @@
           "lineNumber": 76
         },
         {
+          "name": "debugFilter",
+          "signature": "func debugFilter(_ text: String) -> Bool",
+          "rawDocumentation": "Programmatically set the current session's filter text — the same\npath as typing while the picker is open, including the best-match\nselection (tab → window → app). An empty string returns to cycle mode.\n- Parameter text: The filter text to apply.\n- Returns: true if a session was active to filter.\n- Example:\n```js\nhs.switcher.show(); hs.switcher.debugFilter('github')\n```",
+          "description": "Programmatically set the current session's filter text — the same\npath as typing while the picker is open, including the best-match\nselection (tab → window → app). An empty string returns to cycle mode.",
+          "params": [
+            {
+              "name": "text",
+              "type": "String",
+              "description": "The filter text to apply."
+            }
+          ],
+          "returns": {
+            "type": "Bool",
+            "description": "true if a session was active to filter."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.switcher.show(); hs.switcher.debugFilter('github')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
+          "lineNumber": 87
+        },
+        {
           "name": "debugCommit",
           "signature": "func debugCommit() -> [String: Any]",
           "rawDocumentation": "Programmatically commit the current selection (same path as Enter).\nReturns a dict with `frontmostBefore`, `targetApp`, `targetPid`,\n`committed` (bool), and the caller can poll `frontmostAfter` via\n`hs.application.frontmost()` shortly after.\n- Returns: `{ frontmostBefore, targetApp, targetPid, committed }` describing the commit outcome",
@@ -9846,7 +9872,7 @@
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.switcher/HSSwitcherModule.swift",
-          "lineNumber": 83
+          "lineNumber": 94
         }
       ],
       "properties": [],
@@ -15367,5 +15393,5 @@
       "category": "type"
     }
   ],
-  "generatedAt": "2026-07-02T07:57:13.560Z"
+  "generatedAt": "2026-07-02T08:19:18.778Z"
 }

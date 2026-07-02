@@ -162,6 +162,41 @@ final class HSSwitcherState {
         return (app, nil, nil)
     }
 
+    /// Land the selection on what a just-changed filter is naming. Priority:
+    /// the first matching browser TAB (switching into content beats raising a
+    /// window — and a browser window's title is usually just its active tab's
+    /// title, in which case that tab matches too and both land on the same
+    /// page), then the first matching window title, then the first filtered
+    /// app's first row (an app-name match). No-op on an empty filter.
+    func selectBestFilterMatch() {
+        guard mode == .filter, !filterText.isEmpty else { return }
+        let list = filteredApps()
+        guard !list.isEmpty else {
+            selectedAppIndex = -1
+            selectedWindowIndex = -1
+            return
+        }
+        let needle = filterText.lowercased()
+        // Tabs first — the user's target is the page, not the window frame.
+        for (a, app) in list.enumerated() {
+            let tabs = visibleTabs(for: app)
+            if let t = tabs.firstIndex(where: { Self.matches($0.title, needle: needle) }) {
+                selectedAppIndex = a
+                selectedWindowIndex = app.windows.count + t
+                return
+            }
+        }
+        for (a, app) in list.enumerated() {
+            if let w = app.windows.firstIndex(where: { Self.matches($0.title, needle: needle) }) {
+                selectedAppIndex = a
+                selectedWindowIndex = w
+                return
+            }
+        }
+        selectedAppIndex = 0
+        selectedWindowIndex = rowCount(for: list[0]) == 0 ? -1 : 0
+    }
+
     /// Apply default cmd+Tab-style selection: MRU[1] app's MRU[0] window.
     /// If only one app is visible, fall back to its MRU[1] window if any.
     func applyDefaultSelection() {

@@ -223,3 +223,108 @@ struct HSSwitcherStateTabTests {
         #expect(sel?.window != nil && sel?.tab == nil)
     }
 }
+
+/// Filter keystrokes land the selection on the thing the user is naming —
+/// tabs first (switching into content beats raising a window), then window
+/// titles, then app names.
+@Suite("HSSwitcherState filter best-match selection")
+@MainActor
+struct HSSwitcherStateFilterSelectionTests {
+
+    private func makeApp(_ name: String, pid: pid_t, windowTitles: [String],
+                         tabs: [String] = []) -> HSAppEntry {
+        let app = HSAppEntry(testOnlyName: name, pid: pid)
+        for (i, title) in windowTitles.enumerated() {
+            app.windows.append(HSWindowEntry(
+                stableID: UInt64(pid) * 100 + UInt64(i),
+                axElement: UIElement(AXUIElementCreateSystemWide()),
+                title: title
+            ))
+        }
+        app.switcherTabs = tabs.enumerated().map { i, t in
+            HSSwitcherTab(title: t, url: "https://x.example/\(i)", windowIndex: 1, tabIndex: i + 1)
+        }
+        return app
+    }
+
+    /// Notes(1 win), Safari(1 win "Apple News", tabs: Docs + GitHub PRs).
+    private func makeState() -> HSSwitcherState {
+        let state = HSSwitcherState()
+        state.apps = [
+            makeApp("Notes", pid: 100, windowTitles: ["My Note"]),
+            makeApp("Safari", pid: 200, windowTitles: ["Apple News"],
+                    tabs: ["Docs", "GitHub PRs"]),
+        ]
+        state.mode = .filter
+        return state
+    }
+
+    @Test("a filter naming a background tab selects that tab row")
+    func testTabSelected() {
+        let state = makeState()
+        state.filterText = "github"
+        state.selectBestFilterMatch()
+        let sel = state.currentSelection()
+        #expect(sel?.tab?.title == "GitHub PRs")
+        // Safari is the only filtered app → index 0. While filtering, only
+        // MATCHING tabs are visible rows, so "GitHub PRs" is visible-tab 0 →
+        // row = windows.count (1) + 0.
+        #expect(state.selectedAppIndex == 0)
+        #expect(state.selectedWindowIndex == 1)
+    }
+
+    @Test("a tab match beats a window-title match (tabs first)")
+    func testTabBeatsWindow() {
+        let state = HSSwitcherState()
+        state.apps = [
+            makeApp("Editor", pid: 100, windowTitles: ["github notes.md"]),
+            makeApp("Safari", pid: 200, windowTitles: ["Apple"], tabs: ["GitHub PRs"]),
+        ]
+        state.mode = .filter
+        state.filterText = "github"
+        state.selectBestFilterMatch()
+        let sel = state.currentSelection()
+        #expect(sel?.tab?.title == "GitHub PRs")
+        #expect(sel?.app.name == "Safari")
+    }
+
+    @Test("no tab match → first matching window row is selected")
+    func testWindowFallback() {
+        let state = makeState()
+        state.filterText = "apple news"
+        state.selectBestFilterMatch()
+        let sel = state.currentSelection()
+        #expect(sel?.tab == nil)
+        #expect(sel?.window?.title == "Apple News")
+    }
+
+    @Test("app-name-only match selects the app's first row")
+    func testAppNameFallback() {
+        let state = makeState()
+        state.filterText = "notes"
+        state.selectBestFilterMatch()
+        let sel = state.currentSelection()
+        // "Notes" the app matches by name; its window "My Note" also matches
+        // pass 2 — either way selection must sit on Notes' first row.
+        #expect(sel?.app.name == "Notes")
+        #expect(state.selectedWindowIndex == 0)
+    }
+
+    @Test("empty filter is a no-op for best-match selection")
+    func testEmptyFilterNoop() {
+        let state = makeState()
+        state.selectedAppIndex = 1
+        state.selectedWindowIndex = 0
+        state.filterText = ""
+        state.selectBestFilterMatch()
+        #expect(state.selectedAppIndex == 1 && state.selectedWindowIndex == 0)
+    }
+
+    @Test("no matches at all clears the selection")
+    func testNoMatches() {
+        let state = makeState()
+        state.filterText = "zzzqqq"
+        state.selectBestFilterMatch()
+        #expect(state.selectedAppIndex == -1 && state.selectedWindowIndex == -1)
+    }
+}

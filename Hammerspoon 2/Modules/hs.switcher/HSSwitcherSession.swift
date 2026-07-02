@@ -189,6 +189,19 @@ final class HSSwitcherSession {
         }
     }
 
+    /// Drive the filter through the same intent pipeline as real typing, so
+    /// mode transitions and best-match selection behave identically.
+    func debugFilter(_ text: String) {
+        if text.isEmpty {
+            state.filterText = ""
+            state.mode = .cycle
+            keyHandler?.setFilterMode(false)
+            ensureSelectionInBounds()
+            return
+        }
+        handle(intent: .enterFilter(text))
+    }
+
     /// Captures pre-commit state, runs commit, returns details so a test
     /// harness can compare against NSWorkspace state after the fact.
     func debugCommit() -> [String: Any] {
@@ -243,10 +256,10 @@ final class HSSwitcherSession {
             // First letter entered the filter — make sure the user is typing
             // Latin even if their IME was Chinese / Japanese / Korean.
             _ = switchToASCIIInputSource()
-            ensureSelectionInBounds()
+            applyFilterSelection()
         case .filterAppend(let s):
             state.filterText += s
-            ensureSelectionInBounds()
+            applyFilterSelection()
         case .filterBackspace:
             if !state.filterText.isEmpty {
                 state.filterText.removeLast()
@@ -254,8 +267,20 @@ final class HSSwitcherSession {
                     state.mode = .cycle
                     keyHandler?.setFilterMode(false)
                 }
-                ensureSelectionInBounds()
+                applyFilterSelection()
             }
+        }
+    }
+
+    /// Every filter change re-aims the selection at the best match (tab →
+    /// window → app; see HSSwitcherState.selectBestFilterMatch) so ↵ lands on
+    /// the thing the user typed. Back to an empty filter, just keep the
+    /// selection in bounds.
+    private func applyFilterSelection() {
+        if state.mode == .filter, !state.filterText.isEmpty {
+            state.selectBestFilterMatch()
+        } else {
+            ensureSelectionInBounds()
         }
     }
 

@@ -4317,6 +4317,15 @@ Returns null if no session is active.
     function debugMove(axis: string, delta: number): boolean;
 
     /**
+     * Programmatically set the current session's filter text — the same
+path as typing while the picker is open, including the best-match
+selection (tab → window → app). An empty string returns to cycle mode.
+     * @param text The filter text to apply.
+     * @returns true if a session was active to filter.
+     */
+    function debugFilter(text: string): boolean;
+
+    /**
      * Programmatically commit the current selection (same path as Enter).
 Returns a dict with `frontmostBefore`, `targetApp`, `targetPid`,
 `committed` (bool), and the caller can poll `frontmostAfter` via
