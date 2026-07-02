@@ -379,7 +379,7 @@ declare class HSString {
     /**
      * The current string value
      */
-    value: string;
+    readonly value: string;
 
 }
 
@@ -681,22 +681,22 @@ declare class HSApplication {
     /**
      * POSIX Process Identifier
      */
-    pid: number;
+    readonly pid: number;
 
     /**
      * Bundle Identifier (e.g. com.apple.Safari)
      */
-    bundleID: string | undefined;
+    readonly bundleID: string | undefined;
 
     /**
      * The application's title
      */
-    title: string | undefined;
+    readonly title: string | undefined;
 
     /**
      * Location of the application on disk
      */
-    bundlePath: string | undefined;
+    readonly bundlePath: string | undefined;
 
     /**
      * Is the application hidden
@@ -706,37 +706,37 @@ declare class HSApplication {
     /**
      * Is the application focused
      */
-    isActive: boolean;
+    readonly isActive: boolean;
 
     /**
      * The main window of this application, or nil if there is no main window
      */
-    mainWindow: HSWindow | undefined;
+    readonly mainWindow: HSWindow | undefined;
 
     /**
      * The focused window of this application, or nil if there is no focused window
      */
-    focusedWindow: HSWindow | undefined;
+    readonly focusedWindow: HSWindow | undefined;
 
     /**
      * All windows of this application
      */
-    allWindows: HSWindow[];
+    readonly allWindows: HSWindow[];
 
     /**
      * All visible (ie non-hidden) windows of this application
      */
-    visibleWindows: HSWindow[];
+    readonly visibleWindows: HSWindow[];
 
     /**
      * Whether the application process is still running
      */
-    isRunning: boolean;
+    readonly isRunning: boolean;
 
     /**
      * The kind of application: "standard" (regular dock app), "accessory" (no dock), or "background" (agent)
      */
-    kind: string;
+    readonly kind: string;
 
 }
 
@@ -928,44 +928,44 @@ declare class HSAudioDevice {
     /**
      * The CoreAudio object ID of this device.
      */
-    id: number;
+    readonly id: number;
 
     /**
      * The human-readable name of this device (e.g. `"Built-in Output"`).
      */
-    name: string;
+    readonly name: string;
 
     /**
      * The persistent unique identifier for this device.
      */
-    uid: string;
+    readonly uid: string;
 
     /**
      * Whether this device has output streams (can play audio).
      */
-    isOutput: boolean;
+    readonly isOutput: boolean;
 
     /**
      * Whether this device has input streams (can record audio).
      */
-    isInput: boolean;
+    readonly isInput: boolean;
 
     /**
      * The transport mechanism: `"built-in"`, `"usb"`, `"bluetooth"`, `"bluetooth-le"`,
 `"hdmi"`, `"display-port"`, `"firewire"`, `"airplay"`, `"avb"`,
 `"thunderbolt"`, `"virtual"`, `"aggregate"`, `"pci"`, or `"unknown"`.
      */
-    transportType: string;
+    readonly transportType: string;
 
     /**
      * Number of output channels, or 0 if the device has no output.
      */
-    outputChannels: number;
+    readonly outputChannels: number;
 
     /**
      * Number of input channels, or 0 if the device has no input.
      */
-    inputChannels: number;
+    readonly inputChannels: number;
 
     /**
      * Output volume scalar in the range `0.0`–`1.0`, or `null` if the device has
@@ -1004,7 +1004,7 @@ the device has no controllable input volume.
      * All sample rates (in Hz) that this device supports.
 For devices that support a range, both the minimum and maximum are included.
      */
-    availableSampleRates: number[];
+    readonly availableSampleRates: number[];
 
 }
 
@@ -1165,32 +1165,32 @@ declare class HSAXElement {
     /**
      * The element's role (e.g., "AXWindow", "AXButton")
      */
-    role: string | undefined;
+    readonly role: string | undefined;
 
     /**
      * The element's subrole
      */
-    subrole: string | undefined;
+    readonly subrole: string | undefined;
 
     /**
      * The element's title
      */
-    title: string | undefined;
+    readonly title: string | undefined;
 
     /**
      * The element's value
      */
-    value: any | undefined;
+    readonly value: any | undefined;
 
     /**
      * The element's description
      */
-    elementDescription: string | undefined;
+    readonly elementDescription: string | undefined;
 
     /**
      * Whether the element is enabled
      */
-    isEnabled: boolean;
+    readonly isEnabled: boolean;
 
     /**
      * Whether the element is focused
@@ -1215,12 +1215,12 @@ declare class HSAXElement {
     /**
      * The element's parent
      */
-    parent: HSAXElement | undefined;
+    readonly parent: HSAXElement | undefined;
 
     /**
      * Get the process ID of the application that owns this element
      */
-    pid: number;
+    readonly pid: number;
 
 }
 
@@ -1377,7 +1377,7 @@ unaffected. The callback receives `(event, domain, moreComing)`.
     /**
      * A unique identifier for this search object.
      */
-    identifier: string;
+    readonly identifier: string;
 
     /**
      * Whether to search over peer-to-peer Bluetooth/Wi-Fi in addition to
@@ -1434,43 +1434,43 @@ Call `stopMonitoring()` to unsubscribe.
     /**
      * A unique identifier assigned to this service object.
      */
-    identifier: string;
+    readonly identifier: string;
 
     /**
      * The service name (e.g. `"My Web Server"`).
      */
-    name: string;
+    readonly name: string;
 
     /**
      * The service type string (e.g. `"_http._tcp."`).
      */
-    type: string;
+    readonly type: string;
 
     /**
      * The mDNS domain (almost always `"local."`).
      */
-    domain: string;
+    readonly domain: string;
 
     /**
      * The resolved hostname, or `null` before `resolve()` completes.
      */
-    hostname: string | undefined;
+    readonly hostname: string | undefined;
 
     /**
      * The service port. `-1` until `resolve()` completes.
      */
-    port: number;
+    readonly port: number;
 
     /**
      * IP address strings (IPv4 and/or IPv6) populated after `resolve()` completes.
      */
-    addresses: string[];
+    readonly addresses: string[];
 
     /**
      * The TXT record as a `{key: value}` object, or `null` if none is available.
 Populated after `resolve()` completes or when updated via `monitor()`.
      */
-    txtRecord: Record<string, string> | undefined;
+    readonly txtRecord: Record<string, string> | undefined;
 
     /**
      * Whether peer-to-peer Bluetooth/Wi-Fi is included in resolution.
@@ -1612,23 +1612,23 @@ passed to other image-processing APIs.
     /**
      * The type name for JavaScript introspection. Always `"HSCamera"`.
      */
-    typeName: string;
+    readonly typeName: string;
 
     /**
      * The persistent unique identifier for this camera.
      */
-    uid: string;
+    readonly uid: string;
 
     /**
      * The human-readable name of this camera (e.g. `"FaceTime HD Camera"`).
      */
-    name: string;
+    readonly name: string;
 
     /**
      * Whether this camera is currently being used by any application.
 Queries the underlying CoreMediaIO device state each time it is read.
      */
-    isInUse: boolean;
+    readonly isInUse: boolean;
 
 }
 
@@ -1758,12 +1758,12 @@ Returns `null` if the index is out of range or no choices are set.
     /**
      * Read-only type identifier.
      */
-    typeName: string;
+    readonly typeName: string;
 
     /**
      * Stable UUID string for this chooser instance.
      */
-    identifier: string;
+    readonly identifier: string;
 
     /**
      * The current text in the search field. Setting this from JS updates the display but
@@ -1806,7 +1806,7 @@ is called with `{ text: <query> }` instead of `null` (default: `false`).
     /**
      * `true` if the chooser panel is currently on screen.
      */
-    isVisible: boolean;
+    readonly isVisible: boolean;
 
     /**
      * Called when the user confirms a selection.
@@ -2465,7 +2465,7 @@ declare class HSLocationWatcher {
     /**
      * The unique identifier assigned to this watcher.
      */
-    identifier: string;
+    readonly identifier: string;
 
     /**
      * The minimum distance in metres the device must move before a new update
@@ -2708,7 +2708,7 @@ declare class HSNotification {
      * The unique identifier assigned to this notification.
 Use it to correlate with system notification APIs if needed.
      */
-    identifier: string;
+    readonly identifier: string;
 
 }
 
@@ -2767,19 +2767,19 @@ declare class HSOCRObservation {
     /**
      * The Swift type name, for JavaScript introspection.
      */
-    typeName: string;
+    readonly typeName: string;
 
     /**
      * The recognized text string for this observation.
      */
-    text: string;
+    readonly text: string;
 
     /**
      * Recognition confidence in the range `0.0` (uncertain) to `1.0` (certain).
 Use `minimumConfidence` in the options passed to `recognizeText()` to
 pre-filter observations below a threshold rather than filtering here.
      */
-    confidence: number;
+    readonly confidence: number;
 
     /**
      * Normalized bounding box of this observation in the source image, as an `HSRect`.
@@ -2787,7 +2787,7 @@ All values are in the range 0–1 with **top-left origin**
 (`(0, 0)` = top-left corner, `(1, 1)` = bottom-right corner).
 Use `bounds.x`, `bounds.y`, `bounds.w`, and `bounds.h` to access the components.
      */
-    bounds: HSRect;
+    readonly bounds: HSRect;
 
 }
 
@@ -2801,7 +2801,7 @@ declare class HSOCRResult {
     /**
      * The Swift type name, for JavaScript introspection.
      */
-    typeName: string;
+    readonly typeName: string;
 
     /**
      * The full recognized text from the image, with each observation's text
@@ -2809,7 +2809,7 @@ joined by newlines in the order Vision returned them.
 Use this when you only need the raw text and don't care about bounding
 boxes or per-region confidence scores.
      */
-    text: string;
+    readonly text: string;
 
     /**
      * The individual text observations that make up this result.
@@ -2818,7 +2818,7 @@ Each entry in the array is an `HSOCRObservation` with its own `text`,
 order Vision produced them (typically top-to-bottom, left-to-right, but
 this is image-dependent).
      */
-    observations: HSOCRObservation[];
+    readonly observations: HSOCRObservation[];
 
 }
 
@@ -3186,7 +3186,7 @@ Comparing a saved value to the current value is the standard way to detect exter
      * The polling interval for the pasteboard watcher, in seconds. Defaults to 0.5.
 Changes take effect the next time a watcher is started (i.e. after removing and re-adding).
      */
-    const watcherInterval: number;
+    let watcherInterval: number;
 
 }
 
@@ -3586,44 +3586,44 @@ The result origin is relative to this screen's top-left corner.
     /**
      * Unique display identifier (matches `CGDirectDisplayID`).
      */
-    id: number;
+    readonly id: number;
 
     /**
      * The manufacturer-assigned localized display name.
      */
-    name: string;
+    readonly name: string;
 
     /**
      * The display's UUID string.
      */
-    uuid: string;
+    readonly uuid: string;
 
     /**
      * The usable screen area in Hammerspoon coordinates, excluding the menu bar and Dock.
      */
-    frame: HSRect;
+    readonly frame: HSRect;
 
     /**
      * The full screen area in Hammerspoon coordinates, including menu bar and Dock regions.
      */
-    fullFrame: HSRect;
+    readonly fullFrame: HSRect;
 
     /**
      * The screen's top-left corner in global Hammerspoon coordinates.
      */
-    position: HSPoint;
+    readonly position: HSPoint;
 
     /**
      * The currently active display mode.
 An object with keys: `width`, `height`, `scale`, `frequency`.
      */
-    mode: Record<string, any>;
+    readonly mode: Record<string, any>;
 
     /**
      * All display modes supported by this screen.
 Each element has keys: `width`, `height`, `scale`, `frequency`.
      */
-    availableModes: Record<string, any>[];
+    readonly availableModes: Record<string, any>[];
 
     /**
      * The current screen rotation in degrees (0, 90, 180, or 270).
@@ -3802,17 +3802,17 @@ Returns an empty array if no subgroups exist for this group.
     /**
      * A unique identifier for this group object (UUID string).
      */
-    identifier: string;
+    readonly identifier: string;
 
     /**
      * The metadata attribute name by which results in this group are clustered.
      */
-    attribute: string;
+    readonly attribute: string;
 
     /**
      * The number of results contained in this group.
      */
-    count: number;
+    readonly count: number;
 
 }
 
@@ -3846,7 +3846,7 @@ to their string representation.
     /**
      * A unique identifier for this result object (UUID string).
      */
-    identifier: string;
+    readonly identifier: string;
 
 }
 
@@ -3956,23 +3956,23 @@ Returns an empty array if `setValueListAttributes()` was not called.
     /**
      * A unique identifier for this query object (UUID string).
      */
-    identifier: string;
+    readonly identifier: string;
 
     /**
      * The number of results gathered so far.
      */
-    count: number;
+    readonly count: number;
 
     /**
      * Whether the query is currently running (gathering or monitoring for live updates).
      */
-    isRunning: boolean;
+    readonly isRunning: boolean;
 
     /**
      * Whether the query is in the initial gathering phase.
 `true` from `"didStart"` until `"didFinish"`; `false` thereafter while live-monitoring.
      */
-    isGathering: boolean;
+    readonly isGathering: boolean;
 
 }
 
@@ -4025,12 +4025,12 @@ declare namespace hs.task {
     /**
      * Run multiple tasks in sequence. Swift-retained storage for the JS implementation.
      */
-    const sequence: ((...args: any[]) => any) | undefined;
+    let sequence: ((...args: any[]) => any) | undefined;
 
     /**
      * TaskBuilder class. Swift-retained storage for the JS implementation.
      */
-    const TaskBuilder: ((...args: any[]) => any) | undefined;
+    let TaskBuilder: ((...args: any[]) => any) | undefined;
 
 }
 
@@ -4088,12 +4088,12 @@ declare class HSTask {
     /**
      * Check if the task is currently running
      */
-    isRunning: boolean;
+    readonly isRunning: boolean;
 
     /**
      * The process ID of the running task
      */
-    pid: number;
+    readonly pid: number;
 
     /**
      * The environment variables for the task
@@ -4108,12 +4108,12 @@ declare class HSTask {
     /**
      * The termination status of the task
      */
-    terminationStatus: number | undefined;
+    readonly terminationStatus: number | undefined;
 
     /**
      * The termination reason
      */
-    terminationReason: string | undefined;
+    readonly terminationReason: string | undefined;
 
 }
 
@@ -4282,12 +4282,12 @@ declare class HSTimer {
     /**
      * The timer's interval in seconds
      */
-    interval: number;
+    readonly interval: number;
 
     /**
      * Whether the timer repeats
      */
-    repeats: boolean;
+    readonly repeats: boolean;
 
 }
 
@@ -4358,17 +4358,17 @@ declare class HSTranslationSession {
     /**
      * The Swift type name, for JavaScript introspection.
      */
-    typeName: string;
+    readonly typeName: string;
 
     /**
      * BCP-47 identifier of the source language (e.g. `"en"`).
      */
-    sourceLanguage: string;
+    readonly sourceLanguage: string;
 
     /**
      * BCP-47 identifier of the target language (e.g. `"fr"`).
      */
-    targetLanguage: string;
+    readonly targetLanguage: string;
 
 }
 
@@ -5297,23 +5297,23 @@ declare class HSWindow {
     /**
      * The window's title
      */
-    title: string | undefined;
+    readonly title: string | undefined;
 
     /**
      * The application that owns this window
      */
-    application: HSApplication | undefined;
+    readonly application: HSApplication | undefined;
 
     /**
      * The process ID of the application that owns this window
      */
-    pid: number;
+    readonly pid: number;
 
     /**
      * The window's underlying ID.
 A value of 0 or -1 likely means no window ID could be determined.
      */
-    id: number;
+    readonly id: number;
 
     /**
      * Whether the window is minimized
@@ -5323,12 +5323,12 @@ A value of 0 or -1 likely means no window ID could be determined.
     /**
      * Whether the window is visible (not minimized or hidden)
      */
-    isVisible: boolean;
+    readonly isVisible: boolean;
 
     /**
      * Whether the window is focused
      */
-    isFocused: boolean;
+    readonly isFocused: boolean;
 
     /**
      * Whether the window is fullscreen
@@ -5338,7 +5338,7 @@ A value of 0 or -1 likely means no window ID could be determined.
     /**
      * Whether the window is standard (has a titlebar)
      */
-    isStandard: boolean;
+    readonly isStandard: boolean;
 
     /**
      * The window's position on screen {x: Int, y: Int}
@@ -5358,7 +5358,7 @@ A value of 0 or -1 likely means no window ID could be determined.
     /**
      * The screen that contains the largest portion of this window.
      */
-    screen: HSScreen | undefined;
+    readonly screen: HSScreen | undefined;
 
 }
 

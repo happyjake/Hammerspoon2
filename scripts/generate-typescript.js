@@ -109,6 +109,13 @@ function extractPropertyType(signature) {
 }
 
 /**
+ * Returns true if the Swift property signature declares both get and set accessors
+ */
+function isWritableProperty(signature) {
+    return signature.includes('get set');
+}
+
+/**
  * Escape special characters in documentation
  */
 function escapeDocComment(text) {
@@ -168,8 +175,8 @@ function generateModuleDefinitions(moduleData) {
         output += `     */\n`;
 
         const propType = swiftTypeToTS(extractPropertyType(prop.signature));
-        // Properties are const in TypeScript (readonly)
-        output += `    const ${prop.name}: ${propType};\n\n`;
+        const keyword = isWritableProperty(prop.signature) ? 'let' : 'const';
+        output += `    ${keyword} ${prop.name}: ${propType};\n\n`;
     }
 
     output += `}\n\n`;
@@ -254,7 +261,8 @@ function generateTypeDefinition(protocol) {
             }
             output += `     */\n`;
             const propType = swiftTypeToTS(extractPropertyType(prop.signature));
-            output += `    ${prop.name}: ${propType};\n\n`;
+            const readonlyPrefix = isWritableProperty(prop.signature) ? '' : 'readonly ';
+            output += `    ${readonlyPrefix}${prop.name}: ${propType};\n\n`;
         }
 
         output += `}\n\n`;
@@ -290,7 +298,8 @@ function generateTypeDefinition(protocol) {
             }
             output += `     */\n`;
             const propType = swiftTypeToTS(extractPropertyType(prop.signature));
-            output += `    ${prop.name}: ${propType};\n\n`;
+            const readonlyPrefix = isWritableProperty(prop.signature) ? '' : 'readonly ';
+            output += `    ${readonlyPrefix}${prop.name}: ${propType};\n\n`;
         }
 
         // Methods
