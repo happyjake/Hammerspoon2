@@ -51,13 +51,41 @@ struct HSApplicationInstalledAppsContentTests {
 
     @Test("Result includes at least one standard system app (Calculator)")
     func testSystemAppPresent() {
-        // Finder lives at /System/Library/CoreServices and is intentionally not
-        // surfaced — that's a CoreServices helper, not a user-facing app under
-        // the standard roots. Calculator at /System/Applications is a good
-        // sentinel for "we found user-facing system apps".
         let h = makeHarness()
         h.eval("var apps = hs.application.installedApps()")
         h.expectTrue("apps.some(a => a.bundleID === 'com.apple.calculator')")
+        #expect(!h.hasException)
+    }
+
+    @Test("Safari is found despite living in the OS cryptex")
+    func testSafariPresent() {
+        // Since macOS 13 Safari's real bundle is in the cryptex
+        // (/System/Cryptexes/App/System/Applications) and the
+        // /Applications/Safari.app symlink carries the UF_HIDDEN flag, so a
+        // skipsHiddenFiles scan of /Applications alone misses it.
+        let h = makeHarness()
+        h.eval("var apps = hs.application.installedApps()")
+        h.expectTrue("apps.some(a => a.bundleID === 'com.apple.Safari')")
+        #expect(!h.hasException)
+    }
+
+    @Test("Finder is found")
+    func testFinderPresent() {
+        // Finder lives at /System/Library/CoreServices/Finder.app — outside
+        // every directory-shaped root, so it needs its own bundle root.
+        let h = makeHarness()
+        h.eval("var apps = hs.application.installedApps()")
+        h.expectTrue("apps.some(a => a.bundleID === 'com.apple.finder')")
+        #expect(!h.hasException)
+    }
+
+    @Test("CoreServices utilities (Keychain Access) are found")
+    func testCoreServicesUtilitiesPresent() {
+        // Keychain Access moved to /System/Library/CoreServices/Applications
+        // in macOS 13 — user-facing utilities live there now.
+        let h = makeHarness()
+        h.eval("var apps = hs.application.installedApps()")
+        h.expectTrue("apps.some(a => a.bundleID === 'com.apple.keychainaccess')")
         #expect(!h.hasException)
     }
 

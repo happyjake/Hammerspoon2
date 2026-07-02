@@ -144,7 +144,17 @@ import UniformTypeIdentifiers
     ///   2. ~/Applications
     ///   3. /System/Applications
     ///   4. /System/Applications/Utilities
-    ///   5. Any caller-supplied extra roots
+    ///   5. /System/Cryptexes/App/System/Applications (Safari — its
+    ///      /Applications symlink is flagged hidden, so it must be scanned
+    ///      at its real cryptex location)
+    ///   6. /System/Library/CoreServices/Applications (Keychain Access,
+    ///      Archive Utility, Directory Utility, …)
+    ///   7. /System/Library/CoreServices/Finder.app (Finder)
+    ///   8. Any caller-supplied extra roots
+    ///
+    /// A root may be a single `.app` bundle (like the Finder entry above), in
+    /// which case that bundle itself is the result — extra roots may use this
+    /// form too.
     ///
     /// Both bundle layouts are understood: regular macOS bundles
     /// (`Contents/Info.plist`) and the wrapper layout the App Store uses for
@@ -509,6 +519,17 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
             NSString(string: "~/Applications").expandingTildeInPath,
             "/System/Applications",
             "/System/Applications/Utilities",
+            // Safari's real bundle since macOS 13 — the /Applications/Safari.app
+            // symlink carries UF_HIDDEN, so the skipsHiddenFiles scan above
+            // never sees it. Finder merges the cryptex view; we must scan it.
+            "/System/Cryptexes/App/System/Applications",
+            // Keychain Access, Archive Utility, Directory Utility, … moved
+            // here in macOS 13.
+            "/System/Library/CoreServices/Applications",
+            // A root may be a single .app bundle. Finder has no sibling apps
+            // we'd want (Dock, loginwindow, …), so it's listed alone rather
+            // than scanning all of CoreServices.
+            "/System/Library/CoreServices/Finder.app",
         ]
         let allRoots = standardRoots + extras
 
@@ -586,6 +607,10 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
         let fm = FileManager.default
         guard fm.fileExists(atPath: root) else { return [] }
         let rootURL = URL(fileURLWithPath: root)
+        // A root that is itself a bundle (e.g. Finder.app) is the app.
+        if rootURL.pathExtension == "app" {
+            return [rootURL]
+        }
         var found: [URL] = []
         if let entries = try? fm.contentsOfDirectory(at: rootURL, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) {
             for entry in entries {

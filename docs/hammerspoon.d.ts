@@ -640,7 +640,16 @@ deleted), so changes are visible on the next call. Call
 2. ~/Applications
 3. /System/Applications
 4. /System/Applications/Utilities
-5. Any caller-supplied extra roots
+5. /System/Cryptexes/App/System/Applications (Safari — its
+/Applications symlink is flagged hidden, so it must be scanned
+at its real cryptex location)
+6. /System/Library/CoreServices/Applications (Keychain Access,
+Archive Utility, Directory Utility, …)
+7. /System/Library/CoreServices/Finder.app (Finder)
+8. Any caller-supplied extra roots
+A root may be a single `.app` bundle (like the Finder entry above), in
+which case that bundle itself is the result — extra roots may use this
+form too.
 Both bundle layouts are understood: regular macOS bundles
 (`Contents/Info.plist`) and the wrapper layout the App Store uses for
 iPhone/iPad apps on Apple silicon (`Foo.app/Wrapper/<Inner>.app/`).
