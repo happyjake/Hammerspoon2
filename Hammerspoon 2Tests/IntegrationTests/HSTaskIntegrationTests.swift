@@ -13,7 +13,7 @@ import JavaScriptCore
 ///
 /// These tests verify task creation, process execution, callbacks, and JavaScript enhancements.
 /// Tests use real system commands (/bin/echo, /bin/sh, etc.) to verify actual process behavior.
-@Suite(.serialized) struct HSTaskIntegrationTests {
+@Suite("hs.task tests", .serialized) struct HSTaskIntegrationTests {
 
     // MARK: - Test Lifecycle
 

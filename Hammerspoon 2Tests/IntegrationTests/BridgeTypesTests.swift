@@ -14,6 +14,7 @@ import CoreGraphics
 ///
 /// These types allow JavaScript code to work with CoreGraphics types
 /// in a JavaScript-friendly way.
+@Suite("Bridged type tests")
 struct BridgeTypesTests {
 
     // MARK: - HSPoint Tests

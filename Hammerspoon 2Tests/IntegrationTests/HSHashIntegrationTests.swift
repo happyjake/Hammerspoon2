@@ -13,6 +13,7 @@ import JavaScriptCore
 ///
 /// These tests verify that the hash module works correctly when called from JavaScript,
 /// including proper type conversion, error handling, and JavaScript bridging.
+@Suite("hs.hash tests")
 struct HSHashIntegrationTests {
 
     // MARK: - Base64 Encoding Tests

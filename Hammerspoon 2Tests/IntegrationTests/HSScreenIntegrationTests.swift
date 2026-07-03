@@ -13,7 +13,8 @@ import JavaScriptCore
 /// are attached at test time.  Display-configuration mutations (setMode,
 /// setOrigin, setPrimary, mirrorOf, mirrorStop) are intentionally **not**
 /// tested here to avoid disrupting the developer's desktop during a test run.
-@Suite(.serialized) struct HSScreenIntegrationTests {
+@Suite("hs.screen tests", .serialized)
+struct HSScreenIntegrationTests {
 
     init() async {
         await JSTestHarness.drainMainActorQueue()

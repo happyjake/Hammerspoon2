@@ -52,6 +52,7 @@ private final class TempDir {
 /// Each test creates its own isolated temporary directory so tests remain
 /// independent regardless of execution order.
 @MainActor
+@Suite("hs.fs tests")
 struct HSFSIntegrationTests {
     // MARK: - File I/O
 

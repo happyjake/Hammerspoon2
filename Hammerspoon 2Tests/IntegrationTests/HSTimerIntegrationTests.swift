@@ -13,6 +13,7 @@ import JavaScriptCore
 ///
 /// These tests verify async timer behavior, callback execution, and JavaScript enhancements.
 /// Timer tests are inherently time-dependent, so we use short delays to keep tests fast.
+@Suite("hs.timer tests")
 struct HSTimerIntegrationTests {
 
     // MARK: - Basic Timer Creation Tests
