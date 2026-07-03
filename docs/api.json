@@ -6818,7 +6818,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSWebSocketConnection.swift",
-              "lineNumber": 40
+              "lineNumber": 41
             },
             {
               "name": "close",
@@ -6836,7 +6836,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSWebSocketConnection.swift",
-              "lineNumber": 50
+              "lineNumber": 51
             },
             {
               "name": "destroy",
@@ -6854,7 +6854,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSWebSocketConnection.swift",
-              "lineNumber": 58
+              "lineNumber": 59
             }
           ],
           "properties": [
@@ -6867,7 +6867,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSWebSocketConnection.swift",
-              "lineNumber": 29
+              "lineNumber": 30
             }
           ]
         }
@@ -15453,5 +15453,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-03T22:43:15.699Z"
+  "generatedAt": "2026-07-03T22:49:25.684Z"
 }

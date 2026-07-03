@@ -678,9 +678,21 @@ struct ParsedHTTPRequest {
                     buf = Data(buf.dropFirst(consumed))
 
                     switch frame.opcode {
+                    case 0x00:  // continuation frame
+                        wsConn.fragmentBuffer.append(frame.payload)
+                        if frame.isFinal {
+                            let text = String(data: wsConn.fragmentBuffer, encoding: .utf8) ?? ""
+                            wsConn.fragmentBuffer = Data()
+                            _ = self._wsCallbacks[path]?.value?.call(withArguments: ["message", wsConn, text])
+                        }
                     case 0x01, 0x02:  // text or binary frame
-                        let text = String(data: frame.payload, encoding: .utf8) ?? ""
-                        _ = self._wsCallbacks[path]?.value?.call(withArguments: ["message", wsConn, text])
+                        if frame.isFinal {
+                            let text = String(data: frame.payload, encoding: .utf8) ?? ""
+                            _ = self._wsCallbacks[path]?.value?.call(withArguments: ["message", wsConn, text])
+                        } else {
+                            wsConn.fragmentOpcode = frame.opcode
+                            wsConn.fragmentBuffer = frame.payload
+                        }
                     case 0x08:  // close frame
                         wsConn.isClosed = true
                         _ = self._wsCallbacks[path]?.value?.call(withArguments: ["closed", wsConn, ""])

@@ -8,6 +8,7 @@
 
 import Testing
 import JavaScriptCore
+import Network
 @testable import Hammerspoon_2
 
 @Suite("hs.http/hs.httpserver tests")
@@ -219,6 +220,7 @@ struct HSHTTPTests {
             let result = HSWebSocketConnection.parseNextFrame(from: data)
             #expect(result != nil)
             #expect(result?.frame.opcode == 0x01)
+            #expect(result?.frame.isFinal == true)
             #expect(result?.consumed == 7)
             let text = String(data: result!.frame.payload, encoding: .utf8)
             #expect(text == "Hello")
@@ -235,8 +237,22 @@ struct HSHTTPTests {
             data.append(contentsOf: masked)
             let result = HSWebSocketConnection.parseNextFrame(from: data)
             #expect(result != nil)
+            #expect(result?.frame.isFinal == true)
             let text = String(data: result!.frame.payload, encoding: .utf8)
             #expect(text == "test")
+        }
+
+        @Test("parseNextFrame reports FIN=0 for a continuation/first fragment frame")
+        func testFragmentFrame() {
+            // FIN=0 opcode=1 (first text fragment), MASK=0 length=5, payload "Hello"
+            var data = Data([0x01, 0x05])   // byte0: FIN=0, opcode=1
+            data.append(contentsOf: "Hello".utf8)
+            let result = HSWebSocketConnection.parseNextFrame(from: data)
+            #expect(result != nil)
+            #expect(result?.frame.opcode == 0x01)
+            #expect(result?.frame.isFinal == false)
+            let text = String(data: result!.frame.payload, encoding: .utf8)
+            #expect(text == "Hello")
         }
 
         @Test("parseNextFrame returns nil when buffer is incomplete")
@@ -619,7 +635,72 @@ struct HSHTTPTests {
             #expect(ok, "WebSocket client should receive echoed message from server")
         }
 
-        @Test("WebSocket server fires connected and closed events")
+        @Test("server reassembles WebSocket message sent as two fragments")
+    func testWebSocketFragmentedMessage() async {
+        let h = makeHarness()
+        var gotFragmented = false
+
+        h.eval("""
+            var server = hs.httpserver.create()
+                .setPort(0)
+                .setWebSocketCallback('/ws', (event, conn, msg) => {
+                    if (event === 'message' && msg === 'Hello, World!') __test_callback('gotfragmented')
+                })
+                .start()
+        """)
+        h.registerCallback("gotfragmented") { gotFragmented = true }
+
+        let portReady = await h.waitForAsync(timeout: 2.0) {
+            (h.eval("server.getPort()") as? Int ?? 0) > 0
+        }
+        guard portReady else { h.eval("server.stop()"); return }
+        let port = h.eval("server.getPort()") as? Int ?? 0
+
+        // Open a raw TCP connection and perform the WebSocket handshake manually so we can
+        // send frames with FIN=0 — URLSessionWebSocketTask always sends FIN=1 and can't be used.
+        let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: UInt16(port))!)
+        let conn = NWConnection(to: endpoint, using: .tcp)
+        var connState: NWConnection.State = .setup
+        conn.stateUpdateHandler = { state in MainActor.assumeIsolated { connState = state } }
+        conn.start(queue: .main)
+
+        let tcpReady = await h.waitForAsync(timeout: 2.0) {
+            if case .ready = connState { return true }; return false
+        }
+        guard tcpReady else { conn.cancel(); h.eval("server.stop()"); return }
+
+        let upgradeRequest = "GET /ws HTTP/1.1\r\nHost: 127.0.0.1:\(port)\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGVzdGtleWhlcmU=\r\nSec-WebSocket-Version: 13\r\n\r\n"
+        conn.send(content: Data(upgradeRequest.utf8), completion: .idempotent)
+
+        var httpResponse = Data()
+        conn.receive(minimumIncompleteLength: 1, maximumLength: 1024) { data, _, _, _ in
+            MainActor.assumeIsolated { if let data { httpResponse.append(data) } }
+        }
+        let got101 = await h.waitForAsync(timeout: 2.0) {
+            String(data: httpResponse, encoding: .utf8)?.contains("101") == true
+        }
+        guard got101 else { conn.cancel(); h.eval("server.stop()"); return }
+
+        // Build masked frames: FIN=0 text "Hello, " then FIN=1 continuation "World!".
+        func maskedFrame(opcode: UInt8, fin: Bool, text: String) -> Data {
+            let mask: [UInt8] = [0x37, 0xFA, 0x21, 0x3D]
+            let payload = Array(text.utf8)
+            var frame = Data([UInt8((fin ? 0x80 : 0x00) | Int(opcode & 0x0F)), UInt8(0x80 | payload.count)])
+            frame.append(contentsOf: mask)
+            frame.append(contentsOf: payload.enumerated().map { $0.element ^ mask[$0.offset % 4] })
+            return frame
+        }
+        var fragmented = maskedFrame(opcode: 0x01, fin: false, text: "Hello, ")
+        fragmented.append(maskedFrame(opcode: 0x00, fin: true, text: "World!"))
+        conn.send(content: fragmented, completion: .idempotent)
+
+        let ok = await h.waitForAsync(timeout: 3.0) { gotFragmented }
+        conn.cancel()
+        h.eval("server.stop()")
+        #expect(ok, "Server should reassemble two fragments into 'Hello, World!'")
+    }
+
+    @Test("WebSocket server fires connected and closed events")
         func testWebSocketConnectedClosedEvents() async {
             let h = makeHarness()
             var gotConnected = false

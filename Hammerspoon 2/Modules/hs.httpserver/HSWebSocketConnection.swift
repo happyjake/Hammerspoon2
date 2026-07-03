@@ -11,6 +11,7 @@ import CryptoKit
 
 struct ParsedWebSocketFrame {
     let opcode: UInt8
+    let isFinal: Bool
     let payload: Data
 }
 
@@ -70,6 +71,9 @@ struct ParsedWebSocketFrame {
     // this object, even after the server removes it from its own tracking dictionary.
     var connection: NWConnection?
     var isClosed = false
+    // Fragmentation state: accumulated payload and opcode of the opening frame.
+    var fragmentBuffer = Data()
+    var fragmentOpcode: UInt8 = 0
 
     init(connection: NWConnection) {
         self.connection = connection
@@ -149,6 +153,7 @@ extension HSWebSocketConnection {
         let byte1 = buffer[1]
 
         let opcode = byte0 & 0x0F
+        let isFinal = (byte0 & 0x80) != 0
         let isMasked = (byte1 & 0x80) != 0
         var payloadLength = Int(byte1 & 0x7F)
         var headerBytes = 2
@@ -179,6 +184,6 @@ extension HSWebSocketConnection {
             for i in 0..<payload.count { payload[i] ^= maskKey[i % 4] }
         }
 
-        return (ParsedWebSocketFrame(opcode: opcode, payload: payload), totalBytes)
+        return (ParsedWebSocketFrame(opcode: opcode, isFinal: isFinal, payload: payload), totalBytes)
     }
 }
