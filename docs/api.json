@@ -167,6 +167,7 @@
           "signature": "var appName: String { get }",
           "rawDocumentation": "The application's internal name (e.g., \"Hammerspoon 2\")\n- Example:\n```js\nconsole.log(hs.appinfo.appName)\n```",
           "description": "The application's internal name (e.g., \"Hammerspoon 2\")",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -182,6 +183,7 @@
           "signature": "var displayName: String { get }",
           "rawDocumentation": "The application's display name shown to users\n- Example:\n```js\nconsole.log(hs.appinfo.displayName)\n```",
           "description": "The application's display name shown to users",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -197,6 +199,7 @@
           "signature": "var version: String { get }",
           "rawDocumentation": "The application's version string (e.g., \"2.0.0\")\n- Example:\n```js\nconsole.log(hs.appinfo.version)\n```",
           "description": "The application's version string (e.g., \"2.0.0\")",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -212,6 +215,7 @@
           "signature": "var build: String { get }",
           "rawDocumentation": "The application's build number\n- Example:\n```js\nconsole.log(hs.appinfo.build)\n```",
           "description": "The application's build number",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -227,6 +231,7 @@
           "signature": "var minimumOSVersion: String { get }",
           "rawDocumentation": "The minimum macOS version required to run this application\n- Example:\n```js\nconsole.log(hs.appinfo.minimumOSVersion)\n```",
           "description": "The minimum macOS version required to run this application",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -242,6 +247,7 @@
           "signature": "var copyrightNotice: String { get }",
           "rawDocumentation": "The copyright notice for this application\n- Example:\n```js\nconsole.log(hs.appinfo.copyrightNotice)\n```",
           "description": "The copyright notice for this application",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -257,6 +263,7 @@
           "signature": "var bundleIdentifier: String { get }",
           "rawDocumentation": "The application's bundle identifier (e.g., \"com.hammerspoon.Hammerspoon-2\")\n- Example:\n```js\nconsole.log(hs.appinfo.bundleIdentifier)\n```",
           "description": "The application's bundle identifier (e.g., \"com.hammerspoon.Hammerspoon-2\")",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -272,6 +279,7 @@
           "signature": "var bundlePath: String { get }",
           "rawDocumentation": "The filesystem path to the application bundle\n- Example:\n```js\nconsole.log(hs.appinfo.bundlePath)\n```",
           "description": "The filesystem path to the application bundle",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -287,6 +295,7 @@
           "signature": "var resourcePath: String { get }",
           "rawDocumentation": "The filesystem path to the application's resource directory\n- Example:\n```js\nconsole.log(hs.appinfo.resourcePath)\n```",
           "description": "The filesystem path to the application's resource directory",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -302,6 +311,7 @@
           "signature": "var configPath: String { get }",
           "rawDocumentation": "The filesystem path to the main Hammerspoon 2 configuration file\n- Example:\n```js\nconsole.log(hs.appinfo.configPath)\n```",
           "description": "The filesystem path to the main Hammerspoon 2 configuration file",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -317,6 +327,7 @@
           "signature": "var configDir: String { get }",
           "rawDocumentation": "The filesystem path to the directory Hammerspoon 2 loaded its config from\n- Example:\n```js\nconsole.log(hs.appinfo.configDir)\n```",
           "description": "The filesystem path to the directory Hammerspoon 2 loaded its config from",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -1019,6 +1030,7 @@
               "signature": "var pid: Int { get }",
               "rawDocumentation": "POSIX Process Identifier\n- Example:\n```js\nconst app = hs.application.frontmost()\nconsole.log(app.pid)\n```",
               "description": "POSIX Process Identifier",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1034,6 +1046,7 @@
               "signature": "var bundleID: String? { get }",
               "rawDocumentation": "Bundle Identifier (e.g. com.apple.Safari)\n- Example:\n```js\nconst app = hs.application.frontmost()\nconsole.log(app.bundleID)\n```",
               "description": "Bundle Identifier (e.g. com.apple.Safari)",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1049,6 +1062,7 @@
               "signature": "var title: String? { get }",
               "rawDocumentation": "The application's title\n- Example:\n```js\nconst app = hs.application.frontmost()\nconsole.log(app.title)\n```",
               "description": "The application's title",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1064,6 +1078,7 @@
               "signature": "var bundlePath: String? { get }",
               "rawDocumentation": "Location of the application on disk\n- Example:\n```js\nconst app = hs.application.frontmost()\nconsole.log(app.bundlePath)\n```",
               "description": "Location of the application on disk",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1079,6 +1094,7 @@
               "signature": "var isHidden: Bool { get set }",
               "rawDocumentation": "Is the application hidden\n- Example:\n```js\nconst app = hs.application.matchingName(\"Safari\")\napp.isHidden = true\n```",
               "description": "Is the application hidden",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1094,6 +1110,7 @@
               "signature": "var isActive: Bool { get }",
               "rawDocumentation": "Is the application focused\n- Example:\n```js\nconst app = hs.application.frontmost()\nconsole.log(app.isActive)\n```",
               "description": "Is the application focused",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1109,6 +1126,7 @@
               "signature": "var mainWindow: HSWindow? { get }",
               "rawDocumentation": "The main window of this application, or nil if there is no main window\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst win = app.mainWindow\n```",
               "description": "The main window of this application, or nil if there is no main window",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1124,6 +1142,7 @@
               "signature": "var focusedWindow: HSWindow? { get }",
               "rawDocumentation": "The focused window of this application, or nil if there is no focused window\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst win = app.focusedWindow\n```",
               "description": "The focused window of this application, or nil if there is no focused window",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1139,6 +1158,7 @@
               "signature": "var allWindows: [HSWindow] { get }",
               "rawDocumentation": "All windows of this application\n- Example:\n```js\nconst app = hs.application.frontmost()\napp.allWindows.forEach(w => console.log(w.title))\n```",
               "description": "All windows of this application",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1154,6 +1174,7 @@
               "signature": "var visibleWindows: [HSWindow] { get }",
               "rawDocumentation": "All visible (ie non-hidden) windows of this application\n- Example:\n```js\nconst app = hs.application.frontmost()\nconsole.log(app.visibleWindows.length)\n```",
               "description": "All visible (ie non-hidden) windows of this application",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1169,6 +1190,7 @@
               "signature": "var isRunning: Bool { get }",
               "rawDocumentation": "Whether the application process is still running\n- Returns: true if the application is running, false if it has terminated\n- Example:\n```js\nconst app = hs.application.matchingName(\"Calculator\")\napp.kill()\nconsole.log(app.isRunning)\n```",
               "description": "Whether the application process is still running",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1184,6 +1206,7 @@
               "signature": "var kind: String { get }",
               "rawDocumentation": "The kind of application: \"standard\" (regular dock app), \"accessory\" (no dock), or \"background\" (agent)\n- Example:\n```js\nconst app = hs.application.frontmost()\nconsole.log(app.kind)\n```",
               "description": "The kind of application: \"standard\" (regular dock app), \"accessory\" (no dock), or \"background\" (agent)",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1724,6 +1747,7 @@
               "signature": "var id: Int { get }",
               "rawDocumentation": "The CoreAudio object ID of this device.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.id)\n```",
               "description": "The CoreAudio object ID of this device.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1739,6 +1763,7 @@
               "signature": "var name: String { get }",
               "rawDocumentation": "The human-readable name of this device (e.g. `\"Built-in Output\"`).\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.name)\n```",
               "description": "The human-readable name of this device (e.g. `\"Built-in Output\"`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1754,6 +1779,7 @@
               "signature": "var uid: String { get }",
               "rawDocumentation": "The persistent unique identifier for this device.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.uid)\n```",
               "description": "The persistent unique identifier for this device.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1769,6 +1795,7 @@
               "signature": "var isOutput: Bool { get }",
               "rawDocumentation": "Whether this device has output streams (can play audio).\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.isOutput)\n```",
               "description": "Whether this device has output streams (can play audio).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1784,6 +1811,7 @@
               "signature": "var isInput: Bool { get }",
               "rawDocumentation": "Whether this device has input streams (can record audio).\n- Example:\n```js\nconst dev = hs.audiodevice.defaultInputDevice()\nconsole.log(dev.isInput)\n```",
               "description": "Whether this device has input streams (can record audio).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1799,6 +1827,7 @@
               "signature": "var transportType: String { get }",
               "rawDocumentation": "The transport mechanism: `\"built-in\"`, `\"usb\"`, `\"bluetooth\"`, `\"bluetooth-le\"`,\n`\"hdmi\"`, `\"display-port\"`, `\"firewire\"`, `\"airplay\"`, `\"avb\"`,\n`\"thunderbolt\"`, `\"virtual\"`, `\"aggregate\"`, `\"pci\"`, or `\"unknown\"`.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.transportType)\n```",
               "description": "The transport mechanism: `\"built-in\"`, `\"usb\"`, `\"bluetooth\"`, `\"bluetooth-le\"`,\n`\"hdmi\"`, `\"display-port\"`, `\"firewire\"`, `\"airplay\"`, `\"avb\"`,\n`\"thunderbolt\"`, `\"virtual\"`, `\"aggregate\"`, `\"pci\"`, or `\"unknown\"`.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1814,6 +1843,7 @@
               "signature": "var outputChannels: Int { get }",
               "rawDocumentation": "Number of output channels, or 0 if the device has no output.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.outputChannels)\n```",
               "description": "Number of output channels, or 0 if the device has no output.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1829,6 +1859,7 @@
               "signature": "var inputChannels: Int { get }",
               "rawDocumentation": "Number of input channels, or 0 if the device has no input.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultInputDevice()\nconsole.log(dev.inputChannels)\n```",
               "description": "Number of input channels, or 0 if the device has no input.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1844,6 +1875,7 @@
               "signature": "var volume: number? { get set }",
               "rawDocumentation": "Output volume scalar in the range `0.0`–`1.0`, or `null` if the device has\nno controllable output volume. Setting `null` is a no-op.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\ndev.volume = 0.5\n```",
               "description": "Output volume scalar in the range `0.0`–`1.0`, or `null` if the device has\nno controllable output volume. Setting `null` is a no-op.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1859,6 +1891,7 @@
               "signature": "var muted: Bool { get set }",
               "rawDocumentation": "Whether output is muted. Always `false` if the device has no mutable output.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\ndev.muted = true\n```",
               "description": "Whether output is muted. Always `false` if the device has no mutable output.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1874,6 +1907,7 @@
               "signature": "var balance: number? { get set }",
               "rawDocumentation": "Output stereo balance in the range `0.0` (full left)–`1.0` (full right),\nor `null` if balance control is not available.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\ndev.balance = 0.5\n```",
               "description": "Output stereo balance in the range `0.0` (full left)–`1.0` (full right),\nor `null` if balance control is not available.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1889,6 +1923,7 @@
               "signature": "var inputVolume: number? { get set }",
               "rawDocumentation": "Input (microphone) volume scalar in the range `0.0`–`1.0`, or `null` if\nthe device has no controllable input volume.\n- Example:\n```js\nconst mic = hs.audiodevice.defaultInputDevice()\nmic.inputVolume = 0.8\n```",
               "description": "Input (microphone) volume scalar in the range `0.0`–`1.0`, or `null` if\nthe device has no controllable input volume.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1904,6 +1939,7 @@
               "signature": "var inputMuted: Bool { get set }",
               "rawDocumentation": "Whether input is muted. Always `false` if the device has no mutable input.\n- Example:\n```js\nconst mic = hs.audiodevice.defaultInputDevice()\nmic.inputMuted = true\n```",
               "description": "Whether input is muted. Always `false` if the device has no mutable input.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1919,6 +1955,7 @@
               "signature": "var sampleRate: number? { get set }",
               "rawDocumentation": "The current nominal sample rate in Hz (e.g. `44100`), or `null` if unknown.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.sampleRate)\n```",
               "description": "The current nominal sample rate in Hz (e.g. `44100`), or `null` if unknown.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -1934,6 +1971,7 @@
               "signature": "var availableSampleRates: [number] { get }",
               "rawDocumentation": "All sample rates (in Hz) that this device supports.\nFor devices that support a range, both the minimum and maximum are included.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.availableSampleRates)\n```",
               "description": "All sample rates (in Hz) that this device supports.\nFor devices that support a range, both the minimum and maximum are included.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2264,6 +2302,7 @@
           "signature": "var notificationTypes: [String: String] { get }",
           "rawDocumentation": "A dictionary containing all of the notification types that can be used with hs.ax.addWatcher()\n- Example:\n```js\nconsole.log(Object.keys(hs.ax.notificationTypes))\n```",
           "description": "A dictionary containing all of the notification types that can be used with hs.ax.addWatcher()",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -2504,6 +2543,7 @@
               "signature": "var role: String? { get }",
               "rawDocumentation": "The element's role (e.g., \"AXWindow\", \"AXButton\")\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.role)\n```",
               "description": "The element's role (e.g., \"AXWindow\", \"AXButton\")",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2519,6 +2559,7 @@
               "signature": "var subrole: String? { get }",
               "rawDocumentation": "The element's subrole\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.subrole)\n```",
               "description": "The element's subrole",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2534,6 +2575,7 @@
               "signature": "var title: String? { get }",
               "rawDocumentation": "The element's title\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.title)\n```",
               "description": "The element's title",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2549,6 +2591,7 @@
               "signature": "var value: Any? { get }",
               "rawDocumentation": "The element's value\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.value)\n```",
               "description": "The element's value",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2564,6 +2607,7 @@
               "signature": "var elementDescription: String? { get }",
               "rawDocumentation": "The element's description\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.elementDescription)\n```",
               "description": "The element's description",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2579,6 +2623,7 @@
               "signature": "var isEnabled: Bool { get }",
               "rawDocumentation": "Whether the element is enabled\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.isEnabled)\n```",
               "description": "Whether the element is enabled",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2594,6 +2639,7 @@
               "signature": "var isFocused: Bool { get set }",
               "rawDocumentation": "Whether the element is focused\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nel.isFocused = true\n```",
               "description": "Whether the element is focused",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2609,6 +2655,7 @@
               "signature": "var position: HSPoint? { get set }",
               "rawDocumentation": "The element's position on screen\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.position)\n```",
               "description": "The element's position on screen",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2624,6 +2671,7 @@
               "signature": "var size: HSSize? { get set }",
               "rawDocumentation": "The element's size\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.size)\n```",
               "description": "The element's size",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2639,6 +2687,7 @@
               "signature": "var frame: HSRect? { get set }",
               "rawDocumentation": "The element's frame (position and size combined)\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.frame)\n```",
               "description": "The element's frame (position and size combined)",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2654,6 +2703,7 @@
               "signature": "var parent: HSAXElement? { get }",
               "rawDocumentation": "The element's parent\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.parent && el.parent.role)\n```",
               "description": "The element's parent",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2669,6 +2719,7 @@
               "signature": "var pid: Int { get }",
               "rawDocumentation": "Get the process ID of the application that owns this element\n- Example:\n```js\nconst el = hs.ax.focusedElement()\nconsole.log(el.pid)\n```",
               "description": "Get the process ID of the application that owns this element",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -2859,6 +2910,7 @@
           "signature": "var serviceTypes: [String: String] { get }",
           "rawDocumentation": "A frozen object mapping short service-type names to their mDNS strings.\n\nPopulated by the JavaScript enhancement layer.\n- Example:\n```js\nconsole.log(hs.bonjour.serviceTypes.ssh)  // \"_ssh._tcp.\"\n```",
           "description": "A frozen object mapping short service-type names to their mDNS strings.\nPopulated by the JavaScript enhancement layer.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -3006,6 +3058,7 @@
               "signature": "var identifier: String { get }",
               "rawDocumentation": "A unique identifier for this search object.\n- Example:\n```js\nconsole.log(hs.bonjour.newSearch().identifier)\n```",
               "description": "A unique identifier for this search object.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3021,6 +3074,7 @@
               "signature": "var includesPeerToPeer: Bool { get set }",
               "rawDocumentation": "Whether to search over peer-to-peer Bluetooth/Wi-Fi in addition to\nstandard network interfaces. Defaults to `false`.\n- Example:\n```js\nsearch.includesPeerToPeer = true\n```",
               "description": "Whether to search over peer-to-peer Bluetooth/Wi-Fi in addition to\nstandard network interfaces. Defaults to `false`.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3153,6 +3207,7 @@
               "signature": "var identifier: String { get }",
               "rawDocumentation": "A unique identifier assigned to this service object.\n- Example:\n```js\nconsole.log(service.identifier)\n```",
               "description": "A unique identifier assigned to this service object.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3168,6 +3223,7 @@
               "signature": "var name: String { get }",
               "rawDocumentation": "The service name (e.g. `\"My Web Server\"`).\n- Example:\n```js\nconsole.log(service.name)\n```",
               "description": "The service name (e.g. `\"My Web Server\"`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3183,6 +3239,7 @@
               "signature": "var type: String { get }",
               "rawDocumentation": "The service type string (e.g. `\"_http._tcp.\"`).\n- Example:\n```js\nconsole.log(service.type)\n```",
               "description": "The service type string (e.g. `\"_http._tcp.\"`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3198,6 +3255,7 @@
               "signature": "var domain: String { get }",
               "rawDocumentation": "The mDNS domain (almost always `\"local.\"`).\n- Example:\n```js\nconsole.log(service.domain)\n```",
               "description": "The mDNS domain (almost always `\"local.\"`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3213,6 +3271,7 @@
               "signature": "var hostname: String? { get }",
               "rawDocumentation": "The resolved hostname, or `null` before `resolve()` completes.\n- Example:\n```js\nservice.resolve(5, ev => {\n    if (ev === 'resolved') console.log(service.hostname)\n})\n```",
               "description": "The resolved hostname, or `null` before `resolve()` completes.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3228,6 +3287,7 @@
               "signature": "var port: Int { get }",
               "rawDocumentation": "The service port. `-1` until `resolve()` completes.\n- Example:\n```js\nconsole.log(service.port)\n```",
               "description": "The service port. `-1` until `resolve()` completes.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3243,6 +3303,7 @@
               "signature": "var addresses: [String] { get }",
               "rawDocumentation": "IP address strings (IPv4 and/or IPv6) populated after `resolve()` completes.\n- Example:\n```js\nservice.resolve(5, ev => {\n    if (ev === 'resolved') console.log(service.addresses)\n})\n```",
               "description": "IP address strings (IPv4 and/or IPv6) populated after `resolve()` completes.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3258,6 +3319,7 @@
               "signature": "var txtRecord: [String: String]? { get }",
               "rawDocumentation": "The TXT record as a `{key: value}` object, or `null` if none is available.\nPopulated after `resolve()` completes or when updated via `monitor()`.\n- Example:\n```js\nconsole.log(service.txtRecord)\n```",
               "description": "The TXT record as a `{key: value}` object, or `null` if none is available.\nPopulated after `resolve()` completes or when updated via `monitor()`.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3273,6 +3335,7 @@
               "signature": "var includesPeerToPeer: Bool { get set }",
               "rawDocumentation": "Whether peer-to-peer Bluetooth/Wi-Fi is included in resolution.\n- Example:\n```js\nservice.includesPeerToPeer = true\n```",
               "description": "Whether peer-to-peer Bluetooth/Wi-Fi is included in resolution.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3525,6 +3588,7 @@
               "signature": "var typeName: String { get }",
               "rawDocumentation": "The type name for JavaScript introspection. Always `\"HSCamera\"`.",
               "description": "The type name for JavaScript introspection. Always `\"HSCamera\"`.",
+              "tsType": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.camera/HSCamera.swift",
@@ -3535,6 +3599,7 @@
               "signature": "var uid: String { get }",
               "rawDocumentation": "The persistent unique identifier for this camera.\n- Example:\n```js\nconsole.log(hs.camera.all()[0].uid)\n```",
               "description": "The persistent unique identifier for this camera.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3550,6 +3615,7 @@
               "signature": "var name: String { get }",
               "rawDocumentation": "The human-readable name of this camera (e.g. `\"FaceTime HD Camera\"`).\n- Example:\n```js\nconsole.log(hs.camera.all()[0].name)\n```",
               "description": "The human-readable name of this camera (e.g. `\"FaceTime HD Camera\"`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3565,6 +3631,7 @@
               "signature": "var isInUse: Bool { get }",
               "rawDocumentation": "Whether this camera is currently being used by any application.\n\nQueries the underlying CoreMediaIO device state each time it is read.\n- Example:\n```js\nif (hs.camera.all()[0].isInUse) console.log(\"Camera is busy\")\n```",
               "description": "Whether this camera is currently being used by any application.\nQueries the underlying CoreMediaIO device state each time it is read.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3771,6 +3838,7 @@
               "signature": "var typeName: String { get }",
               "rawDocumentation": "Read-only type identifier.",
               "description": "Read-only type identifier.",
+              "tsType": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
@@ -3781,6 +3849,7 @@
               "signature": "var identifier: String { get }",
               "rawDocumentation": "Stable UUID string for this chooser instance.",
               "description": "Stable UUID string for this chooser instance.",
+              "tsType": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.chooser/HSChooser.swift",
@@ -3791,6 +3860,7 @@
               "signature": "var query: String { get set }",
               "rawDocumentation": "The current text in the search field. Setting this from JS updates the display but\ndoes not invoke the `onQueryChange` callback.\n- Example:\n```js\nchooser.query = \"he\"\n```",
               "description": "The current text in the search field. Setting this from JS updates the display but\ndoes not invoke the `onQueryChange` callback.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3806,6 +3876,7 @@
               "signature": "var placeholder: String { get set }",
               "rawDocumentation": "Placeholder text shown in the empty search field (default: `\"Search...\"`).\n- Example:\n```js\nchooser.placeholder = \"Type to search...\"\n```",
               "description": "Placeholder text shown in the empty search field (default: `\"Search...\"`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3821,6 +3892,7 @@
               "signature": "var searchSubText: Bool { get set }",
               "rawDocumentation": "Whether searches match against `subText` in addition to `text` (default: `false`).\nOnly applies when a static choices array is provided.\n- Example:\n```js\nchooser.searchSubText = true\n```",
               "description": "Whether searches match against `subText` in addition to `text` (default: `false`).\nOnly applies when a static choices array is provided.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3836,6 +3908,7 @@
               "signature": "var enableDefaultForQuery: Bool { get set }",
               "rawDocumentation": "When `true` and the query is non-empty but there are no matching choices, `onSelect`\nis called with `{ text: <query> }` instead of `null` (default: `false`).\n- Example:\n```js\nchooser.enableDefaultForQuery = true\n```",
               "description": "When `true` and the query is non-empty but there are no matching choices, `onSelect`\nis called with `{ text: <query> }` instead of `null` (default: `false`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3851,6 +3924,7 @@
               "signature": "var selectedRow: Int { get set }",
               "rawDocumentation": "The zero-based index of the currently highlighted row (-1 when empty).\n- Example:\n```js\nchooser.selectedRow = 0\n```",
               "description": "The zero-based index of the currently highlighted row (-1 when empty).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3866,6 +3940,7 @@
               "signature": "var width: Double { get set }",
               "rawDocumentation": "Width of the chooser as a fraction of the screen width (default: `0.5` = 50 %).\n- Example:\n```js\nchooser.width = 0.4\n```",
               "description": "Width of the chooser as a fraction of the screen width (default: `0.5` = 50 %).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3881,6 +3956,7 @@
               "signature": "var visibleRows: Int { get set }",
               "rawDocumentation": "Maximum number of rows visible at once without scrolling (default: `10`).\n- Example:\n```js\nchooser.visibleRows = 8\n```",
               "description": "Maximum number of rows visible at once without scrolling (default: `10`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3896,6 +3972,7 @@
               "signature": "var isVisible: Bool { get }",
               "rawDocumentation": "`true` if the chooser panel is currently on screen.\n- Example:\n```js\nif (!chooser.isVisible) chooser.show()\n```",
               "description": "`true` if the chooser panel is currently on screen.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3911,6 +3988,7 @@
               "signature": "var onSelect: JSFunction? { get set }",
               "rawDocumentation": "Called when the user confirms a selection.\n\nThe argument is the chosen row object (the original dict you passed to `setChoices`,\nwith `text`, `subText`, `image`, `valid`, and any custom fields intact).\nThe argument is `null` when dismissed (Escape).\n\n- Example:\n```js\nchooser.onSelect = (item) => {\n    if (item) console.log(\"Selected: \" + item.text)\n    else console.log(\"Dismissed\")\n}\n```",
               "description": "Called when the user confirms a selection.\nThe argument is the chosen row object (the original dict you passed to `setChoices`,\nwith `text`, `subText`, `image`, `valid`, and any custom fields intact).\nThe argument is `null` when dismissed (Escape).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3926,6 +4004,7 @@
               "signature": "var onQueryChange: JSFunction? { get set }",
               "rawDocumentation": "Called on every keystroke with the new query string.\n\nUse this to debounce expensive searches or trigger async data fetching.\n\n- Example:\n```js\nchooser.onQueryChange = (q) => {\n    hs.timer.doAfter(0.05, () => { fetchResults(q).then(r => { cache = r; chooser.refreshChoices() }) })\n}\n```",
               "description": "Called on every keystroke with the new query string.\nUse this to debounce expensive searches or trigger async data fetching.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3941,6 +4020,7 @@
               "signature": "var onShow: JSFunction? { get set }",
               "rawDocumentation": "Called after the panel becomes visible.\n- Example:\n```js\nchooser.onShow = () => console.log(\"Chooser appeared\")\n```",
               "description": "Called after the panel becomes visible.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3956,6 +4036,7 @@
               "signature": "var onHide: JSFunction? { get set }",
               "rawDocumentation": "Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).\n- Example:\n```js\nchooser.onHide = () => console.log(\"Chooser hidden\")\n```",
               "description": "Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -3971,6 +4052,7 @@
               "signature": "var onInvalid: JSFunction? { get set }",
               "rawDocumentation": "Called when the user activates a row whose `valid` field is `false`.\nThe chooser stays open; the argument is the row dict (same shape as `onSelect`).\nIf unset, activating an invalid row is silently ignored.\n- Example:\n```js\nchooser.onInvalid = (item) => console.log(\"Tapped invalid row: \" + item.text)\n```",
               "description": "Called when the user activates a row whose `valid` field is `false`.\nThe chooser stays open; the argument is the row dict (same shape as `onSelect`).\nIf unset, activating an invalid row is silently ignored.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -5629,6 +5711,7 @@
               "signature": "var callbackPressed: JSFunction? { get set }",
               "rawDocumentation": "The callback function to be called when the hotkey is pressed\n- Example:\n```js\nconst hk = hs.hotkey.bind([\"cmd\"], \"h\", () => {})\nhk.callbackPressed = () => console.log(\"new handler\")\n```",
               "description": "The callback function to be called when the hotkey is pressed",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -5644,6 +5727,7 @@
               "signature": "var callbackReleased: JSFunction? { get set }",
               "rawDocumentation": "The callback function to be called when the hotkey is released\n- Example:\n```js\nconst hk = hs.hotkey.bind([\"cmd\"], \"h\", () => {})\nhk.callbackReleased = () => console.log(\"released\")\n```",
               "description": "The callback function to be called when the hotkey is released",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6063,6 +6147,7 @@
               "signature": "var identifier: String { get }",
               "rawDocumentation": "The unique identifier assigned to this watcher.\n- Example:\n```js\nconst w = hs.location.addWatcher()\nconsole.log(w.identifier)\n```",
               "description": "The unique identifier assigned to this watcher.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6078,6 +6163,7 @@
               "signature": "var distanceFilter: Double { get set }",
               "rawDocumentation": "The minimum distance in metres the device must move before a new update\nis delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).\n- Example:\n```js\nw.distanceFilter = 50  // only update after moving 50 m\n```",
               "description": "The minimum distance in metres the device must move before a new update\nis delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6303,6 +6389,7 @@
               "signature": "var title: String? { get set }",
               "rawDocumentation": "Get or set the menu item's title.\n- Example:\n```js\nconst item = hs.menubar.create()\nitem.title = \"Hello\"\nconsole.log(item.title)\n```",
               "description": "Get or set the menu item's title.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6482,6 +6569,7 @@
               "signature": "var identifier: String { get }",
               "rawDocumentation": "The unique identifier assigned to this notification.\nUse it to correlate with system notification APIs if needed.\n- Example:\n```js\nconst n = hs.notify.new({ title: \"Hi\", body: \"There\" })\nconsole.log(n.identifier)\n```",
               "description": "The unique identifier assigned to this notification.\nUse it to correlate with system notification APIs if needed.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6578,6 +6666,7 @@
               "signature": "var typeName: String { get }",
               "rawDocumentation": "The Swift type name, for JavaScript introspection.\n\n- Example:\n```js\nconst result = await hs.ocr.recognizeText('/tmp/image.png')\nconsole.log(result.observations[0].typeName) // \"HSOCRObservation\"\n```",
               "description": "The Swift type name, for JavaScript introspection.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6593,6 +6682,7 @@
               "signature": "var text: String { get }",
               "rawDocumentation": "The recognized text string for this observation.\n\n- Example:\n```js\nconst result = await hs.ocr.recognizeText('/tmp/image.png')\nresult.observations.forEach(obs => console.log(obs.text))\n```",
               "description": "The recognized text string for this observation.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6608,6 +6698,7 @@
               "signature": "var confidence: Double { get }",
               "rawDocumentation": "Recognition confidence in the range `0.0` (uncertain) to `1.0` (certain).\n\nUse `minimumConfidence` in the options passed to `recognizeText()` to\npre-filter observations below a threshold rather than filtering here.\n\n- Example:\n```js\nconst result = await hs.ocr.recognizeText('/tmp/image.png')\nconst highConf = result.observations.filter(o => o.confidence > 0.9)\nconsole.log('High-confidence regions: ' + highConf.length)\n```",
               "description": "Recognition confidence in the range `0.0` (uncertain) to `1.0` (certain).\nUse `minimumConfidence` in the options passed to `recognizeText()` to\npre-filter observations below a threshold rather than filtering here.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6623,6 +6714,7 @@
               "signature": "var bounds: HSRect { get }",
               "rawDocumentation": "Normalized bounding box of this observation in the source image, as an `HSRect`.\n\nAll values are in the range 0–1 with **top-left origin**\n(`(0, 0)` = top-left corner, `(1, 1)` = bottom-right corner).\nUse `bounds.x`, `bounds.y`, `bounds.w`, and `bounds.h` to access the components.\n\n- Example:\n```js\nconst result = await hs.ocr.recognizeText('/tmp/image.png')\nconst b = result.observations[0].bounds\n// Check if the observation is in the top half of the image\nif (b.y + b.h / 2 < 0.5) {\n    console.log('Text is in the top half:', result.observations[0].text)\n}\n```",
               "description": "Normalized bounding box of this observation in the source image, as an `HSRect`.\nAll values are in the range 0–1 with **top-left origin**\n(`(0, 0)` = top-left corner, `(1, 1)` = bottom-right corner).\nUse `bounds.x`, `bounds.y`, `bounds.w`, and `bounds.h` to access the components.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6647,6 +6739,7 @@
               "signature": "var typeName: String { get }",
               "rawDocumentation": "The Swift type name, for JavaScript introspection.\n\n- Example:\n```js\nconst result = await hs.ocr.recognizeText('/tmp/image.png')\nconsole.log(result.typeName) // \"HSOCRResult\"\n```",
               "description": "The Swift type name, for JavaScript introspection.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6662,6 +6755,7 @@
               "signature": "var text: String { get }",
               "rawDocumentation": "The full recognized text from the image, with each observation's text\njoined by newlines in the order Vision returned them.\n\nUse this when you only need the raw text and don't care about bounding\nboxes or per-region confidence scores.\n\n- Example:\n```js\nconst result = await hs.ocr.recognizeText('/tmp/receipt.png')\nconst lines = result.text.split('\\n')\nlines.forEach(line => console.log(line))\n```",
               "description": "The full recognized text from the image, with each observation's text\njoined by newlines in the order Vision returned them.\nUse this when you only need the raw text and don't care about bounding\nboxes or per-region confidence scores.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -6677,6 +6771,7 @@
               "signature": "var observations: [HSOCRObservation] { get }",
               "rawDocumentation": "The individual text observations that make up this result.\n\nEach entry in the array is an `HSOCRObservation` with its own `text`,\n`confidence`, and `bounds` properties. Observations are returned in the\norder Vision produced them (typically top-to-bottom, left-to-right, but\nthis is image-dependent).\n\n- Example:\n```js\nconst result = await hs.ocr.recognizeText('/tmp/image.png')\nconst confident = result.observations.filter(o => o.confidence > 0.9)\nconsole.log('High-confidence regions: ' + confident.length)\nconfident.forEach(obs => {\n    const b = obs.bounds\n    console.log(obs.text + ' at x=' + b.x.toFixed(3) + ' y=' + b.y.toFixed(3))\n})\n```",
               "description": "The individual text observations that make up this result.\nEach entry in the array is an `HSOCRObservation` with its own `text`,\n`confidence`, and `bounds` properties. Observations are returned in the\norder Vision produced them (typically top-to-bottom, left-to-right, but\nthis is image-dependent).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -7480,6 +7575,7 @@
           "signature": "var changeCount: Int { get }",
           "rawDocumentation": "The pasteboard change count. Increments each time any application writes to the pasteboard.\nComparing a saved value to the current value is the standard way to detect external changes.\n- Example:\n```js\nconsole.log(hs.pasteboard.changeCount)\n```",
           "description": "The pasteboard change count. Increments each time any application writes to the pasteboard.\nComparing a saved value to the current value is the standard way to detect external changes.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -7495,6 +7591,7 @@
           "signature": "var watcherInterval: Double { get set }",
           "rawDocumentation": "The polling interval for the pasteboard watcher, in seconds. Defaults to 0.5.\nChanges take effect the next time a watcher is started (i.e. after removing and re-adding).\n- Example:\n```js\nhs.pasteboard.watcherInterval = 1.0\n```",
           "description": "The polling interval for the pasteboard watcher, in seconds. Defaults to 0.5.\nChanges take effect the next time a watcher is started (i.e. after removing and re-adding).",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -8084,6 +8181,7 @@
           "signature": "var percentage: Int { get }",
           "rawDocumentation": "The current battery charge percentage (0–100), or `-1` if no battery is present.\n\n- Example:\n  ```js\n  console.log(\"Battery:\" + hs.power.percentage + \"%\")\n  ```",
           "description": "The current battery charge percentage (0–100), or `-1` if no battery is present.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -8099,6 +8197,7 @@
           "signature": "var isCharging: Bool { get }",
           "rawDocumentation": "Whether the battery is currently charging.\n\nReturns `false` when no battery is present.\n- Example:\n  ```js\n  if (hs.power.isCharging) console.log(\"Charging\")\n  ```",
           "description": "Whether the battery is currently charging.\nReturns `false` when no battery is present.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -8114,6 +8213,7 @@
           "signature": "var powerSource: String { get }",
           "rawDocumentation": "The current power source.\n\nReturns `\"ac\"` when plugged in, `\"battery\"` when on battery power, `\"ups\"` when\npowered by a UPS, or `\"unknown\"` if the source cannot be determined.\n- Example:\n  ```js\n  if (hs.power.powerSource === \"battery\") console.log(\"Running on battery\")\n  ```",
           "description": "The current power source.\nReturns `\"ac\"` when plugged in, `\"battery\"` when on battery power, `\"ups\"` when\npowered by a UPS, or `\"unknown\"` if the source cannot be determined.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -8129,6 +8229,7 @@
           "signature": "var isLowPowerMode: Bool { get }",
           "rawDocumentation": "Whether Low Power Mode is currently active.\n\n- Example:\n  ```js\n  if (hs.power.isLowPowerMode) console.log(\"Low power mode active\")\n  ```",
           "description": "Whether Low Power Mode is currently active.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -8144,6 +8245,7 @@
           "signature": "var thermalState: String { get }",
           "rawDocumentation": "The current thermal state of the system.\n\nReturns one of: `\"nominal\"`, `\"fair\"`, `\"serious\"`, `\"critical\"`.\n- Example:\n  ```js\n  console.log(\"Thermal state: \" + hs.power.thermalState)\n  ```",
           "description": "The current thermal state of the system.\nReturns one of: `\"nominal\"`, `\"fair\"`, `\"serious\"`, `\"critical\"`.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -8604,6 +8706,7 @@
               "signature": "var id: Int { get }",
               "rawDocumentation": "Unique display identifier (matches `CGDirectDisplayID`).\n- Example:\n```js\nconst s = hs.screen.primary()\nconsole.log(s.id)\n```",
               "description": "Unique display identifier (matches `CGDirectDisplayID`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8619,6 +8722,7 @@
               "signature": "var name: String { get }",
               "rawDocumentation": "The manufacturer-assigned localized display name.\n- Example:\n```js\nconst s = hs.screen.primary()\nconsole.log(s.name)\n```",
               "description": "The manufacturer-assigned localized display name.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8634,6 +8738,7 @@
               "signature": "var uuid: String { get }",
               "rawDocumentation": "The display's UUID string.\n- Example:\n```js\nconst s = hs.screen.primary()\nconsole.log(s.uuid)\n```",
               "description": "The display's UUID string.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8649,6 +8754,7 @@
               "signature": "var frame: HSRect { get }",
               "rawDocumentation": "The usable screen area in Hammerspoon coordinates, excluding the menu bar and Dock.\n- Example:\n```js\nconst s = hs.screen.primary()\nconsole.log(s.frame.w, s.frame.h)\n```",
               "description": "The usable screen area in Hammerspoon coordinates, excluding the menu bar and Dock.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8664,6 +8770,7 @@
               "signature": "var fullFrame: HSRect { get }",
               "rawDocumentation": "The full screen area in Hammerspoon coordinates, including menu bar and Dock regions.\n- Example:\n```js\nconst s = hs.screen.primary()\nconsole.log(s.fullFrame)\n```",
               "description": "The full screen area in Hammerspoon coordinates, including menu bar and Dock regions.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8679,6 +8786,7 @@
               "signature": "var position: HSPoint { get }",
               "rawDocumentation": "The screen's top-left corner in global Hammerspoon coordinates.\n- Example:\n```js\nconst s = hs.screen.primary()\nconsole.log(s.position)\n```",
               "description": "The screen's top-left corner in global Hammerspoon coordinates.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8694,6 +8802,7 @@
               "signature": "var mode: [String: Any] { get }",
               "rawDocumentation": "The currently active display mode.\n\nAn object with keys: `width`, `height`, `scale`, `frequency`.\n- Example:\n```js\nconst s = hs.screen.primary()\nconsole.log(s.mode)\n```",
               "description": "The currently active display mode.\nAn object with keys: `width`, `height`, `scale`, `frequency`.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8709,6 +8818,7 @@
               "signature": "var availableModes: [[String: Any]] { get }",
               "rawDocumentation": "All display modes supported by this screen.\n\nEach element has keys: `width`, `height`, `scale`, `frequency`.\n- Example:\n```js\nconst s = hs.screen.primary()\nconsole.log(s.availableModes.length)\n```",
               "description": "All display modes supported by this screen.\nEach element has keys: `width`, `height`, `scale`, `frequency`.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8724,6 +8834,7 @@
               "signature": "var rotation: Double { get set }",
               "rawDocumentation": "The current screen rotation in degrees (0, 90, 180, or 270).\n\nAssign one of `0`, `90`, `180`, or `270` to rotate the display.\n- Example:\n```js\nconst s = hs.screen.primary()\ns.rotation = 90\n```",
               "description": "The current screen rotation in degrees (0, 90, 180, or 270).\nAssign one of `0`, `90`, `180`, or `270` to rotate the display.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8739,6 +8850,7 @@
               "signature": "var desktopImage: String? { get set }",
               "rawDocumentation": "The URL string of the current desktop background image for this screen, or `null`.\n\nAssign a new absolute file path or `file://` URL string to change the wallpaper.\n- Example:\n```js\nconst s = hs.screen.primary()\ns.desktopImage = \"/Users/me/wallpaper.jpg\"\n```",
               "description": "The URL string of the current desktop background image for this screen, or `null`.\nAssign a new absolute file path or `file://` URL string to change the wallpaper.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8822,6 +8934,7 @@
           "signature": "var scope: [String: [String]] { get }",
           "rawDocumentation": "Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.\n\n| Key | Description |\n|-----|-------------|\n| `home` | The current user's home directory |\n| `computer` | All locally mounted volumes |\n| `network` | Network-mounted volumes |\n| `applications` | Common locations for .app bundles |\n| `icloud` | iCloud Documents |\n| `icloudData` | iCloud Data (non-document ubiquitous files) |\n\n- Example:\n```js\nq.setScopes(hs.spotlight.scope.home)\nq.setScopes(hs.spotlight.scope.computer)\nq.setScopes(hs.spotlight.scope.home + ['/Volumes/ExternalDrive'])\n```",
           "description": "Predefined search scope constants for use with `HSSpotlightQuery.setScopes()`.\n| Key | Description |\n|-----|-------------|\n| `home` | The current user's home directory |\n| `computer` | All locally mounted volumes |\n| `network` | Network-mounted volumes |\n| `applications` | Common locations for .app bundles |\n| `icloud` | iCloud Documents |\n| `icloudData` | iCloud Data (non-document ubiquitous files) |",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -8837,6 +8950,7 @@
           "signature": "var attribute: [String: String] { get }",
           "rawDocumentation": "Common Spotlight metadata attribute key shortcuts.\n\nThese are plain `kMDItem*` string values — using them is equivalent to typing\nthe raw key name, but they provide autocomplete and avoid typos.\n\n| Key | Attribute | Description |\n|-----|-----------|-------------|\n| `path` | `kMDItemPath` | Absolute filesystem path |\n| `displayName` | `kMDItemDisplayName` | User-visible display name |\n| `fsName` | `kMDItemFSName` | Filename on disk |\n| `contentType` | `kMDItemContentType` | UTI content type |\n| `contentTypeTree` | `kMDItemContentTypeTree` | Full UTI conformance tree |\n| `kind` | `kMDItemKind` | Finder \"Kind\" string |\n| `fileSize` | `kMDItemFSSize` | File size in bytes |\n| `creationDate` | `kMDItemFSCreationDate` | Filesystem creation date |\n| `modifiedDate` | `kMDItemFSContentChangeDate` | Last content modification date |\n| `lastUsedDate` | `kMDItemLastUsedDate` | Last time the item was opened |\n| `useCount` | `kMDItemUseCount` | Number of times opened |\n| `authors` | `kMDItemAuthors` | Document authors |\n| `title` | `kMDItemTitle` | Document title |\n| `comment` | `kMDItemComment` | User comment |\n| `keywords` | `kMDItemKeywords` | Tags/keywords |\n| `durationSeconds` | `kMDItemDurationSeconds` | Media duration in seconds |\n| `pixelWidth` | `kMDItemPixelWidth` | Image/video width in pixels |\n| `pixelHeight` | `kMDItemPixelHeight` | Image/video height in pixels |\n| `whereFroms` | `kMDItemWhereFroms` | Download source URLs |\n| `bundleIdentifier` | `kMDItemCFBundleIdentifier` | App bundle identifier |\n\n- Example:\n```js\nconst name = item.valueForAttribute(hs.spotlight.attribute.displayName)\nconst size = item.valueForAttribute(hs.spotlight.attribute.fileSize)\nq.setSortDescriptors([{ attribute: hs.spotlight.attribute.modifiedDate, ascending: false }])\n```",
           "description": "Common Spotlight metadata attribute key shortcuts.\nThese are plain `kMDItem*` string values — using them is equivalent to typing\nthe raw key name, but they provide autocomplete and avoid typos.\n| Key | Attribute | Description |\n|-----|-----------|-------------|\n| `path` | `kMDItemPath` | Absolute filesystem path |\n| `displayName` | `kMDItemDisplayName` | User-visible display name |\n| `fsName` | `kMDItemFSName` | Filename on disk |\n| `contentType` | `kMDItemContentType` | UTI content type |\n| `contentTypeTree` | `kMDItemContentTypeTree` | Full UTI conformance tree |\n| `kind` | `kMDItemKind` | Finder \"Kind\" string |\n| `fileSize` | `kMDItemFSSize` | File size in bytes |\n| `creationDate` | `kMDItemFSCreationDate` | Filesystem creation date |\n| `modifiedDate` | `kMDItemFSContentChangeDate` | Last content modification date |\n| `lastUsedDate` | `kMDItemLastUsedDate` | Last time the item was opened |\n| `useCount` | `kMDItemUseCount` | Number of times opened |\n| `authors` | `kMDItemAuthors` | Document authors |\n| `title` | `kMDItemTitle` | Document title |\n| `comment` | `kMDItemComment` | User comment |\n| `keywords` | `kMDItemKeywords` | Tags/keywords |\n| `durationSeconds` | `kMDItemDurationSeconds` | Media duration in seconds |\n| `pixelWidth` | `kMDItemPixelWidth` | Image/video width in pixels |\n| `pixelHeight` | `kMDItemPixelHeight` | Image/video height in pixels |\n| `whereFroms` | `kMDItemWhereFroms` | Download source URLs |\n| `bundleIdentifier` | `kMDItemCFBundleIdentifier` | App bundle identifier |",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -8925,6 +9039,7 @@
               "signature": "var identifier: String { get }",
               "rawDocumentation": "A unique identifier for this group object (UUID string).",
               "description": "A unique identifier for this group object (UUID string).",
+              "tsType": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightGroup.swift",
@@ -8935,6 +9050,7 @@
               "signature": "var attribute: String { get }",
               "rawDocumentation": "The metadata attribute name by which results in this group are clustered.\n- Example:\n```js\nq.groups().forEach(g => console.log('Grouped by: ' + g.attribute))\n```",
               "description": "The metadata attribute name by which results in this group are clustered.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -8950,6 +9066,7 @@
               "signature": "var count: Int { get }",
               "rawDocumentation": "The number of results contained in this group.\n- Example:\n```js\nconst total = q.groups().reduce((sum, g) => sum + g.count, 0)\nconsole.log('Total results across all groups: ' + total)\n```",
               "description": "The number of results contained in this group.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9025,6 +9142,7 @@
               "signature": "var identifier: String { get }",
               "rawDocumentation": "A unique identifier for this result object (UUID string).",
               "description": "A unique identifier for this result object (UUID string).",
+              "tsType": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightItem.swift",
@@ -9324,6 +9442,7 @@
               "signature": "var identifier: String { get }",
               "rawDocumentation": "A unique identifier for this query object (UUID string).",
               "description": "A unique identifier for this query object (UUID string).",
+              "tsType": null,
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.spotlight/HSSpotlightQuery.swift",
@@ -9334,6 +9453,7 @@
               "signature": "var count: Int { get }",
               "rawDocumentation": "The number of results gathered so far.\n- Example:\n```js\nconsole.log('Results so far: ' + q.count)\n```",
               "description": "The number of results gathered so far.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9349,6 +9469,7 @@
               "signature": "var isRunning: Bool { get }",
               "rawDocumentation": "Whether the query is currently running (gathering or monitoring for live updates).\n- Example:\n```js\nif (!q.isRunning) q.start()\n```",
               "description": "Whether the query is currently running (gathering or monitoring for live updates).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9364,6 +9485,7 @@
               "signature": "var isGathering: Bool { get }",
               "rawDocumentation": "Whether the query is in the initial gathering phase.\n\n`true` from `\"didStart\"` until `\"didFinish\"`; `false` thereafter while live-monitoring.\n- Example:\n```js\nif (q.isGathering) console.log('Still collecting initial results…')\n```",
               "description": "Whether the query is in the initial gathering phase.\n`true` from `\"didStart\"` until `\"didFinish\"`; `false` thereafter while live-monitoring.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9541,6 +9663,7 @@
           "signature": "var sequence: JSFunction? { get set }",
           "rawDocumentation": "Run multiple tasks in sequence. Swift-retained storage for the JS implementation.\n- Example:\n```js\nhs.task.sequence([\n    [\"/bin/echo\", [\"one\"]],\n    [\"/bin/echo\", [\"two\"]]\n]).then(results => console.log(results))\n```",
           "description": "Run multiple tasks in sequence. Swift-retained storage for the JS implementation.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -9556,6 +9679,7 @@
           "signature": "var TaskBuilder: JSFunction? { get set }",
           "rawDocumentation": "TaskBuilder class. Swift-retained storage for the JS implementation.\n- Example:\n```js\nconst b = new hs.task.TaskBuilder().launchPath(\"/bin/echo\")\n```",
           "description": "TaskBuilder class. Swift-retained storage for the JS implementation.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -9754,6 +9878,7 @@
               "signature": "var isRunning: Bool { get }",
               "rawDocumentation": "Check if the task is currently running\n- Note: true if the task is running, false otherwise\n- Example:\n```js\nconst t = hs.task.new(\"/bin/sleep\", [\"10\"]).start()\nconsole.log(t.isRunning)\n```",
               "description": "Check if the task is currently running",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9769,6 +9894,7 @@
               "signature": "var pid: Int { get }",
               "rawDocumentation": "The process ID of the running task\n- Note: The value will be -1 if the task is not running\n- Example:\n```js\nconst t = hs.task.new(\"/bin/sleep\", [\"10\"]).start()\nconsole.log(t.pid)\n```",
               "description": "The process ID of the running task",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9784,6 +9910,7 @@
               "signature": "var environment: [String: String] { get set }",
               "rawDocumentation": "The environment variables for the task\n- Note: Can only be modified before calling start()\n- Example:\n```js\nconst t = hs.task.new(\"/usr/bin/env\", [])\nt.environment = { FOO: \"bar\" }\nt.start()\n```",
               "description": "The environment variables for the task",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9799,6 +9926,7 @@
               "signature": "var workingDirectory: String? { get set }",
               "rawDocumentation": "The working directory for the task\n- Note: Can only be modified before calling start()\n- Example:\n```js\nconst t = hs.task.new(\"/bin/pwd\", [])\nt.workingDirectory = \"/tmp\"\nt.start()\n```",
               "description": "The working directory for the task",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9814,6 +9942,7 @@
               "signature": "var terminationStatus: number? { get }",
               "rawDocumentation": "The termination status of the task\n- Note: Returns the exit code, or nil if the task hasn't terminated\n- Example:\n```js\nconst t = hs.task.new(\"/bin/echo\", [\"hi\"], () => {\n    console.log(t.terminationStatus)\n}).start()\n```",
               "description": "The termination status of the task",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -9829,6 +9958,7 @@
               "signature": "var terminationReason: String? { get }",
               "rawDocumentation": "The termination reason\n- Note: Returns a string describing why the task terminated, or nil if still running\n- Example:\n```js\nconst t = hs.task.new(\"/bin/echo\", [\"hi\"], () => {\n    console.log(t.terminationReason)\n}).start()\n```",
               "description": "The termination reason",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -10490,6 +10620,7 @@
               "signature": "var interval: TimeInterval { get }",
               "rawDocumentation": "The timer's interval in seconds\n- Example:\n```js\nconst t = hs.timer.doEvery(5, () => {})\nconsole.log(t.interval)\n```",
               "description": "The timer's interval in seconds",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -10505,6 +10636,7 @@
               "signature": "var repeats: Bool { get }",
               "rawDocumentation": "Whether the timer repeats\n- Example:\n```js\nconst t = hs.timer.doEvery(5, () => {})\nconsole.log(t.repeats)\n```",
               "description": "Whether the timer repeats",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -10665,6 +10797,7 @@
               "signature": "var typeName: String { get }",
               "rawDocumentation": "The Swift type name, for JavaScript introspection.\n\n- Example:\n```js\nconst session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.typeName) // \"HSTranslationSession\"\n```",
               "description": "The Swift type name, for JavaScript introspection.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -10680,6 +10813,7 @@
               "signature": "var sourceLanguage: String { get }",
               "rawDocumentation": "BCP-47 identifier of the source language (e.g. `\"en\"`).\n\n- Example:\n```js\nconst session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.sourceLanguage) // \"en\"\n```",
               "description": "BCP-47 identifier of the source language (e.g. `\"en\"`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -10695,6 +10829,7 @@
               "signature": "var targetLanguage: String { get }",
               "rawDocumentation": "BCP-47 identifier of the target language (e.g. `\"fr\"`).\n\n- Example:\n```js\nconst session = hs.translation.session(\"en\", \"fr\")\nconsole.log(session.targetLanguage) // \"fr\"\n```",
               "description": "BCP-47 identifier of the target language (e.g. `\"fr\"`).",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12205,6 +12340,240 @@
       "rawDocumentation": "# hs.ui\n\n**Create custom user interfaces, alerts, dialogs, and file pickers**\n\nThe `hs.ui` module provides a set of tools for creating custom user interfaces\nin Hammerspoon with SwiftUI-like declarative syntax.\n\n## Key Features\n\n- **Custom Windows**: Build custom UI windows with shapes, text, and layouts\n- **Alerts**: Display temporary on-screen notifications\n- **Dialogs**: Show modal dialogs with custom buttons and callbacks\n- **Text Input**: Prompt users for text input\n- **File Pickers**: Let users select files or directories\n- **Reactive Colors**: Pass an `HSColor` object to `.fill()`, `.stroke()`, or `.foregroundColor()`,\n  then call `.replaceWithColor()` or `.replaceWithHex()` on it from any callback to re-render the canvas automatically\n- **Reactive Text**: Create a string with `hs.ui.string()`, pass it to `.text()`,\n  then call `.set()` on it to update the displayed content live\n- **Reactive Images**: Pass an `HSImage` object to `.image()`, then call `.replaceWithImage()` or `.replaceFromFile()` on it\n  to swap the image without rebuilding the window\n\n## Basic Examples\n\n### Simple Alert\n```javascript\nhs.ui.alert(\"Task completed!\")\n    .duration(3)\n    .show();\n```\n\n### Dialog with Buttons\n```javascript\nhs.ui.dialog(\"Save changes?\")\n    .informativeText(\"Your document has unsaved changes.\")\n    .buttons([\"Save\", \"Don't Save\", \"Cancel\"])\n    .onButton((index) => {\n        if (index === 0) console.log(\"Saving...\");\n    })\n    .show();\n```\n\n### Text Input Prompt\n```javascript\nhs.ui.textPrompt(\"Enter your name\")\n    .defaultText(\"John Doe\")\n    .onButton((buttonIndex, text) => {\n        console.log(\"User entered: \" + text);\n    })\n    .show();\n```\n\n### File Picker\n```javascript\nhs.ui.filePicker()\n    .message(\"Choose a file\")\n    .allowedFileTypes([\"txt\", \"md\"])\n    .onSelection((path) => {\n        if (path) console.log(\"Selected: \" + path);\n    })\n    .show();\n```\n\n### Custom Window\n```javascript\nhs.ui.window({x: 100, y: 100, w: 300, h: 200})\n    .vstack()\n        .spacing(10)\n        .padding(20)\n        .text(\"Hello, World!\")\n            .font(HSFont.title())\n            .foregroundColor(\"#FFFFFF\")\n        .rectangle()\n            .fill(\"#4A90E2\")\n            .cornerRadius(10)\n            .frame({w: \"100%\", h: 60})\n    .end()\n    .backgroundColor(\"#2C3E50\")\n    .show();\n```\n\n### Reactive Color on Hover\n```javascript\n// Create a mutable color, then mutate it inside the hover callback\nconst btnColor = HSColor.hex(\"#4A90E2\");\n\nhs.ui.window({x: 100, y: 100, w: 160, h: 60})\n    .rectangle()\n        .fill(btnColor)\n        .cornerRadius(8)\n        .frame({w: \"100%\", h: \"100%\"})\n        .onHover((isHovered) => {\n            btnColor.replaceWithHex(isHovered ? \"#E24A4A\" : \"#4A90E2\");\n        })\n    .show();\n```\n\n### Reactive Text on Hover\n```javascript\n// Create a mutable string, then mutate it inside the hover callback\nconst label = hs.ui.string(\"Move your mouse here\");\n\nhs.ui.window({x: 100, y: 200, w: 220, h: 50})\n    .text(label)\n        .font(HSFont.body())\n        .foregroundColor(\"#FFFFFF\")\n        .onHover((isHovered) => {\n            label.set(isHovered ? \"You're hovering!\" : \"Move your mouse here\");\n        })\n    .show();\n```\n\n### Reactive Image on Click\n```javascript\n// Toggle between two system icons on each click\nconst icon = HSImage.fromName(\"NSStatusAvailable\");\n\nhs.ui.window({x: 100, y: 300, w: 80, h: 80})\n    .image(icon)\n        .resizable()\n        .aspectRatio(\"fit\")\n        .frame({w: 64, h: 64})\n        .onClick(() => {\n            const next = (icon.name === \"NSStatusAvailable\")\n                ? HSImage.fromName(\"NSStatusUnavailable\")\n                : HSImage.fromName(\"NSStatusAvailable\");\n            icon.replaceWithImage(next);\n        })\n    .show();\n```\n\n## Complete Example: Status Dashboard\n\nHere's a more complex example showing how to build an interactive status dashboard\nthat combines multiple UI elements:\n\n```javascript\n// Create a status dashboard window\nconst statusWindow = hs.ui.window({x: 100, y: 100, w: 400, h: 500})\n    .vstack()\n        .spacing(15)\n        .padding(20)\n\n        // Header\n        .text(\"System Status Dashboard\")\n            .font(HSFont.largeTitle())\n            .foregroundColor(\"#FFFFFF\")\n\n        // Status cards\n        .hstack()\n            .spacing(10)\n            .vstack()\n                .spacing(5)\n                .rectangle()\n                    .fill(\"#4CAF50\")\n                    .cornerRadius(8)\n                    .frame({w: 180, h: 100})\n                .text(\"CPU: 45%\")\n                    .font(HSFont.headline())\n                    .foregroundColor(\"#FFFFFF\")\n            .end()\n            .vstack()\n                .spacing(5)\n                .rectangle()\n                    .fill(\"#2196F3\")\n                    .cornerRadius(8)\n                    .frame({w: 180, h: 100})\n                .text(\"Memory: 8.2GB\")\n                    .font(HSFont.headline())\n                    .foregroundColor(\"#FFFFFF\")\n            .end()\n        .end()\n\n        // Activity indicator with image\n        .hstack()\n            .spacing(10)\n            .image(HSImage.fromName(\"NSComputer\"))\n                .resizable()\n                .aspectRatio(\"fit\")\n                .frame({w: 64, h: 64})\n            .vstack()\n                .text(\"System Running\")\n                    .font(HSFont.title())\n                .text(\"All services operational\")\n                    .font(HSFont.caption())\n                    .foregroundColor(\"#A0A0A0\")\n            .end()\n        .end()\n\n        // Circle status indicators\n        .hstack()\n            .spacing(20)\n            .circle()\n                .fill(\"#4CAF50\")\n                .frame({w: 30, h: 30})\n            .circle()\n                .fill(\"#FFC107\")\n                .frame({w: 30, h: 30})\n            .circle()\n                .fill(\"#F44336\")\n                .frame({w: 30, h: 30})\n        .end()\n    .end()\n    .backgroundColor(\"#2C3E50\");\n\n// Show the dashboard\nstatusWindow.show();\n\n// Later, interact with dialogs\nhs.ui.dialog(\"Shutdown system?\")\n    .informativeText(\"This will close all applications.\")\n    .buttons([\"Shutdown\", \"Cancel\"])\n    .onButton((index) => {\n        if (index === 0) {\n            hs.ui.alert(\"Shutting down...\")\n                .duration(3)\n                .show();\n        }\n    })\n    .show();\n```\n\n## Complete Example: Reactive Hover Card\n\nDemonstrates reactive colors and reactive text together — a single `.onHover()`\ncallback updates both the fill color of a shape and the content of a text label:\n\n```javascript\nconst cardColor = HSColor.hex(\"#3498DB\");\nconst cardLabel = hs.ui.string(\"Hover the card\");\n\nhs.ui.window({x: 100, y: 100, w: 220, h: 120})\n    .vstack()\n        .spacing(12)\n        .padding(16)\n        .rectangle()\n            .fill(cardColor)\n            .cornerRadius(10)\n            .frame({w: \"100%\", h: 60})\n            .onHover((isHovered) => {\n                cardColor.replaceWithHex(isHovered ? \"#E74C3C\" : \"#3498DB\");\n                cardLabel.set(isHovered ? \"You found it!\" : \"Hover the card\");\n            })\n        .text(cardLabel)\n            .font(HSFont.headline())\n            .foregroundColor(\"#FFFFFF\")\n    .end()\n    .backgroundColor(\"#1A252F\")\n    .show();\n```"
     },
     {
+      "name": "hs.urlevent",
+      "methods": [
+        {
+          "name": "bind",
+          "signature": "func bind(_ eventName: String, _ callback: JSFunction)",
+          "isStatic": false,
+          "rawDocumentation": "Register or remove a callback for a named `hammerspoon2://` URL event.\n\nThe URL format is `hammerspoon2://eventName?key=value`. The host\ncomponent (`eventName`) selects the callback to invoke.\n\n- Parameters:\n  - eventName: The URL host component identifying the event.\n  - callback: {((eventName: string, params: Record<string, string>, senderPID: number, fullURL: string) => void) | null} A function receiving `(eventName, params, senderPID, fullURL)`, or `null` to remove any existing binding.\n- Example:\n```js\nhs.urlevent.bind(\"myEvent\", (name, params, pid, url) => {\n    console.log(\"myEvent — foo=\" + params[\"foo\"])\n})\n// Remove:\nhs.urlevent.bind(\"myEvent\", null)\n```",
+          "description": "Register or remove a callback for a named `hammerspoon2://` URL event.\nThe URL format is `hammerspoon2://eventName?key=value`. The host\ncomponent (`eventName`) selects the callback to invoke.",
+          "params": [
+            {
+              "name": "eventName",
+              "type": "string",
+              "description": "The URL host component identifying the event.",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "callback",
+              "type": "JSFunction",
+              "description": "A function receiving `(eventName, params, senderPID, fullURL)`, or `null` to remove any existing binding.",
+              "optional": false,
+              "tsType": "((eventName: string, params: Record<string, string>, senderPID: number, fullURL: string) => void) | null"
+            }
+          ],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.bind(\"myEvent\", (name, params, pid, url) => {\n    console.log(\"myEvent — foo=\" + params[\"foo\"])\n})\n// Remove:\nhs.urlevent.bind(\"myEvent\", null)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 78
+        },
+        {
+          "name": "openURL",
+          "signature": "func openURL(_ urlString: String) -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Open a URL using the system default application for its scheme.\n\n- Parameter urlString: The URL to open.\n- Returns: `true` if the URL was successfully dispatched.\n- Example:\n```js\nhs.urlevent.openURL(\"https://www.hammerspoon.org\")\n```",
+          "description": "Open a URL using the system default application for its scheme.",
+          "params": [
+            {
+              "name": "urlString",
+              "type": "string",
+              "description": "The URL to open.",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "boolean",
+            "description": "`true` if the URL was successfully dispatched."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.openURL(\"https://www.hammerspoon.org\")"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 118
+        },
+        {
+          "name": "openURLWithBundle",
+          "signature": "func openURLWithBundle(_ urlString: String, _ bundleID: String) -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Open a URL with a specific application identified by bundle ID.\n\n- Parameters:\n  - urlString: The URL to open.\n  - bundleID: Bundle identifier of the application to use.\n- Returns: `true` if the URL was dispatched to the application.\n- Example:\n```js\nhs.urlevent.openURLWithBundle(\"https://example.com\", \"com.apple.safari\")\n```",
+          "description": "Open a URL with a specific application identified by bundle ID.",
+          "params": [
+            {
+              "name": "urlString",
+              "type": "string",
+              "description": "The URL to open.",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "bundleID",
+              "type": "string",
+              "description": "Bundle identifier of the application to use.",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "boolean",
+            "description": "`true` if the URL was dispatched to the application."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.openURLWithBundle(\"https://example.com\", \"com.apple.safari\")"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 130
+        },
+        {
+          "name": "getDefaultHandler",
+          "signature": "func getDefaultHandler(_ scheme: String) -> String?",
+          "isStatic": false,
+          "rawDocumentation": "Returns the bundle identifier of the default application for a URL scheme.\n\n- Parameter scheme: The scheme to query, without `://` (e.g. `\"https\"`, `\"mailto\"`).\n- Returns: The bundle identifier string, or `null` if none is registered.\n- Example:\n```js\nconst handler = hs.urlevent.getDefaultHandler(\"https\")\nconsole.log(\"Default HTTPS handler: \" + handler)\n```",
+          "description": "Returns the bundle identifier of the default application for a URL scheme.",
+          "params": [
+            {
+              "name": "scheme",
+              "type": "string",
+              "description": "The scheme to query, without `://` (e.g. `\"https\"`, `\"mailto\"`).",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "string",
+            "description": "The bundle identifier string, or `null` if none is registered."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const handler = hs.urlevent.getDefaultHandler(\"https\")\nconsole.log(\"Default HTTPS handler: \" + handler)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 143
+        },
+        {
+          "name": "getAllHandlersForScheme",
+          "signature": "func getAllHandlersForScheme(_ scheme: String) -> [String]",
+          "isStatic": false,
+          "rawDocumentation": "Returns all bundle identifiers capable of handling a URL scheme.\n\n- Parameter scheme: The scheme to query, without `://` (e.g. `\"https\"`, `\"mailto\"`).\n- Returns: An array of bundle identifier strings.\n- Example:\n```js\nconst browsers = hs.urlevent.getAllHandlersForScheme(\"https\")\nconsole.log(\"Available browsers: \" + browsers.join(\", \"))\n```",
+          "description": "Returns all bundle identifiers capable of handling a URL scheme.",
+          "params": [
+            {
+              "name": "scheme",
+              "type": "string",
+              "description": "The scheme to query, without `://` (e.g. `\"https\"`, `\"mailto\"`).",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "Array<String>",
+            "description": "An array of bundle identifier strings."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const browsers = hs.urlevent.getAllHandlersForScheme(\"https\")\nconsole.log(\"Available browsers: \" + browsers.join(\", \"))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 154
+        },
+        {
+          "name": "setDefaultHandler",
+          "signature": "func setDefaultHandler(_ scheme: String, _ bundleID: String) -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Set the default application for a URL scheme.\n\nmacOS may display a confirmation dialog for sensitive schemes such as\n`http` and `https`. For custom schemes (`hammerspoon2`) no dialog is shown.\n\n- Parameters:\n  - scheme: The scheme to configure, without `://` (e.g. `\"https\"`, `\"mailto\"`).\n  - bundleID: Bundle identifier of the application to set as default.\n- Returns: `true` if the change was accepted by the system.\n- Example:\n```js\nhs.urlevent.setDefaultHandler(\"https\", \"com.apple.safari\")\n```",
+          "description": "Set the default application for a URL scheme.\nmacOS may display a confirmation dialog for sensitive schemes such as\n`http` and `https`. For custom schemes (`hammerspoon2`) no dialog is shown.",
+          "params": [
+            {
+              "name": "scheme",
+              "type": "string",
+              "description": "The scheme to configure, without `://` (e.g. `\"https\"`, `\"mailto\"`).",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "bundleID",
+              "type": "string",
+              "description": "Bundle identifier of the application to set as default.",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "boolean",
+            "description": "`true` if the change was accepted by the system."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.setDefaultHandler(\"https\", \"com.apple.safari\")"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 169
+        }
+      ],
+      "properties": [
+        {
+          "name": "httpCallback",
+          "signature": "var httpCallback: JSFunction? { get set }",
+          "rawDocumentation": "Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.\n\nFires only when Hammerspoon 2 is the system default handler for `http`/`https`.\nAssign `null` to remove the callback.\n\n- Example:\n```js\nhs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {\n    hs.urlevent.openURLWithBundle(fullURL, \"com.apple.safari\")\n}\n```",
+          "description": "Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.\nFires only when Hammerspoon 2 is the system default handler for `http`/`https`.\nAssign `null` to remove the callback.",
+          "tsType": "((scheme: string, host: string, params: Record<string, string>, fullURL: string, senderPID: number) => void) | null",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {\n    hs.urlevent.openURLWithBundle(fullURL, \"com.apple.safari\")\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 93
+        },
+        {
+          "name": "mailtoCallback",
+          "signature": "var mailtoCallback: JSFunction? { get set }",
+          "rawDocumentation": "Callback invoked when Hammerspoon 2 receives a `mailto:` URL.\n\nFires only when Hammerspoon 2 is the system default handler for `mailto`.\nAssign `null` to remove the callback.\n\n- Example:\n```js\nhs.urlevent.mailtoCallback = (scheme, host, params, fullURL, pid) => {\n    console.log(\"mailto received: \" + host)\n}\n```",
+          "description": "Callback invoked when Hammerspoon 2 receives a `mailto:` URL.\nFires only when Hammerspoon 2 is the system default handler for `mailto`.\nAssign `null` to remove the callback.",
+          "tsType": "((scheme: string, host: string, params: Record<string, string>, fullURL: string, senderPID: number) => void) | null",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.mailtoCallback = (scheme, host, params, fullURL, pid) => {\n    console.log(\"mailto received: \" + host)\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 106
+        }
+      ],
+      "types": [],
+      "description": "Handle URL events received by Hammerspoon 2.\nThe module responds to `hammerspoon2://` URLs and, when Hammerspoon 2 is\nconfigured as the system default handler, also to `http://`, `https://`,\nand `mailto:` URLs.\n## Responding to custom hammerspoon2:// events\nURLs take the form `hammerspoon2://eventName?key=value&key2=value2`.\nThe host component (`eventName`) selects the registered callback.\n```js\nhs.urlevent.bind(\"myEvent\", (eventName, params, pid, url) => {\n    console.log(\"param foo = \" + params[\"foo\"])\n})\n\n// Remove a binding\nhs.urlevent.bind(\"myEvent\", null)\n```\n## Intercepting http / https / mailto URLs\nSet `hs.urlevent.httpCallback` (or `mailtoCallback`) to a function.\nYou must also set Hammerspoon 2 as the system default handler for the\nrelevant scheme — see `setDefaultHandler(_:_:)`.\n```js\nhs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {\n    // Forward to a real browser rather than swallowing the link\n    hs.urlevent.openURLWithBundle(fullURL, \"com.apple.safari\")\n}\n```\n## Querying and changing default handlers\n```js\nconst current = hs.urlevent.getDefaultHandler(\"https\")\nconsole.log(\"Current HTTPS handler: \" + current)\n\nconst all = hs.urlevent.getAllHandlersForScheme(\"https\")\nconsole.log(\"Available: \" + all.join(\", \"))\n\nhs.urlevent.setDefaultHandler(\"https\", \"com.apple.safari\")\n```",
+      "rawDocumentation": "Handle URL events received by Hammerspoon 2.\n\nThe module responds to `hammerspoon2://` URLs and, when Hammerspoon 2 is\nconfigured as the system default handler, also to `http://`, `https://`,\nand `mailto:` URLs.\n\n## Responding to custom hammerspoon2:// events\n\nURLs take the form `hammerspoon2://eventName?key=value&key2=value2`.\nThe host component (`eventName`) selects the registered callback.\n\n```js\nhs.urlevent.bind(\"myEvent\", (eventName, params, pid, url) => {\n    console.log(\"param foo = \" + params[\"foo\"])\n})\n\n// Remove a binding\nhs.urlevent.bind(\"myEvent\", null)\n```\n\n## Intercepting http / https / mailto URLs\n\nSet `hs.urlevent.httpCallback` (or `mailtoCallback`) to a function.\nYou must also set Hammerspoon 2 as the system default handler for the\nrelevant scheme — see `setDefaultHandler(_:_:)`.\n\n```js\nhs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {\n    // Forward to a real browser rather than swallowing the link\n    hs.urlevent.openURLWithBundle(fullURL, \"com.apple.safari\")\n}\n```\n\n## Querying and changing default handlers\n\n```js\nconst current = hs.urlevent.getDefaultHandler(\"https\")\nconsole.log(\"Current HTTPS handler: \" + current)\n\nconst all = hs.urlevent.getAllHandlersForScheme(\"https\")\nconsole.log(\"Available: \" + all.join(\", \"))\n\nhs.urlevent.setDefaultHandler(\"https\", \"com.apple.safari\")\n```"
+    },
+    {
       "name": "hs.window",
       "methods": [
         {
@@ -12674,6 +13043,7 @@
               "signature": "var title: String? { get }",
               "rawDocumentation": "The window's title\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nconsole.log(win.title)\n```",
               "description": "The window's title",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12689,6 +13059,7 @@
               "signature": "var application: HSApplication? { get }",
               "rawDocumentation": "The application that owns this window\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nconsole.log(win.application.title)\n```",
               "description": "The application that owns this window",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12704,6 +13075,7 @@
               "signature": "var pid: Int { get }",
               "rawDocumentation": "The process ID of the application that owns this window\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nconsole.log(win.pid)\n```",
               "description": "The process ID of the application that owns this window",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12719,6 +13091,7 @@
               "signature": "var id: Int { get }",
               "rawDocumentation": "The window's underlying ID.\nA value of 0 or -1 likely means no window ID could be determined.\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nconsole.log(win.id)\n```",
               "description": "The window's underlying ID.\nA value of 0 or -1 likely means no window ID could be determined.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12734,6 +13107,7 @@
               "signature": "var isMinimized: Bool { get set }",
               "rawDocumentation": "Whether the window is minimized\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nwin.isMinimized = true\n```",
               "description": "Whether the window is minimized",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12749,6 +13123,7 @@
               "signature": "var isVisible: Bool { get }",
               "rawDocumentation": "Whether the window is visible (not minimized or hidden)\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nconsole.log(win.isVisible)\n```",
               "description": "Whether the window is visible (not minimized or hidden)",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12764,6 +13139,7 @@
               "signature": "var isFocused: Bool { get }",
               "rawDocumentation": "Whether the window is focused\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nconsole.log(win.isFocused)\n```",
               "description": "Whether the window is focused",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12779,6 +13155,7 @@
               "signature": "var isFullscreen: Bool { get set }",
               "rawDocumentation": "Whether the window is fullscreen\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nwin.isFullscreen = true\n```",
               "description": "Whether the window is fullscreen",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12794,6 +13171,7 @@
               "signature": "var isStandard: Bool { get }",
               "rawDocumentation": "Whether the window is standard (has a titlebar)\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nconsole.log(win.isStandard)\n```",
               "description": "Whether the window is standard (has a titlebar)",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12809,6 +13187,7 @@
               "signature": "var position: HSPoint? { get set }",
               "rawDocumentation": "The window's position on screen {x: Int, y: Int}\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nwin.position = {x: 100, y: 100}\n```",
               "description": "The window's position on screen {x: Int, y: Int}",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12824,6 +13203,7 @@
               "signature": "var size: HSSize? { get set }",
               "rawDocumentation": "The window's size {w: Int, h: Int}\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nwin.size = {w: 800, h: 600}\n```",
               "description": "The window's size {w: Int, h: Int}",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12839,6 +13219,7 @@
               "signature": "var frame: HSRect? { get set }",
               "rawDocumentation": "The window's frame {x: Int, y: Int, w: Int, h: Int}\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nwin.frame = {x: 0, y: 0, w: 1024, h: 768}\n```",
               "description": "The window's frame {x: Int, y: Int, w: Int, h: Int}",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -12854,6 +13235,7 @@
               "signature": "var screen: HSScreen? { get }",
               "rawDocumentation": "The screen that contains the largest portion of this window.\n- Example:\n```js\nconst win = hs.window.focusedWindow()\nconsole.log(win.screen && win.screen.name)\n```",
               "description": "The screen that contains the largest portion of this window.",
+              "tsType": null,
               "examples": [
                 {
                   "lang": "js",
@@ -13604,6 +13986,7 @@
           "signature": "var size: HSSize { get set }",
           "rawDocumentation": "The size of the image. Setting this resizes the image in place to the exact dimensions.\n- Example:\n```js\nconst img = HSImage.fromPath(\"/path/to/image.png\")\nconsole.log(img.size)       // HSSize { w: 200, h: 150 }\nimg.size = HSSize(100, 75)  // resize in place\n```",
           "description": "The size of the image. Setting this resizes the image in place to the exact dimensions.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -13619,6 +14002,7 @@
           "signature": "var name: String? { get set }",
           "rawDocumentation": "The name of the image, or null if not set.\n- Example:\n```js\nconst img = HSImage.fromName(\"NSComputer\")\nconsole.log(img.name)  // \"NSComputer\"\nimg.name = \"MyIcon\"\n```",
           "description": "The name of the image, or null if not set.",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -13634,6 +14018,7 @@
           "signature": "var template: Bool { get set }",
           "rawDocumentation": "Whether the image is a template image.\n\nTemplate images are tinted by the system to match the appearance context (e.g. menu bar icons).\n- Example:\n```js\nconst img = HSImage.fromSymbol(\"star.fill\")\nimg.template = true\n```",
           "description": "Whether the image is a template image.\nTemplate images are tinted by the system to match the appearance context (e.g. menu bar icons).",
+          "tsType": null,
           "examples": [
             {
               "lang": "js",
@@ -13689,6 +14074,7 @@
           "signature": "var x: Double { get set }",
           "rawDocumentation": "A coordinate for the x-axis position of this point",
           "description": "A coordinate for the x-axis position of this point",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSPoint.swift",
@@ -13699,6 +14085,7 @@
           "signature": "var y: Double { get set }",
           "rawDocumentation": "A coordinate for the y-axis position of this point",
           "description": "A coordinate for the y-axis position of this point",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSPoint.swift",
@@ -13763,6 +14150,7 @@
           "signature": "var x: Double { get set }",
           "rawDocumentation": "An x-axis coordinate for the top-left point of the rectangle",
           "description": "An x-axis coordinate for the top-left point of the rectangle",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSRect.swift",
@@ -13773,6 +14161,7 @@
           "signature": "var y: Double { get set }",
           "rawDocumentation": "A y-axis coordinate for the top-left point of the rectangle",
           "description": "A y-axis coordinate for the top-left point of the rectangle",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSRect.swift",
@@ -13783,6 +14172,7 @@
           "signature": "var w: Double { get set }",
           "rawDocumentation": "The width of the rectangle",
           "description": "The width of the rectangle",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSRect.swift",
@@ -13793,6 +14183,7 @@
           "signature": "var h: Double { get set }",
           "rawDocumentation": "The height of the rectangle",
           "description": "The height of the rectangle",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSRect.swift",
@@ -13803,6 +14194,7 @@
           "signature": "var origin: HSPoint { get set }",
           "rawDocumentation": "The \"origin\" of the rectangle, ie the coordinates of its top left corner, as an HSPoint object",
           "description": "The \"origin\" of the rectangle, ie the coordinates of its top left corner, as an HSPoint object",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSRect.swift",
@@ -13813,6 +14205,7 @@
           "signature": "var size: HSSize { get set }",
           "rawDocumentation": "The size of the rectangle, ie its width and height, as an HSSize object",
           "description": "The size of the rectangle, ie its width and height, as an HSSize object",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSRect.swift",
@@ -13863,6 +14256,7 @@
           "signature": "var w: Double { get set }",
           "rawDocumentation": "The width of the rectangle",
           "description": "The width of the rectangle",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSSize.swift",
@@ -13873,6 +14267,7 @@
           "signature": "var h: Double { get set }",
           "rawDocumentation": "The height of the rectangle",
           "description": "The height of the rectangle",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSSize.swift",
@@ -13916,6 +14311,7 @@
           "signature": "var value: String { get }",
           "rawDocumentation": "The current string value",
           "description": "The current string value",
+          "tsType": null,
           "examples": [],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSString.swift",
@@ -13926,5 +14322,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-02T21:43:14.760Z"
+  "generatedAt": "2026-07-03T11:03:27.950Z"
 }

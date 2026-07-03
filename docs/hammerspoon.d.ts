@@ -1814,30 +1814,30 @@ The argument is the chosen row object (the original dict you passed to `setChoic
 with `text`, `subText`, `image`, `valid`, and any custom fields intact).
 The argument is `null` when dismissed (Escape).
      */
-    onSelect: ((...args: any[]) => any) | undefined;
+    onSelect: ((...args: any[]) => any) | null;
 
     /**
      * Called on every keystroke with the new query string.
 Use this to debounce expensive searches or trigger async data fetching.
      */
-    onQueryChange: ((...args: any[]) => any) | undefined;
+    onQueryChange: ((...args: any[]) => any) | null;
 
     /**
      * Called after the panel becomes visible.
      */
-    onShow: ((...args: any[]) => any) | undefined;
+    onShow: ((...args: any[]) => any) | null;
 
     /**
      * Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).
      */
-    onHide: ((...args: any[]) => any) | undefined;
+    onHide: ((...args: any[]) => any) | null;
 
     /**
      * Called when the user activates a row whose `valid` field is `false`.
 The chooser stays open; the argument is the row dict (same shape as `onSelect`).
 If unset, activating an invalid row is silently ignored.
      */
-    onInvalid: ((...args: any[]) => any) | undefined;
+    onInvalid: ((...args: any[]) => any) | null;
 
 }
 
@@ -2316,12 +2316,12 @@ declare class HSHotkey {
     /**
      * The callback function to be called when the hotkey is pressed
      */
-    callbackPressed: ((...args: any[]) => any) | undefined;
+    callbackPressed: ((...args: any[]) => any) | null;
 
     /**
      * The callback function to be called when the hotkey is released
      */
-    callbackReleased: ((...args: any[]) => any) | undefined;
+    callbackReleased: ((...args: any[]) => any) | null;
 
 }
 
@@ -3989,7 +3989,7 @@ declare namespace hs.task {
      * @param streamingCallback Optional callback function called when the task produces output
      * @returns A task object. Call start() to begin execution.
      */
-    function create(launchPath: string, arguments: string[], completionCallback: ((...args: any[]) => any) | undefined, environment: Record<string, string> | undefined, streamingCallback: ((...args: any[]) => any) | undefined): HSTask;
+    function create(launchPath: string, arguments: string[], completionCallback: ((...args: any[]) => any) | null, environment: Record<string, string> | undefined, streamingCallback: ((...args: any[]) => any) | null): HSTask;
 
     /**
      * Create and run a task asynchronously
@@ -4025,12 +4025,12 @@ declare namespace hs.task {
     /**
      * Run multiple tasks in sequence. Swift-retained storage for the JS implementation.
      */
-    let sequence: ((...args: any[]) => any) | undefined;
+    let sequence: ((...args: any[]) => any) | null;
 
     /**
      * TaskBuilder class. Swift-retained storage for the JS implementation.
      */
-    let TaskBuilder: ((...args: any[]) => any) | undefined;
+    let TaskBuilder: ((...args: any[]) => any) | null;
 
 }
 
@@ -5146,6 +5146,108 @@ declare class HSUITextPrompt {
      * Show the prompt dialog
      */
     show(): void;
+
+}
+
+/**
+ * Handle URL events received by Hammerspoon 2.
+The module responds to `hammerspoon2://` URLs and, when Hammerspoon 2 is
+configured as the system default handler, also to `http://`, `https://`,
+and `mailto:` URLs.
+## Responding to custom hammerspoon2:// events
+URLs take the form `hammerspoon2://eventName?key=value&key2=value2`.
+The host component (`eventName`) selects the registered callback.
+```js
+hs.urlevent.bind("myEvent", (eventName, params, pid, url) => {
+    console.log("param foo = " + params["foo"])
+})
+
+// Remove a binding
+hs.urlevent.bind("myEvent", null)
+```
+## Intercepting http / https / mailto URLs
+Set `hs.urlevent.httpCallback` (or `mailtoCallback`) to a function.
+You must also set Hammerspoon 2 as the system default handler for the
+relevant scheme — see `setDefaultHandler(_:_:)`.
+```js
+hs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {
+    // Forward to a real browser rather than swallowing the link
+    hs.urlevent.openURLWithBundle(fullURL, "com.apple.safari")
+}
+```
+## Querying and changing default handlers
+```js
+const current = hs.urlevent.getDefaultHandler("https")
+console.log("Current HTTPS handler: " + current)
+
+const all = hs.urlevent.getAllHandlersForScheme("https")
+console.log("Available: " + all.join(", "))
+
+hs.urlevent.setDefaultHandler("https", "com.apple.safari")
+```
+ */
+declare namespace hs.urlevent {
+    /**
+     * Register or remove a callback for a named `hammerspoon2://` URL event.
+The URL format is `hammerspoon2://eventName?key=value`. The host
+component (`eventName`) selects the callback to invoke.
+     * @param eventName The URL host component identifying the event.
+     * @param callback A function receiving `(eventName, params, senderPID, fullURL)`, or `null` to remove any existing binding.
+     */
+    function bind(eventName: string, callback: ((eventName: string, params: Record<string, string>, senderPID: number, fullURL: string) => void) | null): void;
+
+    /**
+     * Open a URL using the system default application for its scheme.
+     * @param urlString The URL to open.
+     * @returns `true` if the URL was successfully dispatched.
+     */
+    function openURL(urlString: string): boolean;
+
+    /**
+     * Open a URL with a specific application identified by bundle ID.
+     * @param urlString The URL to open.
+     * @param bundleID Bundle identifier of the application to use.
+     * @returns `true` if the URL was dispatched to the application.
+     */
+    function openURLWithBundle(urlString: string, bundleID: string): boolean;
+
+    /**
+     * Returns the bundle identifier of the default application for a URL scheme.
+     * @param scheme The scheme to query, without `://` (e.g. `"https"`, `"mailto"`).
+     * @returns The bundle identifier string, or `null` if none is registered.
+     */
+    function getDefaultHandler(scheme: string): string | undefined;
+
+    /**
+     * Returns all bundle identifiers capable of handling a URL scheme.
+     * @param scheme The scheme to query, without `://` (e.g. `"https"`, `"mailto"`).
+     * @returns An array of bundle identifier strings.
+     */
+    function getAllHandlersForScheme(scheme: string): string[];
+
+    /**
+     * Set the default application for a URL scheme.
+macOS may display a confirmation dialog for sensitive schemes such as
+`http` and `https`. For custom schemes (`hammerspoon2`) no dialog is shown.
+     * @param scheme The scheme to configure, without `://` (e.g. `"https"`, `"mailto"`).
+     * @param bundleID Bundle identifier of the application to set as default.
+     * @returns `true` if the change was accepted by the system.
+     */
+    function setDefaultHandler(scheme: string, bundleID: string): boolean;
+
+    /**
+     * Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.
+Fires only when Hammerspoon 2 is the system default handler for `http`/`https`.
+Assign `null` to remove the callback.
+     */
+    let httpCallback: ((scheme: string, host: string, params: Record<string, string>, fullURL: string, senderPID: number) => void) | null;
+
+    /**
+     * Callback invoked when Hammerspoon 2 receives a `mailto:` URL.
+Fires only when Hammerspoon 2 is the system default handler for `mailto`.
+Assign `null` to remove the callback.
+     */
+    let mailtoCallback: ((scheme: string, host: string, params: Record<string, string>, fullURL: string, senderPID: number) => void) | null;
 
 }
 
