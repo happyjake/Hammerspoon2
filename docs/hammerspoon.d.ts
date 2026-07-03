@@ -5150,6 +5150,111 @@ declare class HSUITextPrompt {
 }
 
 /**
+ * Handle URL events received by Hammerspoon 2.
+The module responds to `hammerspoon2://` URLs and, when Hammerspoon 2 is
+configured as the system default handler, also to `http://`, `https://`,
+and `mailto:` URLs.
+## Responding to custom hammerspoon2:// events
+URLs take the form `hammerspoon2://eventName?key=value&key2=value2`.
+The host component (`eventName`) selects the registered callback.
+```js
+hs.urlevent.bind("myEvent", (eventName, params, pid, url) => {
+    console.log("param foo = " + params["foo"])
+})
+
+// Remove a binding
+hs.urlevent.bind("myEvent", null)
+```
+## Intercepting http / https / mailto URLs
+Set `hs.urlevent.httpCallback` (or `mailtoCallback`) to a function.
+You must also set Hammerspoon 2 as the system default handler for the
+relevant scheme — see `setDefaultHandler(_:_:)`.
+```js
+hs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {
+    // Forward to a real browser rather than swallowing the link
+    hs.urlevent.openURLWithBundle(fullURL, "com.apple.safari")
+}
+```
+## Querying and changing default handlers
+```js
+const current = hs.urlevent.getDefaultHandler("https")
+console.log("Current HTTPS handler: " + current)
+
+const all = hs.urlevent.getAllHandlersForScheme("https")
+console.log("Available: " + all.join(", "))
+
+hs.urlevent.setDefaultHandler("https", "com.apple.safari")
+```
+ */
+declare namespace hs.urlevent {
+    /**
+     * Register or remove a callback for a named `hammerspoon2://` URL event.
+The URL format is `hammerspoon2://eventName?key=value`. The host
+component (`eventName`) selects the callback to invoke.
+or `null` to remove any existing binding.
+     * @param eventName The URL host component identifying the event.
+     * @param callback A function receiving `(eventName, params, senderPID, fullURL)`,
+     */
+    function bind(eventName: string, callback: (...args: any[]) => any): void;
+
+    /**
+     * Open a URL using the system default application for its scheme.
+     * @param urlString The URL to open.
+     * @returns `true` if the URL was successfully dispatched.
+     */
+    function openURL(urlString: string): boolean;
+
+    /**
+     * Open a URL with a specific application identified by bundle ID.
+     * @param urlString The URL to open.
+     * @param bundleID Bundle identifier of the application to use.
+     * @returns `true` if the URL was dispatched to the application.
+     */
+    function openURLWithBundle(urlString: string, bundleID: string): boolean;
+
+    /**
+     * Returns the bundle identifier of the default application for a URL scheme.
+     * @param scheme The scheme to query, without `://` (e.g. `"https"`, `"mailto"`).
+     * @returns The bundle identifier string, or `null` if none is registered.
+     */
+    function getDefaultHandler(scheme: string): string | undefined;
+
+    /**
+     * Returns all bundle identifiers capable of handling a URL scheme.
+     * @param scheme The scheme to query, without `://` (e.g. `"https"`, `"mailto"`).
+     * @returns An array of bundle identifier strings.
+     */
+    function getAllHandlersForScheme(scheme: string): string[];
+
+    /**
+     * Set the default application for a URL scheme.
+macOS may display a confirmation dialog for sensitive schemes such as
+`http` and `https`. For custom schemes (`hammerspoon2`) no dialog is shown.
+     * @param scheme The scheme to configure, without `://` (e.g. `"https"`, `"mailto"`).
+     * @param bundleID Bundle identifier of the application to set as default.
+     * @returns `true` if the change was accepted by the system.
+     */
+    function setDefaultHandler(scheme: string, bundleID: string): boolean;
+
+    /**
+     * Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.
+Fires only when Hammerspoon 2 is the system default handler for `http`/`https`.
+The callback receives `(scheme, host, params, fullURL, senderPID)`.
+Assign `null` to remove the callback.
+     */
+    let httpCallback: ((...args: any[]) => any) | undefined;
+
+    /**
+     * Callback invoked when Hammerspoon 2 receives a `mailto:` URL.
+Fires only when Hammerspoon 2 is the system default handler for `mailto`.
+The callback receives `(scheme, host, params, fullURL, senderPID)`.
+Assign `null` to remove the callback.
+     */
+    let mailtoCallback: ((...args: any[]) => any) | undefined;
+
+}
+
+/**
  * Module for interacting with windows
  */
 declare namespace hs.window {

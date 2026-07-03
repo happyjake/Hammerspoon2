@@ -24,6 +24,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             fatalError(error.localizedDescription)
         }
     }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            URLEventDispatcher.shared.dispatch(url)
+        }
+    }
 }
 
 @_documentation(visibility: private)
@@ -56,9 +62,8 @@ struct Hammerspoon_2App: App {
             }
 
             Button("Open Console") {
-                if let url = URL(string:"hammerspoon2://openConsole") {
-                    NSWorkspace.shared.open(url)
-                }
+                NSApplication.shared.activate(ignoringOtherApps: true)
+                openWindow(id: "console")
             }
 
             Divider()
@@ -96,6 +101,7 @@ struct Hammerspoon_2App: App {
         .windowBackgroundDragBehavior(.enabled)
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
+        .handlesExternalEvents(matching: [])
 
         Settings() {
             SettingsView()

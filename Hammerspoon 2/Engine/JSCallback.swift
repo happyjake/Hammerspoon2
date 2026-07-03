@@ -4,6 +4,7 @@
 //
 
 import JavaScriptCore
+import JavaScriptCoreExtras
 
 /// Wraps a JS callback value using JSManagedValue to prevent the retain cycle
 /// that arises when a JS-exported Swift object stores a JSValue directly.
@@ -42,7 +43,10 @@ final class JSCallback {
     ///
     /// Returns nil if the value is not an object/function.
     init?(value: JSValue, owner: AnyObject) {
-        guard value.isObject else { return nil }
+        guard value.isFunction else {
+            AKError("Unable to create JSCallback: value is not a function")
+            return nil
+        }
         guard let currentVM = value.context?.virtualMachine else { return nil }
 
         let managedValue = JSManagedValue(value: value)

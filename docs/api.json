@@ -12205,6 +12205,238 @@
       "rawDocumentation": "# hs.ui\n\n**Create custom user interfaces, alerts, dialogs, and file pickers**\n\nThe `hs.ui` module provides a set of tools for creating custom user interfaces\nin Hammerspoon with SwiftUI-like declarative syntax.\n\n## Key Features\n\n- **Custom Windows**: Build custom UI windows with shapes, text, and layouts\n- **Alerts**: Display temporary on-screen notifications\n- **Dialogs**: Show modal dialogs with custom buttons and callbacks\n- **Text Input**: Prompt users for text input\n- **File Pickers**: Let users select files or directories\n- **Reactive Colors**: Pass an `HSColor` object to `.fill()`, `.stroke()`, or `.foregroundColor()`,\n  then call `.replaceWithColor()` or `.replaceWithHex()` on it from any callback to re-render the canvas automatically\n- **Reactive Text**: Create a string with `hs.ui.string()`, pass it to `.text()`,\n  then call `.set()` on it to update the displayed content live\n- **Reactive Images**: Pass an `HSImage` object to `.image()`, then call `.replaceWithImage()` or `.replaceFromFile()` on it\n  to swap the image without rebuilding the window\n\n## Basic Examples\n\n### Simple Alert\n```javascript\nhs.ui.alert(\"Task completed!\")\n    .duration(3)\n    .show();\n```\n\n### Dialog with Buttons\n```javascript\nhs.ui.dialog(\"Save changes?\")\n    .informativeText(\"Your document has unsaved changes.\")\n    .buttons([\"Save\", \"Don't Save\", \"Cancel\"])\n    .onButton((index) => {\n        if (index === 0) console.log(\"Saving...\");\n    })\n    .show();\n```\n\n### Text Input Prompt\n```javascript\nhs.ui.textPrompt(\"Enter your name\")\n    .defaultText(\"John Doe\")\n    .onButton((buttonIndex, text) => {\n        console.log(\"User entered: \" + text);\n    })\n    .show();\n```\n\n### File Picker\n```javascript\nhs.ui.filePicker()\n    .message(\"Choose a file\")\n    .allowedFileTypes([\"txt\", \"md\"])\n    .onSelection((path) => {\n        if (path) console.log(\"Selected: \" + path);\n    })\n    .show();\n```\n\n### Custom Window\n```javascript\nhs.ui.window({x: 100, y: 100, w: 300, h: 200})\n    .vstack()\n        .spacing(10)\n        .padding(20)\n        .text(\"Hello, World!\")\n            .font(HSFont.title())\n            .foregroundColor(\"#FFFFFF\")\n        .rectangle()\n            .fill(\"#4A90E2\")\n            .cornerRadius(10)\n            .frame({w: \"100%\", h: 60})\n    .end()\n    .backgroundColor(\"#2C3E50\")\n    .show();\n```\n\n### Reactive Color on Hover\n```javascript\n// Create a mutable color, then mutate it inside the hover callback\nconst btnColor = HSColor.hex(\"#4A90E2\");\n\nhs.ui.window({x: 100, y: 100, w: 160, h: 60})\n    .rectangle()\n        .fill(btnColor)\n        .cornerRadius(8)\n        .frame({w: \"100%\", h: \"100%\"})\n        .onHover((isHovered) => {\n            btnColor.replaceWithHex(isHovered ? \"#E24A4A\" : \"#4A90E2\");\n        })\n    .show();\n```\n\n### Reactive Text on Hover\n```javascript\n// Create a mutable string, then mutate it inside the hover callback\nconst label = hs.ui.string(\"Move your mouse here\");\n\nhs.ui.window({x: 100, y: 200, w: 220, h: 50})\n    .text(label)\n        .font(HSFont.body())\n        .foregroundColor(\"#FFFFFF\")\n        .onHover((isHovered) => {\n            label.set(isHovered ? \"You're hovering!\" : \"Move your mouse here\");\n        })\n    .show();\n```\n\n### Reactive Image on Click\n```javascript\n// Toggle between two system icons on each click\nconst icon = HSImage.fromName(\"NSStatusAvailable\");\n\nhs.ui.window({x: 100, y: 300, w: 80, h: 80})\n    .image(icon)\n        .resizable()\n        .aspectRatio(\"fit\")\n        .frame({w: 64, h: 64})\n        .onClick(() => {\n            const next = (icon.name === \"NSStatusAvailable\")\n                ? HSImage.fromName(\"NSStatusUnavailable\")\n                : HSImage.fromName(\"NSStatusAvailable\");\n            icon.replaceWithImage(next);\n        })\n    .show();\n```\n\n## Complete Example: Status Dashboard\n\nHere's a more complex example showing how to build an interactive status dashboard\nthat combines multiple UI elements:\n\n```javascript\n// Create a status dashboard window\nconst statusWindow = hs.ui.window({x: 100, y: 100, w: 400, h: 500})\n    .vstack()\n        .spacing(15)\n        .padding(20)\n\n        // Header\n        .text(\"System Status Dashboard\")\n            .font(HSFont.largeTitle())\n            .foregroundColor(\"#FFFFFF\")\n\n        // Status cards\n        .hstack()\n            .spacing(10)\n            .vstack()\n                .spacing(5)\n                .rectangle()\n                    .fill(\"#4CAF50\")\n                    .cornerRadius(8)\n                    .frame({w: 180, h: 100})\n                .text(\"CPU: 45%\")\n                    .font(HSFont.headline())\n                    .foregroundColor(\"#FFFFFF\")\n            .end()\n            .vstack()\n                .spacing(5)\n                .rectangle()\n                    .fill(\"#2196F3\")\n                    .cornerRadius(8)\n                    .frame({w: 180, h: 100})\n                .text(\"Memory: 8.2GB\")\n                    .font(HSFont.headline())\n                    .foregroundColor(\"#FFFFFF\")\n            .end()\n        .end()\n\n        // Activity indicator with image\n        .hstack()\n            .spacing(10)\n            .image(HSImage.fromName(\"NSComputer\"))\n                .resizable()\n                .aspectRatio(\"fit\")\n                .frame({w: 64, h: 64})\n            .vstack()\n                .text(\"System Running\")\n                    .font(HSFont.title())\n                .text(\"All services operational\")\n                    .font(HSFont.caption())\n                    .foregroundColor(\"#A0A0A0\")\n            .end()\n        .end()\n\n        // Circle status indicators\n        .hstack()\n            .spacing(20)\n            .circle()\n                .fill(\"#4CAF50\")\n                .frame({w: 30, h: 30})\n            .circle()\n                .fill(\"#FFC107\")\n                .frame({w: 30, h: 30})\n            .circle()\n                .fill(\"#F44336\")\n                .frame({w: 30, h: 30})\n        .end()\n    .end()\n    .backgroundColor(\"#2C3E50\");\n\n// Show the dashboard\nstatusWindow.show();\n\n// Later, interact with dialogs\nhs.ui.dialog(\"Shutdown system?\")\n    .informativeText(\"This will close all applications.\")\n    .buttons([\"Shutdown\", \"Cancel\"])\n    .onButton((index) => {\n        if (index === 0) {\n            hs.ui.alert(\"Shutting down...\")\n                .duration(3)\n                .show();\n        }\n    })\n    .show();\n```\n\n## Complete Example: Reactive Hover Card\n\nDemonstrates reactive colors and reactive text together — a single `.onHover()`\ncallback updates both the fill color of a shape and the content of a text label:\n\n```javascript\nconst cardColor = HSColor.hex(\"#3498DB\");\nconst cardLabel = hs.ui.string(\"Hover the card\");\n\nhs.ui.window({x: 100, y: 100, w: 220, h: 120})\n    .vstack()\n        .spacing(12)\n        .padding(16)\n        .rectangle()\n            .fill(cardColor)\n            .cornerRadius(10)\n            .frame({w: \"100%\", h: 60})\n            .onHover((isHovered) => {\n                cardColor.replaceWithHex(isHovered ? \"#E74C3C\" : \"#3498DB\");\n                cardLabel.set(isHovered ? \"You found it!\" : \"Hover the card\");\n            })\n        .text(cardLabel)\n            .font(HSFont.headline())\n            .foregroundColor(\"#FFFFFF\")\n    .end()\n    .backgroundColor(\"#1A252F\")\n    .show();\n```"
     },
     {
+      "name": "hs.urlevent",
+      "methods": [
+        {
+          "name": "bind",
+          "signature": "func bind(_ eventName: String, _ callback: JSFunction)",
+          "isStatic": false,
+          "rawDocumentation": "Register or remove a callback for a named `hammerspoon2://` URL event.\n\nThe URL format is `hammerspoon2://eventName?key=value`. The host\ncomponent (`eventName`) selects the callback to invoke.\n\n- Parameters:\n  - eventName: The URL host component identifying the event.\n  - callback: A function receiving `(eventName, params, senderPID, fullURL)`,\n    or `null` to remove any existing binding.\n- Example:\n```js\nhs.urlevent.bind(\"myEvent\", (name, params, pid, url) => {\n    console.log(\"myEvent — foo=\" + params[\"foo\"])\n})\n// Remove:\nhs.urlevent.bind(\"myEvent\", null)\n```",
+          "description": "Register or remove a callback for a named `hammerspoon2://` URL event.\nThe URL format is `hammerspoon2://eventName?key=value`. The host\ncomponent (`eventName`) selects the callback to invoke.\nor `null` to remove any existing binding.",
+          "params": [
+            {
+              "name": "eventName",
+              "type": "string",
+              "description": "The URL host component identifying the event.",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "callback",
+              "type": "JSFunction",
+              "description": "A function receiving `(eventName, params, senderPID, fullURL)`,",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": null,
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.bind(\"myEvent\", (name, params, pid, url) => {\n    console.log(\"myEvent — foo=\" + params[\"foo\"])\n})\n// Remove:\nhs.urlevent.bind(\"myEvent\", null)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 79
+        },
+        {
+          "name": "openURL",
+          "signature": "func openURL(_ urlString: String) -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Open a URL using the system default application for its scheme.\n\n- Parameter urlString: The URL to open.\n- Returns: `true` if the URL was successfully dispatched.\n- Example:\n```js\nhs.urlevent.openURL(\"https://www.hammerspoon.org\")\n```",
+          "description": "Open a URL using the system default application for its scheme.",
+          "params": [
+            {
+              "name": "urlString",
+              "type": "string",
+              "description": "The URL to open.",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "boolean",
+            "description": "`true` if the URL was successfully dispatched."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.openURL(\"https://www.hammerspoon.org\")"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 121
+        },
+        {
+          "name": "openURLWithBundle",
+          "signature": "func openURLWithBundle(_ urlString: String, _ bundleID: String) -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Open a URL with a specific application identified by bundle ID.\n\n- Parameters:\n  - urlString: The URL to open.\n  - bundleID: Bundle identifier of the application to use.\n- Returns: `true` if the URL was dispatched to the application.\n- Example:\n```js\nhs.urlevent.openURLWithBundle(\"https://example.com\", \"com.apple.safari\")\n```",
+          "description": "Open a URL with a specific application identified by bundle ID.",
+          "params": [
+            {
+              "name": "urlString",
+              "type": "string",
+              "description": "The URL to open.",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "bundleID",
+              "type": "string",
+              "description": "Bundle identifier of the application to use.",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "boolean",
+            "description": "`true` if the URL was dispatched to the application."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.openURLWithBundle(\"https://example.com\", \"com.apple.safari\")"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 133
+        },
+        {
+          "name": "getDefaultHandler",
+          "signature": "func getDefaultHandler(_ scheme: String) -> String?",
+          "isStatic": false,
+          "rawDocumentation": "Returns the bundle identifier of the default application for a URL scheme.\n\n- Parameter scheme: The scheme to query, without `://` (e.g. `\"https\"`, `\"mailto\"`).\n- Returns: The bundle identifier string, or `null` if none is registered.\n- Example:\n```js\nconst handler = hs.urlevent.getDefaultHandler(\"https\")\nconsole.log(\"Default HTTPS handler: \" + handler)\n```",
+          "description": "Returns the bundle identifier of the default application for a URL scheme.",
+          "params": [
+            {
+              "name": "scheme",
+              "type": "string",
+              "description": "The scheme to query, without `://` (e.g. `\"https\"`, `\"mailto\"`).",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "string",
+            "description": "The bundle identifier string, or `null` if none is registered."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const handler = hs.urlevent.getDefaultHandler(\"https\")\nconsole.log(\"Default HTTPS handler: \" + handler)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 146
+        },
+        {
+          "name": "getAllHandlersForScheme",
+          "signature": "func getAllHandlersForScheme(_ scheme: String) -> [String]",
+          "isStatic": false,
+          "rawDocumentation": "Returns all bundle identifiers capable of handling a URL scheme.\n\n- Parameter scheme: The scheme to query, without `://` (e.g. `\"https\"`, `\"mailto\"`).\n- Returns: An array of bundle identifier strings.\n- Example:\n```js\nconst browsers = hs.urlevent.getAllHandlersForScheme(\"https\")\nconsole.log(\"Available browsers: \" + browsers.join(\", \"))\n```",
+          "description": "Returns all bundle identifiers capable of handling a URL scheme.",
+          "params": [
+            {
+              "name": "scheme",
+              "type": "string",
+              "description": "The scheme to query, without `://` (e.g. `\"https\"`, `\"mailto\"`).",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "Array<String>",
+            "description": "An array of bundle identifier strings."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const browsers = hs.urlevent.getAllHandlersForScheme(\"https\")\nconsole.log(\"Available browsers: \" + browsers.join(\", \"))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 157
+        },
+        {
+          "name": "setDefaultHandler",
+          "signature": "func setDefaultHandler(_ scheme: String, _ bundleID: String) -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Set the default application for a URL scheme.\n\nmacOS may display a confirmation dialog for sensitive schemes such as\n`http` and `https`. For custom schemes (`hammerspoon2`) no dialog is shown.\n\n- Parameters:\n  - scheme: The scheme to configure, without `://` (e.g. `\"https\"`, `\"mailto\"`).\n  - bundleID: Bundle identifier of the application to set as default.\n- Returns: `true` if the change was accepted by the system.\n- Example:\n```js\nhs.urlevent.setDefaultHandler(\"https\", \"com.apple.safari\")\n```",
+          "description": "Set the default application for a URL scheme.\nmacOS may display a confirmation dialog for sensitive schemes such as\n`http` and `https`. For custom schemes (`hammerspoon2`) no dialog is shown.",
+          "params": [
+            {
+              "name": "scheme",
+              "type": "string",
+              "description": "The scheme to configure, without `://` (e.g. `\"https\"`, `\"mailto\"`).",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "bundleID",
+              "type": "string",
+              "description": "Bundle identifier of the application to set as default.",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "boolean",
+            "description": "`true` if the change was accepted by the system."
+          },
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.setDefaultHandler(\"https\", \"com.apple.safari\")"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 172
+        }
+      ],
+      "properties": [
+        {
+          "name": "httpCallback",
+          "signature": "var httpCallback: JSFunction? { get set }",
+          "rawDocumentation": "Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.\n\nFires only when Hammerspoon 2 is the system default handler for `http`/`https`.\nThe callback receives `(scheme, host, params, fullURL, senderPID)`.\nAssign `null` to remove the callback.\n\n- Example:\n```js\nhs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {\n    hs.urlevent.openURLWithBundle(fullURL, \"com.apple.safari\")\n}\n```",
+          "description": "Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.\nFires only when Hammerspoon 2 is the system default handler for `http`/`https`.\nThe callback receives `(scheme, host, params, fullURL, senderPID)`.\nAssign `null` to remove the callback.",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {\n    hs.urlevent.openURLWithBundle(fullURL, \"com.apple.safari\")\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 95
+        },
+        {
+          "name": "mailtoCallback",
+          "signature": "var mailtoCallback: JSFunction? { get set }",
+          "rawDocumentation": "Callback invoked when Hammerspoon 2 receives a `mailto:` URL.\n\nFires only when Hammerspoon 2 is the system default handler for `mailto`.\nThe callback receives `(scheme, host, params, fullURL, senderPID)`.\nAssign `null` to remove the callback.\n\n- Example:\n```js\nhs.urlevent.mailtoCallback = (scheme, host, params, fullURL, pid) => {\n    console.log(\"mailto received: \" + host)\n}\n```",
+          "description": "Callback invoked when Hammerspoon 2 receives a `mailto:` URL.\nFires only when Hammerspoon 2 is the system default handler for `mailto`.\nThe callback receives `(scheme, host, params, fullURL, senderPID)`.\nAssign `null` to remove the callback.",
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.urlevent.mailtoCallback = (scheme, host, params, fullURL, pid) => {\n    console.log(\"mailto received: \" + host)\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.urlevent/HSURLEventModule.swift",
+          "lineNumber": 109
+        }
+      ],
+      "types": [],
+      "description": "Handle URL events received by Hammerspoon 2.\nThe module responds to `hammerspoon2://` URLs and, when Hammerspoon 2 is\nconfigured as the system default handler, also to `http://`, `https://`,\nand `mailto:` URLs.\n## Responding to custom hammerspoon2:// events\nURLs take the form `hammerspoon2://eventName?key=value&key2=value2`.\nThe host component (`eventName`) selects the registered callback.\n```js\nhs.urlevent.bind(\"myEvent\", (eventName, params, pid, url) => {\n    console.log(\"param foo = \" + params[\"foo\"])\n})\n\n// Remove a binding\nhs.urlevent.bind(\"myEvent\", null)\n```\n## Intercepting http / https / mailto URLs\nSet `hs.urlevent.httpCallback` (or `mailtoCallback`) to a function.\nYou must also set Hammerspoon 2 as the system default handler for the\nrelevant scheme — see `setDefaultHandler(_:_:)`.\n```js\nhs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {\n    // Forward to a real browser rather than swallowing the link\n    hs.urlevent.openURLWithBundle(fullURL, \"com.apple.safari\")\n}\n```\n## Querying and changing default handlers\n```js\nconst current = hs.urlevent.getDefaultHandler(\"https\")\nconsole.log(\"Current HTTPS handler: \" + current)\n\nconst all = hs.urlevent.getAllHandlersForScheme(\"https\")\nconsole.log(\"Available: \" + all.join(\", \"))\n\nhs.urlevent.setDefaultHandler(\"https\", \"com.apple.safari\")\n```",
+      "rawDocumentation": "Handle URL events received by Hammerspoon 2.\n\nThe module responds to `hammerspoon2://` URLs and, when Hammerspoon 2 is\nconfigured as the system default handler, also to `http://`, `https://`,\nand `mailto:` URLs.\n\n## Responding to custom hammerspoon2:// events\n\nURLs take the form `hammerspoon2://eventName?key=value&key2=value2`.\nThe host component (`eventName`) selects the registered callback.\n\n```js\nhs.urlevent.bind(\"myEvent\", (eventName, params, pid, url) => {\n    console.log(\"param foo = \" + params[\"foo\"])\n})\n\n// Remove a binding\nhs.urlevent.bind(\"myEvent\", null)\n```\n\n## Intercepting http / https / mailto URLs\n\nSet `hs.urlevent.httpCallback` (or `mailtoCallback`) to a function.\nYou must also set Hammerspoon 2 as the system default handler for the\nrelevant scheme — see `setDefaultHandler(_:_:)`.\n\n```js\nhs.urlevent.httpCallback = (scheme, host, params, fullURL, pid) => {\n    // Forward to a real browser rather than swallowing the link\n    hs.urlevent.openURLWithBundle(fullURL, \"com.apple.safari\")\n}\n```\n\n## Querying and changing default handlers\n\n```js\nconst current = hs.urlevent.getDefaultHandler(\"https\")\nconsole.log(\"Current HTTPS handler: \" + current)\n\nconst all = hs.urlevent.getAllHandlersForScheme(\"https\")\nconsole.log(\"Available: \" + all.join(\", \"))\n\nhs.urlevent.setDefaultHandler(\"https\", \"com.apple.safari\")\n```"
+    },
+    {
       "name": "hs.window",
       "methods": [
         {
@@ -13926,5 +14158,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-02T21:43:14.760Z"
+  "generatedAt": "2026-07-03T10:32:32.341Z"
 }

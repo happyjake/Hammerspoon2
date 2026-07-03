@@ -418,6 +418,8 @@ extension JSTestHarness {
                 loadModule(HSSpotlightModule.self, as: name)
             case "menubar":
                 loadModule(HSMenuBarModule.self, as: name)
+            case "urlevent":
+                loadModule(HSURLEventModule.self, as: name)
             default:
                 print("⚠️ Unknown module: \(name)")
             }
