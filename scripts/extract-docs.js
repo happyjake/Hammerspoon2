@@ -278,7 +278,21 @@ function parseSwiftFile(filePath, repoRoot) {
                 } else if (methodMatch[2]) {
                     // It's a property
                     const propName = methodMatch[2];
-                    const rawDoc = currentDoc.join('\n');
+
+                    // Support a {TypeScript type} annotation on the first doc line —
+                    // same syntax as parameter annotations. When found, strip it from
+                    // the rendered description so it doesn't leak into HTML output.
+                    let propCurrentDoc = currentDoc;
+                    let propTsType = null;
+                    if (currentDoc.length > 0) {
+                        const { description: firstLineStripped, tsType } = parseParamDescription(currentDoc[0]);
+                        if (tsType) {
+                            propTsType = tsType;
+                            propCurrentDoc = [firstLineStripped, ...currentDoc.slice(1)];
+                        }
+                    }
+
+                    const rawDoc = propCurrentDoc.join('\n');
 
                     // Skip this property if it has SKIP_DOCS marker
                     if (!shouldSkipDocs(currentDoc)) {
@@ -287,7 +301,8 @@ function parseSwiftFile(filePath, repoRoot) {
                             signature: trimmed.replace(/@objc\s*/, ''),
                             rawDocumentation: rawDoc,
                             description: formatDocCToJSDoc(rawDoc),
-                            examples: extractExamples(currentDoc),
+                            tsType: propTsType,
+                            examples: extractExamples(propCurrentDoc),
                             source: 'swift',
                             filePath: relativePath,
                             lineNumber: getLineNumber(lineStartPos)

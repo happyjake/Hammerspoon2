@@ -54,12 +54,13 @@ function swiftTypeToTS(swiftType, promiseType = null) {
     };
 
     // Handle JSFunction - convert to a callable type.
-    // JSFunction? is handled here too: the generic ?-stripper would produce
-    // "(...args: any[]) => any | undefined" which TS parses as a function
-    // returning "any | undefined" — wrong precedence. We parenthesise instead.
+    // JSFunction? uses | null (not | undefined) because optional JS callbacks are
+    // explicitly cleared with `= null`, not left unset. The generic ?-stripper would
+    // also produce wrong precedence: "(...args: any[]) => any | undefined" is parsed
+    // by TS as a function returning "any | undefined". We parenthesise to fix that.
     if (s === 'JSFunction?' || s === 'JSFunction') {
         const fnType = '(...args: any[]) => any';
-        return s.endsWith('?') ? `(${fnType}) | undefined` : fnType;
+        return s.endsWith('?') ? `(${fnType}) | null` : fnType;
     }
 
     // Handle JSPromise - convert to Promise<T>
@@ -174,7 +175,7 @@ function generateModuleDefinitions(moduleData) {
         }
         output += `     */\n`;
 
-        const propType = swiftTypeToTS(extractPropertyType(prop.signature));
+        const propType = prop.tsType || swiftTypeToTS(extractPropertyType(prop.signature));
         const keyword = isWritableProperty(prop.signature) ? 'let' : 'const';
         output += `    ${keyword} ${prop.name}: ${propType};\n\n`;
     }
@@ -260,7 +261,7 @@ function generateTypeDefinition(protocol) {
                 output += `     * ${escapeDocComment(prop.description)}\n`;
             }
             output += `     */\n`;
-            const propType = swiftTypeToTS(extractPropertyType(prop.signature));
+            const propType = prop.tsType || swiftTypeToTS(extractPropertyType(prop.signature));
             const readonlyPrefix = isWritableProperty(prop.signature) ? '' : 'readonly ';
             output += `    ${readonlyPrefix}${prop.name}: ${propType};\n\n`;
         }
@@ -297,7 +298,7 @@ function generateTypeDefinition(protocol) {
                 output += `     * ${escapeDocComment(prop.description)}\n`;
             }
             output += `     */\n`;
-            const propType = swiftTypeToTS(extractPropertyType(prop.signature));
+            const propType = prop.tsType || swiftTypeToTS(extractPropertyType(prop.signature));
             const readonlyPrefix = isWritableProperty(prop.signature) ? '' : 'readonly ';
             output += `    ${readonlyPrefix}${prop.name}: ${propType};\n\n`;
         }

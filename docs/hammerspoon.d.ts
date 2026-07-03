@@ -1814,30 +1814,30 @@ The argument is the chosen row object (the original dict you passed to `setChoic
 with `text`, `subText`, `image`, `valid`, and any custom fields intact).
 The argument is `null` when dismissed (Escape).
      */
-    onSelect: ((...args: any[]) => any) | undefined;
+    onSelect: ((...args: any[]) => any) | null;
 
     /**
      * Called on every keystroke with the new query string.
 Use this to debounce expensive searches or trigger async data fetching.
      */
-    onQueryChange: ((...args: any[]) => any) | undefined;
+    onQueryChange: ((...args: any[]) => any) | null;
 
     /**
      * Called after the panel becomes visible.
      */
-    onShow: ((...args: any[]) => any) | undefined;
+    onShow: ((...args: any[]) => any) | null;
 
     /**
      * Called after the panel is hidden (for any reason: selection, Escape, or `hide()`).
      */
-    onHide: ((...args: any[]) => any) | undefined;
+    onHide: ((...args: any[]) => any) | null;
 
     /**
      * Called when the user activates a row whose `valid` field is `false`.
 The chooser stays open; the argument is the row dict (same shape as `onSelect`).
 If unset, activating an invalid row is silently ignored.
      */
-    onInvalid: ((...args: any[]) => any) | undefined;
+    onInvalid: ((...args: any[]) => any) | null;
 
 }
 
@@ -2316,12 +2316,12 @@ declare class HSHotkey {
     /**
      * The callback function to be called when the hotkey is pressed
      */
-    callbackPressed: ((...args: any[]) => any) | undefined;
+    callbackPressed: ((...args: any[]) => any) | null;
 
     /**
      * The callback function to be called when the hotkey is released
      */
-    callbackReleased: ((...args: any[]) => any) | undefined;
+    callbackReleased: ((...args: any[]) => any) | null;
 
 }
 
@@ -3989,7 +3989,7 @@ declare namespace hs.task {
      * @param streamingCallback Optional callback function called when the task produces output
      * @returns A task object. Call start() to begin execution.
      */
-    function create(launchPath: string, arguments: string[], completionCallback: ((...args: any[]) => any) | undefined, environment: Record<string, string> | undefined, streamingCallback: ((...args: any[]) => any) | undefined): HSTask;
+    function create(launchPath: string, arguments: string[], completionCallback: ((...args: any[]) => any) | null, environment: Record<string, string> | undefined, streamingCallback: ((...args: any[]) => any) | null): HSTask;
 
     /**
      * Create and run a task asynchronously
@@ -4025,12 +4025,12 @@ declare namespace hs.task {
     /**
      * Run multiple tasks in sequence. Swift-retained storage for the JS implementation.
      */
-    let sequence: ((...args: any[]) => any) | undefined;
+    let sequence: ((...args: any[]) => any) | null;
 
     /**
      * TaskBuilder class. Swift-retained storage for the JS implementation.
      */
-    let TaskBuilder: ((...args: any[]) => any) | undefined;
+    let TaskBuilder: ((...args: any[]) => any) | null;
 
 }
 
@@ -5191,11 +5191,10 @@ declare namespace hs.urlevent {
      * Register or remove a callback for a named `hammerspoon2://` URL event.
 The URL format is `hammerspoon2://eventName?key=value`. The host
 component (`eventName`) selects the callback to invoke.
-or `null` to remove any existing binding.
      * @param eventName The URL host component identifying the event.
-     * @param callback A function receiving `(eventName, params, senderPID, fullURL)`,
+     * @param callback A function receiving `(eventName, params, senderPID, fullURL)`, or `null` to remove any existing binding.
      */
-    function bind(eventName: string, callback: ((...args: any[]) => any) | undefined): void;
+    function bind(eventName: string, callback: ((eventName: string, params: Record<string, string>, senderPID: number, fullURL: string) => void) | null): void;
 
     /**
      * Open a URL using the system default application for its scheme.
@@ -5239,18 +5238,16 @@ macOS may display a confirmation dialog for sensitive schemes such as
     /**
      * Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.
 Fires only when Hammerspoon 2 is the system default handler for `http`/`https`.
-The callback receives `(scheme, host, params, fullURL, senderPID)`.
 Assign `null` to remove the callback.
      */
-    let httpCallback: ((...args: any[]) => any) | undefined;
+    let httpCallback: ((scheme: string, host: string, params: Record<string, string>, fullURL: string, senderPID: number) => void) | null;
 
     /**
      * Callback invoked when Hammerspoon 2 receives a `mailto:` URL.
 Fires only when Hammerspoon 2 is the system default handler for `mailto`.
-The callback receives `(scheme, host, params, fullURL, senderPID)`.
 Assign `null` to remove the callback.
      */
-    let mailtoCallback: ((...args: any[]) => any) | undefined;
+    let mailtoCallback: ((scheme: string, host: string, params: Record<string, string>, fullURL: string, senderPID: number) => void) | null;
 
 }
 

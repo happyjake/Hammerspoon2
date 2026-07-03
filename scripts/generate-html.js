@@ -54,7 +54,6 @@ env.addFilter('formatReturnType', function(returns) {
 });
 
 env.addFilter('resolveParamType', function(param) {
-    if (param.tsType) return param.tsType;
     return formatType(param.type);
 });
 
@@ -144,6 +143,11 @@ function formatType(swiftType, promiseType = null) {
         'UInt32': 'number',
         'Any': 'any'
     };
+
+    // Handle JSFunction - display as JS-friendly "function" type
+    if (swiftType === 'JSFunction?' || swiftType === 'JSFunction') {
+        return swiftType.endsWith('?') ? 'function | null' : 'function';
+    }
 
     // Handle JSPromise - convert to Promise<T>
     if (swiftType === 'JSPromise?' || swiftType === 'JSPromise') {

@@ -66,8 +66,7 @@ import JavaScriptCoreExtras
     ///
     /// - Parameters:
     ///   - eventName: The URL host component identifying the event.
-    ///   - callback: A function receiving `(eventName, params, senderPID, fullURL)`,
-    ///     or `null` to remove any existing binding.
+    ///   - callback: {((eventName: string, params: Record<string, string>, senderPID: number, fullURL: string) => void) | null} A function receiving `(eventName, params, senderPID, fullURL)`, or `null` to remove any existing binding.
     /// - Example:
     /// ```js
     /// hs.urlevent.bind("myEvent", (name, params, pid, url) => {
@@ -80,10 +79,9 @@ import JavaScriptCoreExtras
 
     // MARK: Callbacks for other URL schemes
 
-    /// Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.
+    /// {((scheme: string, host: string, params: Record<string, string>, fullURL: string, senderPID: number) => void) | null} Callback invoked when Hammerspoon 2 receives an `http://` or `https://` URL.
     ///
     /// Fires only when Hammerspoon 2 is the system default handler for `http`/`https`.
-    /// The callback receives `(scheme, host, params, fullURL, senderPID)`.
     /// Assign `null` to remove the callback.
     ///
     /// - Example:
@@ -94,10 +92,9 @@ import JavaScriptCoreExtras
     /// ```
     @objc var httpCallback: JSFunction? { get set }
 
-    /// Callback invoked when Hammerspoon 2 receives a `mailto:` URL.
+    /// {((scheme: string, host: string, params: Record<string, string>, fullURL: string, senderPID: number) => void) | null} Callback invoked when Hammerspoon 2 receives a `mailto:` URL.
     ///
     /// Fires only when Hammerspoon 2 is the system default handler for `mailto`.
-    /// The callback receives `(scheme, host, params, fullURL, senderPID)`.
     /// Assign `null` to remove the callback.
     ///
     /// - Example:
@@ -262,6 +259,8 @@ import JavaScriptCoreExtras
         bindings[eventName]?.detach(from: self)
         if callback.isFunction {
             bindings[eventName] = JSCallback(value: callback, owner: self)
+        } else {
+            bindings.removeValue(forKey: eventName)
         }
     }
 
@@ -302,23 +301,20 @@ import JavaScriptCoreExtras
         return true
     }
 
-    @diagnose(DeprecatedDeclaration, as: ignored, reason: "No suitable non-deprecated alternative exists")
     @objc func getDefaultHandler(_ scheme: String) -> String? {
         // LSCopyDefaultHandlerForURLScheme is deprecated in macOS 12 but has no modern
         // replacement for scheme-only queries (NSWorkspace requires a full URL with host).
-        return unsafe LSCopyDefaultHandlerForURLScheme(scheme as CFString)?.takeRetainedValue() as String?
+        return LSCopyDefaultHandlerForURLScheme(scheme as CFString)?.takeRetainedValue() as String?
     }
 
-    @diagnose(DeprecatedDeclaration, as: ignored, reason: "No suitable non-deprecated alternative exists")
     @objc func getAllHandlersForScheme(_ scheme: String) -> [String] {
         // LSCopyAllHandlersForURLScheme is deprecated in macOS 12 but has no modern replacement.
-        guard let cfArray = unsafe LSCopyAllHandlersForURLScheme(scheme as CFString)?.takeRetainedValue() else {
+        guard let cfArray = LSCopyAllHandlersForURLScheme(scheme as CFString)?.takeRetainedValue() else {
             return []
         }
         return (cfArray as NSArray).compactMap { $0 as? String }
     }
 
-    @diagnose(DeprecatedDeclaration, as: ignored, reason: "No suitable non-deprecated alternative exists")
     @objc func setDefaultHandler(_ scheme: String, _ bundleID: String) -> Bool {
         // LSSetDefaultHandlerForURLScheme is deprecated in macOS 12 but has no modern replacement.
         return LSSetDefaultHandlerForURLScheme(scheme as CFString, bundleID as CFString) == noErr
