@@ -15,6 +15,12 @@ private func makeHarness() -> JSTestHarness {
     return harness
 }
 
+private nonisolated func isSpotlightAvailable() -> Bool {
+    // NSMetadataQuery always works on macOS desktop without special permissions.
+    // If running in a severely restricted sandbox, this may not be true — skip conservatively.
+    true
+}
+
 @Suite("hs.spotlight tests")
 struct HSSpotlightTests {
     // MARK: - Suite 1: API structure
@@ -395,12 +401,6 @@ struct HSSpotlightTests {
     }
 
     // MARK: - Suite 5: Live query execution (requires Spotlight index)
-
-    private nonisolated func isSpotlightAvailable() -> Bool {
-        // NSMetadataQuery always works on macOS desktop without special permissions.
-        // If running in a severely restricted sandbox, this may not be true — skip conservatively.
-        true
-    }
 
     @Suite("HSSpotlightQuery live execution",
            .disabled(if: !isSpotlightAvailable(), "Spotlight not available in this environment"))

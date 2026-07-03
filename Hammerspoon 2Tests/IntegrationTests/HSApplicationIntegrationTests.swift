@@ -10,6 +10,10 @@ import JavaScriptCore
 @testable import Hammerspoon_2
 import AppKit
 
+private nonisolated func chessIsAvailable() -> Bool {
+    NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Chess") != nil
+}
+
 /// Integration tests for hs.application module
 ///
 /// These tests verify that application objects are correctly bridged to JavaScript
@@ -490,10 +494,6 @@ struct HSApplicationTests {
     }
 
     // MARK: - Watcher Event Delivery Tests
-
-    private nonisolated func chessIsAvailable() -> Bool {
-        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Chess") != nil
-    }
 
     /// Tests that NSWorkspace application events are correctly delivered to JavaScript watcher callbacks.
     /// Uses Chess.app as the target because it is a bundled macOS app with no side effects.
