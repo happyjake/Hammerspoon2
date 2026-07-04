@@ -671,6 +671,24 @@ struct ParsedHTTPRequest {
                 var buf = buffer
                 if let chunk { buf.append(chunk) }
 
+                // Send close code 1009 (Message Too Big) and drop the connection.
+                func closeTooBig() {
+                    MainActor.assumeIsolated {
+                        let frame = HSWebSocketConnection.buildFrame(opcode: 0x08, payload: Data([0x03, 0xF1]))
+                        connection.send(content: frame, completion: .contentProcessed { _ in
+                            MainActor.assumeIsolated { connection.cancel() }
+                        })
+                        wsConn.isClosed = true
+                    }
+                }
+
+                // Guard against a client declaring an arbitrarily large payloadLength in the frame
+                // header, which would cause buf to grow without bound before parseNextFrame returns.
+                if buf.count > self.maxBodySize {
+                    closeTooBig()
+                    return
+                }
+
                 // Parse all complete frames from the accumulated buffer.
                 while !wsConn.isClosed {
                     // buf always has startIndex == 0 because it's built from Data() + append.
@@ -679,6 +697,12 @@ struct ParsedHTTPRequest {
 
                     switch frame.opcode {
                     case 0x00:  // continuation frame
+                        // Guard against a stream of small continuation frames growing fragmentBuffer
+                        // without bound before the final FIN frame arrives.
+                        if wsConn.fragmentBuffer.count + frame.payload.count > self.maxBodySize {
+                            closeTooBig()
+                            return
+                        }
                         wsConn.fragmentBuffer.append(frame.payload)
                         if frame.isFinal {
                             let text = String(data: wsConn.fragmentBuffer, encoding: .utf8) ?? ""
