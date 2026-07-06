@@ -30,9 +30,9 @@ class KeycodesWatcherEmitter {
         const idx = this.#listeners.indexOf(listener);
         if (idx > -1) {
             this.#listeners.splice(idx, 1);
-        }
-        if (this.#listeners.length === 0) {
-            hs.keycodes._removeWatcher();
+            if (this.#listeners.length === 0) {
+                hs.keycodes._removeWatcher();
+            }
         }
     }
 }
