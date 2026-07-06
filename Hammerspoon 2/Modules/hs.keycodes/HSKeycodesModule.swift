@@ -477,94 +477,101 @@ extension HSKeycodesModule {
     // These take precedence over any UCKeyTranslate-derived character mappings.
     static let namedKeys: [(String, Int)] = [
         // Control / editing
-        ("return",        36),   // kVK_Return
-        ("tab",           48),   // kVK_Tab
-        ("space",         49),   // kVK_Space
-        ("delete",        51),   // kVK_Delete (backspace)
-        ("escape",        53),   // kVK_Escape
-        ("forwarddelete", 117),  // kVK_ForwardDelete
-        ("help",          114),  // kVK_Help
-        ("capslock",      57),   // kVK_CapsLock
+        ("return",        kVK_Return),        // 36
+        ("tab",           kVK_Tab),           // 48
+        ("space",         kVK_Space),         // 49
+        ("delete",        kVK_Delete),        // 51 (backspace)
+        ("escape",        kVK_Escape),        // 53
+        ("forwarddelete", kVK_ForwardDelete), // 117
+        ("help",          kVK_Help),          // 114
+        ("capslock",      kVK_CapsLock),      // 57
 
         // Navigation
-        ("home",          115),  // kVK_Home
-        ("end",           119),  // kVK_End
-        ("pageup",        116),  // kVK_PageUp
-        ("pagedown",      121),  // kVK_PageDown
-        ("left",          123),  // kVK_LeftArrow
-        ("right",         124),  // kVK_RightArrow
-        ("down",          125),  // kVK_DownArrow
-        ("up",            126),  // kVK_UpArrow
+        ("home",     kVK_Home),       // 115
+        ("end",      kVK_End),        // 119
+        ("pageup",   kVK_PageUp),     // 116
+        ("pagedown", kVK_PageDown),   // 121
+        ("left",     kVK_LeftArrow),  // 123
+        ("right",    kVK_RightArrow), // 124
+        ("down",     kVK_DownArrow),  // 125
+        ("up",       kVK_UpArrow),    // 126
 
         // Function keys
-        ("f1",  122),  // kVK_F1
-        ("f2",  120),  // kVK_F2
-        ("f3",   99),  // kVK_F3
-        ("f4",  118),  // kVK_F4
-        ("f5",   96),  // kVK_F5
-        ("f6",   97),  // kVK_F6
-        ("f7",   98),  // kVK_F7
-        ("f8",  100),  // kVK_F8
-        ("f9",  101),  // kVK_F9
-        ("f10", 109),  // kVK_F10
-        ("f11", 103),  // kVK_F11
-        ("f12", 111),  // kVK_F12
-        ("f13", 105),  // kVK_F13
-        ("f14", 107),  // kVK_F14
-        ("f15", 113),  // kVK_F15
-        ("f16", 106),  // kVK_F16
-        ("f17",  64),  // kVK_F17
-        ("f18",  79),  // kVK_F18
-        ("f19",  80),  // kVK_F19
-        ("f20",  90),  // kVK_F20
+        ("f1",  kVK_F1),  // 122
+        ("f2",  kVK_F2),  // 120
+        ("f3",  kVK_F3),  // 99
+        ("f4",  kVK_F4),  // 118
+        ("f5",  kVK_F5),  // 96
+        ("f6",  kVK_F6),  // 97
+        ("f7",  kVK_F7),  // 98
+        ("f8",  kVK_F8),  // 100
+        ("f9",  kVK_F9),  // 101
+        ("f10", kVK_F10), // 109
+        ("f11", kVK_F11), // 103
+        ("f12", kVK_F12), // 111
+        ("f13", kVK_F13), // 105
+        ("f14", kVK_F14), // 107
+        ("f15", kVK_F15), // 113
+        ("f16", kVK_F16), // 106
+        ("f17", kVK_F17), // 64
+        ("f18", kVK_F18), // 79
+        ("f19", kVK_F19), // 80
+        ("f20", kVK_F20), // 90
 
         // Media / volume
-        ("volup",   72),  // kVK_VolumeUp
-        ("voldown", 73),  // kVK_VolumeDown
-        ("mute",    74),  // kVK_Mute
+        ("volup",   kVK_VolumeUp),   // 72
+        ("voldown", kVK_VolumeDown), // 73
+        ("mute",    kVK_Mute),       // 74
 
         // Modifier keys
-        ("cmd",        55),  // kVK_Command
-        ("shift",      56),  // kVK_Shift
-        ("alt",        58),  // kVK_Option
-        ("ctrl",       59),  // kVK_Control
-        ("rightshift", 60),  // kVK_RightShift
-        ("rightalt",   61),  // kVK_RightOption
-        ("rightctrl",  62),  // kVK_RightControl
-        ("fn",         63),  // kVK_Function
+        ("cmd",        kVK_Command),      // 55
+        ("shift",      kVK_Shift),        // 56
+        ("alt",        kVK_Option),       // 58
+        ("ctrl",       kVK_Control),      // 59
+        ("rightshift", kVK_RightShift),   // 60
+        ("rightalt",   kVK_RightOption),  // 61
+        ("rightctrl",  kVK_RightControl), // 62
+        ("fn",         kVK_Function),     // 63
 
         // Numpad
-        ("pad.",      65),  // kVK_ANSI_KeypadDecimal
-        ("pad*",      67),  // kVK_ANSI_KeypadMultiply
-        ("pad+",      69),  // kVK_ANSI_KeypadPlus
-        ("padclear",  71),  // kVK_ANSI_KeypadClear
-        ("pad/",      75),  // kVK_ANSI_KeypadDivide
-        ("padenter",  76),  // kVK_ANSI_KeypadEnter
-        ("pad-",      78),  // kVK_ANSI_KeypadMinus
-        ("pad=",      81),  // kVK_ANSI_KeypadEquals
-        ("pad0",      82),  // kVK_ANSI_Keypad0
-        ("pad1",      83),  // kVK_ANSI_Keypad1
-        ("pad2",      84),  // kVK_ANSI_Keypad2
-        ("pad3",      85),  // kVK_ANSI_Keypad3
-        ("pad4",      86),  // kVK_ANSI_Keypad4
-        ("pad5",      87),  // kVK_ANSI_Keypad5
-        ("pad6",      88),  // kVK_ANSI_Keypad6
-        ("pad7",      89),  // kVK_ANSI_Keypad7
-        ("pad8",      91),  // kVK_ANSI_Keypad8
-        ("pad9",      92),  // kVK_ANSI_Keypad9
+        ("pad.",     kVK_ANSI_KeypadDecimal),  // 65
+        ("pad*",     kVK_ANSI_KeypadMultiply), // 67
+        ("pad+",     kVK_ANSI_KeypadPlus),     // 69
+        ("padclear", kVK_ANSI_KeypadClear),    // 71
+        ("pad/",     kVK_ANSI_KeypadDivide),   // 75
+        ("padenter", kVK_ANSI_KeypadEnter),    // 76
+        ("pad-",     kVK_ANSI_KeypadMinus),    // 78
+        ("pad=",     kVK_ANSI_KeypadEquals),   // 81
+        ("pad0",     kVK_ANSI_Keypad0),        // 82
+        ("pad1",     kVK_ANSI_Keypad1),        // 83
+        ("pad2",     kVK_ANSI_Keypad2),        // 84
+        ("pad3",     kVK_ANSI_Keypad3),        // 85
+        ("pad4",     kVK_ANSI_Keypad4),        // 86
+        ("pad5",     kVK_ANSI_Keypad5),        // 87
+        ("pad6",     kVK_ANSI_Keypad6),        // 88
+        ("pad7",     kVK_ANSI_Keypad7),        // 89
+        ("pad8",     kVK_ANSI_Keypad8),        // 91
+        ("pad9",     kVK_ANSI_Keypad9),        // 92
     ]
 
     // ANSI US fallback for character keys when the layout provides no UCHR data.
     // Based on Carbon.framework Events.h for the standard ANSI US layout.
     static let ansiUSCharacterMap: [(String, Int)] = [
-        ("a",  0), ("s",  1), ("d",  2), ("f",  3), ("h",  4), ("g",  5),
-        ("z",  6), ("x",  7), ("c",  8), ("v",  9), ("b", 11), ("q", 12),
-        ("w", 13), ("e", 14), ("r", 15), ("y", 16), ("t", 17),
-        ("1", 18), ("2", 19), ("3", 20), ("4", 21), ("6", 22), ("5", 23),
-        ("=", 24), ("9", 25), ("7", 26), ("-", 27), ("8", 28), ("0", 29),
-        ("]", 30), ("o", 31), ("u", 32), ("[", 33), ("i", 34), ("p", 35),
-        ("l", 37), ("j", 38), ("'", 39), ("k", 40), (";", 41),
-        ("\\", 42), (",", 43), ("/", 44), ("n", 45), ("m", 46), (".", 47),
-        ("`", 50),
+        ("a", kVK_ANSI_A), ("s", kVK_ANSI_S), ("d", kVK_ANSI_D), ("f", kVK_ANSI_F),
+        ("h", kVK_ANSI_H), ("g", kVK_ANSI_G), ("z", kVK_ANSI_Z), ("x", kVK_ANSI_X),
+        ("c", kVK_ANSI_C), ("v", kVK_ANSI_V), ("b", kVK_ANSI_B), ("q", kVK_ANSI_Q),
+        ("w", kVK_ANSI_W), ("e", kVK_ANSI_E), ("r", kVK_ANSI_R), ("y", kVK_ANSI_Y),
+        ("t", kVK_ANSI_T),
+        ("1", kVK_ANSI_1), ("2", kVK_ANSI_2), ("3", kVK_ANSI_3), ("4", kVK_ANSI_4),
+        ("6", kVK_ANSI_6), ("5", kVK_ANSI_5), ("=", kVK_ANSI_Equal),
+        ("9", kVK_ANSI_9), ("7", kVK_ANSI_7), ("-", kVK_ANSI_Minus),
+        ("8", kVK_ANSI_8), ("0", kVK_ANSI_0),
+        ("]", kVK_ANSI_RightBracket), ("o", kVK_ANSI_O), ("u", kVK_ANSI_U),
+        ("[", kVK_ANSI_LeftBracket),  ("i", kVK_ANSI_I), ("p", kVK_ANSI_P),
+        ("l", kVK_ANSI_L), ("j", kVK_ANSI_J), ("'", kVK_ANSI_Quote),
+        ("k", kVK_ANSI_K), (";", kVK_ANSI_Semicolon),
+        ("\\", kVK_ANSI_Backslash), (",", kVK_ANSI_Comma),
+        ("/", kVK_ANSI_Slash), ("n", kVK_ANSI_N), ("m", kVK_ANSI_M),
+        (".", kVK_ANSI_Period), ("`", kVK_ANSI_Grave),
     ]
 }
