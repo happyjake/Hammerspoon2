@@ -5186,7 +5186,7 @@ Keep a reference to call navigation methods after the window is shown.
 /**
  * # HSUIWindow
 **A custom window with declarative UI building**
-`HSUIWindow` allows you to create custom borderless windows with a SwiftUI-like
+`HSUIWindow` allows you to create custom windows with a SwiftUI-like
 declarative syntax. Build interfaces using shapes, text, images, and layout containers.
 ## Building UI Elements
 ## Modifying Elements
@@ -5240,43 +5240,42 @@ declare class HSUIWindow {
     close(): void;
 
     /**
-     * Show a title bar on the window
-By default windows are borderless. Pass `true` to add a title bar.
-`.closable()`, `.miniaturizable()`, and `.resizable()` only take visual effect
+     * Show or hide the window's title bar
+By default windows have a title bar. Pass `false` to create a borderless window.
+`.closable()`, `.miniaturizable()`, and `.allowResize()` only take visual effect
 when the window is titled.
-     * @param show Pass `true` to show a title bar
+     * @param show Pass `false` to make the window borderless
      * @returns Self for chaining
      */
     titled(show: boolean): HSUIWindow;
 
     /**
-     * Show a close button on the window
-Requires `.titled(true)` to be visible. Pass `true` to enable.
-     * @param show Pass `true` to show the close button
+     * Show or hide the close button on the window
+Requires `.titled(true)` to be visible. Enabled by default.
+     * @param show Pass `false` to hide the close button
      * @returns Self for chaining
      */
     closable(show: boolean): HSUIWindow;
 
     /**
-     * Show a miniaturize (yellow) button on the window
-Requires `.titled(true)` to be visible. Pass `true` to enable.
-     * @param show Pass `true` to show the miniaturize button
+     * Show or hide the miniaturize (yellow) button on the window
+Requires `.titled(true)` to be visible. Enabled by default.
+     * @param show Pass `false` to hide the miniaturize button
      * @returns Self for chaining
      */
     miniaturizable(show: boolean): HSUIWindow;
 
     /**
-     * Allow the window to be resized by the user
-Pass `true` to let the user drag the window edges to resize it.
-Only has an effect when `.titled(true)` is also set.
-     * @param enable Pass `true` to allow the user to resize the window
+     * Allow or prevent the user from resizing the window
+Enabled by default. Only has a visual effect when `.titled(true)` is also set.
+     * @param enable Pass `false` to prevent the user from resizing the window
      * @returns Self for chaining
      */
     allowResize(enable: boolean): HSUIWindow;
 
     /**
      * Set the text shown in the window's title bar
-Only visible when `.titled(true)` is set. Has no effect on borderless windows.
+Only visible when `.titled(true)` is set (the default).
      * @param text The title bar text
      * @returns Self for chaining
      */
@@ -5755,6 +5754,10 @@ const wv = hs.ui.webview()
     .loadURL("https://apple.com")
 
 hs.ui.window({x: 100, y: 100, w: 1024, h: 768})
+    .titled(true)
+    .closable(true)
+    .allowResize(true)
+    .level("normal")
     .webview(wv)
     .show()
 ```

@@ -14,7 +14,7 @@ import SwiftUI
 ///
 /// **A custom window with declarative UI building**
 ///
-/// `HSUIWindow` allows you to create custom borderless windows with a SwiftUI-like
+/// `HSUIWindow` allows you to create custom windows with a SwiftUI-like
 /// declarative syntax. Build interfaces using shapes, text, images, and layout containers.
 ///
 /// ## Building UI Elements
@@ -80,76 +80,73 @@ import SwiftUI
 
     // MARK: Window Styling
 
-    /// Show a title bar on the window
+    /// Show or hide the window's title bar
     ///
-    /// By default windows are borderless. Pass `true` to add a title bar.
-    /// `.closable()`, `.miniaturizable()`, and `.resizable()` only take visual effect
+    /// By default windows have a title bar. Pass `false` to create a borderless window.
+    /// `.closable()`, `.miniaturizable()`, and `.allowResize()` only take visual effect
     /// when the window is titled.
     ///
-    /// - Parameter show: Pass `true` to show a title bar
+    /// - Parameter show: Pass `false` to make the window borderless
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
-    /// hs.ui.window({x: 100, y: 100, w: 800, h: 600})
-    ///     .titled(true)
-    ///     .closable(true)
-    ///     .allowResize(true)
-    ///     .level("normal")
-    ///     .webview(wv)
+    /// // Borderless floating overlay
+    /// hs.ui.window({x: 100, y: 100, w: 400, h: 300})
+    ///     .titled(false)
+    ///     .level("floating")
     ///     .show()
     /// ```
     @objc func titled(_ show: Bool) -> HSUIWindow
 
-    /// Show a close button on the window
+    /// Show or hide the close button on the window
     ///
-    /// Requires `.titled(true)` to be visible. Pass `true` to enable.
+    /// Requires `.titled(true)` to be visible. Enabled by default.
     ///
-    /// - Parameter show: Pass `true` to show the close button
+    /// - Parameter show: Pass `false` to hide the close button
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
     /// hs.ui.window({x: 100, y: 100, w: 800, h: 600})
-    ///     .titled(true).closable(true).show()
+    ///     .closable(false).show()
     /// ```
     @objc func closable(_ show: Bool) -> HSUIWindow
 
-    /// Show a miniaturize (yellow) button on the window
+    /// Show or hide the miniaturize (yellow) button on the window
     ///
-    /// Requires `.titled(true)` to be visible. Pass `true` to enable.
+    /// Requires `.titled(true)` to be visible. Enabled by default.
     ///
-    /// - Parameter show: Pass `true` to show the miniaturize button
+    /// - Parameter show: Pass `false` to hide the miniaturize button
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
     /// hs.ui.window({x: 100, y: 100, w: 800, h: 600})
-    ///     .titled(true).miniaturizable(true).show()
+    ///     .miniaturizable(false).show()
     /// ```
     @objc func miniaturizable(_ show: Bool) -> HSUIWindow
 
-    /// Allow the window to be resized by the user
+    /// Allow or prevent the user from resizing the window
     ///
-    /// Pass `true` to let the user drag the window edges to resize it.
-    /// Only has an effect when `.titled(true)` is also set.
+    /// Enabled by default. Only has a visual effect when `.titled(true)` is also set.
     ///
-    /// - Parameter enable: Pass `true` to allow the user to resize the window
+    /// - Parameter enable: Pass `false` to prevent the user from resizing the window
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
     /// hs.ui.window({x: 100, y: 100, w: 800, h: 600})
-    ///     .titled(true).allowResize(true).show()
+    ///     .allowResize(false).show()
     /// ```
     @objc func allowResize(_ enable: Bool) -> HSUIWindow
 
     /// Set the text shown in the window's title bar
     ///
-    /// Only visible when `.titled(true)` is set. Has no effect on borderless windows.
+    /// Only visible when `.titled(true)` is set (the default).
     ///
     /// - Parameter text: The title bar text
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
     /// hs.ui.window({x: 100, y: 100, w: 800, h: 600})
-    ///     .titled(true).windowTitle("My Browser").show()
+    ///     .windowTitle("My Browser").show()
     /// ```
     @objc func windowTitle(_ text: String) -> HSUIWindow
 
@@ -157,8 +154,8 @@ import SwiftUI
     ///
     /// Controls where this window sits in the macOS window hierarchy.
     /// Supported values:
-    /// - `"normal"` — regular app window, sits with other app windows
-    /// - `"floating"` — floats above all normal windows (default)
+    /// - `"normal"` — regular app window, sits with other app windows (default)
+    /// - `"floating"` — floats above all normal windows
     /// - `"screenSaver"` — above the screen saver layer
     /// - `"dock"` — same level as the Dock
     /// - `"status"` — status bar level
@@ -169,7 +166,7 @@ import SwiftUI
     /// - Example:
     /// ```js
     /// hs.ui.window({x: 100, y: 100, w: 800, h: 600})
-    ///     .titled(true).level("normal").show()
+    ///     .level("floating").show()
     /// ```
     @objc func level(_ name: String) -> HSUIWindow
 
@@ -340,12 +337,12 @@ import SwiftUI
     private weak var module: HSUIModule?
 
     // Style configuration
-    private var isTitled: Bool = false
-    private var isClosable: Bool = false
-    private var isMiniaturizable: Bool = false
-    private var isResizable: Bool = false
+    private var isTitled: Bool = true
+    private var isClosable: Bool = true
+    private var isMiniaturizable: Bool = true
+    private var isResizable: Bool = true
     private var windowTitleText: String = ""
-    private var windowLevelName: String = "floating"
+    private var windowLevelName: String = "normal"
 
     // Element tree
     private var rootElement: (any HSUIElement)?

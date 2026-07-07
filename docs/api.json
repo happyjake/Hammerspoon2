@@ -12958,8 +12958,8 @@
         {
           "name": "HSUIWindowAPI",
           "type": "typedef",
-          "rawDocumentation": "# HSUIWindow\n\n**A custom window with declarative UI building**\n\n`HSUIWindow` allows you to create custom borderless windows with a SwiftUI-like\ndeclarative syntax. Build interfaces using shapes, text, images, and layout containers.\n\n## Building UI Elements\n\n- **Shapes**: `rectangle()`, `circle()`\n- **Text**: `text(content)`\n- **Buttons**: `button(label)` — uses SwiftUI's native Button for press-state feedback\n- **Images**: `image(imageValue)`\n- **Layout**: `vstack()`, `hstack()`, `zstack()`, `spacer()`\n\n## Modifying Elements\n\n- **Shape modifiers**: `fill()`, `stroke()`, `strokeWidth()`, `cornerRadius()`\n- **Text modifiers**: `font()`, `foregroundColor()`\n- **Image modifiers**: `resizable()`, `aspectRatio(mode)`\n- **Layout modifiers**: `frame()`, `opacity()`, `padding()`, `spacing()`\n\n## Examples\n\n**Simple window with text and shapes:**\n```javascript\nhs.ui.window({x: 100, y: 100, w: 300, h: 200})\n    .vstack()\n        .spacing(10)\n        .padding(20)\n        .text(\"Dashboard\")\n            .font(HSFont.largeTitle())\n            .foregroundColor(\"#FFFFFF\")\n        .rectangle()\n            .fill(\"#4A90E2\")\n            .cornerRadius(10)\n            .frame({w: \"90%\", h: 80})\n    .end()\n    .backgroundColor(\"#2C3E50\")\n    .show();\n```\n\n**Window with image:**\n```javascript\nconst img = HSImage.fromPath(\"~/Pictures/photo.jpg\")\nhs.ui.window({x: 100, y: 100, w: 400, h: 300})\n    .vstack()\n        .padding(20)\n        .image(img)\n            .resizable()\n            .aspectRatio(\"fit\")\n            .frame({w: 360, h: 240})\n    .end()\n    .show();\n```",
-          "description": "# HSUIWindow\n**A custom window with declarative UI building**\n`HSUIWindow` allows you to create custom borderless windows with a SwiftUI-like\ndeclarative syntax. Build interfaces using shapes, text, images, and layout containers.\n## Building UI Elements\n## Modifying Elements\n## Examples\n**Simple window with text and shapes:**\n```javascript\nhs.ui.window({x: 100, y: 100, w: 300, h: 200})\n    .vstack()\n        .spacing(10)\n        .padding(20)\n        .text(\"Dashboard\")\n            .font(HSFont.largeTitle())\n            .foregroundColor(\"#FFFFFF\")\n        .rectangle()\n            .fill(\"#4A90E2\")\n            .cornerRadius(10)\n            .frame({w: \"90%\", h: 80})\n    .end()\n    .backgroundColor(\"#2C3E50\")\n    .show();\n```\n**Window with image:**\n```javascript\nconst img = HSImage.fromPath(\"~/Pictures/photo.jpg\")\nhs.ui.window({x: 100, y: 100, w: 400, h: 300})\n    .vstack()\n        .padding(20)\n        .image(img)\n            .resizable()\n            .aspectRatio(\"fit\")\n            .frame({w: 360, h: 240})\n    .end()\n    .show();\n```",
+          "rawDocumentation": "# HSUIWindow\n\n**A custom window with declarative UI building**\n\n`HSUIWindow` allows you to create custom windows with a SwiftUI-like\ndeclarative syntax. Build interfaces using shapes, text, images, and layout containers.\n\n## Building UI Elements\n\n- **Shapes**: `rectangle()`, `circle()`\n- **Text**: `text(content)`\n- **Buttons**: `button(label)` — uses SwiftUI's native Button for press-state feedback\n- **Images**: `image(imageValue)`\n- **Layout**: `vstack()`, `hstack()`, `zstack()`, `spacer()`\n\n## Modifying Elements\n\n- **Shape modifiers**: `fill()`, `stroke()`, `strokeWidth()`, `cornerRadius()`\n- **Text modifiers**: `font()`, `foregroundColor()`\n- **Image modifiers**: `resizable()`, `aspectRatio(mode)`\n- **Layout modifiers**: `frame()`, `opacity()`, `padding()`, `spacing()`\n\n## Examples\n\n**Simple window with text and shapes:**\n```javascript\nhs.ui.window({x: 100, y: 100, w: 300, h: 200})\n    .vstack()\n        .spacing(10)\n        .padding(20)\n        .text(\"Dashboard\")\n            .font(HSFont.largeTitle())\n            .foregroundColor(\"#FFFFFF\")\n        .rectangle()\n            .fill(\"#4A90E2\")\n            .cornerRadius(10)\n            .frame({w: \"90%\", h: 80})\n    .end()\n    .backgroundColor(\"#2C3E50\")\n    .show();\n```\n\n**Window with image:**\n```javascript\nconst img = HSImage.fromPath(\"~/Pictures/photo.jpg\")\nhs.ui.window({x: 100, y: 100, w: 400, h: 300})\n    .vstack()\n        .padding(20)\n        .image(img)\n            .resizable()\n            .aspectRatio(\"fit\")\n            .frame({w: 360, h: 240})\n    .end()\n    .show();\n```",
+          "description": "# HSUIWindow\n**A custom window with declarative UI building**\n`HSUIWindow` allows you to create custom windows with a SwiftUI-like\ndeclarative syntax. Build interfaces using shapes, text, images, and layout containers.\n## Building UI Elements\n## Modifying Elements\n## Examples\n**Simple window with text and shapes:**\n```javascript\nhs.ui.window({x: 100, y: 100, w: 300, h: 200})\n    .vstack()\n        .spacing(10)\n        .padding(20)\n        .text(\"Dashboard\")\n            .font(HSFont.largeTitle())\n            .foregroundColor(\"#FFFFFF\")\n        .rectangle()\n            .fill(\"#4A90E2\")\n            .cornerRadius(10)\n            .frame({w: \"90%\", h: 80})\n    .end()\n    .backgroundColor(\"#2C3E50\")\n    .show();\n```\n**Window with image:**\n```javascript\nconst img = HSImage.fromPath(\"~/Pictures/photo.jpg\")\nhs.ui.window({x: 100, y: 100, w: 400, h: 300})\n    .vstack()\n        .padding(20)\n        .image(img)\n            .resizable()\n            .aspectRatio(\"fit\")\n            .frame({w: 360, h: 240})\n    .end()\n    .show();\n```",
           "methods": [
             {
               "name": "show",
@@ -13010,13 +13010,13 @@
               "name": "titled",
               "signature": "func titled(_ show: Bool) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Show a title bar on the window\n\nBy default windows are borderless. Pass `true` to add a title bar.\n`.closable()`, `.miniaturizable()`, and `.resizable()` only take visual effect\nwhen the window is titled.\n\n- Parameter show: Pass `true` to show a title bar\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true)\n    .closable(true)\n    .allowResize(true)\n    .level(\"normal\")\n    .webview(wv)\n    .show()\n```",
-              "description": "Show a title bar on the window\nBy default windows are borderless. Pass `true` to add a title bar.\n`.closable()`, `.miniaturizable()`, and `.resizable()` only take visual effect\nwhen the window is titled.",
+              "rawDocumentation": "Show or hide the window's title bar\n\nBy default windows have a title bar. Pass `false` to create a borderless window.\n`.closable()`, `.miniaturizable()`, and `.allowResize()` only take visual effect\nwhen the window is titled.\n\n- Parameter show: Pass `false` to make the window borderless\n- Returns: Self for chaining\n- Example:\n```js\n// Borderless floating overlay\nhs.ui.window({x: 100, y: 100, w: 400, h: 300})\n    .titled(false)\n    .level(\"floating\")\n    .show()\n```",
+              "description": "Show or hide the window's title bar\nBy default windows have a title bar. Pass `false` to create a borderless window.\n`.closable()`, `.miniaturizable()`, and `.allowResize()` only take visual effect\nwhen the window is titled.",
               "params": [
                 {
                   "name": "show",
                   "type": "boolean",
-                  "description": "Pass `true` to show a title bar",
+                  "description": "Pass `false` to make the window borderless",
                   "optional": false,
                   "tsType": null
                 }
@@ -13029,24 +13029,24 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true)\n    .closable(true)\n    .allowResize(true)\n    .level(\"normal\")\n    .webview(wv)\n    .show()"
+                  "code": "// Borderless floating overlay\nhs.ui.window({x: 100, y: 100, w: 400, h: 300})\n    .titled(false)\n    .level(\"floating\")\n    .show()"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 101
+              "lineNumber": 99
             },
             {
               "name": "closable",
               "signature": "func closable(_ show: Bool) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Show a close button on the window\n\nRequires `.titled(true)` to be visible. Pass `true` to enable.\n\n- Parameter show: Pass `true` to show the close button\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).closable(true).show()\n```",
-              "description": "Show a close button on the window\nRequires `.titled(true)` to be visible. Pass `true` to enable.",
+              "rawDocumentation": "Show or hide the close button on the window\n\nRequires `.titled(true)` to be visible. Enabled by default.\n\n- Parameter show: Pass `false` to hide the close button\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .closable(false).show()\n```",
+              "description": "Show or hide the close button on the window\nRequires `.titled(true)` to be visible. Enabled by default.",
               "params": [
                 {
                   "name": "show",
                   "type": "boolean",
-                  "description": "Pass `true` to show the close button",
+                  "description": "Pass `false` to hide the close button",
                   "optional": false,
                   "tsType": null
                 }
@@ -13059,24 +13059,24 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).closable(true).show()"
+                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .closable(false).show()"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 114
+              "lineNumber": 112
             },
             {
               "name": "miniaturizable",
               "signature": "func miniaturizable(_ show: Bool) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Show a miniaturize (yellow) button on the window\n\nRequires `.titled(true)` to be visible. Pass `true` to enable.\n\n- Parameter show: Pass `true` to show the miniaturize button\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).miniaturizable(true).show()\n```",
-              "description": "Show a miniaturize (yellow) button on the window\nRequires `.titled(true)` to be visible. Pass `true` to enable.",
+              "rawDocumentation": "Show or hide the miniaturize (yellow) button on the window\n\nRequires `.titled(true)` to be visible. Enabled by default.\n\n- Parameter show: Pass `false` to hide the miniaturize button\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .miniaturizable(false).show()\n```",
+              "description": "Show or hide the miniaturize (yellow) button on the window\nRequires `.titled(true)` to be visible. Enabled by default.",
               "params": [
                 {
                   "name": "show",
                   "type": "boolean",
-                  "description": "Pass `true` to show the miniaturize button",
+                  "description": "Pass `false` to hide the miniaturize button",
                   "optional": false,
                   "tsType": null
                 }
@@ -13089,24 +13089,24 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).miniaturizable(true).show()"
+                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .miniaturizable(false).show()"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 127
+              "lineNumber": 125
             },
             {
               "name": "allowResize",
               "signature": "func allowResize(_ enable: Bool) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Allow the window to be resized by the user\n\nPass `true` to let the user drag the window edges to resize it.\nOnly has an effect when `.titled(true)` is also set.\n\n- Parameter enable: Pass `true` to allow the user to resize the window\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).allowResize(true).show()\n```",
-              "description": "Allow the window to be resized by the user\nPass `true` to let the user drag the window edges to resize it.\nOnly has an effect when `.titled(true)` is also set.",
+              "rawDocumentation": "Allow or prevent the user from resizing the window\n\nEnabled by default. Only has a visual effect when `.titled(true)` is also set.\n\n- Parameter enable: Pass `false` to prevent the user from resizing the window\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .allowResize(false).show()\n```",
+              "description": "Allow or prevent the user from resizing the window\nEnabled by default. Only has a visual effect when `.titled(true)` is also set.",
               "params": [
                 {
                   "name": "enable",
                   "type": "boolean",
-                  "description": "Pass `true` to allow the user to resize the window",
+                  "description": "Pass `false` to prevent the user from resizing the window",
                   "optional": false,
                   "tsType": null
                 }
@@ -13119,19 +13119,19 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).allowResize(true).show()"
+                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .allowResize(false).show()"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 141
+              "lineNumber": 138
             },
             {
               "name": "windowTitle",
               "signature": "func windowTitle(_ text: String) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Set the text shown in the window's title bar\n\nOnly visible when `.titled(true)` is set. Has no effect on borderless windows.\n\n- Parameter text: The title bar text\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).windowTitle(\"My Browser\").show()\n```",
-              "description": "Set the text shown in the window's title bar\nOnly visible when `.titled(true)` is set. Has no effect on borderless windows.",
+              "rawDocumentation": "Set the text shown in the window's title bar\n\nOnly visible when `.titled(true)` is set (the default).\n\n- Parameter text: The title bar text\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .windowTitle(\"My Browser\").show()\n```",
+              "description": "Set the text shown in the window's title bar\nOnly visible when `.titled(true)` is set (the default).",
               "params": [
                 {
                   "name": "text",
@@ -13149,18 +13149,18 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).windowTitle(\"My Browser\").show()"
+                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .windowTitle(\"My Browser\").show()"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 154
+              "lineNumber": 151
             },
             {
               "name": "level",
               "signature": "func level(_ name: String) -> HSUIWindow",
               "isStatic": false,
-              "rawDocumentation": "Set the window stacking level\n\nControls where this window sits in the macOS window hierarchy.\nSupported values:\n- `\"normal\"` — regular app window, sits with other app windows\n- `\"floating\"` — floats above all normal windows (default)\n- `\"screenSaver\"` — above the screen saver layer\n- `\"dock\"` — same level as the Dock\n- `\"status\"` — status bar level\n- `\"popUpMenu\"` — pop-up menu level\n\n- Parameter name: {'\"normal\"' | '\"floating\"' | '\"screenSaver\"' | '\"dock\"' | '\"status\"' | '\"popUpMenu\"'} The level name\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).level(\"normal\").show()\n```",
+              "rawDocumentation": "Set the window stacking level\n\nControls where this window sits in the macOS window hierarchy.\nSupported values:\n- `\"normal\"` — regular app window, sits with other app windows (default)\n- `\"floating\"` — floats above all normal windows\n- `\"screenSaver\"` — above the screen saver layer\n- `\"dock\"` — same level as the Dock\n- `\"status\"` — status bar level\n- `\"popUpMenu\"` — pop-up menu level\n\n- Parameter name: {'\"normal\"' | '\"floating\"' | '\"screenSaver\"' | '\"dock\"' | '\"status\"' | '\"popUpMenu\"'} The level name\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .level(\"floating\").show()\n```",
               "description": "Set the window stacking level\nControls where this window sits in the macOS window hierarchy.",
               "params": [
                 {
@@ -13179,12 +13179,12 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .titled(true).level(\"normal\").show()"
+                  "code": "hs.ui.window({x: 100, y: 100, w: 800, h: 600})\n    .level(\"floating\").show()"
                 }
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 174
+              "lineNumber": 171
             },
             {
               "name": "backgroundColor",
@@ -13209,7 +13209,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 179
+              "lineNumber": 176
             },
             {
               "name": "rectangle",
@@ -13226,7 +13226,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 185
+              "lineNumber": 182
             },
             {
               "name": "circle",
@@ -13243,7 +13243,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 189
+              "lineNumber": 186
             },
             {
               "name": "text",
@@ -13268,7 +13268,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 195
+              "lineNumber": 192
             },
             {
               "name": "image",
@@ -13293,7 +13293,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 200
+              "lineNumber": 197
             },
             {
               "name": "button",
@@ -13318,7 +13318,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 207
+              "lineNumber": 204
             },
             {
               "name": "vstack",
@@ -13335,7 +13335,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 213
+              "lineNumber": 210
             },
             {
               "name": "hstack",
@@ -13352,7 +13352,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 217
+              "lineNumber": 214
             },
             {
               "name": "zstack",
@@ -13369,7 +13369,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 221
+              "lineNumber": 218
             },
             {
               "name": "spacer",
@@ -13386,7 +13386,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 225
+              "lineNumber": 222
             },
             {
               "name": "webview",
@@ -13416,7 +13416,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 245
+              "lineNumber": 242
             },
             {
               "name": "end",
@@ -13433,7 +13433,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 249
+              "lineNumber": 246
             },
             {
               "name": "fill",
@@ -13458,7 +13458,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 256
+              "lineNumber": 253
             },
             {
               "name": "stroke",
@@ -13483,7 +13483,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 261
+              "lineNumber": 258
             },
             {
               "name": "strokeWidth",
@@ -13508,7 +13508,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 266
+              "lineNumber": 263
             },
             {
               "name": "cornerRadius",
@@ -13533,7 +13533,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 271
+              "lineNumber": 268
             },
             {
               "name": "frame",
@@ -13558,7 +13558,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 276
+              "lineNumber": 273
             },
             {
               "name": "opacity",
@@ -13583,7 +13583,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 281
+              "lineNumber": 278
             },
             {
               "name": "font",
@@ -13608,7 +13608,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 288
+              "lineNumber": 285
             },
             {
               "name": "foregroundColor",
@@ -13633,7 +13633,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 293
+              "lineNumber": 290
             },
             {
               "name": "resizable",
@@ -13650,7 +13650,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 299
+              "lineNumber": 296
             },
             {
               "name": "aspectRatio",
@@ -13675,7 +13675,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 304
+              "lineNumber": 301
             },
             {
               "name": "padding",
@@ -13700,7 +13700,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 311
+              "lineNumber": 308
             },
             {
               "name": "spacing",
@@ -13725,7 +13725,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 316
+              "lineNumber": 313
             },
             {
               "name": "onClick",
@@ -13750,7 +13750,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 323
+              "lineNumber": 320
             },
             {
               "name": "onHover",
@@ -13775,7 +13775,7 @@
               "examples": [],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Core/HSUIWindow.swift",
-              "lineNumber": 328
+              "lineNumber": 325
             }
           ],
           "properties": []
@@ -14539,8 +14539,8 @@
         {
           "name": "UIWebViewAPI",
           "type": "typedef",
-          "rawDocumentation": "# hs.ui.webview\n\n**A web browser element for embedding in `hs.ui.window` layouts**\n\nAvailable on macOS 26.0 or later, `hs.ui.webview()` creates a web browser element backed\nby a SwiftUI `WebView` and `WebPage`. Embed it in any `hs.ui.window` using\n`.webview(element)` — it fills the available space and can sit alongside other elements in\nstacks.\n\nCreate the element first, configure it, then embed it into a window:\n\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n\nBecause `wv` is a regular JavaScript object you can keep a reference and call navigation\nmethods on it at any time after the window is shown:\n\n```javascript\nwv.loadURL(\"https://google.com\")\nwv.goBack()\n```\n\n## Custom Toolbar Example\n\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\n        \"back\", \"forward\", \"reload\", \"url\",\n        {title: \"Home\", systemImage: \"house\", callback: () => wv.loadURL(\"https://apple.com\")},\n        {title: \"Reload HS\", callback: () => hs.reload()}\n    ])\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n\n## Full Example with Callbacks\n\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n\n## Navigation Policy Example\n\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n\n## JavaScript Evaluation Example\n\n```javascript\nconst wv = hs.ui.webview().loadURL(\"https://apple.com\")\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768}).webview(wv).show()\n\n// Fire and forget\nwv.execJS(\"document.body.style.backgroundColor = 'lightyellow'\")\n\n// With result (note the JS method name is evalJSResult)\nwv.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n})\n```",
-          "description": "# hs.ui.webview\n**A web browser element for embedding in `hs.ui.window` layouts**\nAvailable on macOS 26.0 or later, `hs.ui.webview()` creates a web browser element backed\nby a SwiftUI `WebView` and `WebPage`. Embed it in any `hs.ui.window` using\n`.webview(element)` — it fills the available space and can sit alongside other elements in\nstacks.\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\nBecause `wv` is a regular JavaScript object you can keep a reference and call navigation\n```javascript\nwv.loadURL(\"https://google.com\")\nwv.goBack()\n```\n## Custom Toolbar Example\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\n        \"back\", \"forward\", \"reload\", \"url\",\n        {title: \"Home\", systemImage: \"house\", callback: () => wv.loadURL(\"https://apple.com\")},\n        {title: \"Reload HS\", callback: () => hs.reload()}\n    ])\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n## Full Example with Callbacks\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n## Navigation Policy Example\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n## JavaScript Evaluation Example\n```javascript\nconst wv = hs.ui.webview().loadURL(\"https://apple.com\")\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768}).webview(wv).show()\n\n// Fire and forget\nwv.execJS(\"document.body.style.backgroundColor = 'lightyellow'\")\n\n// With result (note the JS method name is evalJSResult)\nwv.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n})\n```",
+          "rawDocumentation": "# hs.ui.webview\n\n**A web browser element for embedding in `hs.ui.window` layouts**\n\nAvailable on macOS 26.0 or later, `hs.ui.webview()` creates a web browser element backed\nby a SwiftUI `WebView` and `WebPage`. Embed it in any `hs.ui.window` using\n`.webview(element)` — it fills the available space and can sit alongside other elements in\nstacks.\n\nCreate the element first, configure it, then embed it into a window:\n\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .titled(true)\n    .closable(true)\n    .allowResize(true)\n    .level(\"normal\")\n    .webview(wv)\n    .show()\n```\n\nBecause `wv` is a regular JavaScript object you can keep a reference and call navigation\nmethods on it at any time after the window is shown:\n\n```javascript\nwv.loadURL(\"https://google.com\")\nwv.goBack()\n```\n\n## Custom Toolbar Example\n\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\n        \"back\", \"forward\", \"reload\", \"url\",\n        {title: \"Home\", systemImage: \"house\", callback: () => wv.loadURL(\"https://apple.com\")},\n        {title: \"Reload HS\", callback: () => hs.reload()}\n    ])\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n\n## Full Example with Callbacks\n\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n\n## Navigation Policy Example\n\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n\n## JavaScript Evaluation Example\n\n```javascript\nconst wv = hs.ui.webview().loadURL(\"https://apple.com\")\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768}).webview(wv).show()\n\n// Fire and forget\nwv.execJS(\"document.body.style.backgroundColor = 'lightyellow'\")\n\n// With result (note the JS method name is evalJSResult)\nwv.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n})\n```",
+          "description": "# hs.ui.webview\n**A web browser element for embedding in `hs.ui.window` layouts**\nAvailable on macOS 26.0 or later, `hs.ui.webview()` creates a web browser element backed\nby a SwiftUI `WebView` and `WebPage`. Embed it in any `hs.ui.window` using\n`.webview(element)` — it fills the available space and can sit alongside other elements in\nstacks.\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .titled(true)\n    .closable(true)\n    .allowResize(true)\n    .level(\"normal\")\n    .webview(wv)\n    .show()\n```\nBecause `wv` is a regular JavaScript object you can keep a reference and call navigation\n```javascript\nwv.loadURL(\"https://google.com\")\nwv.goBack()\n```\n## Custom Toolbar Example\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\n        \"back\", \"forward\", \"reload\", \"url\",\n        {title: \"Home\", systemImage: \"house\", callback: () => wv.loadURL(\"https://apple.com\")},\n        {title: \"Reload HS\", callback: () => hs.reload()}\n    ])\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n## Full Example with Callbacks\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n## Navigation Policy Example\n```javascript\nconst wv = hs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768})\n    .webview(wv)\n    .show()\n```\n## JavaScript Evaluation Example\n```javascript\nconst wv = hs.ui.webview().loadURL(\"https://apple.com\")\nhs.ui.window({x: 100, y: 100, w: 1024, h: 768}).webview(wv).show()\n\n// Fire and forget\nwv.execJS(\"document.body.style.backgroundColor = 'lightyellow'\")\n\n// With result (note the JS method name is evalJSResult)\nwv.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n})\n```",
           "methods": [
             {
               "name": "loadURL",
@@ -14570,7 +14570,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 184
+              "lineNumber": 188
             },
             {
               "name": "loadHTML",
@@ -14600,7 +14600,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 193
+              "lineNumber": 197
             },
             {
               "name": "goBack",
@@ -14622,7 +14622,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 201
+              "lineNumber": 205
             },
             {
               "name": "goForward",
@@ -14644,7 +14644,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 209
+              "lineNumber": 213
             },
             {
               "name": "reload",
@@ -14666,7 +14666,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 217
+              "lineNumber": 221
             },
             {
               "name": "stopLoading",
@@ -14688,7 +14688,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 225
+              "lineNumber": 229
             },
             {
               "name": "userAgent",
@@ -14718,7 +14718,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 236
+              "lineNumber": 240
             },
             {
               "name": "inspectable",
@@ -14748,7 +14748,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 248
+              "lineNumber": 252
             },
             {
               "name": "toolbar",
@@ -14778,7 +14778,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 271
+              "lineNumber": 275
             },
             {
               "name": "backForwardGestures",
@@ -14808,7 +14808,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 283
+              "lineNumber": 287
             },
             {
               "name": "magnificationGestures",
@@ -14838,7 +14838,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 295
+              "lineNumber": 299
             },
             {
               "name": "linkPreviews",
@@ -14868,7 +14868,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 307
+              "lineNumber": 311
             },
             {
               "name": "contentBackground",
@@ -14898,7 +14898,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 319
+              "lineNumber": 323
             },
             {
               "name": "onLoadChange",
@@ -14928,7 +14928,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 379
+              "lineNumber": 383
             },
             {
               "name": "onNavigate",
@@ -14958,7 +14958,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 389
+              "lineNumber": 393
             },
             {
               "name": "onTitleChange",
@@ -14988,7 +14988,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 399
+              "lineNumber": 403
             },
             {
               "name": "onNavigationDecision",
@@ -15018,7 +15018,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 413
+              "lineNumber": 417
             },
             {
               "name": "execJS",
@@ -15048,7 +15048,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 424
+              "lineNumber": 428
             },
             {
               "name": "evalJSResult",
@@ -15085,7 +15085,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 442
+              "lineNumber": 446
             }
           ],
           "properties": [
@@ -15104,7 +15104,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 328
+              "lineNumber": 332
             },
             {
               "name": "title",
@@ -15121,7 +15121,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 335
+              "lineNumber": 339
             },
             {
               "name": "isLoading",
@@ -15138,7 +15138,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 342
+              "lineNumber": 346
             },
             {
               "name": "estimatedProgress",
@@ -15155,7 +15155,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 349
+              "lineNumber": 353
             },
             {
               "name": "canGoBack",
@@ -15172,7 +15172,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 356
+              "lineNumber": 360
             },
             {
               "name": "canGoForward",
@@ -15189,7 +15189,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 363
+              "lineNumber": 367
             }
           ]
         }
@@ -17263,5 +17263,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-07T13:37:52.446Z"
+  "generatedAt": "2026-07-07T14:10:48.698Z"
 }
