@@ -460,12 +460,11 @@ import SwiftUI
     @objc func level(_ name: String) -> HSUIWindow { windowLevelName = name; return self }
 
     private func resolvedStyleMask() -> NSWindow.StyleMask {
-        var mask: NSWindow.StyleMask = []
-        if isTitled { mask.insert(.titled) }
+        guard isTitled else { return [.borderless] }
+        var mask: NSWindow.StyleMask = [.titled]
         if isClosable { mask.insert(.closable) }
         if isMiniaturizable { mask.insert(.miniaturizable) }
         if isResizable { mask.insert(.resizable) }
-        if mask.isEmpty { mask = [.borderless] }
         return mask
     }
 
