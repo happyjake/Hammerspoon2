@@ -81,22 +81,22 @@ final class HSUIWebViewToolbarEntry: Identifiable {
 
 // MARK: - JavaScript API Protocol
 
-/// # hs.ui.webview2
+/// # hs.ui.webview
 ///
 /// **Create native web browser windows powered by WebPage and WebView**
 ///
-/// Available on macOS 26.0 or later, `hs.ui.webview2` creates standard macOS windows hosting a
+/// Available on macOS 26.0 or later, `hs.ui.webview` creates standard macOS windows hosting a
 /// native SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional
 /// toolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.
 ///
 /// ## Requirements
 ///
-/// macOS 26.0 or later. The `hs.ui.webview2()` factory returns `null` on older systems.
+/// macOS 26.0 or later. The `hs.ui.webview()` factory returns `null` on older systems.
 ///
 /// ## Basic Example
 ///
 /// ```javascript
-/// hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+/// hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
 ///     .toolbar(["back", "forward", "reload", "url"])
 ///     .loadURL("https://apple.com")
 ///     .show();
@@ -105,7 +105,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
 /// ## Custom Toolbar Example
 ///
 /// ```javascript
-/// const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+/// const browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
 ///     .toolbar([
 ///         "back", "forward", "reload", "url",
 ///         {title: "Home", systemImage: "house", callback: () => browser.loadURL("https://apple.com")},
@@ -118,7 +118,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
 /// ## Full Example
 ///
 /// ```javascript
-/// const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+/// const browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
 ///     .toolbar(["back", "forward", "reload", "url"])
 ///     .inspectable(true)
 ///     .onNavigate((url) => console.log("Navigated to: " + url))
@@ -138,7 +138,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
 /// ## Navigation Policy Example
 ///
 /// ```javascript
-/// hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+/// hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
 ///     .toolbar(["back", "forward", "reload", "url"])
 ///     .onNavigationDecision((url) => {
 ///         return !url.includes("evil.com")
@@ -150,7 +150,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
 /// ## JavaScript Evaluation Example
 ///
 /// ```javascript
-/// const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+/// const browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
 ///     .loadURL("https://apple.com")
 ///     .show();
 ///
@@ -172,14 +172,14 @@ final class HSUIWebViewToolbarEntry: Identifiable {
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
-    /// hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL("https://apple.com").show()
+    /// hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL("https://apple.com").show()
     /// ```
     @objc func show() -> HSUIWebView
 
     /// Hide the window without destroying it; page state is preserved
     /// - Example:
     /// ```js
-    /// const b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL("https://apple.com").show()
+    /// const b = hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL("https://apple.com").show()
     /// b.hide()
     /// ```
     @objc func hide()
@@ -187,7 +187,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
     /// Close and destroy the window, releasing all resources
     /// - Example:
     /// ```js
-    /// const b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL("https://apple.com").show()
+    /// const b = hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL("https://apple.com").show()
     /// b.close()
     /// ```
     @objc func close()
@@ -199,7 +199,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
-    /// hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL("https://apple.com").show()
+    /// hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL("https://apple.com").show()
     /// ```
     @objc func loadURL(_ urlString: String) -> HSUIWebView
 
@@ -208,7 +208,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
-    /// hs.ui.webview2({x: 100, y: 100, w: 500, h: 300})
+    /// hs.ui.webview({x: 100, y: 100, w: 500, h: 300})
     ///     .loadHTML("<html><body><h1>Hello from Hammerspoon!</h1></body></html>")
     ///     .show()
     /// ```
@@ -256,7 +256,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
-    /// hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+    /// hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
     ///     .userAgent("MyApp/1.0 AppleWebKit")
     ///     .loadURL("https://example.com")
     ///     .show()
@@ -271,7 +271,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
-    /// hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+    /// hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
     ///     .inspectable(true)
     ///     .loadURL("https://apple.com")
     ///     .show()
@@ -294,7 +294,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
-    /// hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+    /// hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
     ///     .toolbar(["back", "forward", "reload", "url",
     ///               {title: "Home", systemImage: "house", callback: () => browser.loadURL("https://apple.com")}])
     ///     .loadURL("https://apple.com")
@@ -519,6 +519,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
         super.init()
         self.navigationDecider = HSUIWebViewNavigationDecider(owner: self)
         self.page = WebPage(navigationDecider: self.navigationDecider)
+        AKDebug("Init of HSUIWebView")
     }
 
     convenience init(dict: [String: Any], module: HSUIModule) {
@@ -698,7 +699,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
 
     @objc func loadURL(_ urlString: String) -> HSUIWebView {
         guard let url = URL(string: urlString) else {
-            AKError("hs.ui.webview2: Invalid URL: \(urlString)")
+            AKError("hs.ui.webview: Invalid URL: \(urlString)")
             return self
         }
         _ = page.load(url)
@@ -753,7 +754,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
         toolbarEntries.removeAll()
 
         guard items.isArray else {
-            AKError("hs.ui.webview2.toolbar: expected an array")
+            AKError("hs.ui.webview.toolbar: expected an array")
             return self
         }
 
@@ -769,12 +770,12 @@ final class HSUIWebViewToolbarEntry: Identifiable {
                 case "spacer", "flexibleSpacer":
                     toolbarEntries.append(HSUIWebViewToolbarEntry(kind: .flexibleSpacer))
                 default:
-                    AKWarning("hs.ui.webview2.toolbar: unknown standard item '\(str)'")
+                    AKWarning("hs.ui.webview.toolbar: unknown standard item '\(str)'")
                 }
             } else if item.isObject {
                 let cbValue = item.objectForKeyedSubscript("callback")
                 guard let cbValue, !cbValue.isUndefined, !cbValue.isNull, cbValue.isObject else {
-                    AKWarning("hs.ui.webview2.toolbar: custom button missing 'callback' function")
+                    AKWarning("hs.ui.webview.toolbar: custom button missing 'callback' function")
                     continue
                 }
                 let cb = JSCallback(value: cbValue, owner: self)
@@ -787,7 +788,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
                     callback: cb
                 ))
             } else {
-                AKWarning("hs.ui.webview2.toolbar: unrecognised item type, skipping")
+                AKWarning("hs.ui.webview.toolbar: unrecognised item type, skipping")
             }
         }
         return self
@@ -856,7 +857,7 @@ final class HSUIWebViewToolbarEntry: Identifiable {
             do {
                 _ = try await self.page.callJavaScript(script, arguments: [:])
             } catch {
-                AKError("hs.ui.webview2.execJS: \(error.localizedDescription)")
+                AKError("hs.ui.webview.execJS: \(error.localizedDescription)")
             }
         }
         return self

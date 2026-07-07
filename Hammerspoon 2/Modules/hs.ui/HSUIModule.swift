@@ -376,14 +376,14 @@ import AppKit
     /// - Returns: An `HSUIWebView` object for chaining
     /// - Example:
     /// ```js
-    /// hs.ui.webview2({x: 100, y: 100, w: 1024, h: 768})
+    /// hs.ui.webview({x: 100, y: 100, w: 1024, h: 768})
     ///     .toolbar(true)
     ///     .onNavigate((url) => { console.log("Navigated to " + url) })
     ///     .loadURL("https://example.com")
     ///     .show()
     /// ```
     @available(macOS 26.0, *)
-    @objc func webview2(_ dict: [String: Any]) -> HSUIWebView
+    @objc func webview(_ dict: [String: Any]) -> HSUIWebView
 }
 
 // MARK: - Implementation
@@ -522,7 +522,7 @@ import AppKit
     }
 
     @available(macOS 26.0, *)
-    @objc func webview2(_ dict: [String: Any]) -> HSUIWebView {
+    @objc func webview(_ dict: [String: Any]) -> HSUIWebView {
         return MainActor.assumeIsolated {
             HSUIWebView(dict: dict, module: self)
         }

@@ -5181,7 +5181,7 @@ and navigation policy decisions.
      * @param dict Dictionary with keys: `x`, `y`, `w`, `h` (all numbers, optional — defaults to 800×600 centered)
      * @returns An `HSUIWebView` object for chaining
      */
-    function webview2(dict: Record<string, any>): HSUIWebView;
+    function webview(dict: Record<string, any>): HSUIWebView;
 
 }
 
@@ -5685,23 +5685,23 @@ declare class HSUITextPrompt {
 }
 
 /**
- * # hs.ui.webview2
+ * # hs.ui.webview
 **Create native web browser windows powered by WebPage and WebView**
-Available on macOS 26.0 or later, `hs.ui.webview2` creates standard macOS windows hosting a
+Available on macOS 26.0 or later, `hs.ui.webview` creates standard macOS windows hosting a
 native SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional
 toolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.
 ## Requirements
-macOS 26.0 or later. The `hs.ui.webview2()` factory returns `null` on older systems.
+macOS 26.0 or later. The `hs.ui.webview()` factory returns `null` on older systems.
 ## Basic Example
 ```javascript
-hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
     .toolbar(["back", "forward", "reload", "url"])
     .loadURL("https://apple.com")
     .show();
 ```
 ## Custom Toolbar Example
 ```javascript
-const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+const browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
     .toolbar([
         "back", "forward", "reload", "url",
         {title: "Home", systemImage: "house", callback: () => browser.loadURL("https://apple.com")},
@@ -5712,7 +5712,7 @@ const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
 ```
 ## Full Example
 ```javascript
-const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+const browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
     .toolbar(["back", "forward", "reload", "url"])
     .inspectable(true)
     .onNavigate((url) => console.log("Navigated to: " + url))
@@ -5730,7 +5730,7 @@ browser.reload();
 ```
 ## Navigation Policy Example
 ```javascript
-hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
     .toolbar(["back", "forward", "reload", "url"])
     .onNavigationDecision((url) => {
         return !url.includes("evil.com")
@@ -5740,7 +5740,7 @@ hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
 ```
 ## JavaScript Evaluation Example
 ```javascript
-const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+const browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})
     .loadURL("https://apple.com")
     .show();
 

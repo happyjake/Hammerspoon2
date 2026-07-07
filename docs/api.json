@@ -12931,10 +12931,10 @@
           "lineNumber": 366
         },
         {
-          "name": "webview2",
-          "signature": "func webview2(_ dict: [String: Any]) -> HSUIWebView",
+          "name": "webview",
+          "signature": "func webview(_ dict: [String: Any]) -> HSUIWebView",
           "isStatic": false,
-          "rawDocumentation": "Create a web browser window (macOS 26+)\n\nOpens a native browser window backed by SwiftUI's `WebView` and `WebPage` APIs.\nSupports full navigation control, an optional toolbar with back/forward/reload and URL bar,\nJavaScript evaluation, and callbacks for load state, navigation events, title changes,\nand navigation policy decisions.\n\n- Parameter dict: Dictionary with keys: `x`, `y`, `w`, `h` (all numbers, optional — defaults to 800×600 centered)\n- Returns: An `HSUIWebView` object for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 1024, h: 768})\n    .toolbar(true)\n    .onNavigate((url) => { console.log(\"Navigated to \" + url) })\n    .loadURL(\"https://example.com\")\n    .show()\n```",
+          "rawDocumentation": "Create a web browser window (macOS 26+)\n\nOpens a native browser window backed by SwiftUI's `WebView` and `WebPage` APIs.\nSupports full navigation control, an optional toolbar with back/forward/reload and URL bar,\nJavaScript evaluation, and callbacks for load state, navigation events, title changes,\nand navigation policy decisions.\n\n- Parameter dict: Dictionary with keys: `x`, `y`, `w`, `h` (all numbers, optional — defaults to 800×600 centered)\n- Returns: An `HSUIWebView` object for chaining\n- Example:\n```js\nhs.ui.webview({x: 100, y: 100, w: 1024, h: 768})\n    .toolbar(true)\n    .onNavigate((url) => { console.log(\"Navigated to \" + url) })\n    .loadURL(\"https://example.com\")\n    .show()\n```",
           "description": "Create a web browser window (macOS 26+)\nOpens a native browser window backed by SwiftUI's `WebView` and `WebPage` APIs.\nSupports full navigation control, an optional toolbar with back/forward/reload and URL bar,\nJavaScript evaluation, and callbacks for load state, navigation events, title changes,\nand navigation policy decisions.",
           "params": [
             {
@@ -12953,7 +12953,7 @@
           "examples": [
             {
               "lang": "js",
-              "code": "hs.ui.webview2({x: 100, y: 100, w: 1024, h: 768})\n    .toolbar(true)\n    .onNavigate((url) => { console.log(\"Navigated to \" + url) })\n    .loadURL(\"https://example.com\")\n    .show()"
+              "code": "hs.ui.webview({x: 100, y: 100, w: 1024, h: 768})\n    .toolbar(true)\n    .onNavigate((url) => { console.log(\"Navigated to \" + url) })\n    .loadURL(\"https://example.com\")\n    .show()"
             }
           ],
           "source": "swift",
@@ -14337,14 +14337,14 @@
         {
           "name": "HSUIWebViewAPI",
           "type": "typedef",
-          "rawDocumentation": "# hs.ui.webview2\n\n**Create native web browser windows powered by WebPage and WebView**\n\nAvailable on macOS 26.0 or later, `hs.ui.webview2` creates standard macOS windows hosting a\nnative SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional\ntoolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.\n\n## Requirements\n\nmacOS 26.0 or later. The `hs.ui.webview2()` factory returns `null` on older systems.\n\n## Basic Example\n\n```javascript\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n\n## Custom Toolbar Example\n\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\n        \"back\", \"forward\", \"reload\", \"url\",\n        {title: \"Home\", systemImage: \"house\", callback: () => browser.loadURL(\"https://apple.com\")},\n        {title: \"Reload HS\",  callback: () => hs.reload()}\n    ])\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n\n## Full Example\n\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Navigate programmatically\nbrowser.loadURL(\"https://google.com\");\nbrowser.goBack();\nbrowser.reload();\n```\n\n## Navigation Policy Example\n\n```javascript\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n\n## JavaScript Evaluation Example\n\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Fire and forget\nbrowser.execJS(\"document.body.style.backgroundColor = 'lightyellow'\");\n\n// With result (note the JS method name is evalJSResult)\nbrowser.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n});\n```",
-          "description": "# hs.ui.webview2\n**Create native web browser windows powered by WebPage and WebView**\nAvailable on macOS 26.0 or later, `hs.ui.webview2` creates standard macOS windows hosting a\nnative SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional\ntoolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.\n## Requirements\nmacOS 26.0 or later. The `hs.ui.webview2()` factory returns `null` on older systems.\n## Basic Example\n```javascript\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n## Custom Toolbar Example\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\n        \"back\", \"forward\", \"reload\", \"url\",\n        {title: \"Home\", systemImage: \"house\", callback: () => browser.loadURL(\"https://apple.com\")},\n        {title: \"Reload HS\",  callback: () => hs.reload()}\n    ])\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n## Full Example\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Navigate programmatically\nbrowser.loadURL(\"https://google.com\");\nbrowser.goBack();\nbrowser.reload();\n```\n## Navigation Policy Example\n```javascript\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n## JavaScript Evaluation Example\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Fire and forget\nbrowser.execJS(\"document.body.style.backgroundColor = 'lightyellow'\");\n\n// With result (note the JS method name is evalJSResult)\nbrowser.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n});\n```",
+          "rawDocumentation": "# hs.ui.webview\n\n**Create native web browser windows powered by WebPage and WebView**\n\nAvailable on macOS 26.0 or later, `hs.ui.webview` creates standard macOS windows hosting a\nnative SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional\ntoolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.\n\n## Requirements\n\nmacOS 26.0 or later. The `hs.ui.webview()` factory returns `null` on older systems.\n\n## Basic Example\n\n```javascript\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n\n## Custom Toolbar Example\n\n```javascript\nconst browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\n        \"back\", \"forward\", \"reload\", \"url\",\n        {title: \"Home\", systemImage: \"house\", callback: () => browser.loadURL(\"https://apple.com\")},\n        {title: \"Reload HS\",  callback: () => hs.reload()}\n    ])\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n\n## Full Example\n\n```javascript\nconst browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Navigate programmatically\nbrowser.loadURL(\"https://google.com\");\nbrowser.goBack();\nbrowser.reload();\n```\n\n## Navigation Policy Example\n\n```javascript\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n\n## JavaScript Evaluation Example\n\n```javascript\nconst browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Fire and forget\nbrowser.execJS(\"document.body.style.backgroundColor = 'lightyellow'\");\n\n// With result (note the JS method name is evalJSResult)\nbrowser.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n});\n```",
+          "description": "# hs.ui.webview\n**Create native web browser windows powered by WebPage and WebView**\nAvailable on macOS 26.0 or later, `hs.ui.webview` creates standard macOS windows hosting a\nnative SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional\ntoolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.\n## Requirements\nmacOS 26.0 or later. The `hs.ui.webview()` factory returns `null` on older systems.\n## Basic Example\n```javascript\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n## Custom Toolbar Example\n```javascript\nconst browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\n        \"back\", \"forward\", \"reload\", \"url\",\n        {title: \"Home\", systemImage: \"house\", callback: () => browser.loadURL(\"https://apple.com\")},\n        {title: \"Reload HS\",  callback: () => hs.reload()}\n    ])\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n## Full Example\n```javascript\nconst browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Navigate programmatically\nbrowser.loadURL(\"https://google.com\");\nbrowser.goBack();\nbrowser.reload();\n```\n## Navigation Policy Example\n```javascript\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\"])\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n## JavaScript Evaluation Example\n```javascript\nconst browser = hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Fire and forget\nbrowser.execJS(\"document.body.style.backgroundColor = 'lightyellow'\");\n\n// With result (note the JS method name is evalJSResult)\nbrowser.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n});\n```",
           "methods": [
             {
               "name": "show",
               "signature": "func show() -> HSUIWebView",
               "isStatic": false,
-              "rawDocumentation": "Show the web browser window\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\n```",
+              "rawDocumentation": "Show the web browser window\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\n```",
               "description": "Show the web browser window",
               "params": [],
               "returns": {
@@ -14355,7 +14355,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()"
+                  "code": "hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()"
                 }
               ],
               "source": "swift",
@@ -14366,7 +14366,7 @@
               "name": "hide",
               "signature": "func hide()",
               "isStatic": false,
-              "rawDocumentation": "Hide the window without destroying it; page state is preserved\n- Example:\n```js\nconst b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.hide()\n```",
+              "rawDocumentation": "Hide the window without destroying it; page state is preserved\n- Example:\n```js\nconst b = hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.hide()\n```",
               "description": "Hide the window without destroying it; page state is preserved",
               "params": [],
               "returns": null,
@@ -14374,7 +14374,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.hide()"
+                  "code": "const b = hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.hide()"
                 }
               ],
               "source": "swift",
@@ -14385,7 +14385,7 @@
               "name": "close",
               "signature": "func close()",
               "isStatic": false,
-              "rawDocumentation": "Close and destroy the window, releasing all resources\n- Example:\n```js\nconst b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.close()\n```",
+              "rawDocumentation": "Close and destroy the window, releasing all resources\n- Example:\n```js\nconst b = hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.close()\n```",
               "description": "Close and destroy the window, releasing all resources",
               "params": [],
               "returns": null,
@@ -14393,7 +14393,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "const b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.close()"
+                  "code": "const b = hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.close()"
                 }
               ],
               "source": "swift",
@@ -14404,7 +14404,7 @@
               "name": "loadURL",
               "signature": "func loadURL(_ urlString: String) -> HSUIWebView",
               "isStatic": false,
-              "rawDocumentation": "Load a URL in the web view\n- Parameter urlString: The URL to load (e.g. \"https://apple.com\")\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\n```",
+              "rawDocumentation": "Load a URL in the web view\n- Parameter urlString: The URL to load (e.g. \"https://apple.com\")\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\n```",
               "description": "Load a URL in the web view",
               "params": [
                 {
@@ -14423,7 +14423,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()"
+                  "code": "hs.ui.webview({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()"
                 }
               ],
               "source": "swift",
@@ -14434,7 +14434,7 @@
               "name": "loadHTML",
               "signature": "func loadHTML(_ html: String) -> HSUIWebView",
               "isStatic": false,
-              "rawDocumentation": "Load an HTML string directly into the web view\n- Parameter html: The HTML content to display\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 500, h: 300})\n    .loadHTML(\"<html><body><h1>Hello from Hammerspoon!</h1></body></html>\")\n    .show()\n```",
+              "rawDocumentation": "Load an HTML string directly into the web view\n- Parameter html: The HTML content to display\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview({x: 100, y: 100, w: 500, h: 300})\n    .loadHTML(\"<html><body><h1>Hello from Hammerspoon!</h1></body></html>\")\n    .show()\n```",
               "description": "Load an HTML string directly into the web view",
               "params": [
                 {
@@ -14453,7 +14453,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.webview2({x: 100, y: 100, w: 500, h: 300})\n    .loadHTML(\"<html><body><h1>Hello from Hammerspoon!</h1></body></html>\")\n    .show()"
+                  "code": "hs.ui.webview({x: 100, y: 100, w: 500, h: 300})\n    .loadHTML(\"<html><body><h1>Hello from Hammerspoon!</h1></body></html>\")\n    .show()"
                 }
               ],
               "source": "swift",
@@ -14552,7 +14552,7 @@
               "name": "userAgent",
               "signature": "func userAgent(_ ua: String) -> HSUIWebView",
               "isStatic": false,
-              "rawDocumentation": "Set a custom User-Agent string for HTTP requests\n\nCan be called before or after `show()`.\n\n- Parameter ua: The User-Agent string\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .userAgent(\"MyApp/1.0 AppleWebKit\")\n    .loadURL(\"https://example.com\")\n    .show()\n```",
+              "rawDocumentation": "Set a custom User-Agent string for HTTP requests\n\nCan be called before or after `show()`.\n\n- Parameter ua: The User-Agent string\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .userAgent(\"MyApp/1.0 AppleWebKit\")\n    .loadURL(\"https://example.com\")\n    .show()\n```",
               "description": "Set a custom User-Agent string for HTTP requests\nCan be called before or after `show()`.",
               "params": [
                 {
@@ -14571,7 +14571,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .userAgent(\"MyApp/1.0 AppleWebKit\")\n    .loadURL(\"https://example.com\")\n    .show()"
+                  "code": "hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .userAgent(\"MyApp/1.0 AppleWebKit\")\n    .loadURL(\"https://example.com\")\n    .show()"
                 }
               ],
               "source": "swift",
@@ -14582,7 +14582,7 @@
               "name": "inspectable",
               "signature": "func inspectable(_ value: Bool) -> HSUIWebView",
               "isStatic": false,
-              "rawDocumentation": "Enable or disable the Safari Web Inspector for this web view\n\nWhen enabled, the web view appears in Safari → Develop menu.\n\n- Parameter value: Pass `true` to enable the Web Inspector\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .inspectable(true)\n    .loadURL(\"https://apple.com\")\n    .show()\n```",
+              "rawDocumentation": "Enable or disable the Safari Web Inspector for this web view\n\nWhen enabled, the web view appears in Safari → Develop menu.\n\n- Parameter value: Pass `true` to enable the Web Inspector\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .inspectable(true)\n    .loadURL(\"https://apple.com\")\n    .show()\n```",
               "description": "Enable or disable the Safari Web Inspector for this web view\nWhen enabled, the web view appears in Safari → Develop menu.",
               "params": [
                 {
@@ -14601,7 +14601,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .inspectable(true)\n    .loadURL(\"https://apple.com\")\n    .show()"
+                  "code": "hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .inspectable(true)\n    .loadURL(\"https://apple.com\")\n    .show()"
                 }
               ],
               "source": "swift",
@@ -14612,7 +14612,7 @@
               "name": "toolbar",
               "signature": "func toolbar(_ items: JSValue) -> HSUIWebView",
               "isStatic": false,
-              "rawDocumentation": "Configure the window toolbar with a list of standard and custom items\n\nEach element of the array is either a string naming a standard control or a dictionary\ndescribing a custom button. An empty array (or omitting this call) hides the toolbar.\n\nStandard string items: `\"back\"`, `\"forward\"`, `\"reload\"`, `\"url\"`, `\"spacer\"`.\n\nCustom button dictionaries accept:\n- `title` (string, optional) — button label\n- `systemImage` (string, optional) — SF Symbol name (e.g. `\"house\"`)\n- `callback` (function, required) — called when the button is clicked\n\n- Parameter items: {Array<string | {title?: string, systemImage?: string, callback: () => void}>} Toolbar items in display order\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\",\n              {title: \"Home\", systemImage: \"house\", callback: () => browser.loadURL(\"https://apple.com\")}])\n    .loadURL(\"https://apple.com\")\n    .show()\n```",
+              "rawDocumentation": "Configure the window toolbar with a list of standard and custom items\n\nEach element of the array is either a string naming a standard control or a dictionary\ndescribing a custom button. An empty array (or omitting this call) hides the toolbar.\n\nStandard string items: `\"back\"`, `\"forward\"`, `\"reload\"`, `\"url\"`, `\"spacer\"`.\n\nCustom button dictionaries accept:\n- `title` (string, optional) — button label\n- `systemImage` (string, optional) — SF Symbol name (e.g. `\"house\"`)\n- `callback` (function, required) — called when the button is clicked\n\n- Parameter items: {Array<string | {title?: string, systemImage?: string, callback: () => void}>} Toolbar items in display order\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\",\n              {title: \"Home\", systemImage: \"house\", callback: () => browser.loadURL(\"https://apple.com\")}])\n    .loadURL(\"https://apple.com\")\n    .show()\n```",
               "description": "Configure the window toolbar with a list of standard and custom items\nEach element of the array is either a string naming a standard control or a dictionary\ndescribing a custom button. An empty array (or omitting this call) hides the toolbar.\nStandard string items: `\"back\"`, `\"forward\"`, `\"reload\"`, `\"url\"`, `\"spacer\"`.",
               "params": [
                 {
@@ -14631,7 +14631,7 @@
               "examples": [
                 {
                   "lang": "js",
-                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\",\n              {title: \"Home\", systemImage: \"house\", callback: () => browser.loadURL(\"https://apple.com\")}])\n    .loadURL(\"https://apple.com\")\n    .show()"
+                  "code": "hs.ui.webview({x: 100, y: 100, w: 900, h: 650})\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\",\n              {title: \"Home\", systemImage: \"house\", callback: () => browser.loadURL(\"https://apple.com\")}])\n    .loadURL(\"https://apple.com\")\n    .show()"
                 }
               ],
               "source": "swift",
@@ -17121,5 +17121,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-07T12:25:02.023Z"
+  "generatedAt": "2026-07-07T12:44:10.554Z"
 }
