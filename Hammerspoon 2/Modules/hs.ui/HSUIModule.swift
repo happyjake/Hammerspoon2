@@ -365,25 +365,28 @@ import AppKit
     /// ```
     @objc func filePicker() -> HSUIFilePicker
 
-    /// Create a web browser window (macOS 26+)
+    /// Create a web browser element for embedding in `hs.ui.window` (macOS 26+)
     ///
-    /// Opens a native browser window backed by SwiftUI's `WebView` and `WebPage` APIs.
-    /// Supports full navigation control, an optional toolbar with back/forward/reload and URL bar,
-    /// JavaScript evaluation, and callbacks for load state, navigation events, title changes,
-    /// and navigation policy decisions.
+    /// Returns a `UIWebView` element that you configure and then embed in any `hs.ui.window`
+    /// via `.webview(element)`. The element fills the available space inside the window layout.
+    /// Keep a reference to call navigation methods after the window is shown.
     ///
-    /// - Parameter dict: Dictionary with keys: `x`, `y`, `w`, `h` (all numbers, optional — defaults to 800×600 centered)
-    /// - Returns: An `HSUIWebView` object for chaining
+    /// - Returns: A `UIWebView` element for configuration and embedding
     /// - Example:
     /// ```js
-    /// hs.ui.webview({x: 100, y: 100, w: 1024, h: 768})
-    ///     .toolbar(true)
-    ///     .onNavigate((url) => { console.log("Navigated to " + url) })
-    ///     .loadURL("https://example.com")
+    /// const wv = hs.ui.webview()
+    ///     .toolbar(["back", "forward", "reload", "url"])
+    ///     .loadURL("https://apple.com")
+    ///
+    /// hs.ui.window({x: 100, y: 100, w: 1024, h: 768})
+    ///     .webview(wv)
     ///     .show()
+    ///
+    /// // Navigate later:
+    /// wv.loadURL("https://google.com")
     /// ```
     @available(macOS 26.0, *)
-    @objc func webview(_ dict: [String: Any]) -> HSUIWebView
+    @objc func webview() -> UIWebView
 }
 
 // MARK: - Implementation
@@ -398,7 +401,6 @@ import AppKit
     private var activeWindows: [UUID: HSUIWindow] = [:]
     private var activeAlerts: [UUID: HSUIAlert] = [:]
     private var activeDialogs: [UUID: HSUIDialog] = [:]
-    private var activeWebViews: [UUID: AnyObject] = [:]
 
     // MARK: - Module lifecycle
     required init(engineID: UUID) {
@@ -425,14 +427,6 @@ import AppKit
             dialog.close()
         }
         activeDialogs.removeAll()
-
-        // Close all web views (macOS 26+ objects)
-        if #available(macOS 26.0, *) {
-            for webview in activeWebViews.values {
-                (webview as? HSUIWebView)?.close()
-            }
-        }
-        activeWebViews.removeAll()
     }
 
     isolated deinit {
@@ -463,16 +457,6 @@ import AppKit
 
     func unregister(dialog id: UUID) {
         activeDialogs.removeValue(forKey: id)
-    }
-
-    @available(macOS 26.0, *)
-    func register(_ webview: HSUIWebView, id: UUID) {
-        activeWebViews[id] = webview
-    }
-
-    @available(macOS 26.0, *)
-    func unregister(webview id: UUID) {
-        activeWebViews.removeValue(forKey: id)
     }
 
     // MARK: - Factory Methods
@@ -522,9 +506,9 @@ import AppKit
     }
 
     @available(macOS 26.0, *)
-    @objc func webview(_ dict: [String: Any]) -> HSUIWebView {
+    @objc func webview() -> UIWebView {
         return MainActor.assumeIsolated {
-            HSUIWebView(dict: dict, module: self)
+            UIWebView()
         }
     }
 }
