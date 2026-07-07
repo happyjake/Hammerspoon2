@@ -5172,6 +5172,17 @@ directories, or both, with support for file type filtering and multiple selectio
      */
     function filePicker(): HSUIFilePicker;
 
+    /**
+     * Create a web browser window (macOS 26+)
+Opens a native browser window backed by SwiftUI's `WebView` and `WebPage` APIs.
+Supports full navigation control, an optional toolbar with back/forward/reload and URL bar,
+JavaScript evaluation, and callbacks for load state, navigation events, title changes,
+and navigation policy decisions.
+     * @param dict Dictionary with keys: `x`, `y`, `w`, `h` (all numbers, optional — defaults to 800×600 centered)
+     * @returns An `HSUIWebView` object for chaining
+     */
+    function webview2(dict: Record<string, any>): HSUIWebView;
+
 }
 
 /**
@@ -5670,6 +5681,256 @@ declare class HSUITextPrompt {
      * Show the prompt dialog
      */
     show(): void;
+
+}
+
+/**
+ * # hs.ui.webview2
+**Create native web browser windows powered by WebPage and WebView**
+Available on macOS 26.0 or later, `hs.ui.webview2` creates standard macOS windows hosting a
+native SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional
+toolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.
+## Requirements
+macOS 26.0 or later. The `hs.ui.webview2()` factory returns `null` on older systems.
+## Basic Example
+```javascript
+hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+    .toolbar(true)
+    .loadURL("https://apple.com")
+    .show();
+```
+## Full Example
+```javascript
+const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+    .toolbar(true)
+    .inspectable(true)
+    .onNavigate((url) => console.log("Navigated to: " + url))
+    .onTitleChange((title) => console.log("Title: " + title))
+    .onLoadChange((loading, url, title, progress) => {
+        if (!loading) console.log("Page ready: " + url)
+    })
+    .loadURL("https://apple.com")
+    .show();
+
+// Navigate programmatically
+browser.loadURL("https://google.com");
+browser.goBack();
+browser.reload();
+```
+## Navigation Policy Example
+```javascript
+hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+    .toolbar(true)
+    .onNavigationDecision((url) => {
+        return !url.includes("evil.com")
+    })
+    .loadURL("https://apple.com")
+    .show();
+```
+## JavaScript Evaluation Example
+```javascript
+const browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})
+    .loadURL("https://apple.com")
+    .show();
+
+// Fire and forget
+browser.execJS("document.body.style.backgroundColor = 'lightyellow'");
+
+// With result (note the JS method name is evalJSResult)
+browser.evalJSResult("document.title", (result, error) => {
+    if (error) { console.log("Error: " + error) }
+    else { console.log("Title: " + result) }
+});
+```
+ */
+declare class HSUIWebView {
+    /**
+     * Show the web browser window
+     * @returns Self for chaining
+     */
+    show(): HSUIWebView;
+
+    /**
+     * Hide the window without destroying it; page state is preserved
+     */
+    hide(): void;
+
+    /**
+     * Close and destroy the window, releasing all resources
+     */
+    close(): void;
+
+    /**
+     * Load a URL in the web view
+     * @param urlString The URL to load (e.g. "https://apple.com")
+     * @returns Self for chaining
+     */
+    loadURL(urlString: string): HSUIWebView;
+
+    /**
+     * Load an HTML string directly into the web view
+     * @param html The HTML content to display
+     * @returns Self for chaining
+     */
+    loadHTML(html: string): HSUIWebView;
+
+    /**
+     * Navigate back in the browser history
+     * @returns Self for chaining
+     */
+    goBack(): HSUIWebView;
+
+    /**
+     * Navigate forward in the browser history
+     * @returns Self for chaining
+     */
+    goForward(): HSUIWebView;
+
+    /**
+     * Reload the current page
+     * @returns Self for chaining
+     */
+    reload(): HSUIWebView;
+
+    /**
+     * Stop loading the current page
+     * @returns Self for chaining
+     */
+    stopLoading(): HSUIWebView;
+
+    /**
+     * Set a custom User-Agent string for HTTP requests
+Can be called before or after `show()`.
+     * @param ua The User-Agent string
+     * @returns Self for chaining
+     */
+    userAgent(ua: string): HSUIWebView;
+
+    /**
+     * Enable or disable the Safari Web Inspector for this web view
+When enabled, the web view appears in Safari → Develop menu.
+     * @param value Pass `true` to enable the Web Inspector
+     * @returns Self for chaining
+     */
+    inspectable(value: boolean): HSUIWebView;
+
+    /**
+     * Show or hide the navigation toolbar (back, forward, reload, URL bar)
+The toolbar is hidden by default. Pass `true` to show it.
+     * @param show Pass `true` to show the toolbar
+     * @returns Self for chaining
+     */
+    toolbar(show: boolean): HSUIWebView;
+
+    /**
+     * Enable or disable the macOS back/forward trackpad swipe gestures
+Gestures are enabled by default. Pass `false` to disable them.
+     * @param enabled Pass `false` to disable back/forward swipe gestures
+     * @returns Self for chaining
+     */
+    backForwardGestures(enabled: boolean): HSUIWebView;
+
+    /**
+     * Enable or disable the trackpad pinch-to-zoom magnification gesture
+The gesture is enabled by default. Pass `false` to disable it.
+     * @param enabled Pass `false` to disable pinch-to-zoom
+     * @returns Self for chaining
+     */
+    magnificationGestures(enabled: boolean): HSUIWebView;
+
+    /**
+     * Enable or disable link preview popovers shown on force-click
+Link previews are enabled by default. Pass `false` to disable them.
+     * @param enabled Pass `false` to disable link previews
+     * @returns Self for chaining
+     */
+    linkPreviews(enabled: boolean): HSUIWebView;
+
+    /**
+     * Control whether the web page background is visible
+Pass `false` to make the web view background transparent, allowing the window
+background to show through. Enabled (visible) by default.
+     * @param visible Pass `false` to hide the web content background
+     * @returns Self for chaining
+     */
+    contentBackground(visible: boolean): HSUIWebView;
+
+    /**
+     * Register a callback that fires when loading state or progress changes
+Called whenever `isLoading`, `url`, `title`, or `estimatedProgress` changes.
+     * @param callback Called with current loading state
+     * @returns Self for chaining
+     */
+    onLoadChange(callback: (isLoading: boolean, url: string | null, title: string, progress: number) => void): HSUIWebView;
+
+    /**
+     * Register a callback that fires when navigation to a new page completes
+     * @param callback Called with the final URL
+     * @returns Self for chaining
+     */
+    onNavigate(callback: (url: string) => void): HSUIWebView;
+
+    /**
+     * Register a callback that fires when the page title changes
+     * @param callback Called with the new title
+     * @returns Self for chaining
+     */
+    onTitleChange(callback: (title: string) => void): HSUIWebView;
+
+    /**
+     * Register a callback that controls whether navigation is allowed
+Called before each navigation. Return `true` to allow or `false` to block.
+     * @param callback Return `true` to allow, `false` to block
+     * @returns Self for chaining
+     */
+    onNavigationDecision(callback: (url: string) => boolean): HSUIWebView;
+
+    /**
+     * Execute JavaScript in the web page without capturing the result
+     * @param script The JavaScript code to execute
+     * @returns Self for chaining
+     */
+    execJS(script: string): HSUIWebView;
+
+    /**
+     * Execute JavaScript in the web page and deliver the result to a callback
+The JavaScript method name is `evalJSResult` — it derives from the internal
+Objective-C selector `evalJS:result:`.
+     * @param script The JavaScript expression to evaluate
+     * @param callback Called with the result or an error message
+     * @returns Self for chaining
+     */
+    evalJSResult(script: string, callback: (result: any, error: string | null) => void): HSUIWebView;
+
+    /**
+     * The URL of the current page, or `null` if no page is loaded
+     */
+    readonly url: string | null;
+
+    /**
+     * The title of the current page
+     */
+    readonly title: string;
+
+    /**
+     * Whether the web view is currently loading a page
+     */
+    readonly isLoading: boolean;
+
+    /**
+     * The estimated loading progress from 0.0 to 1.0
+     */
+    readonly estimatedProgress: number;
+
+    /**
+     * Whether the web view can navigate back in history
+     */
+    readonly canGoBack: boolean;
+
+    /**
+     * Whether the web view can navigate forward in history
+     */
+    readonly canGoForward: boolean;
 
 }
 

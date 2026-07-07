@@ -12929,6 +12929,36 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.ui/HSUIModule.swift",
           "lineNumber": 366
+        },
+        {
+          "name": "webview2",
+          "signature": "func webview2(_ dict: [String: Any]) -> HSUIWebView",
+          "isStatic": false,
+          "rawDocumentation": "Create a web browser window (macOS 26+)\n\nOpens a native browser window backed by SwiftUI's `WebView` and `WebPage` APIs.\nSupports full navigation control, an optional toolbar with back/forward/reload and URL bar,\nJavaScript evaluation, and callbacks for load state, navigation events, title changes,\nand navigation policy decisions.\n\n- Parameter dict: Dictionary with keys: `x`, `y`, `w`, `h` (all numbers, optional — defaults to 800×600 centered)\n- Returns: An `HSUIWebView` object for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 1024, h: 768})\n    .toolbar(true)\n    .onNavigate((url) => { console.log(\"Navigated to \" + url) })\n    .loadURL(\"https://example.com\")\n    .show()\n```",
+          "description": "Create a web browser window (macOS 26+)\nOpens a native browser window backed by SwiftUI's `WebView` and `WebPage` APIs.\nSupports full navigation control, an optional toolbar with back/forward/reload and URL bar,\nJavaScript evaluation, and callbacks for load state, navigation events, title changes,\nand navigation policy decisions.",
+          "params": [
+            {
+              "name": "dict",
+              "type": "Object<String, Any>",
+              "description": "Dictionary with keys: `x`, `y`, `w`, `h` (all numbers, optional — defaults to 800×600 centered)",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "HSUIWebView",
+            "description": "An `HSUIWebView` object for chaining"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.ui.webview2({x: 100, y: 100, w: 1024, h: 768})\n    .toolbar(true)\n    .onNavigate((url) => { console.log(\"Navigated to \" + url) })\n    .loadURL(\"https://example.com\")\n    .show()"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.ui/HSUIModule.swift",
+          "lineNumber": 386
         }
       ],
       "properties": [],
@@ -14303,6 +14333,723 @@
             }
           ],
           "properties": []
+        },
+        {
+          "name": "HSUIWebViewAPI",
+          "type": "typedef",
+          "rawDocumentation": "# hs.ui.webview2\n\n**Create native web browser windows powered by WebPage and WebView**\n\nAvailable on macOS 26.0 or later, `hs.ui.webview2` creates standard macOS windows hosting a\nnative SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional\ntoolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.\n\n## Requirements\n\nmacOS 26.0 or later. The `hs.ui.webview2()` factory returns `null` on older systems.\n\n## Basic Example\n\n```javascript\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar(true)\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n\n## Full Example\n\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar(true)\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Navigate programmatically\nbrowser.loadURL(\"https://google.com\");\nbrowser.goBack();\nbrowser.reload();\n```\n\n## Navigation Policy Example\n\n```javascript\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar(true)\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n\n## JavaScript Evaluation Example\n\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Fire and forget\nbrowser.execJS(\"document.body.style.backgroundColor = 'lightyellow'\");\n\n// With result (note the JS method name is evalJSResult)\nbrowser.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n});\n```",
+          "description": "# hs.ui.webview2\n**Create native web browser windows powered by WebPage and WebView**\nAvailable on macOS 26.0 or later, `hs.ui.webview2` creates standard macOS windows hosting a\nnative SwiftUI `WebView` backed by a `WebPage` instance. It supports navigation, an optional\ntoolbar, JavaScript evaluation, and callbacks for loading, navigation, and title changes.\n## Requirements\nmacOS 26.0 or later. The `hs.ui.webview2()` factory returns `null` on older systems.\n## Basic Example\n```javascript\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar(true)\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n## Full Example\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar(true)\n    .inspectable(true)\n    .onNavigate((url) => console.log(\"Navigated to: \" + url))\n    .onTitleChange((title) => console.log(\"Title: \" + title))\n    .onLoadChange((loading, url, title, progress) => {\n        if (!loading) console.log(\"Page ready: \" + url)\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Navigate programmatically\nbrowser.loadURL(\"https://google.com\");\nbrowser.goBack();\nbrowser.reload();\n```\n## Navigation Policy Example\n```javascript\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar(true)\n    .onNavigationDecision((url) => {\n        return !url.includes(\"evil.com\")\n    })\n    .loadURL(\"https://apple.com\")\n    .show();\n```\n## JavaScript Evaluation Example\n```javascript\nconst browser = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .loadURL(\"https://apple.com\")\n    .show();\n\n// Fire and forget\nbrowser.execJS(\"document.body.style.backgroundColor = 'lightyellow'\");\n\n// With result (note the JS method name is evalJSResult)\nbrowser.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n});\n```",
+          "methods": [
+            {
+              "name": "show",
+              "signature": "func show() -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Show the web browser window\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\n```",
+              "description": "Show the web browser window",
+              "params": [],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 128
+            },
+            {
+              "name": "hide",
+              "signature": "func hide()",
+              "isStatic": false,
+              "rawDocumentation": "Hide the window without destroying it; page state is preserved\n- Example:\n```js\nconst b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.hide()\n```",
+              "description": "Hide the window without destroying it; page state is preserved",
+              "params": [],
+              "returns": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.hide()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 136
+            },
+            {
+              "name": "close",
+              "signature": "func close()",
+              "isStatic": false,
+              "rawDocumentation": "Close and destroy the window, releasing all resources\n- Example:\n```js\nconst b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.close()\n```",
+              "description": "Close and destroy the window, releasing all resources",
+              "params": [],
+              "returns": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const b = hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\nb.close()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 144
+            },
+            {
+              "name": "loadURL",
+              "signature": "func loadURL(_ urlString: String) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Load a URL in the web view\n- Parameter urlString: The URL to load (e.g. \"https://apple.com\")\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()\n```",
+              "description": "Load a URL in the web view",
+              "params": [
+                {
+                  "name": "urlString",
+                  "type": "string",
+                  "description": "The URL to load (e.g. \"https://apple.com\")",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650}).loadURL(\"https://apple.com\").show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 155
+            },
+            {
+              "name": "loadHTML",
+              "signature": "func loadHTML(_ html: String) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Load an HTML string directly into the web view\n- Parameter html: The HTML content to display\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 500, h: 300})\n    .loadHTML(\"<html><body><h1>Hello from Hammerspoon!</h1></body></html>\")\n    .show()\n```",
+              "description": "Load an HTML string directly into the web view",
+              "params": [
+                {
+                  "name": "html",
+                  "type": "string",
+                  "description": "The HTML content to display",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.webview2({x: 100, y: 100, w: 500, h: 300})\n    .loadHTML(\"<html><body><h1>Hello from Hammerspoon!</h1></body></html>\")\n    .show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 166
+            },
+            {
+              "name": "goBack",
+              "signature": "func goBack() -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Navigate back in the browser history\n- Returns: Self for chaining\n- Example:\n```js\nif (browser.canGoBack) browser.goBack()\n```",
+              "description": "Navigate back in the browser history",
+              "params": [],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (browser.canGoBack) browser.goBack()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 174
+            },
+            {
+              "name": "goForward",
+              "signature": "func goForward() -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Navigate forward in the browser history\n- Returns: Self for chaining\n- Example:\n```js\nif (browser.canGoForward) browser.goForward()\n```",
+              "description": "Navigate forward in the browser history",
+              "params": [],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (browser.canGoForward) browser.goForward()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 182
+            },
+            {
+              "name": "reload",
+              "signature": "func reload() -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Reload the current page\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.reload()\n```",
+              "description": "Reload the current page",
+              "params": [],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.reload()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 190
+            },
+            {
+              "name": "stopLoading",
+              "signature": "func stopLoading() -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Stop loading the current page\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.stopLoading()\n```",
+              "description": "Stop loading the current page",
+              "params": [],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.stopLoading()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 198
+            },
+            {
+              "name": "userAgent",
+              "signature": "func userAgent(_ ua: String) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Set a custom User-Agent string for HTTP requests\n\nCan be called before or after `show()`.\n\n- Parameter ua: The User-Agent string\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .userAgent(\"MyApp/1.0 AppleWebKit\")\n    .loadURL(\"https://example.com\")\n    .show()\n```",
+              "description": "Set a custom User-Agent string for HTTP requests\nCan be called before or after `show()`.",
+              "params": [
+                {
+                  "name": "ua",
+                  "type": "string",
+                  "description": "The User-Agent string",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .userAgent(\"MyApp/1.0 AppleWebKit\")\n    .loadURL(\"https://example.com\")\n    .show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 215
+            },
+            {
+              "name": "inspectable",
+              "signature": "func inspectable(_ value: Bool) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Enable or disable the Safari Web Inspector for this web view\n\nWhen enabled, the web view appears in Safari → Develop menu.\n\n- Parameter value: Pass `true` to enable the Web Inspector\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .inspectable(true)\n    .loadURL(\"https://apple.com\")\n    .show()\n```",
+              "description": "Enable or disable the Safari Web Inspector for this web view\nWhen enabled, the web view appears in Safari → Develop menu.",
+              "params": [
+                {
+                  "name": "value",
+                  "type": "boolean",
+                  "description": "Pass `true` to enable the Web Inspector",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .inspectable(true)\n    .loadURL(\"https://apple.com\")\n    .show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 230
+            },
+            {
+              "name": "toolbar",
+              "signature": "func toolbar(_ show: Bool) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Show or hide the navigation toolbar (back, forward, reload, URL bar)\n\nThe toolbar is hidden by default. Pass `true` to show it.\n\n- Parameter show: Pass `true` to show the toolbar\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar(true)\n    .loadURL(\"https://apple.com\")\n    .show()\n```",
+              "description": "Show or hide the navigation toolbar (back, forward, reload, URL bar)\nThe toolbar is hidden by default. Pass `true` to show it.",
+              "params": [
+                {
+                  "name": "show",
+                  "type": "boolean",
+                  "description": "Pass `true` to show the toolbar",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "hs.ui.webview2({x: 100, y: 100, w: 900, h: 650})\n    .toolbar(true)\n    .loadURL(\"https://apple.com\")\n    .show()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 245
+            },
+            {
+              "name": "backForwardGestures",
+              "signature": "func backForwardGestures(_ enabled: Bool) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Enable or disable the macOS back/forward trackpad swipe gestures\n\nGestures are enabled by default. Pass `false` to disable them.\n\n- Parameter enabled: Pass `false` to disable back/forward swipe gestures\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.backForwardGestures(false)\n```",
+              "description": "Enable or disable the macOS back/forward trackpad swipe gestures\nGestures are enabled by default. Pass `false` to disable them.",
+              "params": [
+                {
+                  "name": "enabled",
+                  "type": "boolean",
+                  "description": "Pass `false` to disable back/forward swipe gestures",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.backForwardGestures(false)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 257
+            },
+            {
+              "name": "magnificationGestures",
+              "signature": "func magnificationGestures(_ enabled: Bool) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Enable or disable the trackpad pinch-to-zoom magnification gesture\n\nThe gesture is enabled by default. Pass `false` to disable it.\n\n- Parameter enabled: Pass `false` to disable pinch-to-zoom\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.magnificationGestures(false)\n```",
+              "description": "Enable or disable the trackpad pinch-to-zoom magnification gesture\nThe gesture is enabled by default. Pass `false` to disable it.",
+              "params": [
+                {
+                  "name": "enabled",
+                  "type": "boolean",
+                  "description": "Pass `false` to disable pinch-to-zoom",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.magnificationGestures(false)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 269
+            },
+            {
+              "name": "linkPreviews",
+              "signature": "func linkPreviews(_ enabled: Bool) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Enable or disable link preview popovers shown on force-click\n\nLink previews are enabled by default. Pass `false` to disable them.\n\n- Parameter enabled: Pass `false` to disable link previews\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.linkPreviews(false)\n```",
+              "description": "Enable or disable link preview popovers shown on force-click\nLink previews are enabled by default. Pass `false` to disable them.",
+              "params": [
+                {
+                  "name": "enabled",
+                  "type": "boolean",
+                  "description": "Pass `false` to disable link previews",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.linkPreviews(false)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 281
+            },
+            {
+              "name": "contentBackground",
+              "signature": "func contentBackground(_ visible: Bool) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Control whether the web page background is visible\n\nPass `false` to make the web view background transparent, allowing the window\nbackground to show through. Enabled (visible) by default.\n\n- Parameter visible: Pass `false` to hide the web content background\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.contentBackground(false)\n```",
+              "description": "Control whether the web page background is visible\nPass `false` to make the web view background transparent, allowing the window\nbackground to show through. Enabled (visible) by default.",
+              "params": [
+                {
+                  "name": "visible",
+                  "type": "boolean",
+                  "description": "Pass `false` to hide the web content background",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.contentBackground(false)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 294
+            },
+            {
+              "name": "onLoadChange",
+              "signature": "func onLoadChange(_ callback: JSFunction) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Register a callback that fires when loading state or progress changes\n\nCalled whenever `isLoading`, `url`, `title`, or `estimatedProgress` changes.\n\n- Parameter callback: {(isLoading: boolean, url: string | null, title: string, progress: number) => void} Called with current loading state\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.onLoadChange((loading, url, title, progress) => {\n    if (!loading) console.log(\"Finished loading: \" + url)\n})\n```",
+              "description": "Register a callback that fires when loading state or progress changes\nCalled whenever `isLoading`, `url`, `title`, or `estimatedProgress` changes.",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSFunction",
+                  "description": "Called with current loading state",
+                  "optional": false,
+                  "tsType": "(isLoading: boolean, url: string | null, title: string, progress: number) => void"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.onLoadChange((loading, url, title, progress) => {\n    if (!loading) console.log(\"Finished loading: \" + url)\n})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 354
+            },
+            {
+              "name": "onNavigate",
+              "signature": "func onNavigate(_ callback: JSFunction) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Register a callback that fires when navigation to a new page completes\n\n- Parameter callback: {(url: string) => void} Called with the final URL\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.onNavigate((url) => console.log(\"Navigated to: \" + url))\n```",
+              "description": "Register a callback that fires when navigation to a new page completes",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSFunction",
+                  "description": "Called with the final URL",
+                  "optional": false,
+                  "tsType": "(url: string) => void"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.onNavigate((url) => console.log(\"Navigated to: \" + url))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 364
+            },
+            {
+              "name": "onTitleChange",
+              "signature": "func onTitleChange(_ callback: JSFunction) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Register a callback that fires when the page title changes\n\n- Parameter callback: {(title: string) => void} Called with the new title\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.onTitleChange((title) => console.log(\"New title: \" + title))\n```",
+              "description": "Register a callback that fires when the page title changes",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSFunction",
+                  "description": "Called with the new title",
+                  "optional": false,
+                  "tsType": "(title: string) => void"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.onTitleChange((title) => console.log(\"New title: \" + title))"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 374
+            },
+            {
+              "name": "onNavigationDecision",
+              "signature": "func onNavigationDecision(_ callback: JSFunction) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Register a callback that controls whether navigation is allowed\n\nCalled before each navigation. Return `true` to allow or `false` to block.\n\n- Parameter callback: {(url: string) => boolean} Return `true` to allow, `false` to block\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.onNavigationDecision((url) => {\n    return !url.startsWith(\"file://\")\n})\n```",
+              "description": "Register a callback that controls whether navigation is allowed\nCalled before each navigation. Return `true` to allow or `false` to block.",
+              "params": [
+                {
+                  "name": "callback",
+                  "type": "JSFunction",
+                  "description": "Return `true` to allow, `false` to block",
+                  "optional": false,
+                  "tsType": "(url: string) => boolean"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.onNavigationDecision((url) => {\n    return !url.startsWith(\"file://\")\n})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 388
+            },
+            {
+              "name": "execJS",
+              "signature": "func execJS(_ script: String) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Execute JavaScript in the web page without capturing the result\n- Parameter script: The JavaScript code to execute\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.execJS(\"document.body.style.backgroundColor = 'lightyellow'\")\n```",
+              "description": "Execute JavaScript in the web page without capturing the result",
+              "params": [
+                {
+                  "name": "script",
+                  "type": "string",
+                  "description": "The JavaScript code to execute",
+                  "optional": false,
+                  "tsType": null
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.execJS(\"document.body.style.backgroundColor = 'lightyellow'\")"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 399
+            },
+            {
+              "name": "evalJSResult",
+              "signature": "func evalJSResult(_ script: String, _ callback: JSFunction) -> HSUIWebView",
+              "isStatic": false,
+              "rawDocumentation": "Execute JavaScript in the web page and deliver the result to a callback\n\nThe JavaScript method name is `evalJSResult` — it derives from the internal\nObjective-C selector `evalJS:result:`.\n\n- Parameter script: The JavaScript expression to evaluate\n- Parameter callback: {(result: any, error: string | null) => void} Called with the result or an error message\n- Returns: Self for chaining\n- Example:\n```js\nbrowser.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n})\n```",
+              "description": "Execute JavaScript in the web page and deliver the result to a callback\nThe JavaScript method name is `evalJSResult` — it derives from the internal\nObjective-C selector `evalJS:result:`.",
+              "params": [
+                {
+                  "name": "script",
+                  "type": "string",
+                  "description": "The JavaScript expression to evaluate",
+                  "optional": false,
+                  "tsType": null
+                },
+                {
+                  "name": "callback",
+                  "type": "JSFunction",
+                  "description": "Called with the result or an error message",
+                  "optional": false,
+                  "tsType": "(result: any, error: string | null) => void"
+                }
+              ],
+              "returns": {
+                "type": "HSUIWebView",
+                "description": "Self for chaining"
+              },
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "browser.evalJSResult(\"document.title\", (result, error) => {\n    if (error) { console.log(\"Error: \" + error) }\n    else { console.log(\"Title: \" + result) }\n})"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 417
+            }
+          ],
+          "properties": [
+            {
+              "name": "url",
+              "signature": "var url: String? { get }",
+              "rawDocumentation": "The URL of the current page, or `null` if no page is loaded\n- Example:\n```js\nconsole.log(\"URL: \" + browser.url)\n```",
+              "description": "The URL of the current page, or `null` if no page is loaded",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log(\"URL: \" + browser.url)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 303
+            },
+            {
+              "name": "title",
+              "signature": "var title: String { get }",
+              "rawDocumentation": "The title of the current page\n- Example:\n```js\nconsole.log(\"Title: \" + browser.title)\n```",
+              "description": "The title of the current page",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log(\"Title: \" + browser.title)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 310
+            },
+            {
+              "name": "isLoading",
+              "signature": "var isLoading: Bool { get }",
+              "rawDocumentation": "Whether the web view is currently loading a page\n- Example:\n```js\nconsole.log(\"Loading: \" + browser.isLoading)\n```",
+              "description": "Whether the web view is currently loading a page",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log(\"Loading: \" + browser.isLoading)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 317
+            },
+            {
+              "name": "estimatedProgress",
+              "signature": "var estimatedProgress: Double { get }",
+              "rawDocumentation": "The estimated loading progress from 0.0 to 1.0\n- Example:\n```js\nconsole.log(Math.round(browser.estimatedProgress * 100) + \"%\")\n```",
+              "description": "The estimated loading progress from 0.0 to 1.0",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "console.log(Math.round(browser.estimatedProgress * 100) + \"%\")"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 324
+            },
+            {
+              "name": "canGoBack",
+              "signature": "var canGoBack: Bool { get }",
+              "rawDocumentation": "Whether the web view can navigate back in history\n- Example:\n```js\nif (browser.canGoBack) browser.goBack()\n```",
+              "description": "Whether the web view can navigate back in history",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (browser.canGoBack) browser.goBack()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 331
+            },
+            {
+              "name": "canGoForward",
+              "signature": "var canGoForward: Bool { get }",
+              "rawDocumentation": "Whether the web view can navigate forward in history\n- Example:\n```js\nif (browser.canGoForward) browser.goForward()\n```",
+              "description": "Whether the web view can navigate forward in history",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "if (browser.canGoForward) browser.goForward()"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.ui/Windows/HSUIWebView.swift",
+              "lineNumber": 338
+            }
+          ]
         }
       ],
       "description": "# hs.ui\n**Create custom user interfaces, alerts, dialogs, and file pickers**\nThe `hs.ui` module provides a set of tools for creating custom user interfaces\nin Hammerspoon with SwiftUI-like declarative syntax.\n## Key Features\nthen call `.replaceWithColor()` or `.replaceWithHex()` on it from any callback to re-render the canvas automatically\nthen call `.set()` on it to update the displayed content live\nto swap the image without rebuilding the window\n## Basic Examples\n### Simple Alert\n```javascript\nhs.ui.alert(\"Task completed!\")\n    .duration(3)\n    .show();\n```\n### Dialog with Buttons\n```javascript\nhs.ui.dialog(\"Save changes?\")\n    .informativeText(\"Your document has unsaved changes.\")\n    .buttons([\"Save\", \"Don't Save\", \"Cancel\"])\n    .onButton((index) => {\n        if (index === 0) console.log(\"Saving...\");\n    })\n    .show();\n```\n### Text Input Prompt\n```javascript\nhs.ui.textPrompt(\"Enter your name\")\n    .defaultText(\"John Doe\")\n    .onButton((buttonIndex, text) => {\n        console.log(\"User entered: \" + text);\n    })\n    .show();\n```\n### File Picker\n```javascript\nhs.ui.filePicker()\n    .message(\"Choose a file\")\n    .allowedFileTypes([\"txt\", \"md\"])\n    .onSelection((path) => {\n        if (path) console.log(\"Selected: \" + path);\n    })\n    .show();\n```\n### Custom Window\n```javascript\nhs.ui.window({x: 100, y: 100, w: 300, h: 200})\n    .vstack()\n        .spacing(10)\n        .padding(20)\n        .text(\"Hello, World!\")\n            .font(HSFont.title())\n            .foregroundColor(\"#FFFFFF\")\n        .rectangle()\n            .fill(\"#4A90E2\")\n            .cornerRadius(10)\n            .frame({w: \"100%\", h: 60})\n    .end()\n    .backgroundColor(\"#2C3E50\")\n    .show();\n```\n### Reactive Color on Hover\n```javascript\n// Create a mutable color, then mutate it inside the hover callback\nconst btnColor = HSColor.hex(\"#4A90E2\");\n\nhs.ui.window({x: 100, y: 100, w: 160, h: 60})\n    .rectangle()\n        .fill(btnColor)\n        .cornerRadius(8)\n        .frame({w: \"100%\", h: \"100%\"})\n        .onHover((isHovered) => {\n            btnColor.replaceWithHex(isHovered ? \"#E24A4A\" : \"#4A90E2\");\n        })\n    .show();\n```\n### Reactive Text on Hover\n```javascript\n// Create a mutable string, then mutate it inside the hover callback\nconst label = hs.ui.string(\"Move your mouse here\");\n\nhs.ui.window({x: 100, y: 200, w: 220, h: 50})\n    .text(label)\n        .font(HSFont.body())\n        .foregroundColor(\"#FFFFFF\")\n        .onHover((isHovered) => {\n            label.set(isHovered ? \"You're hovering!\" : \"Move your mouse here\");\n        })\n    .show();\n```\n### Reactive Image on Click\n```javascript\n// Toggle between two system icons on each click\nconst icon = HSImage.fromName(\"NSStatusAvailable\");\n\nhs.ui.window({x: 100, y: 300, w: 80, h: 80})\n    .image(icon)\n        .resizable()\n        .aspectRatio(\"fit\")\n        .frame({w: 64, h: 64})\n        .onClick(() => {\n            const next = (icon.name === \"NSStatusAvailable\")\n                ? HSImage.fromName(\"NSStatusUnavailable\")\n                : HSImage.fromName(\"NSStatusAvailable\");\n            icon.replaceWithImage(next);\n        })\n    .show();\n```\n## Complete Example: Status Dashboard\nHere's a more complex example showing how to build an interactive status dashboard\n```javascript\n// Create a status dashboard window\nconst statusWindow = hs.ui.window({x: 100, y: 100, w: 400, h: 500})\n    .vstack()\n        .spacing(15)\n        .padding(20)\n\n        // Header\n        .text(\"System Status Dashboard\")\n            .font(HSFont.largeTitle())\n            .foregroundColor(\"#FFFFFF\")\n\n        // Status cards\n        .hstack()\n            .spacing(10)\n            .vstack()\n                .spacing(5)\n                .rectangle()\n                    .fill(\"#4CAF50\")\n                    .cornerRadius(8)\n                    .frame({w: 180, h: 100})\n                .text(\"CPU: 45%\")\n                    .font(HSFont.headline())\n                    .foregroundColor(\"#FFFFFF\")\n            .end()\n            .vstack()\n                .spacing(5)\n                .rectangle()\n                    .fill(\"#2196F3\")\n                    .cornerRadius(8)\n                    .frame({w: 180, h: 100})\n                .text(\"Memory: 8.2GB\")\n                    .font(HSFont.headline())\n                    .foregroundColor(\"#FFFFFF\")\n            .end()\n        .end()\n\n        // Activity indicator with image\n        .hstack()\n            .spacing(10)\n            .image(HSImage.fromName(\"NSComputer\"))\n                .resizable()\n                .aspectRatio(\"fit\")\n                .frame({w: 64, h: 64})\n            .vstack()\n                .text(\"System Running\")\n                    .font(HSFont.title())\n                .text(\"All services operational\")\n                    .font(HSFont.caption())\n                    .foregroundColor(\"#A0A0A0\")\n            .end()\n        .end()\n\n        // Circle status indicators\n        .hstack()\n            .spacing(20)\n            .circle()\n                .fill(\"#4CAF50\")\n                .frame({w: 30, h: 30})\n            .circle()\n                .fill(\"#FFC107\")\n                .frame({w: 30, h: 30})\n            .circle()\n                .fill(\"#F44336\")\n                .frame({w: 30, h: 30})\n        .end()\n    .end()\n    .backgroundColor(\"#2C3E50\");\n\n// Show the dashboard\nstatusWindow.show();\n\n// Later, interact with dialogs\nhs.ui.dialog(\"Shutdown system?\")\n    .informativeText(\"This will close all applications.\")\n    .buttons([\"Shutdown\", \"Cancel\"])\n    .onButton((index) => {\n        if (index === 0) {\n            hs.ui.alert(\"Shutting down...\")\n                .duration(3)\n                .show();\n        }\n    })\n    .show();\n```\n## Complete Example: Reactive Hover Card\nDemonstrates reactive colors and reactive text together — a single `.onHover()`\n```javascript\nconst cardColor = HSColor.hex(\"#3498DB\");\nconst cardLabel = hs.ui.string(\"Hover the card\");\n\nhs.ui.window({x: 100, y: 100, w: 220, h: 120})\n    .vstack()\n        .spacing(12)\n        .padding(16)\n        .rectangle()\n            .fill(cardColor)\n            .cornerRadius(10)\n            .frame({w: \"100%\", h: 60})\n            .onHover((isHovered) => {\n                cardColor.replaceWithHex(isHovered ? \"#E74C3C\" : \"#3498DB\");\n                cardLabel.set(isHovered ? \"You found it!\" : \"Hover the card\");\n            })\n        .text(cardLabel)\n            .font(HSFont.headline())\n            .foregroundColor(\"#FFFFFF\")\n    .end()\n    .backgroundColor(\"#1A252F\")\n    .show();\n```",
@@ -16374,5 +17121,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-06T12:10:58.675Z"
+  "generatedAt": "2026-07-07T11:09:33.487Z"
 }
