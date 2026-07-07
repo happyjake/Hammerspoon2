@@ -266,6 +266,7 @@ final class UIWebViewToolbarEntry: Identifiable {
     ///
     /// - Parameter items: {Array<string | {title?: string, systemImage?: string, callback: () => void}>} Toolbar items in display order
     /// - Returns: Self for chaining
+    /// - Note: The toolbar will not be shown if the web view is in a borderless window
     /// - Example:
     /// ```js
     /// hs.ui.webview()
@@ -770,57 +771,44 @@ final class UIWebViewToolbarEntry: Identifiable {
 
 // MARK: - SwiftUI Views
 
-/// Root view for a UIWebView element — VStack of optional toolbar + WebView.
+/// Root view for a UIWebView element. Toolbar entries are surfaced via the native
+/// macOS toolbar (`.toolbar {}` modifier), which requires a titled window.
 @available(macOS 26.0, *)
 private struct UIWebViewElementView: View {
     let element: UIWebView
 
     var body: some View {
-        VStack(spacing: 0) {
-            if !element.toolbarEntries.isEmpty {
-                UIWebViewInlineToolbar(entries: element.toolbarEntries, page: element.page)
+        WebView(element.page)
+            .webViewBackForwardNavigationGestures(
+                element.allowsBackForwardGesturesValue ? .enabled : .disabled
+            )
+            .webViewMagnificationGestures(
+                element.allowsMagnificationGesturesValue ? .enabled : .disabled
+            )
+            .webViewLinkPreviews(
+                element.allowsLinkPreviewsValue ? .enabled : .disabled
+            )
+            .webViewContentBackground(
+                element.showsContentBackground ? .visible : .hidden
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .toolbar {
+                ToolbarItemGroup {
+                    ForEach(element.toolbarEntries) { entry in
+                        UIWebViewToolbarEntryView(entry: entry, page: element.page)
+                    }
+                }
             }
-            WebView(element.page)
-                .webViewBackForwardNavigationGestures(
-                    element.allowsBackForwardGesturesValue ? .enabled : .disabled
-                )
-                .webViewMagnificationGestures(
-                    element.allowsMagnificationGesturesValue ? .enabled : .disabled
-                )
-                .webViewLinkPreviews(
-                    element.allowsLinkPreviewsValue ? .enabled : .disabled
-                )
-                .webViewContentBackground(
-                    element.showsContentBackground ? .visible : .hidden
-                )
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-/// Inline toolbar rendered above the WebView inside the element's VStack.
-/// Uses `page`'s @Observable properties for reactive button state updates.
+/// Renders a single toolbar entry as a SwiftUI view within a native macOS toolbar.
 @available(macOS 26.0, *)
-private struct UIWebViewInlineToolbar: View {
-    let entries: [UIWebViewToolbarEntry]
+private struct UIWebViewToolbarEntryView: View {
+    let entry: UIWebViewToolbarEntry
     let page: WebPage
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 4) {
-                ForEach(entries) { entry in
-                    toolbarItemView(for: entry)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color(NSColor.windowBackgroundColor))
-            Divider()
-        }
-    }
-
-    @ViewBuilder
-    private func toolbarItemView(for entry: UIWebViewToolbarEntry) -> some View {
         switch entry.kind {
         case .back:
             Button {

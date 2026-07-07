@@ -5884,6 +5884,7 @@ The toolbar renders above the web view. Each element of the array is either a st
 naming a standard control or a dictionary describing a custom button.
 An empty array (or omitting this call) hides the toolbar.
 Standard string items: `"back"`, `"forward"`, `"reload"`, `"url"`, `"spacer"`.
+     * @remarks The toolbar will not be shown if the web view is in a borderless window
      * @param items Toolbar items in display order
      * @returns Self for chaining
      */

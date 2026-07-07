@@ -14754,7 +14754,7 @@
               "name": "toolbar",
               "signature": "func toolbar(_ items: JSValue) -> UIWebView",
               "isStatic": false,
-              "rawDocumentation": "Configure the toolbar with a list of standard and custom items\n\nThe toolbar renders above the web view. Each element of the array is either a string\nnaming a standard control or a dictionary describing a custom button.\nAn empty array (or omitting this call) hides the toolbar.\n\nStandard string items: `\"back\"`, `\"forward\"`, `\"reload\"`, `\"url\"`, `\"spacer\"`.\n\nCustom button dictionaries accept:\n- `title` (string, optional) — button label\n- `systemImage` (string, optional) — SF Symbol name (e.g. `\"house\"`)\n- `callback` (function, required) — called when the button is clicked\n\n- Parameter items: {Array<string | {title?: string, systemImage?: string, callback: () => void}>} Toolbar items in display order\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\",\n              {title: \"Home\", systemImage: \"house\", callback: () => wv.loadURL(\"https://apple.com\")}])\n```",
+              "rawDocumentation": "Configure the toolbar with a list of standard and custom items\n\nThe toolbar renders above the web view. Each element of the array is either a string\nnaming a standard control or a dictionary describing a custom button.\nAn empty array (or omitting this call) hides the toolbar.\n\nStandard string items: `\"back\"`, `\"forward\"`, `\"reload\"`, `\"url\"`, `\"spacer\"`.\n\nCustom button dictionaries accept:\n- `title` (string, optional) — button label\n- `systemImage` (string, optional) — SF Symbol name (e.g. `\"house\"`)\n- `callback` (function, required) — called when the button is clicked\n\n- Parameter items: {Array<string | {title?: string, systemImage?: string, callback: () => void}>} Toolbar items in display order\n- Returns: Self for chaining\n- Note: The toolbar will not be shown if the web view is in a borderless window\n- Example:\n```js\nhs.ui.webview()\n    .toolbar([\"back\", \"forward\", \"reload\", \"url\",\n              {title: \"Home\", systemImage: \"house\", callback: () => wv.loadURL(\"https://apple.com\")}])\n```",
               "description": "Configure the toolbar with a list of standard and custom items\nThe toolbar renders above the web view. Each element of the array is either a string\nnaming a standard control or a dictionary describing a custom button.\nAn empty array (or omitting this call) hides the toolbar.\nStandard string items: `\"back\"`, `\"forward\"`, `\"reload\"`, `\"url\"`, `\"spacer\"`.",
               "params": [
                 {
@@ -14769,7 +14769,9 @@
                 "type": "UIWebView",
                 "description": "Self for chaining"
               },
-              "notes": [],
+              "notes": [
+                "The toolbar will not be shown if the web view is in a borderless window"
+              ],
               "examples": [
                 {
                   "lang": "js",
@@ -14778,7 +14780,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 275
+              "lineNumber": 276
             },
             {
               "name": "backForwardGestures",
@@ -14808,7 +14810,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 287
+              "lineNumber": 288
             },
             {
               "name": "magnificationGestures",
@@ -14838,7 +14840,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 299
+              "lineNumber": 300
             },
             {
               "name": "linkPreviews",
@@ -14868,7 +14870,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 311
+              "lineNumber": 312
             },
             {
               "name": "contentBackground",
@@ -14898,7 +14900,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 323
+              "lineNumber": 324
             },
             {
               "name": "onLoadChange",
@@ -14928,7 +14930,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 383
+              "lineNumber": 384
             },
             {
               "name": "onNavigate",
@@ -14958,7 +14960,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 393
+              "lineNumber": 394
             },
             {
               "name": "onTitleChange",
@@ -14988,7 +14990,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 403
+              "lineNumber": 404
             },
             {
               "name": "onNavigationDecision",
@@ -15018,7 +15020,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 417
+              "lineNumber": 418
             },
             {
               "name": "execJS",
@@ -15048,7 +15050,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 428
+              "lineNumber": 429
             },
             {
               "name": "evalJSResult",
@@ -15085,7 +15087,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 446
+              "lineNumber": 447
             }
           ],
           "properties": [
@@ -15104,7 +15106,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 332
+              "lineNumber": 333
             },
             {
               "name": "title",
@@ -15121,7 +15123,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 339
+              "lineNumber": 340
             },
             {
               "name": "isLoading",
@@ -15138,7 +15140,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 346
+              "lineNumber": 347
             },
             {
               "name": "estimatedProgress",
@@ -15155,7 +15157,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 353
+              "lineNumber": 354
             },
             {
               "name": "canGoBack",
@@ -15172,7 +15174,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 360
+              "lineNumber": 361
             },
             {
               "name": "canGoForward",
@@ -15189,7 +15191,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.ui/Elements/Content/UIWebView.swift",
-              "lineNumber": 367
+              "lineNumber": 368
             }
           ]
         }
@@ -17263,5 +17265,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-07T14:10:48.698Z"
+  "generatedAt": "2026-07-07T15:42:05.329Z"
 }
