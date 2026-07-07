@@ -59,12 +59,14 @@ const listItems = versions.map(v => {
         : v === 'main'
             ? ' <span class="badge dev">dev</span>'
             : '';
+    const hasTS = fs.existsSync(path.join(siteDir, v, 'ts'));
+    const tsLink = hasTS ? `<a href="${v}/ts/">TypeScript</a>` : '';
     return `            <li>
                 <div class="version-row">
                     <span class="version-name">${v}${badge}</span>
                     <div class="version-links">
                         <a href="${v}/js/">JavaScript API</a>
-                        <a href="${v}/ts/">TypeScript</a>
+                        ${tsLink}
                     </div>
                 </div>
             </li>`;
