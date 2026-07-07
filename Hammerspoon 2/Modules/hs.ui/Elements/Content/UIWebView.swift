@@ -899,6 +899,10 @@ private struct URLToolbarField: View {
         let trimmed = urlText.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
         let urlString = trimmed.contains("://") ? trimmed : "https://\(trimmed)"
-        if let url = URL(string: urlString) { _ = page.load(url) }
+        guard let url = URL(string: urlString) else {
+            AKWarning("UIWebView: could not form a valid URL from: \(urlString)")
+            return
+        }
+        _ = page.load(url)
     }
 }
