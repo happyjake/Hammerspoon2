@@ -18,7 +18,7 @@ From a future pre-release onwards, builds will require at least macOS 26, and on
 
  * Download one of the pre-releases from GitHub, unzip and place in /Applications
  * Create ~/.config/hammerspoon2/init.js
- * For the JavaScript API docs, see https://cmsj.github.io/Hammerspoon2/
+ * For the JavaScript API docs, see https://cmsj.github.io/Hammerspoon2/ or run hs.docs.show() in the Console window
 
 ## Development
 
