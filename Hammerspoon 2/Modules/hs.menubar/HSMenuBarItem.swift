@@ -218,6 +218,7 @@ import JavaScriptCore
             } else {
                 _title = newValue
             }
+            updateButton()
         }
     }
 
