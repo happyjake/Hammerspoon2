@@ -58,8 +58,33 @@ protocol SettingsManagerDelegate: AnyObject {
 final class SettingsManager {
     static let shared = SettingsManager()
 
+    private struct WeakDelegate {
+        weak var object: AnyObject?
+        let notify: () -> Void
+
+        init<T: SettingsManagerDelegate>(_ delegate: T) {
+            object = delegate
+            notify = { [weak delegate] in delegate?.settingsDidChange() }
+        }
+
+        var isAlive: Bool { object != nil }
+    }
+
     @ObservationIgnored
-    private var delegates = HSWeakObjectSet<any SettingsManagerDelegate>()
+    private var delegates: [ObjectIdentifier: WeakDelegate] = [:]
+
+    func addDelegate<T: SettingsManagerDelegate>(_ delegate: T) {
+        delegates[ObjectIdentifier(delegate)] = WeakDelegate(delegate)
+    }
+
+    func removeDelegate<T: SettingsManagerDelegate>(_ delegate: T) {
+        delegates.removeValue(forKey: ObjectIdentifier(delegate))
+    }
+
+    private func notifyDelegates() {
+        delegates = delegates.filter { $0.value.isAlive }
+        delegates.values.forEach { $0.notify() }
+    }
 
     enum Keys: String, CaseIterable {
         case configLocation
@@ -84,16 +109,28 @@ final class SettingsManager {
     }
 
     var configLocation: URL {
-        didSet { UserDefaults.standard.set(configLocation, forKey: Keys.configLocation.rawValue) }
+        didSet {
+            UserDefaults.standard.set(configLocation, forKey: Keys.configLocation.rawValue)
+            notifyDelegates()
+        }
     }
     var consoleHistoryLength: Int {
-        didSet { UserDefaults.standard.set(consoleHistoryLength, forKey: Keys.consoleHistoryLength.rawValue) }
+        didSet {
+            UserDefaults.standard.set(consoleHistoryLength, forKey: Keys.consoleHistoryLength.rawValue)
+            notifyDelegates()
+        }
     }
     var relaunchOnReload: Bool {
-        didSet { UserDefaults.standard.set(relaunchOnReload, forKey: Keys.relaunchOnReload.rawValue) }
+        didSet {
+            UserDefaults.standard.set(relaunchOnReload, forKey: Keys.relaunchOnReload.rawValue)
+            notifyDelegates()
+        }
     }
     var dockMenuBehaviour: DockMenubarType {
-        didSet { UserDefaults.standard.set(dockMenuBehaviour.rawValue, forKey: Keys.dockMenuBehaviour.rawValue)}
+        didSet {
+            UserDefaults.standard.set(dockMenuBehaviour.rawValue, forKey: Keys.dockMenuBehaviour.rawValue)
+            notifyDelegates()
+        }
     }
 
     @ObservationIgnored
