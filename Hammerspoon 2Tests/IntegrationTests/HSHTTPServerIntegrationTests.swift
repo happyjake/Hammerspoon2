@@ -807,9 +807,20 @@ struct HSHTTPTests {
         // 100-byte payload. Each frame is under maxBodySize (200) individually, but the combined
         // fragment payload (250) exceeds it. Sent via .contentProcessed to ensure they arrive
         // in separate TCP receives so the fragmentBuffer check fires rather than the buf check.
+        // Frame wire sizes: ~158 bytes (2-byte header + 2-byte extended length + 4-byte mask + 150)
+        // and ~106 bytes (2-byte header + 4-byte mask + 100) — both under maxBodySize (200).
         func maskedFrame(opcode: UInt8, fin: Bool, size: Int) -> Data {
             let mask: [UInt8] = [0x37, 0xFA, 0x21, 0x3D]
-            var f = Data([UInt8((fin ? 0x80 : 0x00) | Int(opcode & 0x0F)), UInt8(0x80 | size)])
+            var f = Data()
+            f.append(UInt8((fin ? 0x80 : 0x00) | (opcode & 0x0F)))
+            // RFC 6455: payloads >= 126 require extended 16-bit length encoding.
+            if size < 126 {
+                f.append(UInt8(0x80 | size))
+            } else {
+                f.append(0xFE)  // MASK=1, length indicator=126 (16-bit extended)
+                f.append(UInt8((size >> 8) & 0xFF))
+                f.append(UInt8(size & 0xFF))
+            }
             f.append(contentsOf: mask)
             f.append(contentsOf: (0..<size).map { UInt8(0x41) ^ mask[$0 % 4] })
             return f
