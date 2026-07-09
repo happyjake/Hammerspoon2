@@ -11,15 +11,12 @@ import SwiftUI
 enum DockMenubarType: String, CaseIterable, Identifiable {
     var id: Self { self }
 
-    case none
     case dock
     case menuBar
     case both
 
     var displayName: String {
         switch self {
-        case .none:
-            return "None"
         case .dock:
             return "Dock only"
         case .menuBar:
@@ -31,7 +28,7 @@ enum DockMenubarType: String, CaseIterable, Identifiable {
 
     var activationPolicy: NSApplication.ActivationPolicy {
         switch self {
-        case .none, .menuBar:
+        case .menuBar:
             return .accessory
         default:
             return .regular
@@ -51,10 +48,8 @@ enum DockMenubarType: String, CaseIterable, Identifiable {
             guard newValue == false else { return }
 
             switch self {
-            case .both:
+            case .both, .menuBar:
                 self = .dock
-            case .menuBar:
-                self = .none
             default:
                 // We should never hit this because how could the menubar item have been
                 // removed if it wasn't configured to be there.

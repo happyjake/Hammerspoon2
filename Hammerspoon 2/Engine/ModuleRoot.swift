@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppKit
 import JavaScriptCore
 import JavaScriptCoreExtras
 
@@ -18,6 +19,7 @@ import JavaScriptCoreExtras
     /// hs.reload()
     /// ```
     @objc func reload()
+
     /// Force garbage collection of JavaScript objects that no longer have any references
     /// - Note: This uses private macOS API
     /// - Example:
@@ -25,6 +27,11 @@ import JavaScriptCoreExtras
     /// hs.collectGarbage()
     /// ```
     @objc func collectGarbage()
+
+    @objc func openConsole()
+    @objc func closeConsole()
+    @objc func clearConsole()
+    @objc func openSettings()
 
     // Modules
     @objc var appinfo: HSAppInfoModule { get }
@@ -35,7 +42,6 @@ import JavaScriptCoreExtras
     @objc var ax: HSAXModule { get }
     @objc var bonjour: HSBonjourModule { get }
     @objc var camera: HSCameraModule { get }
-    @objc var console: HSConsoleModule { get }
     @objc var fs: HSFSModule { get }
     @objc var hashing: HSHashModule { get }
     @objc var hotkey: HSHotkeyModule { get }
@@ -112,6 +118,33 @@ import JavaScriptCoreExtras
         unsafe JSSynchronousGarbageCollectForDebugging(JSContext.current().jsGlobalContextRef)
     }
 
+    // MARK: - Console
+    @objc func openConsole() {
+        if let url = URL(string:"hammerspoon2://openConsole") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    @objc func closeConsole() {
+        if let url = URL(string:"hammerspoon2://closeConsole") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    @objc func clearConsole() {
+        Task { @MainActor in
+            HammerspoonLog.shared.clearLog()
+        }
+    }
+
+    // MARK: - Settings
+
+    @objc func openSettings() {
+        if let url = URL(string:"hammerspoon2://openSettings") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
     // Modules
     @objc var appinfo: HSAppInfoModule { get { getOrCreate(name: "appinfo", type: HSAppInfoModule.self)}}
     @objc var application: HSApplicationModule { get { getOrCreate(name: "application", type: HSApplicationModule.self)}}
@@ -121,7 +154,6 @@ import JavaScriptCoreExtras
     @objc var ax: HSAXModule { get { getOrCreate(name: "ax", type: HSAXModule.self)}}
     @objc var bonjour: HSBonjourModule { get { getOrCreate(name: "bonjour", type: HSBonjourModule.self)}}
     @objc var camera: HSCameraModule { get { getOrCreate(name: "camera", type: HSCameraModule.self)}}
-    @objc var console: HSConsoleModule { get { getOrCreate(name: "console", type: HSConsoleModule.self)}}
     @objc var fs: HSFSModule { get { getOrCreate(name: "fs", type: HSFSModule.self)}}
     @objc var hashing: HSHashModule { get { getOrCreate(name: "hashing", type: HSHashModule.self)}}
     @objc var hotkey: HSHotkeyModule { get { getOrCreate(name: "hotkey", type: HSHotkeyModule.self)}}
