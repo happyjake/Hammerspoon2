@@ -78,6 +78,14 @@ struct Hammerspoon_2App: App {
                 managerManager.shutdown()
             }
         }
+        .onChange(of: settingsManager.dockMenuBehaviour, initial: true) {
+            switch settingsManager.dockMenuBehaviour {
+            case .none, .menuBar:
+                NSApplication.shared.setActivationPolicy(.accessory)
+            case .dock, .both:
+                NSApplication.shared.setActivationPolicy(.regular)
+            }
+        }
 
         Window("Console", id: "console") {
             ConsoleView()
