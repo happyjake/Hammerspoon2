@@ -60,21 +60,21 @@ import Carbon
     @objc var typeName = "HSHotkey"
     private let keyCode: UInt32
     private let modifiers: UInt32
-    private var _callbackPressed: JSCallback?
-    private var _callbackReleased: JSCallback?
+    // Strong references — a BOUND hotkey owns its callbacks: dropping the JS
+    // handle must not make the hotkey silently dead. (JSManagedValue-backed
+    // JSCallbacks are zeroed once the hotkey's JS wrapper is collected — the
+    // same GC bug that killed fire-and-forget timers.) Released in destroy(),
+    // and HSHotkeyModule.shutdown() destroys every live hotkey at reload, so
+    // JSContext teardown is unaffected.
+    private var _callbackPressed: JSValue?
+    private var _callbackReleased: JSValue?
     @objc var callbackPressed: JSFunction? {
-        get { _callbackPressed?.value }
-        set {
-            _callbackPressed?.detach(from: self)
-            _callbackPressed = newValue.flatMap { JSCallback(value: $0, owner: self) }
-        }
+        get { _callbackPressed }
+        set { _callbackPressed = newValue }
     }
     @objc var callbackReleased: JSFunction? {
-        get { _callbackReleased?.value }
-        set {
-            _callbackReleased?.detach(from: self)
-            _callbackReleased = newValue.flatMap { JSCallback(value: $0, owner: self) }
-        }
+        get { _callbackReleased }
+        set { _callbackReleased = newValue }
     }
     nonisolated(unsafe) private var carbonHotKeyRef: EventHotKeyRef?
     private var enabled = false
@@ -100,9 +100,7 @@ import Carbon
     }
 
     func destroy() {
-        _callbackPressed?.detach(from: self)
         _callbackPressed = nil
-        _callbackReleased?.detach(from: self)
         _callbackReleased = nil
         disable()
         HotkeyManager.shared.unregister(hotkeyID: hotkeyID)
@@ -161,9 +159,9 @@ import Carbon
 
         switch eventKind {
         case UInt32(kEventHotKeyPressed):
-            callback = _callbackPressed?.value
+            callback = _callbackPressed
         case UInt32(kEventHotKeyReleased):
-            callback = _callbackReleased?.value
+            callback = _callbackReleased
         default:
             AKError("Unknown hotkey event kind: \(eventKind)")
             return

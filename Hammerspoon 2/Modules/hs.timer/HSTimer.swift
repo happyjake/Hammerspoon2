@@ -82,7 +82,14 @@ import JavaScriptCore
 @objc class HSTimer: NSObject, HSTimerAPI {
     @objc var typeName = "HSTimer"
     private var timer: Timer?
-    private var callback: JSCallback?
+    // Strong reference — a SCHEDULED timer owns its callback, exactly like
+    // setInterval: dropping the JS-side handle must not stop the timer. A
+    // JSManagedValue-backed JSCallback here gets zeroed as soon as the timer's
+    // JS wrapper is collected, which killed every fire-and-forget timer at the
+    // first GC ("hs.timer: callback is not a function" in production). The
+    // value is released in destroy()/deinit, and HSTimerModule.shutdown()
+    // destroys all live timers at reload, so JSContext teardown is unaffected.
+    private var callback: JSValue?
     private let continueOnError: Bool
 
     @objc let interval: TimeInterval
@@ -93,7 +100,7 @@ import JavaScriptCore
         self.repeats = repeats
         self.continueOnError = continueOnError
         super.init()
-        self.callback = JSCallback(value: callback, owner: self)
+        self.callback = callback
     }
 
     isolated deinit {
@@ -103,7 +110,6 @@ import JavaScriptCore
 
     func destroy() {
         stop()
-        callback?.detach(from: self)
         callback = nil
     }
 
@@ -161,7 +167,7 @@ import JavaScriptCore
     }
 
     @objc private func timerDidFire() {
-        guard let callbackValue = callback?.value, callbackValue.isObject else {
+        guard let callbackValue = callback, callbackValue.isObject else {
             AKError("hs.timer: callback is not a function")
             if !continueOnError {
                 stop()

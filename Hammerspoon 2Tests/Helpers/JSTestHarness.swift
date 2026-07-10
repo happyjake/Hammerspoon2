@@ -11,6 +11,11 @@ import JavaScriptCoreExtras
 import Testing
 @testable import Hammerspoon_2
 
+/// JavaScriptCore's private synchronous full-GC entry point, re-bound for the
+/// test target (the app target gets it via Bridging-Header.h).
+@_silgen_name("JSSynchronousGarbageCollectForDebugging")
+func HSTestSynchronousGC(_ ctx: JSContextRef)
+
 /// A test harness for JavaScript integration testing
 ///
 /// This class provides a clean JSContext for testing how modules work
@@ -241,6 +246,14 @@ class JSTestHarness {
     ///   - condition: Closure that returns true when the condition is met
     /// - Returns: True if condition was met, false if timeout occurred
     @discardableResult
+    /// Force a full synchronous JavaScriptCore collection (the same private
+    /// hook JSEngine uses via the app bridging header). Lets tests assert
+    /// that armed native objects (timers, tasks, hotkeys) keep their JS
+    /// callbacks alive even after their JS wrappers are collected.
+    func forceSynchronousGC() {
+        unsafe HSTestSynchronousGC(context.jsGlobalContextRef)
+    }
+
     func waitFor(timeout: TimeInterval = 2.0, condition: @escaping () -> Bool) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
 

@@ -154,8 +154,15 @@ import JavaScriptCoreExtras
     private let arguments: [String]
     private var _environment: [String: String]
     private var _workingDirectory: String?
-    private var terminationCallback: JSCallback?
-    private var streamingCallback: JSCallback?
+    // Strong references — a RUNNING task owns its callbacks: the JS handle is
+    // routinely dropped right after `.start()` (fire-and-forget), and a
+    // JSManagedValue-backed JSCallback gets zeroed once the task's JS wrapper
+    // is collected — leaving completion Promises unresolved forever (same GC
+    // bug class as the fire-and-forget timer death). Released in destroy()
+    // and after the termination callback has fired; HSTaskModule.shutdown()
+    // tears down all live tasks at reload, so JSContext teardown is unaffected.
+    private var terminationCallback: JSValue?
+    private var streamingCallback: JSValue?
 
     private var process: Process?
     private var stdoutPipe: Pipe?
@@ -176,6 +183,15 @@ import JavaScriptCoreExtras
 
     // Reference to module for task tracking
     private weak var module: HSTaskModule?
+
+    // Deliberate self-retain for the lifetime of the RUNNING process. The
+    // module tracks tasks weakly and Process's handlers capture self weakly,
+    // so nothing else keeps a started task alive once its JS wrapper is
+    // collected — the whole task (pending termination callback included) died
+    // at the first GC after a fire-and-forget `.start()`. Set on successful
+    // run(), cleared when the termination callback path completes and in
+    // destroy() (module shutdown force-terminates all live tasks).
+    private var runningSelfRetain: HSTask?
 
     /// The environment variables for the task
     @objc var environment: [String: String] {
@@ -215,8 +231,8 @@ import JavaScriptCoreExtras
         self._environment = environment ?? ProcessInfo.processInfo.environment
         self.module = module
         super.init()
-        self.terminationCallback = terminationCallback.flatMap { JSCallback(value: $0, owner: self) }
-        self.streamingCallback = streamingCallback.flatMap { JSCallback(value: $0, owner: self) }
+        self.terminationCallback = terminationCallback
+        self.streamingCallback = streamingCallback
     }
 
     isolated deinit {
@@ -225,10 +241,9 @@ import JavaScriptCoreExtras
     }
 
     func destroy() {
-        terminationCallback?.detach(from: self)
         terminationCallback = nil
-        streamingCallback?.detach(from: self)
         streamingCallback = nil
+        runningSelfRetain = nil
 
         // This is called when HS is restarting/exiting, to clean up this HSTask.
         // We will send it a SIGTERM, then attempt to wait a few seconds and send a SIGKILL.
@@ -282,7 +297,7 @@ import JavaScriptCoreExtras
         self.stdinPipe = stdinPipe
 
         // Set up streaming callbacks if provided
-        if streamingCallback != nil && streamingCallback?.value != nil {
+        if streamingCallback != nil {
             setupStreamingCallbacks(stdout: stdoutPipe, stderr: stderrPipe)
         }
 
@@ -309,6 +324,7 @@ import JavaScriptCoreExtras
         // Launch the process
         do {
             try process.run()
+            runningSelfRetain = self
         } catch {
             AKError("hs.task:start(): Failed to start task: \(error.localizedDescription)")
             // Unregister and free the pipe fds if we never launched
@@ -403,7 +419,7 @@ import JavaScriptCoreExtras
 
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                guard let cb = self.streamingCallback?.value, !cb.isUndefined else { return }
+                guard let cb = self.streamingCallback, !cb.isUndefined else { return }
                 guard let context = cb.context else { return }
                 cb.call(withArguments: ["stdout", output])
                 if let exception = context.exception, !exception.isUndefined {
@@ -430,7 +446,7 @@ import JavaScriptCoreExtras
 
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                guard let cb = self.streamingCallback?.value, !cb.isUndefined else { return }
+                guard let cb = self.streamingCallback, !cb.isUndefined else { return }
                 guard let context = cb.context else { return }
                 cb.call(withArguments: ["stderr", output])
                 if let exception = context.exception, !exception.isUndefined {
@@ -444,7 +460,7 @@ import JavaScriptCoreExtras
     private func callTerminationCallbackIfReady() {
         guard processExited && stdoutEOF && stderrEOF else { return }
 
-        if let cb = terminationCallback?.value, cb.isFunction, !cb.isUndefined {
+        if let cb = terminationCallback, cb.isFunction, !cb.isUndefined {
             guard let context = cb.context else {
                 module?.unregisterActiveTask(self)
                 return
@@ -456,8 +472,14 @@ import JavaScriptCoreExtras
             }
         }
 
+        // The task is finished and both callbacks are one-shot from here on —
+        // release them so a dead task doesn't pin JS closures until GC/deinit.
+        terminationCallback = nil
+        streamingCallback = nil
+
         module?.unregisterActiveTask(self)
         releasePipes()
+        runningSelfRetain = nil
     }
 
     // Close the parent-side pipe descriptors the moment the child exits, instead

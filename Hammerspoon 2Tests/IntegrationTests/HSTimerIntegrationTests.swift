@@ -18,6 +18,29 @@ struct HSTimerIntegrationTests {
 
     // MARK: - Basic Timer Creation Tests
 
+    @Test("a running fire-and-forget timer survives garbage collection")
+    func testFireAndForgetTimerSurvivesGC() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTimerModule.self, as: "timer")
+
+        var ticks = 0
+        harness.registerCallback("gcTick") { ticks += 1 }
+
+        // Fire-and-forget: the timer handle is unreachable from JS the moment
+        // the IIFE returns — only the run loop keeps the HSTimer alive.
+        harness.eval("(function() { hs.timer.doEvery(0.05, () => { __test_callback('gcTick') }) })()")
+
+        // Force a full synchronous collection. The timer's JS wrapper may be
+        // collected — but a SCHEDULED timer must own its callback regardless
+        // (setInterval semantics): reachability of the handle is optional,
+        // firing is not. With a JSManagedValue-backed callback this GC zeroes
+        // the callback and the timer dies with "callback is not a function".
+        harness.forceSynchronousGC()
+
+        let success = harness.waitFor(timeout: 1.0) { ticks >= 3 }
+        #expect(success, "timer callback was garbage-collected out from under a running timer")
+    }
+
     @Test("doAfter creates and fires a one-shot timer")
     func testDoAfterFromJS() {
         let harness = JSTestHarness()

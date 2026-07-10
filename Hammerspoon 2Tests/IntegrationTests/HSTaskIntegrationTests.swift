@@ -93,6 +93,33 @@ import JavaScriptCore
         #expect(receivedExitCode == 0, "Exit code should be 0 for successful task")
     }
 
+    @Test("a fire-and-forget task's termination callback survives garbage collection")
+    func testFireAndForgetTaskCallbackSurvivesGC() async {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTaskModule.self, as: "task")
+
+        var callbackFired = false
+        harness.registerCallback("gcTaskDone") { callbackFired = true }
+
+        // Fire-and-forget: the handle dies with the IIFE — the same shape as
+        // every Promise executor (`new Promise(r => task.create(..., r).start())`).
+        // A RUNNING task must own its callback; with a JSManagedValue-backed
+        // callback, collecting the wrapper below zeroes it and the completion
+        // callback never fires (hung Promises in production).
+        harness.eval("""
+        (function() {
+            hs.task.create('/bin/sleep', ['0.15'], function() { __test_callback('gcTaskDone') }).start();
+        })();
+        """)
+
+        // Collect the task's JS wrapper while the process is still running.
+        harness.forceSynchronousGC()
+
+        let success = await harness.waitForAsync(timeout: 3.0) { callbackFired }
+        #expect(success, "task termination callback was GC'd while the task was running")
+        await harness.cleanup()
+    }
+
     @Test("Task captures stdout via streaming callback")
     func testStdoutStreaming() async {
         let harness = JSTestHarness()
