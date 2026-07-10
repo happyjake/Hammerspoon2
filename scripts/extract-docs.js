@@ -80,15 +80,20 @@ function parseSwiftFile(filePath, repoRoot) {
         const beforeLines = beforeProtocol.split('\n');
         const protocolDoc = [];
 
-        // Walk backwards from the protocol definition to collect /// comments
+        // Walk backwards from the protocol definition to collect /// comments.
+        // Skip over Swift attribute lines (@available, @MainActor, etc.) that
+        // may appear between the doc comments and the protocol declaration.
         for (let i = beforeLines.length - 1; i >= 0; i--) {
             const line = beforeLines[i];
             const trimmed = line.trim();
             if (trimmed.startsWith('///')) {
                 // Remove /// and exactly one space (if present), but preserve any additional indentation
                 protocolDoc.unshift(line.replace(/^[^\S\r\n]*\/\/\/\s?/, ''));
+            } else if (trimmed.startsWith('@')) {
+                // Skip Swift attribute lines (@available, @MainActor, @objc, etc.)
+                continue;
             } else if (trimmed && !trimmed.startsWith('//')) {
-                // Stop if we hit a non-comment, non-empty line
+                // Stop if we hit a non-comment, non-empty, non-attribute line
                 break;
             }
         }
@@ -261,10 +266,12 @@ function parseSwiftFile(filePath, repoRoot) {
                         protocol.methods.push({
                             name: methodName,
                             signature: fullSignature,
+                            isStatic: /(?:^|\s)static\s+func\b/.test(fullSignature),
                             rawDocumentation: rawDoc,
                             description: formatDocCToJSDoc(rawDoc),
                             params: extractParams(fullSignature, currentDoc),
                             returns: extractReturns(fullSignature, currentDoc),
+                            notes: extractNotes(currentDoc),
                             examples: extractExamples(currentDoc),
                             source: 'swift',
                             filePath: relativePath,
@@ -277,7 +284,21 @@ function parseSwiftFile(filePath, repoRoot) {
                 } else if (methodMatch[2]) {
                     // It's a property
                     const propName = methodMatch[2];
-                    const rawDoc = currentDoc.join('\n');
+
+                    // Support a {TypeScript type} annotation on the first doc line —
+                    // same syntax as parameter annotations. When found, strip it from
+                    // the rendered description so it doesn't leak into HTML output.
+                    let propCurrentDoc = currentDoc;
+                    let propTsType = null;
+                    if (currentDoc.length > 0) {
+                        const { description: firstLineStripped, tsType } = parseParamDescription(currentDoc[0]);
+                        if (tsType) {
+                            propTsType = tsType;
+                            propCurrentDoc = [firstLineStripped, ...currentDoc.slice(1)];
+                        }
+                    }
+
+                    const rawDoc = propCurrentDoc.join('\n');
 
                     // Skip this property if it has SKIP_DOCS marker
                     if (!shouldSkipDocs(currentDoc)) {
@@ -286,7 +307,9 @@ function parseSwiftFile(filePath, repoRoot) {
                             signature: trimmed.replace(/@objc\s*/, ''),
                             rawDocumentation: rawDoc,
                             description: formatDocCToJSDoc(rawDoc),
-                            examples: extractExamples(currentDoc),
+                            tsType: propTsType,
+                            notes: extractNotes(propCurrentDoc),
+                            examples: extractExamples(propCurrentDoc),
                             source: 'swift',
                             filePath: relativePath,
                             lineNumber: getLineNumber(lineStartPos)
@@ -333,7 +356,40 @@ function parseSwiftFile(filePath, repoRoot) {
 }
 
 /**
- * Extract parameter descriptions from documentation
+ * Parse a parameter description that may start with a TypeScript type hint.
+ * A hint looks like "{(path: string) => void} Called when done" — the braced
+ * expression becomes the explicit TS type and the rest is the human description.
+ * Returns { description, tsType: string|null }.
+ */
+function parseParamDescription(raw) {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('{')) {
+        // Find the closing brace at depth 0
+        let depth = 0;
+        let end = -1;
+        for (let i = 0; i < trimmed.length; i++) {
+            if (trimmed[i] === '{') depth++;
+            else if (trimmed[i] === '}') {
+                depth--;
+                if (depth === 0) { end = i; break; }
+            }
+        }
+        if (end !== -1) {
+            const tsType = trimmed.slice(1, end).trim();
+            const description = trimmed.slice(end + 1).trim();
+            return { description, tsType };
+        }
+    }
+    return { description: trimmed, tsType: null };
+}
+
+/**
+ * Extract parameter descriptions from documentation.
+ * Returns a map of { paramName: { description, optional, tsType } }.
+ * A parameter name suffixed with '?' in the doc comment (e.g. "- Parameter allWindows?: ...")
+ * sets optional: true, which causes the TypeScript generator to emit `name?: type`.
+ * A description starting with "{TypeScript type}" (e.g. "{(x: number) => void}")
+ * sets tsType, which overrides the Swift-derived TypeScript type in the output.
  */
 function extractParamDescriptions(docLines) {
     const descriptions = {};
@@ -349,18 +405,29 @@ function extractParamDescriptions(docLines) {
             continue;
         }
 
-        // Check for single Parameter (with or without leading dash)
-        const singleParamMatch = trimmed.match(/^-?\s*Parameter\s+(\w+)\s*:\s*(.+)$/);
+        // Check for single Parameter (with or without leading dash).
+        // The parameter name may be suffixed with '?' to mark it as optional in TypeScript.
+        const singleParamMatch = trimmed.match(/^-?\s*Parameter\s+(\w+)(\?)?\s*:\s*(.+)$/);
         if (singleParamMatch) {
-            descriptions[singleParamMatch[1]] = singleParamMatch[2].trim();
+            const { description, tsType } = parseParamDescription(singleParamMatch[3]);
+            descriptions[singleParamMatch[1]] = {
+                description,
+                optional: !!singleParamMatch[2],
+                tsType
+            };
             continue;
         }
 
         // If we're in Parameters section, look for individual parameters
         if (inParams) {
-            const paramMatch = trimmed.match(/^-\s+(\w+)\s*:\s*(.+)$/);
+            const paramMatch = trimmed.match(/^-\s+(\w+)(\?)?\s*:\s*(.+)$/);
             if (paramMatch) {
-                descriptions[paramMatch[1]] = paramMatch[2].trim();
+                const { description, tsType } = parseParamDescription(paramMatch[3]);
+                descriptions[paramMatch[1]] = {
+                    description,
+                    optional: !!paramMatch[2],
+                    tsType
+                };
                 continue;
             }
             // Stop if we hit a non-parameter line or Returns section
@@ -396,10 +463,13 @@ function extractParams(signature, docLines = []) {
         const paramMatch = part.match(/(?:_\s+)?(\w+)\s*:\s*([^=]+)/);
         if (paramMatch) {
             const paramName = paramMatch[1];
+            const paramInfo = descriptions[paramName] || { description: '', optional: false, tsType: null };
             params.push({
                 name: paramName,
                 type: paramMatch[2].trim(),
-                description: descriptions[paramName] || ''
+                description: paramInfo.description,
+                optional: paramInfo.optional,
+                tsType: paramInfo.tsType || null
             });
         }
     }
@@ -494,6 +564,19 @@ function extractReturns(signature, docLines) {
         return result;
     }
     return null;
+}
+
+/**
+ * Extract `- Note:` lines from Swift doc comments.
+ * Returns an array of note strings (one per `- Note:` tag).
+ */
+function extractNotes(docLines) {
+    const notes = [];
+    for (const line of docLines) {
+        const noteMatch = line.trim().match(/^-\s*Note:\s*(.+)$/);
+        if (noteMatch) notes.push(noteMatch[1].trim());
+    }
+    return notes;
 }
 
 /**
@@ -624,6 +707,7 @@ function parseJavaScriptFile(filePath, moduleName = null, repoRoot = REPO_ROOT) 
                     description: formatDocCToJSDoc(docText),
                     params: parsed.params,
                     returns: parsed.returns,
+                    examples: extractExamples(docLines),
                     source: 'javascript',
                     filePath: relativePath,
                     lineNumber: i + 1, // Line numbers are 1-indexed
@@ -688,11 +772,12 @@ function parseDocCStyleComment(docText) {
     doc.description = descLines.join(' ').trim();
 
     // Extract parameters - they're in the descriptions map
-    for (const [paramName, paramDesc] of Object.entries(descriptions)) {
+    for (const [paramName, paramInfo] of Object.entries(descriptions)) {
         doc.params.push({
             name: paramName,
             type: 'any',
-            description: paramDesc
+            description: paramInfo.description,
+            optional: paramInfo.optional
         });
     }
 
@@ -727,8 +812,11 @@ function parseJSDoc(docText) {
     for (const line of lines) {
         if (line.startsWith('@param')) {
             currentSection = 'param';
-            const paramMatch = line.match(/@param\s+(?:\{([^}]+)\}\s+)?(\w+)\s*(.*)/);
-            if (paramMatch) {
+            // Use [\w.]+ to capture dotted names like options.environment (JSDoc property paths)
+            const paramMatch = line.match(/@param\s+(?:\{([^}]+)\}\s+)?([\w.]+)\s*(.*)/);
+            if (paramMatch && !paramMatch[2].includes('.')) {
+                // Skip property-path docs (e.g. @param options.foo) — they document sub-fields of an
+                // existing param and must not appear as separate parameters in the TypeScript output.
                 doc.params.push({
                     name: paramMatch[2],
                     type: paramMatch[1] || 'any',
@@ -797,6 +885,8 @@ function swiftTypeToJSDoc(swiftType) {
         'Bool': 'boolean',
         'TimeInterval': 'number',
         'UInt32': 'number',
+        'NSNumber': 'number',
+        'NSDate': 'Date',
         'Any': '*'
     };
     
@@ -890,6 +980,35 @@ function processModule(moduleName, modulePath) {
     if (collectedModuleDoc) {
         moduleData.description = collectedModuleDoc.description;
         moduleData.rawDocumentation = collectedModuleDoc.rawDocumentation;
+    }
+
+    return moduleData;
+}
+
+/**
+ * Process ModuleRoot.swift to extract root-level hs.* methods (reload, collectGarbage, etc.)
+ */
+function processModuleRoot() {
+    const moduleRootPath = path.join(REPO_ROOT, 'Hammerspoon 2', 'Engine', 'ModuleRoot.swift');
+    const { protocols } = parseSwiftFile(moduleRootPath, REPO_ROOT);
+
+    const moduleData = {
+        name: 'hs',
+        description: 'Root Hammerspoon namespace',
+        methods: [],
+        properties: [],
+        types: []
+    };
+
+    for (const protocol of protocols) {
+        if (protocol.name === 'ModuleRootAPI') {
+            // Only include methods that have documentation; the module-accessor
+            // var declarations (appinfo, audiodevice, …) carry no doc comments
+            // and are intentionally excluded here.
+            moduleData.methods.push(
+                ...protocol.methods.filter(m => m.rawDocumentation.trim())
+            );
+        }
     }
 
     return moduleData;
@@ -1038,6 +1157,11 @@ function generateCombinedJSDoc(moduleData) {
             const returnType = method.source === 'swift' ? swiftTypeToJSDoc(method.returns.type) : method.returns.type;
             const desc = method.returns.description ? ' ' + method.returns.description : '';
             output += ` * @returns {${returnType}}${desc}\n`;
+        }
+        if (method.notes && method.notes.length > 0) {
+            for (const note of method.notes) {
+                output += ` * @note ${note}\n`;
+            }
         }
         output += ` */\n`;
 
@@ -1188,12 +1312,26 @@ function main() {
         fs.mkdirSync(OUTPUT_COMBINED_DIR, { recursive: true });
     }
 
+    // Process ModuleRoot.swift first so "hs" appears at the top of the module list
+    console.log('Processing root hs namespace (ModuleRoot.swift)...');
+    const moduleRootData = processModuleRoot();
+
+    const moduleRootJsonPath = path.join(OUTPUT_JSON_DIR, 'hs.json');
+    fs.writeFileSync(moduleRootJsonPath, JSON.stringify(moduleRootData, null, 2));
+    console.log(`  ✓ Saved JSON: ${moduleRootJsonPath}`);
+
+    const moduleRootCombinedJSDoc = generateCombinedJSDoc(moduleRootData);
+    const moduleRootCombinedPath = path.join(OUTPUT_COMBINED_DIR, 'hs.js');
+    fs.writeFileSync(moduleRootCombinedPath, moduleRootCombinedJSDoc);
+    console.log(`  ✓ Saved combined: ${moduleRootCombinedPath}`);
+
     // Find all module directories
     const moduleDirs = fs.readdirSync(MODULES_DIR)
         .filter(name => fs.statSync(path.join(MODULES_DIR, name)).isDirectory());
 
     const allModules = [];
 
+    console.log('\nProcessing modules...');
     for (const dirName of moduleDirs) {
         const modulePath = path.join(MODULES_DIR, dirName);
         // Apply any directory-name → public-module-name override.
@@ -1213,6 +1351,10 @@ function main() {
         fs.writeFileSync(combinedPath, combinedJSDoc);
         console.log(`  ✓ Saved combined: ${combinedPath}`);
     }
+
+    // Insert hs after console so it appears second in the sidebar
+    const consoleIdx = allModules.findIndex(m => m.name === 'console');
+    allModules.splice(consoleIdx >= 0 ? consoleIdx + 1 : 0, 0, moduleRootData);
 
     // Process Engine/Types directory if it exists
     let typesData = null;
@@ -1253,11 +1395,37 @@ function main() {
     fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2));
     console.log(`\n✓ Saved module index: ${indexPath}`);
 
-    // Save combined api.json file with all modules and types
+    // Save combined api.json file with all modules and types.
+    // Normalize Swift type names to their JS equivalents for Swift-sourced items.
+    // This covers param/return types AND raw signature strings so NSNumber etc. don't
+    // appear verbatim in api.json.
+    const swiftTypeTokenRe = /\bNSNumber\b/g;
+    const normalizeSignature = sig => (sig || '').replace(swiftTypeTokenRe, 'number');
+    const normalizeMethod = m => {
+        if (m.source !== 'swift') return m;
+        return {
+            ...m,
+            signature: normalizeSignature(m.signature),
+            params: (m.params || []).map(p => ({ ...p, type: swiftTypeToJSDoc(p.type || '') })),
+            returns: m.returns ? { ...m.returns, type: swiftTypeToJSDoc(m.returns.type || '') } : m.returns
+        };
+    };
+    const normalizeProperty = p => ({ ...p, signature: normalizeSignature(p.signature) });
+    const normalizeModule = mod => ({
+        ...mod,
+        methods: (mod.methods || []).map(normalizeMethod),
+        properties: (mod.properties || []).map(normalizeProperty),
+        types: (mod.types || []).map(t => ({
+            ...t,
+            methods: (t.methods || []).map(normalizeMethod),
+            properties: (t.properties || []).map(normalizeProperty)
+        }))
+    });
+
     const apiJsonPath = path.join(__dirname, '..', 'docs', 'api.json');
     const apiJsonData = {
-        modules: allModules,
-        types: typesData ? (typesData.types || []) : [],
+        modules: allModules.map(normalizeModule),
+        types: typesData ? (typesData.types || []).map(normalizeModule) : [],
         generatedAt: new Date().toISOString()
     };
     fs.writeFileSync(apiJsonPath, JSON.stringify(apiJsonData, null, 2));

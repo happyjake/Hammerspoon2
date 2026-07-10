@@ -94,7 +94,7 @@ import IOKit.pwr_mgt
     ///   ```js
     ///   hs.power.currentAssertions().forEach(a => console.log(a.pid + " " + a.name))
     ///   ```
-    func currentAssertions() -> NSArray
+    func currentAssertions() -> [[String: Any]]
 
     // MARK: System Actions
 
@@ -195,7 +195,7 @@ import IOKit.pwr_mgt
     ///   const info = hs.power.batteryInfo()
     ///   if (info) console.log(`${info.percentage}% — ${info.timeRemaining}m remaining`)
     ///   ```
-    func batteryInfo() -> NSDictionary?
+    func batteryInfo() -> [String: Any]?
 
     // MARK: Event Watcher (Pattern A)
 
@@ -209,12 +209,12 @@ import IOKit.pwr_mgt
     ///
     /// The OS notification subscription starts lazily on the first listener and
     /// is released automatically when the last listener is removed.
-    /// - Parameter listener: A function receiving `(eventName: string)`.
+    /// - Parameter listener: {(eventName: string) => void} A function called with the power event name string.
     /// - Example:
     ///   ```js
     ///   hs.power.addEventWatcher(event => console.log("Power event: " + event))
     ///   ```
-    func addEventWatcher(_ listener: JSValue)
+    func addEventWatcher(_ listener: JSFunction)
 
     /// Removes a previously registered power event listener.
     ///
@@ -225,14 +225,14 @@ import IOKit.pwr_mgt
     ///   hs.power.addEventWatcher(handler)
     ///   hs.power.removeEventWatcher(handler)
     ///   ```
-    func removeEventWatcher(_ listener: JSValue)
+    func removeEventWatcher(_ listener: JSFunction)
 
     /// SKIP_DOCS
-    @objc(_addEventWatcher:) func _addEventWatcher(_ callback: JSValue)
+    @objc(_addEventWatcher:) func _addEventWatcher(_ callback: JSFunction)
     /// SKIP_DOCS
     @objc func _removeEventWatcher()
     /// SKIP_DOCS
-    @objc var _eventWatcherEmitter: JSValue? { get set }
+    @objc var _eventWatcherEmitter: JSFunction? { get set }
 
     // MARK: Battery Watcher (Pattern A)
 
@@ -243,14 +243,14 @@ import IOKit.pwr_mgt
     ///
     /// The OS notification subscription starts lazily on the first listener and
     /// is released automatically when the last listener is removed.
-    /// - Parameter listener: A function called with no arguments on battery state change.
+    /// - Parameter listener: {() => void} A function called with no arguments on battery state change.
     /// - Example:
     ///   ```js
     ///   hs.power.addBatteryWatcher(() => {
     ///       console.log("Battery now: " + hs.power.percentage + "%")
     ///   })
     ///   ```
-    func addBatteryWatcher(_ listener: JSValue)
+    func addBatteryWatcher(_ listener: JSFunction)
 
     /// Removes a previously registered battery change listener.
     ///
@@ -261,14 +261,14 @@ import IOKit.pwr_mgt
     ///   hs.power.addBatteryWatcher(handler)
     ///   hs.power.removeBatteryWatcher(handler)
     ///   ```
-    func removeBatteryWatcher(_ listener: JSValue)
+    func removeBatteryWatcher(_ listener: JSFunction)
 
     /// SKIP_DOCS
-    @objc(_addBatteryWatcher:) func _addBatteryWatcher(_ callback: JSValue)
+    @objc(_addBatteryWatcher:) func _addBatteryWatcher(_ callback: JSFunction)
     /// SKIP_DOCS
     @objc func _removeBatteryWatcher()
     /// SKIP_DOCS
-    @objc var _batteryWatcherEmitter: JSValue? { get set }
+    @objc var _batteryWatcherEmitter: JSFunction? { get set }
 }
 
 // MARK: - Module implementation
@@ -281,13 +281,13 @@ import IOKit.pwr_mgt
 
     private var sleepAssertions: [String: IOPMAssertionID] = [:]
 
-    @objc var _eventWatcherEmitter: JSValue? = nil
-    private var eventWatcherCallback: JSValue?
+    @objc var _eventWatcherEmitter: JSFunction? = nil
+    private var eventWatcherCallback: JSFunction?
     private var workspaceObservers: [NSObjectProtocol] = []
     private var distributedObservers: [NSObjectProtocol] = []
 
-    @objc var _batteryWatcherEmitter: JSValue? = nil
-    private var batteryWatcherCallback: JSValue?
+    @objc var _batteryWatcherEmitter: JSFunction? = nil
+    private var batteryWatcherCallback: JSFunction?
     private var batteryRunLoopSource: CFRunLoopSource?
     private var batteryContextPointer: UnsafeMutableRawPointer?
 
@@ -312,7 +312,7 @@ import IOKit.pwr_mgt
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
@@ -321,10 +321,12 @@ import IOKit.pwr_mgt
         }
         _removeEventWatcher()
         _removeBatteryWatcher()
+        _eventWatcherEmitter = nil
+        _batteryWatcherEmitter = nil
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Sleep Prevention
@@ -391,11 +393,11 @@ import IOKit.pwr_mgt
         )
     }
 
-    func currentAssertions() -> NSArray {
+    func currentAssertions() -> [[String: Any]] {
         var ref: Unmanaged<CFDictionary>?
         guard unsafe IOPMCopyAssertionsByProcess(&ref) == kIOReturnSuccess,
               let dict = unsafe ref?.takeRetainedValue() as? [NSNumber: [[String: Any]]] else {
-            return NSArray()
+            return []
         }
 
         var result: [[String: Any]] = []
@@ -407,7 +409,7 @@ import IOKit.pwr_mgt
                 result.append(item)
             }
         }
-        return result as NSArray
+        return result
     }
 
     // MARK: - System Actions
@@ -481,7 +483,7 @@ import IOKit.pwr_mgt
         }
     }
 
-    func batteryInfo() -> NSDictionary? {
+    func batteryInfo() -> [String: Any]? {
         guard let props = batteryRegistryProperties() else { return nil }
 
         var info: [String: Any] = [:]
@@ -551,20 +553,20 @@ import IOKit.pwr_mgt
         }
 
         info["serial"] = props["Serial"] as? String ?? NSNull()
-        return info as NSDictionary
+        return info
     }
 
     // MARK: - Event Watcher (Pattern A)
 
-    func addEventWatcher(_ listener: JSValue) {
+    func addEventWatcher(_ listener: JSFunction) {
         _eventWatcherEmitter?.invokeMethod("on", withArguments: [listener])
     }
 
-    func removeEventWatcher(_ listener: JSValue) {
+    func removeEventWatcher(_ listener: JSFunction) {
         _eventWatcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
     }
 
-    @objc(_addEventWatcher:) func _addEventWatcher(_ callback: JSValue) {
+    @objc(_addEventWatcher:) func _addEventWatcher(_ callback: JSFunction) {
         guard eventWatcherCallback == nil else {
             AKWarning("hs.power._addEventWatcher: already watching — refusing second subscription")
             return
@@ -614,15 +616,15 @@ import IOKit.pwr_mgt
 
     // MARK: - Battery Watcher (Pattern A)
 
-    func addBatteryWatcher(_ listener: JSValue) {
+    func addBatteryWatcher(_ listener: JSFunction) {
         _batteryWatcherEmitter?.invokeMethod("on", withArguments: [listener])
     }
 
-    func removeBatteryWatcher(_ listener: JSValue) {
+    func removeBatteryWatcher(_ listener: JSFunction) {
         _batteryWatcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
     }
 
-    @objc(_addBatteryWatcher:) func _addBatteryWatcher(_ callback: JSValue) {
+    @objc(_addBatteryWatcher:) func _addBatteryWatcher(_ callback: JSFunction) {
         guard batteryWatcherCallback == nil else {
             AKWarning("hs.power._addBatteryWatcher: already watching — refusing second subscription")
             return

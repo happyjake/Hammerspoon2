@@ -115,14 +115,14 @@ import JavaScriptCore
     /// - `"dev+"` — an audio device was added
     /// - `"dev-"` — an audio device was removed
     ///
-    /// - Parameter listener: A JavaScript function that receives the event name string
+    /// - Parameter listener: {(event: string) => void} A JavaScript function that receives the event name string
     /// - Example:
     /// ```js
     /// hs.audiodevice.addWatcher((event) => {
     ///     if (event === "dOut") console.log("Default output changed")
     /// })
     /// ```
-    @objc func addWatcher(_ listener: JSValue)
+    @objc func addWatcher(_ listener: JSFunction)
 
     /// Remove a previously registered system-level listener.
     ///
@@ -131,17 +131,17 @@ import JavaScriptCore
     /// ```js
     /// hs.audiodevice.removeWatcher(myHandler)
     /// ```
-    @objc func removeWatcher(_ listener: JSValue)
+    @objc func removeWatcher(_ listener: JSFunction)
 
     // NOTE: These are not documented because they are private API for our JavaScript code
     /// SKIP_DOCS
-    @objc(_addWatcher:) func _addWatcher(_ callback: JSValue)
+    @objc(_addWatcher:) func _addWatcher(_ callback: JSFunction)
     /// SKIP_DOCS
     @objc(_removeWatcher) func _removeWatcher()
 
     /// Swift-retained storage for the JS AudioDeviceModuleWatcherEmitter instance
     /// SKIP_DOCS
-    @objc var _watcherEmitter: JSValue? { get set }
+    @objc var _watcherEmitter: JSFunction? { get set }
 }
 
 // MARK: - Implementation
@@ -157,16 +157,17 @@ import JavaScriptCore
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
         _removeWatcher()
         HSAudioDeviceManager.shared.stopAllWatchers()
+        _watcherEmitter = nil
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Device enumeration
@@ -201,20 +202,20 @@ import JavaScriptCore
 
     // MARK: - System-level watcher
 
-    @objc var _watcherEmitter: JSValue? = nil
-    private var moduleCallback: JSValue? = nil
+    @objc var _watcherEmitter: JSFunction? = nil
+    private var moduleCallback: JSFunction? = nil
     private var moduleRegistrations: [String: (address: AudioObjectPropertyAddress, block: AudioObjectPropertyListenerBlock)] = unsafe [:]
     private var previousDeviceIDs: Set<AudioObjectID> = []
 
-    @objc func addWatcher(_ listener: JSValue) {
+    @objc func addWatcher(_ listener: JSFunction) {
         _watcherEmitter?.invokeMethod("on", withArguments: [listener])
     }
 
-    @objc func removeWatcher(_ listener: JSValue) {
+    @objc func removeWatcher(_ listener: JSFunction) {
         _watcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
     }
 
-    @objc(_addWatcher:) func _addWatcher(_ callback: JSValue) {
+    @objc(_addWatcher:) func _addWatcher(_ callback: JSFunction) {
         guard unsafe moduleRegistrations.isEmpty else { return }
         moduleCallback = callback
         let sysObjID = AudioObjectID(kAudioObjectSystemObject)

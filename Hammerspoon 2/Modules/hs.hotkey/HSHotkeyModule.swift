@@ -18,8 +18,8 @@ import AppKit
     /// - Parameters:
     ///   - mods: An array of modifier key strings (e.g., ["cmd", "shift"])
     ///   - key: The key name or character (e.g., "a", "space", "return")
-    ///   - callbackPressed: A JavaScript function to call when the hotkey is pressed
-    ///   - callbackReleased: A JavaScript function to call when the hotkey is released
+    ///   - callbackPressed: {(() => void) | null} A JavaScript function to call when the hotkey is pressed, or null for no callback
+    ///   - callbackReleased: {(() => void) | null} A JavaScript function to call when the hotkey is released, or null for no callback
     /// - Returns: A hotkey object, or nil if binding failed
     /// - Example:
     /// ```js
@@ -27,15 +27,15 @@ import AppKit
     ///     console.log("Hello!")
     /// })
     /// ```
-    @objc func bind(_ mods: JSValue, _ key: String, _ callbackPressed: JSValue, _ callbackReleased: JSValue) -> HSHotkey?
+    @objc func bind(_ mods: [String], _ key: String, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?
 
     /// Bind a hotkey with a message description
     /// - Parameters:
     ///   - mods: An array of modifier key strings
     ///   - key: The key name or character
     ///   - message: A description of what this hotkey does (currently unused, for future features)
-    ///   - callbackPressed: A JavaScript function to call when the hotkey is pressed
-    ///   - callbackReleased: A JavaScript function to call when the hotkey is released
+    ///   - callbackPressed: {(() => void) | null} A JavaScript function to call when the hotkey is pressed, or null for no callback
+    ///   - callbackReleased: {(() => void) | null} A JavaScript function to call when the hotkey is released, or null for no callback
     /// - Returns: A hotkey object, or nil if binding failed
     /// - Example:
     /// ```js
@@ -44,7 +44,7 @@ import AppKit
     /// }, null)
     /// ```
     @objc(bindSpec:::::)
-    func bindSpec(_ mods: JSValue, _ key: String, _ message: String?, _ callbackPressed: JSValue, _ callbackReleased: JSValue) -> HSHotkey?
+    func bindSpec(_ mods: [String], _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?
 
     /// Get the system-wide mapping of key names to key codes
     /// - Returns: A dictionary mapping key names to numeric key codes
@@ -216,8 +216,9 @@ internal final class DoubleTapDetector {
     var name = "hs.hotkey"
     let engineID: UUID
 
-    // Track active hotkeys for cleanup
-    private var activeHotkeys: [HSHotkey] = []
+    // Weak refs: enabled hotkeys stay alive via HotkeyManager.shared; weak refs here
+    // allow disabled/dropped hotkeys to be GC'd while still supporting shutdown().
+    private var activeHotkeys = HSWeakObjectSet<HSHotkey>()
 
     // Track active double-tap detectors for cleanup
     private var doubleTapDetectors: [DoubleTapDetector] = []
@@ -227,15 +228,14 @@ internal final class DoubleTapDetector {
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
-        // Disable all active hotkeys
-        for hotkey in activeHotkeys {
-            hotkey.disable()
+        for hotkey in activeHotkeys.allObjects {
+            hotkey.destroy()
         }
-        activeHotkeys.removeAll()
+        activeHotkeys.removeAllObjects()
 
         // Stop all double-tap detectors
         for detector in doubleTapDetectors {
@@ -245,16 +245,16 @@ internal final class DoubleTapDetector {
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Hotkey binding
 
-    @objc func bind(_ mods: JSValue, _ key: String, _ callbackPressed: JSValue, _ callbackReleased: JSValue) -> HSHotkey? {
+    @objc func bind(_ mods: [String], _ key: String, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey? {
         return bindSpec(mods, key, nil, callbackPressed, callbackReleased)
     }
 
-    @objc func bindSpec(_ mods: JSValue, _ key: String, _ message: String?, _ callbackPressed: JSValue, _ callbackReleased: JSValue) -> HSHotkey? {
+    @objc func bindSpec(_ mods: [String], _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey? {
         // Parse modifiers
         guard let modifierFlags = parseModifiers(mods) else {
             AKError("hs.hotkey.bind: Invalid modifiers")
@@ -285,8 +285,7 @@ internal final class DoubleTapDetector {
             return nil
         }
 
-        // Track for cleanup
-        activeHotkeys.append(hotkey)
+        activeHotkeys.add(hotkey)
 
         return hotkey
     }
@@ -364,22 +363,15 @@ internal final class DoubleTapDetector {
         return ModifierMapper.modifierMap
     }
 
-    private func parseModifiers(_ modsValue: JSValue) -> UInt32? {
-        guard modsValue.isArray else {
-            AKError("hs.hotkey.bind(): Modifiers must be an array.")
-            return nil
-        }
-
+    private func parseModifiers(_ modsValue: [String]) -> UInt32? {
         var flags: UInt32 = 0
 
-        if let modsArray = modsValue.toArray() as? [String] {
-            for mod in modsArray {
-                guard let modFlag = ModifierMapper.modifierMap[mod.lowercased()] else {
-                    AKError("hs.hotkey: Unknown modifier '\(mod)'")
-                    return nil
-                }
-                flags |= modFlag
+        for mod in modsValue {
+            guard let modFlag = ModifierMapper.modifierMap[mod.lowercased()] else {
+                AKError("hs.hotkey: Unknown modifier '\(mod)'")
+                return nil
             }
+            flags |= modFlag
         }
 
         return flags

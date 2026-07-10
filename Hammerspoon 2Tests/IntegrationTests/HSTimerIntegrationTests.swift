@@ -13,6 +13,7 @@ import JavaScriptCore
 ///
 /// These tests verify async timer behavior, callback execution, and JavaScript enhancements.
 /// Timer tests are inherently time-dependent, so we use short delays to keep tests fast.
+@Suite("hs.timer tests")
 struct HSTimerIntegrationTests {
 
     // MARK: - Basic Timer Creation Tests
@@ -85,7 +86,7 @@ struct HSTimerIntegrationTests {
         #expect(callCount == countAfterStop, "hs.timer should not fire after being stopped")
     }
 
-    @Test("new() creates timer that requires manual start")
+    @Test("create() creates timer that requires manual start")
     func testNewTimer() {
         let harness = JSTestHarness()
         harness.loadModule(HSTimerModule.self, as: "timer")
@@ -96,7 +97,7 @@ struct HSTimerIntegrationTests {
         }
 
         harness.eval("""
-        var manualTimer = hs.timer.new(0.05, () => { __test_callback('manualCallback') }, false);
+        var manualTimer = hs.timer.create(0.05, () => { __test_callback('manualCallback') }, false);
         """)
 
         // Should not fire yet

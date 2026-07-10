@@ -102,7 +102,7 @@ import JavaScriptCoreExtras
     /// const t = hs.task.new("/bin/sleep", ["10"]).start()
     /// console.log(t.pid)
     /// ```
-    @objc var pid: Int32 { get }
+    @objc var pid: Int { get }
 
     /// The environment variables for the task
     /// - Note: Can only be modified before calling start()
@@ -143,9 +143,6 @@ import JavaScriptCoreExtras
     /// }).start()
     /// ```
     @objc var terminationReason: String? { get }
-
-    /// SKIP_DOCS
-    @objc func _shutdown()
 }
 
 @_documentation(visibility: private)
@@ -157,8 +154,8 @@ import JavaScriptCoreExtras
     private let arguments: [String]
     private var _environment: [String: String]
     private var _workingDirectory: String?
-    private let terminationCallback: JSValue?
-    private let streamingCallback: JSValue?
+    private var terminationCallback: JSCallback?
+    private var streamingCallback: JSCallback?
 
     private var process: Process?
     private var stdoutPipe: Pipe?
@@ -204,29 +201,50 @@ import JavaScriptCoreExtras
         }
     }
 
-    @objc var pid: Int32 {
-        process?.processIdentifier ?? -1
+    @objc var pid: Int {
+        Int(process?.processIdentifier ?? -1)
     }
 
     @objc var isRunning: Bool {
         return process?.isRunning ?? false
     }
 
-    init(launchPath: String, arguments: [String], environment: [String: String]?, terminationCallback: JSValue?, streamingCallback: JSValue?, module: HSTaskModule?) {
+    init(launchPath: String, arguments: [String], environment: [String: String]?, terminationCallback: JSFunction?, streamingCallback: JSFunction?, module: HSTaskModule?) {
         self.launchPath = launchPath
         self.arguments = arguments
         self._environment = environment ?? ProcessInfo.processInfo.environment
-        self.terminationCallback = terminationCallback
-        self.streamingCallback = streamingCallback
         self.module = module
         super.init()
+        self.terminationCallback = terminationCallback.flatMap { JSCallback(value: $0, owner: self) }
+        self.streamingCallback = streamingCallback.flatMap { JSCallback(value: $0, owner: self) }
     }
 
     isolated deinit {
-        if let process = process, process.isRunning {
-            process.terminate()
+        destroy()
+        AKDebug("deinit of HSTask: \(launchPath)")
+    }
+
+    func destroy() {
+        terminationCallback?.detach(from: self)
+        terminationCallback = nil
+        streamingCallback?.detach(from: self)
+        streamingCallback = nil
+
+        // This is called when HS is restarting/exiting, to clean up this HSTask.
+        // We will send it a SIGTERM, then attempt to wait a few seconds and send a SIGKILL.
+        // FIXME: When HS is exiting, the SIGKILL tasks likely won't ever get called.
+        guard let process, process.isRunning else { return }
+        let pid = process.processIdentifier
+
+        terminate()
+
+        Task.detached {
+            try? await Task.sleep(for: .seconds(5))
+
+            let result = kill(pid, SIGKILL)
+            let errorMsg = unsafe String(validatingCString: strerror(result)) ?? "NONE"
+            print ("hs.task SIGKILL result: \(pid) (\(errorMsg))")
         }
-        print("deinit of HSTask: \(launchPath)")
     }
 
     @objc func start() -> HSTask {
@@ -264,7 +282,7 @@ import JavaScriptCoreExtras
         self.stdinPipe = stdinPipe
 
         // Set up streaming callbacks if provided
-        if streamingCallback != nil {
+        if streamingCallback != nil && streamingCallback?.value != nil {
             setupStreamingCallbacks(stdout: stdoutPipe, stderr: stderrPipe)
         }
 
@@ -299,22 +317,6 @@ import JavaScriptCoreExtras
         }
 
         return self
-    }
-
-    // This is called when HS is restarting/exiting, to clean up this HSTask.
-    // We will send it a SIGTERM, then attempt to wait a few seconds and send a SIGKILL.
-    // FIXME: When HS is exiting, the SIGKILL tasks likely won't ever get called.
-    @objc func _shutdown() {
-        guard let process, process.isRunning else { return }
-
-        let pid = process.processIdentifier
-
-        terminate()
-        Task.detached {
-            try? await Task.sleep(for: .seconds(5))
-
-            kill(pid, SIGKILL)
-        }
     }
 
     @objc func terminate() {
@@ -401,9 +403,9 @@ import JavaScriptCoreExtras
 
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                guard let callback = self.streamingCallback, !callback.isUndefined else { return }
-                guard let context = callback.context else { return }
-                callback.call(withArguments: ["stdout", output])
+                guard let cb = self.streamingCallback?.value, !cb.isUndefined else { return }
+                guard let context = cb.context else { return }
+                cb.call(withArguments: ["stdout", output])
                 if let exception = context.exception, !exception.isUndefined {
                     AKError("hs.task: Error in streaming callback: \(exception.toString() ?? "unknown error")")
                     context.exception = nil
@@ -428,9 +430,9 @@ import JavaScriptCoreExtras
 
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                guard let callback = self.streamingCallback, !callback.isUndefined else { return }
-                guard let context = callback.context else { return }
-                callback.call(withArguments: ["stderr", output])
+                guard let cb = self.streamingCallback?.value, !cb.isUndefined else { return }
+                guard let context = cb.context else { return }
+                cb.call(withArguments: ["stderr", output])
                 if let exception = context.exception, !exception.isUndefined {
                     AKError("hs.task: Error in streaming callback: \(exception.toString() ?? "unknown error")")
                     context.exception = nil
@@ -442,9 +444,12 @@ import JavaScriptCoreExtras
     private func callTerminationCallbackIfReady() {
         guard processExited && stdoutEOF && stderrEOF else { return }
 
-        if let callback = terminationCallback, callback.isFunction, !callback.isUndefined,
-           let context = callback.context {
-            callback.call(withArguments: [exitCode ?? 0, exitReason ?? "unknown"])
+        if let cb = terminationCallback?.value, cb.isFunction, !cb.isUndefined {
+            guard let context = cb.context else {
+                module?.unregisterActiveTask(self)
+                return
+            }
+            cb.call(withArguments: [exitCode ?? 0, exitReason ?? "unknown"])
             if let exception = context.exception, !exception.isUndefined {
                 AKError("hs.task: Error in termination callback: \(exception.toString() ?? "unknown error")")
                 context.exception = nil

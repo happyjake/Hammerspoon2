@@ -71,8 +71,8 @@ final class HammerspoonLog: Sendable {
 
     func log(_ level: HammerspoonLogType, _ msg: String) {
         entries.append(HammerspoonLogEntry(logType: level, msg: msg))
-        // FIXME: Make the 100 here, configurable
-        if entries.count > 100 {
+
+        if entries.count > SettingsManager.shared.consoleHistoryLength {
             entries.removeFirst()
         }
     }
@@ -124,3 +124,11 @@ func AKAutocomplete(_ msg: String) {
     // NOTE: This does not pass into Logger, there's really no need
     AKLog(.Autocomplete, msg)
 }
+
+#if DEBUG
+func AKDebug(_ msg: String) {
+    AKTrace("__\(msg)")
+}
+#else
+func AKDebug(_ msg: String) {}
+#endif

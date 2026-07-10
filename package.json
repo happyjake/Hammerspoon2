@@ -5,12 +5,13 @@
   "private": true,
   "scripts": {
     "docs:extract": "node scripts/extract-docs.js",
-    "docs:generate": "npm run docs:extract && npm run docs:html && npm run docs:typescript",
+    "docs:generate": "npm run docs:extract && npm run docs:html && npm run docs:typescript && npm run docs:tshtml",
     "docs:html": "node scripts/generate-html.js",
+    "docs:tshtml": "npx typedoc --tsconfig docs/tsconfig.docs.json",
     "docs:typescript": "node scripts/generate-typescript.js",
     "docs:coverage": "node scripts/docs-coverage.js",
     "docs:test": "bash scripts/test-docs.sh",
-    "docs:clean": "rm -rf docs/json docs/html docs/api.json docs/hammerspoon.d.ts"
+    "docs:clean": "rm -rf docs/json docs/js docs/ts docs/api.json docs/hammerspoon.d.ts"
   },
   "keywords": [
     "hammerspoon",
@@ -23,5 +24,8 @@
     "highlight.js": "^11.11.1",
     "marked": "^17.0.1",
     "nunjucks": "^3.2.4"
+  },
+  "dependencies": {
+    "typedoc": "^0.28.19"
   }
 }

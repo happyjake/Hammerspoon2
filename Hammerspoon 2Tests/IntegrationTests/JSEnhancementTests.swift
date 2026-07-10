@@ -93,7 +93,7 @@ struct JSEnhancementTests {
         // Core Swift functions should still work
         harness.expectTrue("typeof hs.timer.doAfter === 'function'")
         harness.expectTrue("typeof hs.timer.doEvery === 'function'")
-        harness.expectTrue("typeof hs.timer.new === 'function'")
+        harness.expectTrue("typeof hs.timer.create === 'function'")
 
         // And they should still be callable
         harness.eval("var t = hs.timer.doAfter(10, function() {})")

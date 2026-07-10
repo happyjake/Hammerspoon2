@@ -384,8 +384,6 @@ extension JSTestHarness {
                 loadModule(HSTimerModule.self, as: name)
             case "application":
                 loadModule(HSApplicationModule.self, as: name)
-            case "console":
-                loadModule(HSConsoleModule.self, as: name)
             case "appinfo":
                 loadModule(HSAppInfoModule.self, as: name)
             case "permissions":
@@ -396,6 +394,8 @@ extension JSTestHarness {
                 loadModule(HSPasteboardModule.self, as: name)
             case "notify":
                 loadModule(HSNotifyModule.self, as: name)
+            case "ocr":
+                loadModule(HSOCRModule.self, as: name)
             case "bonjour":
                 loadModule(HSBonjourModule.self, as: name)
             case "camera":
@@ -406,14 +406,30 @@ extension JSTestHarness {
                 loadModule(HSLocationModule.self, as: name)
             case "audiodevice":
                 loadModule(HSAudioDeviceModule.self, as: name)
+            case "translation":
+                loadModule(HSTranslationModule.self, as: name)
+            case "chooser":
+                loadModule(HSChooserModule.self, as: name)
             case "window":
                 loadModule(HSWindowModule.self, as: name)
             case "vision":
                 loadModule(HSVisionModule.self, as: name)
+            case "spotlight":
+                loadModule(HSSpotlightModule.self, as: name)
+            case "menubar":
+                loadModule(HSMenubarModule.self, as: name)
             case "http":
                 loadModule(HSHttpModule.self, as: name)
             case "httpserver":
                 loadModule(HSHttpServerModule.self, as: name)
+            case "urlevent":
+                loadModule(HSURLEventModule.self, as: name)
+            case "keycodes":
+                loadModule(HSKeycodesModule.self, as: name)
+            case "ui":
+                loadModule(HSUIModule.self, as: name)
+            case "docs":
+                loadModule(HSDocsModule.self, as: name)
             default:
                 print("⚠️ Unknown module: \(name)")
             }

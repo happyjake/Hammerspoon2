@@ -25,7 +25,7 @@ import AppKit
 ///     .buttons(["OK", "Cancel"])
 ///     .onButton((buttonIndex, text) => {
 ///         if (buttonIndex === 0) {
-///             print("User entered: " + text);
+///             console.log("User entered: " + text);
 ///         }
 ///     })
 ///     .show();
@@ -59,7 +59,7 @@ import AppKit
     @objc func buttons(_ labels: [String]) -> HSUITextPrompt
 
     /// Set the callback for button presses
-    /// - Parameter callback: Function receiving (buttonIndex, inputText)
+    /// - Parameter callback: {(buttonIndex: number, inputText: string) => void} Function receiving the 0-based button index and the text the user entered
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
@@ -67,7 +67,7 @@ import AppKit
     ///     .onButton((idx, text) => console.log(idx, text))
     ///     .show()
     /// ```
-    @objc func onButton(_ callback: JSValue) -> HSUITextPrompt
+    @objc func onButton(_ callback: JSFunction) -> HSUITextPrompt
 
     /// Show the prompt dialog
     /// - Example:
@@ -86,7 +86,7 @@ import AppKit
     var defaultText: String = ""
     var buttons: [String] = ["OK", "Cancel"]
 
-    private var buttonCallback: JSValue?
+    private var buttonCallback: JSFunction?
     private weak var module: HSUIModule?
 
     init(message: String, module: HSUIModule) {
@@ -114,7 +114,7 @@ import AppKit
         return self
     }
 
-    @objc func onButton(_ callback: JSValue) -> HSUITextPrompt {
+    @objc func onButton(_ callback: JSFunction) -> HSUITextPrompt {
         self.buttonCallback = callback
         return self
     }
@@ -148,11 +148,12 @@ import AppKit
         // Get the text input
         let inputText = textField.stringValue
 
-        // Invoke callback
+        // Invoke callback, then release it so the captured JSValue doesn't outlive
+        // the call. show() is one-shot — the callback won't be needed again.
         if let callback = buttonCallback {
+            buttonCallback = nil
             callback.call(withArguments: [buttonIndex, inputText])
 
-            // Check for JavaScript errors
             if let context = callback.context,
                let exception = context.exception,
                !exception.isUndefined {

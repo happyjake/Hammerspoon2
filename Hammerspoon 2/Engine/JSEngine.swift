@@ -9,6 +9,18 @@ import Foundation
 import JavaScriptCore
 import JavaScriptCoreExtras
 
+// MARK: - JSContext lifetime diagnostics
+
+private var contextTrackerKey: UInt8 = 0
+
+private final class ContextLifetimeTracker {
+    let id: UUID
+    init(id: UUID) { self.id = id }
+    isolated deinit { AKDebug("JSContext freed: \(id)") }
+}
+
+// MARK: -
+
 @_documentation(visibility: private)
 class JSEngine {
     static let shared = JSEngine()
@@ -20,7 +32,7 @@ class JSEngine {
     // MARK: - JSContext Managing
     private func createContext() throws(HammerspoonError) {
         id = UUID()
-        AKTrace("createContext(): \(id)")
+        AKTrace("Creating JavaScript context: \(id)")
         vm = JSVirtualMachine()
         guard vm != nil else {
             throw HammerspoonError(.vmCreation, msg: "Unknown error (vm)")
@@ -32,6 +44,9 @@ class JSEngine {
         }
 
         context.name = "Hammerspoon \(id)"
+
+        // Attach a sentinel so we can observe exactly when this JSContext's ARC drops to 0.
+        unsafe objc_setAssociatedObject(context, &contextTrackerKey, ContextLifetimeTracker(id: id), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 
         // Format any uncaught JS exception with name/message/sourceURL:line:col
         // + full JS stack; clear it so the engine state stays clean for the
@@ -62,11 +77,38 @@ class JSEngine {
     }
 
     private func deleteContext() {
-        AKTrace("deleteContext()")
+        AKTrace("Destroying JavaScript context: \(id)")
+
+        SettingsManager.shared.removeAllDelegates()
 
         if let hs = self["hs"] as? JSValue, let moduleRoot = hs.toObjectOf(ModuleRoot.self) as? ModuleRoot {
             moduleRoot.shutdown()
             self["hs"] = nil
+        }
+
+        // ConsoleModule has no shutdown() so we can just nil it out
+        self["console"] = nil
+
+        // require() isn't even an object, so we can just nil it out
+        self["require"] = nil
+
+        if let context = context {
+            // Remove global properties from the lexical environment.
+            context.globalObject.deleteProperty("hs")
+            context.globalObject.deleteProperty("console")
+            context.globalObject.deleteProperty("require")
+
+            // Force a synchronous full GC cycle (mark → sweep → finalize) before
+            // tearing down the VM. JSC's concurrent GC defers ObjC bridge finalizers
+            // (CFRelease) to a background sweep thread; if VM teardown races with that
+            // thread, the finalizer never runs and Swift objects leak permanently.
+            // After shutdown() above, all managed references are removed and all JS
+            // variables referencing module proxies are cleared, so every proxy is
+            // now GC-unreachable. The synchronous GC collects them and calls each
+            // proxy's destructor (CFRelease) before this line returns.
+            // Do NOT use JSGarbageCollect here — it schedules an asynchronous
+            // collection and returns immediately, re-introducing the same race.
+            unsafe JSSynchronousGarbageCollectForDebugging(context.jsGlobalContextRef)
         }
 
         context = nil
@@ -78,11 +120,11 @@ class JSEngine {
 extension JSEngine: JSEngineProtocol {
     subscript(key: String) -> Any? {
         get {
-            AKTrace("JSEngine subscript get for: \(key)")
+            AKDebug("JSEngine subscript get for: \(key)")
             return context?.objectForKeyedSubscript(key as (NSCopying & NSObjectProtocol))
         }
         set {
-            AKTrace("JSEngine subscript set for: \(key)")
+            AKDebug("JSEngine subscript set for: \(key)")
             context?.setObject(newValue, forKeyedSubscript: key as (NSCopying & NSObjectProtocol))
         }
     }
@@ -91,7 +133,7 @@ extension JSEngine: JSEngineProtocol {
         return context?.evaluateScript(script)?.toObject()
     }
 
-    @discardableResult func evalFromURL(_ url: URL) throws -> Any? {
+    @discardableResult func evalFromURL(_ url: URL, wrapInIIFE: Bool = false) throws -> Any? {
         guard url.isFileURL else {
             throw HammerspoonError(.jsEvalURLKind, msg: "Refusing to eval remote URL")
         }
@@ -113,6 +155,10 @@ extension JSEngine: JSEngineProtocol {
 
         // Load via the CommonJS shim so init.js gets __dirname/__filename and can
         // require sibling files relatively (e.g. require('./lib/log')).
+        // The CJS wrapper already function-scopes top-level `const`/`let`
+        // bindings, which is the guarantee callers request via `wrapInIIFE`
+        // (keeps hs.* proxies collectable instead of pinned as global GC
+        // roots), so no additional IIFE wrapping is needed on this path.
         // Flush any cached entry first so a reload re-evaluates the file.
         _ = context?.evaluateScript("delete require.cache['\(escapedPath)']")
         let result = context?.evaluateScript("require('\(escapedPath)')")
@@ -121,7 +167,7 @@ extension JSEngine: JSEngineProtocol {
 
     func resetContext() throws {
         if hasContext() {
-            AKTrace("resetContext()")
+            AKDebug("resetContext()")
             deleteContext()
         }
         try createContext()
@@ -129,6 +175,10 @@ extension JSEngine: JSEngineProtocol {
 
     func hasContext() -> Bool {
         return vm != nil || context != nil
+    }
+
+    func shutdown() {
+        deleteContext()
     }
 
     /// Creates a Promise that wraps an async operation

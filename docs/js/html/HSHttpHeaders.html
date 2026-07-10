@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSHttpHeaders - Hammerspoon 2 API</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="highlight.min.js"></script>
+</head>
+<body>
+    <!-- Top header bar -->
+    <header class="top-header">
+        <div class="header-left">
+            <a href="index.html" class="site-logo">Hammerspoon 2</a>
+            <span class="version-badge">API Docs</span>
+        </div>
+        <div class="header-center">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M11.5 7a4.499 4.499 0 11-8.998 0A4.499 4.499 0 0111.5 7zm-.82 4.74a6 6 0 111.06-1.06l3.04 3.04a.75.75 0 11-1.06 1.06L10.68 11.74z"></path>
+                </svg>
+                <input type="search" id="search-input" class="search-input" placeholder="Search properties and methods…" aria-label="Search">
+            <div id="search-results" class="search-results" hidden></div>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="https://github.com/cmsj/Hammerspoon2" class="github-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+                <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <div class="layout-body">
+        <!-- Left sidebar -->
+        <nav class="sidebar-left" aria-label="Site navigation">
+            <div class="nav-section" id="modules-section">
+                <div class="nav-section-label">MODULES</div>
+                <div id="modules-nav"></div>
+            </div>
+            <div class="nav-section" id="types-section">
+                <div class="nav-section-label">TYPES</div>
+                <div id="types-nav"></div>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="content" id="main-content">
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="index.html">API Reference</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">HSHttpHeaders</span>
+</nav>
+<div class="page-header">
+    <h1>HSHttpHeaders</h1>
+    <span class="page-badge">Type</span>
+</div>
+
+<div class="module-description"><p>Multi-map of HTTP header name → value(s), with case-insensitive lookup
+per RFC 7230 §3.2. Backs both incoming <code>HSHttpRequest.headers</code> and
+outgoing <code>HSHttpResponse.headers</code>. Mirrors the WHATWG Fetch <code>Headers</code>
+API: <code>get</code>, <code>set</code>, <code>append</code>, <code>delete</code>, <code>has</code>, iteration.</p>
+</div>
+
+<h2 class="section-heading">Properties</h2>
+<p style="color: var(--text-secondary); font-size: 0.9375rem; margin-bottom: 1.5rem;">This type has no properties.</p>
+
+<h2 class="section-heading">Methods</h2>
+    <div class="method" id="make">
+        <h3>
+<span class="static-badge">static</span><a href="#make">HSHttpHeaders.make(init_) -> HSHttpHeaders</a>
+        </h3>
+
+        <div class="description">Factory equivalent to `new Headers(init)`. The JS wrapper in
+`hs.httpserver.js` delegates here.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">HSHttpHeaders.make(init_) -> HSHttpHeaders</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">init_</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">plain JS object `{name: value}` or another Headers</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSHttpHeaders</div>
+        <div class="return-desc">a new Headers instance</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L27" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:27</a>
+        </div>
+    </div>
+    <div class="method" id="get">
+        <h3>
+<a href="#get">get(name) -> string</a>
+        </h3>
+
+        <div class="description">Get the combined value for a header name (case-insensitive). Multi-value
+headers are joined with `, ` per RFC 7230 §3.2.2.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">get(name) -> string</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">name</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the header name to look up (case-insensitive)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">string</div>
+        <div class="return-desc">the combined header value, or null if the header is not present</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L33" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:33</a>
+        </div>
+    </div>
+    <div class="method" id="set">
+        <h3>
+<a href="#set">set(name, value) -> None</a>
+        </h3>
+
+        <div class="description">Set a header to a single value, replacing any prior value(s).</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">set(name, value) -> None</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">name</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the header name (case-insensitive)</td>
+                </tr>
+                <tr>
+                    <td class="param-name">value</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the value to set</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L38" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:38</a>
+        </div>
+    </div>
+    <div class="method" id="has">
+        <h3>
+<a href="#has">has(name) -> boolean</a>
+        </h3>
+
+        <div class="description">True if the header is present.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">has(name) -> boolean</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">name</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the header name to test (case-insensitive)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">boolean</div>
+        <div class="return-desc">true if the header is present</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L43" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:43</a>
+        </div>
+    </div>
+    <div class="method" id="deleteHeader">
+        <h3>
+<a href="#deleteHeader">deleteHeader(name) -> None</a>
+        </h3>
+
+        <div class="description">Remove a header.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">deleteHeader(name) -> None</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">name</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the header name to remove (case-insensitive)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L47" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:47</a>
+        </div>
+    </div>
+    <div class="method" id="append">
+        <h3>
+<a href="#append">append(name, value) -> None</a>
+        </h3>
+
+        <div class="description">Append a value to a header; the prior value(s) are kept.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">append(name, value) -> None</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">name</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the header name (case-insensitive)</td>
+                </tr>
+                <tr>
+                    <td class="param-name">value</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the value to append</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L52" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:52</a>
+        </div>
+    </div>
+    <div class="method" id="keys">
+        <h3>
+<a href="#keys">keys() -> string[]</a>
+        </h3>
+
+        <div class="description">All header names (lower-cased).</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">keys() -> string[]</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">string[]</div>
+        <div class="return-desc">all header names, lower-cased</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L56" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:56</a>
+        </div>
+    </div>
+    <div class="method" id="values">
+        <h3>
+<a href="#values">values() -> string[]</a>
+        </h3>
+
+        <div class="description">All header values, in the same order as `keys()`.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">values() -> string[]</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">string[]</div>
+        <div class="return-desc">all header values, in the same order as `keys()`</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L60" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:60</a>
+        </div>
+    </div>
+    <div class="method" id="entries">
+        <h3>
+<a href="#entries">entries() -> [[String]]</a>
+        </h3>
+
+        <div class="description">`[[name, value], …]` pairs.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">entries() -> [[String]]</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">[[String]]</div>
+        <div class="return-desc">`[[name, value], …]` pairs of every header</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.httpserver/HSHttpHeaders.swift#L64" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.httpserver/HSHttpHeaders.swift:64</a>
+        </div>
+    </div>
+        </main>
+
+        <!-- Right TOC sidebar -->
+        <aside class="toc-sidebar" aria-label="On this page">
+            <div class="toc-label">ON THIS PAGE</div>
+            <nav id="toc-nav"></nav>
+        </aside>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNavigation('HSHttpHeaders');
+            generateTOC();
+            addCopyButtons();
+            initSearch();
+            initTOCObserver();
+        });
+    </script>
+</body>
+</html>

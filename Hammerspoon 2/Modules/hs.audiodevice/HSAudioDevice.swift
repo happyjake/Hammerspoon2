@@ -154,8 +154,8 @@ private func caDataSourceName(_ objectID: AudioObjectID,
                                scope: AudioObjectPropertyScope) -> String {
     var inputID = sourceID
     var outputName: CFString? = nil
-    unsafe withUnsafeMutablePointer(to: &inputID) { inputPtr in
-        unsafe withUnsafeMutablePointer(to: &outputName) { outputPtr in
+    withUnsafeMutablePointer(to: &inputID) { inputPtr in
+        withUnsafeMutablePointer(to: &outputName) { outputPtr in
             var translation = unsafe AudioValueTranslation(
                 mInputData: UnsafeMutableRawPointer(inputPtr),
                 mInputDataSize: UInt32(MemoryLayout<UInt32>.size),
@@ -346,7 +346,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const dev = hs.audiodevice.defaultOutputDevice()
     /// console.log(dev.currentOutputDataSource())
     /// ```
-    @objc func currentOutputDataSource() -> NSDictionary?
+    @objc func currentOutputDataSource() -> [String: Any]?
 
     /// The current input data source as `{ id, name }`, or `null` if unavailable.
     /// - Returns: A dictionary containing the id and name of the current input data source
@@ -355,7 +355,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const mic = hs.audiodevice.defaultInputDevice()
     /// console.log(mic.currentInputDataSource())
     /// ```
-    @objc func currentInputDataSource() -> NSDictionary?
+    @objc func currentInputDataSource() -> [String: Any]?
 
     /// All available output data sources as an array of `{ id, name }` objects.
     /// - Returns: A dictionary containing the ids and names of all available output data sources
@@ -364,7 +364,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const dev = hs.audiodevice.defaultOutputDevice()
     /// console.log(dev.outputDataSources())
     /// ```
-    @objc func outputDataSources() -> [NSDictionary]
+    @objc func outputDataSources() -> [[String: Any]]
 
     /// All available input data sources as an array of `{ id, name }` objects.
     /// - Returns: A dictionary containing the ids and names of all available input data sources
@@ -373,7 +373,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const mic = hs.audiodevice.defaultInputDevice()
     /// console.log(mic.inputDataSources())
     /// ```
-    @objc func inputDataSources() -> [NSDictionary]
+    @objc func inputDataSources() -> [[String: Any]]
 
     /// Select an output data source by its numeric ID.
     /// - Parameter sourceID: The `id` value from ``outputDataSources()``
@@ -439,13 +439,13 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// - `"dsout"` — output data source changed
     /// - `"dsin"` — input data source changed
     ///
-    /// - Parameter listener: A JavaScript function that receives an event name string
+    /// - Parameter listener: {(event: string) => void} A JavaScript function that receives an event name string
     /// - Example:
     /// ```js
     /// const dev = hs.audiodevice.defaultOutputDevice()
     /// dev.addWatcher((event) => console.log("Event:", event))
     /// ```
-    @objc func addWatcher(_ listener: JSValue)
+    @objc func addWatcher(_ listener: JSFunction)
 
     /// Remove a previously registered per-device listener.
     ///
@@ -455,17 +455,17 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// const dev = hs.audiodevice.defaultOutputDevice()
     /// dev.removeWatcher(myHandler)
     /// ```
-    @objc func removeWatcher(_ listener: JSValue)
+    @objc func removeWatcher(_ listener: JSFunction)
 
     // NOTE: These are not documented because they are private API for our JavaScript code
     /// SKIP_DOCS
-    @objc(_addWatcher:) func _addWatcher(_ callback: JSValue)
+    @objc(_addWatcher:) func _addWatcher(_ callback: JSFunction)
     /// SKIP_DOCS
     @objc(_removeWatcher) func _removeWatcher()
 
     /// Swift-retained storage for the JS AudioDeviceWatcherEmitter instance
     /// SKIP_DOCS
-    @objc var _watcherEmitter: JSValue? { get set }
+    @objc var _watcherEmitter: JSFunction? { get set }
 }
 
 // MARK: - Implementation
@@ -481,8 +481,8 @@ private func caDataSourceName(_ objectID: AudioObjectID,
         super.init()
     }
 
-    deinit {
-        print("deinit of HSAudioDevice id=\(objectID)")
+    isolated deinit {
+        AKDebug("deinit of HSAudioDevice id=\(objectID)")
     }
 
     // MARK: - Private helpers
@@ -631,22 +631,22 @@ private func caDataSourceName(_ objectID: AudioObjectID,
 
     // MARK: - Data sources
 
-    private func dataSource(scope: AudioObjectPropertyScope) -> NSDictionary? {
+    private func dataSource(scope: AudioObjectPropertyScope) -> [String: Any]? {
         guard let sourceID = caGetUInt32(objectID, kAudioDevicePropertyDataSource, scope) else { return nil }
         return ["id": sourceID, "name": caDataSourceName(objectID, sourceID: sourceID, scope: scope)]
     }
 
-    private func dataSources(scope: AudioObjectPropertyScope) -> [NSDictionary] {
+    private func dataSources(scope: AudioObjectPropertyScope) -> [[String: Any]] {
         let ids = caGetUInt32Array(objectID, kAudioDevicePropertyDataSources, scope)
         return ids.map { id in
             ["id": id, "name": caDataSourceName(objectID, sourceID: id, scope: scope)]
         }
     }
 
-    @objc func currentOutputDataSource() -> NSDictionary? { dataSource(scope: kAudioDevicePropertyScopeOutput) }
-    @objc func currentInputDataSource() -> NSDictionary? { dataSource(scope: kAudioDevicePropertyScopeInput) }
-    @objc func outputDataSources() -> [NSDictionary] { dataSources(scope: kAudioDevicePropertyScopeOutput) }
-    @objc func inputDataSources() -> [NSDictionary] { dataSources(scope: kAudioDevicePropertyScopeInput) }
+    @objc func currentOutputDataSource() -> [String: Any]? { dataSource(scope: kAudioDevicePropertyScopeOutput) }
+    @objc func currentInputDataSource() -> [String: Any]? { dataSource(scope: kAudioDevicePropertyScopeInput) }
+    @objc func outputDataSources() -> [[String: Any]] { dataSources(scope: kAudioDevicePropertyScopeOutput) }
+    @objc func inputDataSources() -> [[String: Any]] { dataSources(scope: kAudioDevicePropertyScopeInput) }
 
     @objc func setCurrentOutputDataSource(_ sourceID: Int) -> Bool {
         caSetUInt32(objectID, kAudioDevicePropertyDataSource, kAudioDevicePropertyScopeOutput,
@@ -686,14 +686,14 @@ private func caDataSourceName(_ objectID: AudioObjectID,
 
     // MARK: - Per-device watcher
 
-    @objc var _watcherEmitter: JSValue? = nil
+    @objc var _watcherEmitter: JSFunction? = nil
     // Registrations keyed by event name: each value holds the CoreAudio address and
     // the heap-allocated ObjC block (stored to guarantee pointer equality on removal).
     private var deviceRegistrations: [String: (address: AudioObjectPropertyAddress, block: AudioObjectPropertyListenerBlock)] = unsafe [:]
     // Strong self-reference to keep the device alive while any watcher is active.
     private var selfRetain: HSAudioDevice? = nil
 
-    @objc func addWatcher(_ listener: JSValue) {
+    @objc func addWatcher(_ listener: JSFunction) {
         if _watcherEmitter == nil {
             guard let ctx = JSContext.current() else { return }
             let audiodevice = ctx.objectForKeyedSubscript("hs")?.objectForKeyedSubscript("audiodevice")
@@ -702,11 +702,11 @@ private func caDataSourceName(_ objectID: AudioObjectID,
         _watcherEmitter?.invokeMethod("on", withArguments: [listener])
     }
 
-    @objc func removeWatcher(_ listener: JSValue) {
+    @objc func removeWatcher(_ listener: JSFunction) {
         _watcherEmitter?.invokeMethod("removeListener", withArguments: [listener])
     }
 
-    @objc(_addWatcher:) func _addWatcher(_ callback: JSValue) {
+    @objc(_addWatcher:) func _addWatcher(_ callback: JSFunction) {
         guard unsafe deviceRegistrations.isEmpty else { return }
         selfRetain = self
 

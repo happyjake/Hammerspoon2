@@ -1,0 +1,653 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>HSWebview | hammerspoon2-docs</title><meta name="description" content="Documentation for hammerspoon2-docs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">hammerspoon2-docs</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="" aria-current="page">HSWebview</a></li></ul>
+<h1>Class HSWebview</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>A WKWebView hosted inside a borderless NSWindow, created via <code>hs.webview.create()</code>.
+Provides a builder-style API for loading URLs or HTML, styling the window,
+registering JS message handlers, evaluating JavaScript, and managing the window lifecycle.</p>
+</div></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7024">hammerspoon.d.ts:7024</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="constructors">Constructors<a href="#constructors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#_simulatefiledrop" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>_<wbr/>simulate<wbr/>File<wbr/>Drop</span></a>
+<a href="#backgroundcolor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>background<wbr/>Color</span></a>
+<a href="#bringtofront" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>bring<wbr/>To<wbr/>Front</span></a>
+<a href="#canbecomekey" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>can<wbr/>Become<wbr/>Key</span></a>
+<a href="#canjoinallspaces" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>can<wbr/>Join<wbr/>All<wbr/>Spaces</span></a>
+<a href="#center" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>center</span></a>
+<a href="#close" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>close</span></a>
+<a href="#currentframe" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>current<wbr/>Frame</span></a>
+<a href="#developerextras" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>developer<wbr/>Extras</span></a>
+<a href="#evaluatejavascript" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>evaluate<wbr/>Java<wbr/>Script</span></a>
+<a href="#hide" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>hide</span></a>
+<a href="#html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>html</span></a>
+<a href="#ignoresmouseevents" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>ignores<wbr/>Mouse<wbr/>Events</span></a>
+<a href="#injectuserscript" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>inject<wbr/>User<wbr/>Script</span></a>
+<a href="#keepsrenderingwheninactive" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>keeps<wbr/>Rendering<wbr/>When<wbr/>Inactive</span></a>
+<a href="#level" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>level</span></a>
+<a href="#nonactivating" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>non<wbr/>Activating</span></a>
+<a href="#onfiledrop" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>on<wbr/>File<wbr/>Drop</span></a>
+<a href="#prewarm" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>prewarm</span></a>
+<a href="#reload" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reload</span></a>
+<a href="#setframe" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Frame</span></a>
+<a href="#setmessagehandler" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Message<wbr/>Handler</span></a>
+<a href="#show" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>show</span></a>
+<a href="#snapshottopng" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>snapshot<wbr/>To<wbr/>PNG</span></a>
+<a href="#url" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>url</span></a>
+<a href="#windowcallback" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>window<wbr/>Callback</span></a>
+<a href="#windowcornerradius" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>window<wbr/>Corner<wbr/>Radius</span></a>
+<a href="#windowshadow" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>window<wbr/>Shadow</span></a>
+<a href="#windowstyle" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>window<wbr/>Style</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="constructorhswebview"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">HSWebview</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#constructorhswebview" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="_simulatefiledrop"><span>_<wbr/>simulate<wbr/>File<wbr/>Drop</span><a href="#_simulatefiledrop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="_simulatefiledrop-1"><span class="tsd-kind-call-signature">_simulateFileDrop</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">paths</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#_simulatefiledrop-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Test hook: invoke the registered <code>onFileDrop</code> callback directly with
+<code>paths</code>, bypassing the AppKit drag session (which a unit test can't
+stage). No-op if the webview isn't shown or no handler is registered.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">paths</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>absolute file paths to deliver to the handler</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7284">hammerspoon.d.ts:7284</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="backgroundcolor"><span>background<wbr/>Color</span><a href="#backgroundcolor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="backgroundcolor-1"><span class="tsd-kind-call-signature">backgroundColor</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">color</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#backgroundcolor-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Set the background color used by the host NSWindow and content wrapper.
+This color is what users see during the brief window between window
+creation and the page's own background painting — set it to match your
+page's body background to eliminate the &quot;white flash&quot; on open. Also
+disables the WKWebView's own opaque background so the window color is
+visible through any gaps before/around the page content.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">color</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>hex string (e.g. <code>'#18181C'</code>) or an <code>HSColor</code></p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7149">hammerspoon.d.ts:7149</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="bringtofront"><span>bring<wbr/>To<wbr/>Front</span><a href="#bringtofront" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="bringtofront-1"><span class="tsd-kind-call-signature">bringToFront</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#bringtofront-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Bring the window to the foreground without reordering across spaces.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7197">hammerspoon.d.ts:7197</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="canbecomekey"><span>can<wbr/>Become<wbr/>Key</span><a href="#canbecomekey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="canbecomekey-1"><span class="tsd-kind-call-signature">canBecomeKey</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#canbecomekey-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Allow this window to become key (capture keyboard focus). Default true for webviews.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>whether the window can become key</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7067">hammerspoon.d.ts:7067</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="canjoinallspaces"><span>can<wbr/>Join<wbr/>All<wbr/>Spaces</span><a href="#canjoinallspaces" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="canjoinallspaces-1"><span class="tsd-kind-call-signature">canJoinAllSpaces</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#canjoinallspaces-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Make the window appear on every Space and stay put across Space switches (HUD overlay).</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>true to join all Spaces (canJoinAllSpaces + stationary)</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7111">hammerspoon.d.ts:7111</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="center"><span>center</span><a href="#center" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="center-1"><span class="tsd-kind-call-signature">center</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#center-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Center the window on the main screen on <code>show()</code>.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7129">hammerspoon.d.ts:7129</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="close"><span>close</span><a href="#close" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="close-1"><span class="tsd-kind-call-signature">close</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#close-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Close and destroy the window. Drops the WKWebView and frees handlers.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7191">hammerspoon.d.ts:7191</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="currentframe"><span>current<wbr/>Frame</span><a href="#currentframe" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="currentframe-1"><span class="tsd-kind-call-signature">currentFrame</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#currentframe-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Return the current on-screen frame as <code>{x, y, w, h}</code>, or null if not shown.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p><code>{x, y, w, h}</code> in NSWindow (bottom-left origin) coordinates, or null if not shown</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7203">hammerspoon.d.ts:7203</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="developerextras"><span>developer<wbr/>Extras</span><a href="#developerextras" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="developerextras-1"><span class="tsd-kind-call-signature">developerExtras</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">enabled</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#developerextras-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Enable Safari &quot;Inspect Element&quot; right-click for this webview. Off by default.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">enabled</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>whether to enable</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7291">hammerspoon.d.ts:7291</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="evaluatejavascript"><span>evaluate<wbr/>Java<wbr/>Script</span><a href="#evaluatejavascript" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="evaluatejavascript-1"><span class="tsd-kind-call-signature">evaluateJavaScript</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">script</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">callback</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#evaluatejavascript-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Evaluate a JS expression inside the page. Optional callback receives
+<code>(result, errorMessage)</code> — result is the stringified JS value (null if
+not representable as JSON), errorMessage is null on success.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">script</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>JS expression or block</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>optional completion <code>(result, error) =&gt; void</code></p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7251">hammerspoon.d.ts:7251</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="hide"><span>hide</span><a href="#hide" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="hide-1"><span class="tsd-kind-call-signature">hide</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#hide-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Hide the window. Keeps the WKWebView and its loaded page in memory.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7186">hammerspoon.d.ts:7186</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="html"><span>html</span><a href="#html" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="html-1"><span class="tsd-kind-call-signature">html</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">html</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">baseURL</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#html-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Load HTML source directly into the webview.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">html</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>HTML source string</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">baseURL</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>optional base URL (string) for resolving relative refs; null to use about:blank</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7039">hammerspoon.d.ts:7039</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="ignoresmouseevents"><span>ignores<wbr/>Mouse<wbr/>Events</span><a href="#ignoresmouseevents" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="ignoresmouseevents-1"><span class="tsd-kind-call-signature">ignoresMouseEvents</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#ignoresmouseevents-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Make the window click-through: mouse events pass to whatever is beneath it. Essential for a
+transparent, screen-covering HUD overlay so it never steals the user's input.
+A click-through window's page never receives pointer movement either (CSS
+<code>:hover</code> is dead), so — like <code>nonActivating(true)</code> — while the window is
+visible an event monitor publishes the pointer to the page as
+<code>window.__hsPointer(x, y, inside)</code> (CSS pixel coordinates, ~40 Hz, one
+<code>inside=false</code> call as the pointer leaves). Define that function and
+hit-test (e.g. <code>document.elementFromPoint</code>) to drive hover effects for
+any host-side click handling (e.g. an eventtap consuming clicks over
+reported keycap rects).</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>true to ignore mouse events</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7104">hammerspoon.d.ts:7104</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="injectuserscript"><span>inject<wbr/>User<wbr/>Script</span><a href="#injectuserscript" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="injectuserscript-1"><span class="tsd-kind-call-signature">injectUserScript</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">source</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#injectuserscript-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Inject JavaScript that runs at document-start, before the page's own scripts.
+Use to install a bridge client so postMessage calls work from page load.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">source</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>JavaScript source</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7242">hammerspoon.d.ts:7242</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="keepsrenderingwheninactive"><span>keeps<wbr/>Rendering<wbr/>When<wbr/>Inactive</span><a href="#keepsrenderingwheninactive" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="keepsrenderingwheninactive-1"><span class="tsd-kind-call-signature">keepsRenderingWhenInactive</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#keepsrenderingwheninactive-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Keep the page rendering even when the window is inactive or considered
+not visible. By default WebKit suspends a page whose window is non-key /
+occluded — for a transparent, click-through HUD overlay (which can never
+become key) the compositor parks after a few seconds and JS-driven UI
+changes stop painting. Pass <code>true</code> BEFORE <code>show()</code> to opt the page out
+of that suspension (<code>WKPreferences.inactiveSchedulingPolicy = .none</code>).</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>whether to keep rendering while inactive</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7161">hammerspoon.d.ts:7161</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="level"><span>level</span><a href="#level" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="level-1"><span class="tsd-kind-call-signature">level</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#level-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Set the window level by name. Same vocabulary as <code>hs.ui.window.level()</code>.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">name</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p><code>'normal' | 'floating' | 'modal' | 'popup' | 'screensaver' | 'mainmenu' | 'status'</code></p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7060">hammerspoon.d.ts:7060</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="nonactivating"><span>non<wbr/>Activating</span><a href="#nonactivating" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="nonactivating-1"><span class="tsd-kind-call-signature">nonActivating</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#nonactivating-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Never activate Hammerspoon 2 when this window is shown or clicked. The
+webview is hosted in a non-activating panel: the page still gets clicks
+and drags but the frontmost app keeps focus throughout — what you want
+for a toast or notification overlay.
+Neither AppKit nor WebKit deliver pointer movement to a window that
+can't become key (so CSS <code>:hover</code> and mouseenter/mouseleave are dead).
+Instead, while the window is visible an event monitor publishes the
+pointer to the page as <code>window.__hsPointer(x, y, inside)</code> (CSS pixel
+coordinates, ~40 Hz, one <code>inside=false</code> call as the pointer leaves) —
+define that function and hit-test (e.g. <code>document.elementFromPoint</code>)
+to drive hover effects yourself.
+Combine with <code>canBecomeKey(true)</code> for a Spotlight-style panel that takes
+keyboard input while the previous app stays active, or with
+<code>canBecomeKey(false)</code> so the page never captures keyboard at all.
+Must be set before <code>show()</code>.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>true to host the webview in a non-activating panel</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7088">hammerspoon.d.ts:7088</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="onfiledrop"><span>on<wbr/>File<wbr/>Drop</span><a href="#onfiledrop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="onfiledrop-1"><span class="tsd-kind-call-signature">onFileDrop</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">callback</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#onfiledrop-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Register a callback for native file drops onto the webview. When set,
+dragging files from Finder onto the page is handled natively and the
+callback fires with an array of absolute filesystem paths — so you can
+stream the real file from disk instead of reading its bytes through the
+JS bridge. The page's own HTML5 <code>drop</code> event does NOT fire for files
+while a handler is registered; non-file drags (text, images from other
+apps) fall through to WebKit unchanged. While a file drag is over the
+window the page is notified via <code>window.__hsFileDrag(active)</code> (a boolean)
+so it can show a drop highlight. Pass <code>null</code> to unregister (file drops
+then revert to the page's own HTML5 handling).
+absolute file paths, or null to unregister</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p><code>(paths) =&gt; void</code> where <code>paths</code> is an array of</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7276">hammerspoon.d.ts:7276</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="prewarm"><span>prewarm</span><a href="#prewarm" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="prewarm-1"><span class="tsd-kind-call-signature">prewarm</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#prewarm-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Build and load the page WITHOUT showing the window — a warm, off-screen
+instance ready for an instant <code>show()</code>. The WKWebView spins up, the page
+loads and renders, but the window is never ordered front and the app is
+never activated (so it won't steal focus at boot). Pair with
+<code>keepsRenderingWhenInactive(true)</code> so the never-visible page actually
+paints instead of being suspended by WebKit. A later <code>show()</code> is then a
+near-instant order-front of an already-rendered window.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7180">hammerspoon.d.ts:7180</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="reload"><span>reload</span><a href="#reload" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="reload-1"><span class="tsd-kind-call-signature">reload</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#reload-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Reload the currently-loaded content.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7045">hammerspoon.d.ts:7045</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setframe"><span>set<wbr/>Frame</span><a href="#setframe" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setframe-1"><span class="tsd-kind-call-signature">setFrame</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">rect</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#setframe-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Resize and/or move the on-screen window.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">rect</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p><code>{ x, y, w, h }</code> in NSWindow coordinates</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7210">hammerspoon.d.ts:7210</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setmessagehandler"><span>set<wbr/>Message<wbr/>Handler</span><a href="#setmessagehandler" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setmessagehandler-1"><span class="tsd-kind-call-signature">setMessageHandler</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">callback</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#setmessagehandler-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Register a named handler for messages posted from JS.
+In the page, call <code>window.webkit.messageHandlers.&lt;name&gt;.postMessage(body)</code>.
+The Swift callback fires with the deserialized body (object/string/number).
+Pass <code>null</code> to unregister.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">name</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>handler name (matches the page's <code>messageHandlers.&lt;name&gt;</code>)</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>function to call with each message body, or null to remove</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7234">hammerspoon.d.ts:7234</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="show"><span>show</span><a href="#show" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="show-1"><span class="tsd-kind-call-signature">show</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#show-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Show the window. If already shown (or pre-warmed), activates the app,
+makes the window key, and brings it to front.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7168">hammerspoon.d.ts:7168</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="snapshottopng"><span>snapshot<wbr/>To<wbr/>PNG</span><a href="#snapshottopng" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="snapshottopng-1"><span class="tsd-kind-call-signature">snapshotToPNG</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">path</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">callback</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#snapshottopng-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Render the page to a PNG file at the given path. Uses WKWebView's own
+<code>takeSnapshot</code>, which renders in the web content process — so it sees the
+real page even when WebKit composites it out-of-process (GPU-accelerated
+layers), where an AppKit <code>cacheDisplay</code> capture intermittently came back
+blank/white. No Screen Recording permission is required. The capture is
+asynchronous: pass a callback to learn when the file is written.
+written; on failure <code>errorMessage</code> describes why. Pass <code>null</code> to skip.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">path</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>absolute filesystem path to write</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>optional <code>(ok, errorMessage)</code> — <code>ok</code> is true once the PNG is</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7223">hammerspoon.d.ts:7223</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="url"><span>url</span><a href="#url" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="url-1"><span class="tsd-kind-call-signature">url</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">urlString</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#url-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Load a URL into the webview. Accepts <code>https://</code>, <code>http://</code>, and <code>file://</code> URLs.
+File URLs must be absolute paths; tilde is expanded.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">urlString</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>the URL to load</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7031">hammerspoon.d.ts:7031</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="windowcallback"><span>window<wbr/>Callback</span><a href="#windowcallback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="windowcallback-1"><span class="tsd-kind-call-signature">windowCallback</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">callback</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#windowcallback-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Register a callback for window lifecycle events. Currently fires with
+the string <code>'closing'</code> when the window is about to close.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p><code>(event) =&gt; void</code></p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7259">hammerspoon.d.ts:7259</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="windowcornerradius"><span>window<wbr/>Corner<wbr/>Radius</span><a href="#windowcornerradius" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="windowcornerradius-1"><span class="tsd-kind-call-signature">windowCornerRadius</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">radius</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#windowcornerradius-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Set window corner radius. Applied to the contentView (clipped) so the
+rounded shape is preserved when the window is transparent.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">radius</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>pixel radius</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7137">hammerspoon.d.ts:7137</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="windowshadow"><span>window<wbr/>Shadow</span><a href="#windowshadow" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="windowshadow-1"><span class="tsd-kind-call-signature">windowShadow</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#windowshadow-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Control the system window shadow. If never called, the window's shadow
+is left entirely untouched (AppKit decides). Turn it off for
+transparent overlays whose page draws its own CSS shadows — the system
+shadow is computed from the window's opaque pixels and can show up as
+a rectangular halo/edge around translucent content (backdrop-filter
+regions especially).</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>false to disable the system window shadow</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7123">hammerspoon.d.ts:7123</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="windowstyle"><span>window<wbr/>Style</span><a href="#windowstyle" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="windowstyle-1"><span class="tsd-kind-call-signature">windowStyle</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">opts</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a><a href="#windowstyle-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Configure window chrome.
+<code>transparent: true</code> makes the NSWindow opaque-bg false so the page's own background shows through.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">opts</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p><code>{ titled?, closable?, resizable?, miniaturizable?, transparent? }</code> — all optional booleans.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">HSWebview</a></h4><p>self for chaining</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/happyjake/Hammerspoon2/blob/2aaddb2808e7b42d8b1b58fa3b57baf9cb992682/docs/hammerspoon.d.ts#L7053">hammerspoon.d.ts:7053</a></li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
+<div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#_simulatefiledrop"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>_<wbr/>simulate<wbr/>File<wbr/>Drop</span></a><a href="#backgroundcolor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>background<wbr/>Color</span></a><a href="#bringtofront"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>bring<wbr/>To<wbr/>Front</span></a><a href="#canbecomekey"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>can<wbr/>Become<wbr/>Key</span></a><a href="#canjoinallspaces"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>can<wbr/>Join<wbr/>All<wbr/>Spaces</span></a><a href="#center"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>center</span></a><a href="#close"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>close</span></a><a href="#currentframe"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>current<wbr/>Frame</span></a><a href="#developerextras"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>developer<wbr/>Extras</span></a><a href="#evaluatejavascript"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>evaluate<wbr/>Java<wbr/>Script</span></a><a href="#hide"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>hide</span></a><a href="#html"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>html</span></a><a href="#ignoresmouseevents"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>ignores<wbr/>Mouse<wbr/>Events</span></a><a href="#injectuserscript"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>inject<wbr/>User<wbr/>Script</span></a><a href="#keepsrenderingwheninactive"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>keeps<wbr/>Rendering<wbr/>When<wbr/>Inactive</span></a><a href="#level"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>level</span></a><a href="#nonactivating"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>non<wbr/>Activating</span></a><a href="#onfiledrop"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>on<wbr/>File<wbr/>Drop</span></a><a href="#prewarm"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>prewarm</span></a><a href="#reload"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reload</span></a><a href="#setframe"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Frame</span></a><a href="#setmessagehandler"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Message<wbr/>Handler</span></a><a href="#show"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>show</span></a><a href="#snapshottopng"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>snapshot<wbr/>To<wbr/>PNG</span></a><a href="#url"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>url</span></a><a href="#windowcallback"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>window<wbr/>Callback</span></a><a href="#windowcornerradius"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>window<wbr/>Corner<wbr/>Radius</span></a><a href="#windowshadow"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>window<wbr/>Shadow</span></a><a href="#windowstyle"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>window<wbr/>Style</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">hammerspoon2-docs</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

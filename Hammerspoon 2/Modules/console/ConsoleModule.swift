@@ -33,6 +33,15 @@ import JavaScriptCoreExtras
 }
 
 @objc class ConsoleModule: NSObject, ConsoleModuleAPI {
+    override init() {
+        super.init()
+        AKDebug("Init of ConsoleModule")
+    }
+
+    isolated deinit {
+        AKDebug("Deinit of ConsoleModule")
+    }
+
     @objc func log(_ message: String) {
         AKConsole(message)
     }

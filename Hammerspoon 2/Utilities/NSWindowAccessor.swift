@@ -18,7 +18,7 @@ struct NSWindowAccessor: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         Task { @MainActor in
-            print(unsafe "Attaching NSWindow for '\(view.window?.title ?? "nil")' to WindowAccessorDelegate")
+            AKDebug(unsafe "Attaching NSWindow for '\(view.window?.title ?? "nil")' to WindowAccessorDelegate")
             delegate.window = unsafe view.window
         }
         return view

@@ -24,6 +24,7 @@ let xpcSessionHandler = { @Sendable (request: XPCListener.IncomingSessionRequest
     request.accept { message in
         // First, check that we can decode the incoming message to the expected HSOSARequest type
         guard let request = try? message.decode(as: HSOSARequest.self) else {
+            print("Unable to decode request")
             return HSOSAResponse(success: false,
                                  rawMessage: "Unable to decode request",
                                  jsonMessage: nil)
@@ -31,6 +32,7 @@ let xpcSessionHandler = { @Sendable (request: XPCListener.IncomingSessionRequest
 
         // Second, figure out which language the user asked us to run
         guard let osaLanguage = OSALanguage(forName: request.language) else {
+            print("Unknown language: \(request.language)")
             return HSOSAResponse(success: false,
                                  rawMessage: "Unknown language: \(request.language)",
                                  jsonMessage: nil)
@@ -40,6 +42,7 @@ let xpcSessionHandler = { @Sendable (request: XPCListener.IncomingSessionRequest
         let script = OSAScript(source: request.source, language: osaLanguage)
         var compileError: NSDictionary? = nil
         guard script.compileAndReturnError(&compileError) else {
+            print("Compilation failed")
             return HSOSAResponse(success: false,
                                  rawMessage: errorMessage(from: compileError, fallback: "Compilation failed"),
                                  jsonMessage: nil)
@@ -48,6 +51,7 @@ let xpcSessionHandler = { @Sendable (request: XPCListener.IncomingSessionRequest
         // Fourth, execute the supplied script
         var execError: NSDictionary? = nil
         guard let result = script.executeAndReturnError(&execError) else {
+            print("Execution failed")
             return HSOSAResponse(success: false,
                                  rawMessage: errorMessage(from: execError, fallback: "Execution failed"),
                                  jsonMessage: nil)

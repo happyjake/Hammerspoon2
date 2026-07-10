@@ -17,7 +17,7 @@ import AppKit
 import SwiftUI
 import WebKit
 
-/// A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.new()`.
+/// A WKWebView hosted inside a borderless NSWindow, created via `hs.webview.create()`.
 /// Provides a builder-style API for loading URLs or HTML, styling the window,
 /// registering JS message handlers, evaluating JavaScript, and managing the window lifecycle.
 @objc protocol HSWebviewAPI: HSTypeAPI, JSExport {
@@ -30,7 +30,7 @@ import WebKit
     /// - Returns: self for chaining
     /// - Example:
     /// ```js
-    /// hs.webview.new({x:0,y:0,w:600,h:400}).url('https://example.com').show()
+    /// hs.webview.create({x:0,y:0,w:600,h:400}).url('https://example.com').show()
     /// ```
     @objc func url(_ urlString: String) -> HSWebview
 
@@ -90,7 +90,7 @@ import WebKit
     /// - Returns: self for chaining
     /// - Example:
     /// ```js
-    /// const toast = hs.webview.new({x: 100, y: 100, w: 400, h: 200})
+    /// const toast = hs.webview.create({x: 100, y: 100, w: 400, h: 200})
     ///   .windowStyle({ titled: false, transparent: true })
     ///   .nonActivating(true)
     ///   .canBecomeKey(false)
@@ -113,7 +113,7 @@ import WebKit
     /// - Returns: self for chaining
     /// - Example:
     /// ```js
-    /// const hud = hs.webview.new({x: 0, y: 0, w: 800, h: 600})
+    /// const hud = hs.webview.create({x: 0, y: 0, w: 800, h: 600})
     ///   .windowStyle({ titled: false, transparent: true })
     ///   .ignoresMouseEvents(true)
     ///   .url('file:///tmp/hud.html')  // page may define window.__hsPointer(x, y, inside)
@@ -136,7 +136,7 @@ import WebKit
     /// - Returns: self for chaining
     /// - Example:
     /// ```js
-    /// const hud = hs.webview.new({x: 0, y: 0, w: 400, h: 300})
+    /// const hud = hs.webview.create({x: 0, y: 0, w: 400, h: 300})
     ///   .windowStyle({ titled: false, transparent: true })
     ///   .windowShadow(false)
     /// ```
@@ -168,7 +168,7 @@ import WebKit
     /// - Returns: self for chaining
     /// - Example:
     /// ```js
-    /// hs.webview.new({x:0,y:0,w:600,h:400}).backgroundColor('#18181C').url(...).show()
+    /// hs.webview.create({x:0,y:0,w:600,h:400}).backgroundColor('#18181C').url(...).show()
     /// ```
     @objc func backgroundColor(_ color: JSValue) -> HSWebview
 
@@ -184,7 +184,7 @@ import WebKit
     /// - Returns: self for chaining
     /// - Example:
     /// ```js
-    /// const hud = hs.webview.new({x:0, y:0, w:800, h:600})
+    /// const hud = hs.webview.create({x:0, y:0, w:800, h:600})
     ///   .windowStyle({ transparent: true })
     ///   .ignoresMouseEvents(true)
     ///   .keepsRenderingWhenInactive(true)
@@ -206,7 +206,7 @@ import WebKit
     /// - Returns: self for chaining
     /// - Example:
     /// ```js
-    /// const wv = hs.webview.new(rect)
+    /// const wv = hs.webview.create(rect)
     ///   .keepsRenderingWhenInactive(true)
     ///   .url('file://…/index.html')
     ///   .prewarm()      // builds + renders hidden at boot

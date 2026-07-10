@@ -31,6 +31,25 @@ class ManagerManager {
         self.fileSystem = fileSystem
     }
 
+    func reload() throws {
+        if settings.relaunchOnReload {
+            relaunch()
+        } else {
+            try boot()
+        }
+    }
+
+    private func relaunch() {
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let path = Bundle.main.bundlePath
+        let escaped = path.replacingOccurrences(of: "'", with: "'\\''")
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        task.arguments = ["-c", "while kill -0 \(pid) 2>/dev/null; do sleep 0.05; done; open '\(escaped)'"]
+        try? task.run()
+        NSApplication.shared.terminate(nil)
+    }
+
     func boot() throws {
         try engine.resetContext()
 
@@ -49,10 +68,11 @@ class ManagerManager {
             AKError("No config file found at: \(settings.configLocation.path)")
             return
         }
-        try engine.evalFromURL(settings.configLocation)
+        try engine.evalFromURL(settings.configLocation, wrapInIIFE: false)
     }
 
     func shutdown() {
+        engine.shutdown()
         NSApp.terminate(self)
     }
 }

@@ -11,7 +11,7 @@ import dnssd
 
 /// Discover and publish Bonjour (mDNS / Zeroconf) network services.
 ///
-/// Use `newSearch()` to search the network for services advertised by other
+/// Use `createSearch()` to search the network for services advertised by other
 /// devices, and `advertise()` to advertise your own. The `networkServices()`
 /// convenience function returns a snapshot of all service types currently
 /// active on the local network.
@@ -25,7 +25,7 @@ import dnssd
 ///
 /// ```js
 /// // Find all SSH services on the local network and resolve each one
-/// const search = hs.bonjour.newSearch()
+/// const search = hs.bonjour.createSearch()
 /// search.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {
 ///     if (event === 'serviceFound') {
 ///         svc.resolve(5, ev => {
@@ -71,18 +71,18 @@ import dnssd
     /// - Returns: a new `HSBonjourSearch`
     /// - Example:
     /// ```js
-    /// const search = hs.bonjour.newSearch()
+    /// const search = hs.bonjour.createSearch()
     /// search.findServices('_http._tcp.', 'local.', (ev, svc, more) => {
     ///     if (ev === 'serviceFound') console.log('Found:', svc.name)
     /// })
     /// ```
-    @objc func newSearch() -> HSBonjourSearch
+    @objc func createSearch() -> HSBonjourSearch
 
     /// Stops and removes a previously created search.
-    /// - Parameter search: the search returned by `newSearch()`
+    /// - Parameter search: the search returned by `createSearch()`
     /// - Example:
     /// ```js
-    /// const s = hs.bonjour.newSearch()
+    /// const s = hs.bonjour.createSearch()
     /// // ... use search ...
     /// hs.bonjour.removeSearch(s)
     /// ```
@@ -101,15 +101,15 @@ import dnssd
     /// - Parameter name: human-readable name shown to browsers (e.g. `"My Web Server"`)
     /// - Parameter type: service type in `"_proto._tcp."` or `"_proto._udp."` form
     /// - Parameter port: port number the service listens on
-    /// - Parameter domain: mDNS domain; defaults to `"local."` if omitted
-    /// - Parameter callback: optional `function(event, data?)` called on status changes
+    /// - Parameter domain: mDNS domain; defaults to `"local."` if an empty string is passed
+    /// - Parameter callback?: {((event: string, error?: string) => void) | null} Optional function called on status changes with event name and optional error message
     /// - Example:
     /// ```js
-    /// hs.bonjour.advertise('My Server', '_http._tcp.', 8080, ev => {
+    /// hs.bonjour.advertise('My Server', '_http._tcp.', 8080, '', ev => {
     ///     if (ev === 'published') console.log('Now advertising!')
     /// })
     /// ```
-    @objc func advertise(_ name: String, _ type: String, _ port: Int32, _ domain: JSValue, _ callback: JSValue)
+    @objc func advertise(_ name: String, _ type: String, _ port: Int, _ domain: String, _ callback: JSFunction)
 
     /// Stops advertising a service previously started with `advertise()`.
     /// - Parameter name: the name passed to `advertise()`
@@ -171,54 +171,50 @@ import dnssd
         "workstation":  "_workstation._tcp.",
     ]
 
-    private var searches: [HSBonjourSearch] = []
+    // Weak refs: searches stay active via their NSNetServiceBrowser delegate chain;
+    // weak refs allow dropped searches to be GC'd without an explicit removeSearch() call.
+    private var searches = HSWeakObjectSet<HSBonjourSearch>()
     private var advertisedServices: [String: AdvertisedService] = [:]
 
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
-        searches.forEach { search in
-            search.stopAllDiscoveredServices()
-            search.stop()
+        for search in searches.allObjects {
+            search.destroy()
         }
-        searches.removeAll()
+        searches.removeAllObjects()
         advertisedServices.values.forEach { $0.stop() }
         advertisedServices.removeAll()
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - HSBonjourModuleAPI
 
-    @objc func newSearch() -> HSBonjourSearch {
+    @objc func createSearch() -> HSBonjourSearch {
         let search = HSBonjourSearch()
-        searches.append(search)
-        AKTrace("HSBonjourModule: Created search \(search.identifier)")
+        searches.add(search)
+        AKDebug("HSBonjourModule: Created search \(search.identifier)")
         return search
     }
 
     @objc func removeSearch(_ search: HSBonjourSearch) {
-        search.stop()
-        searches.removeAll { $0 === search }
-        AKTrace("HSBonjourModule: Removed search \(search.identifier)")
+        search.destroy()
+        searches.remove(search)
+        AKDebug("HSBonjourModule: Removed search \(search.identifier)")
     }
 
-    @objc func advertise(_ name: String, _ type: String, _ port: Int32, _ domain: JSValue, _ callback: JSValue) {
+    @objc func advertise(_ name: String, _ type: String, _ port: Int, _ domain: String, _ callback: JSFunction) {
         let effectiveDomain: String
-        let effectiveCallback: JSValue?
-        if domain.isString {
-            effectiveDomain = domain.toString() ?? "local."
-            effectiveCallback = callback.isObject ? callback : nil
-        } else {
-            effectiveDomain = "local."
-            effectiveCallback = domain.isObject ? domain : nil
-        }
+        let effectiveCallback: JSFunction?
+        effectiveDomain = domain == "" ? "local." : domain
+        effectiveCallback = callback.isObject ? callback : nil
 
         let key = "\(name):\(type)"
         guard advertisedServices[key] == nil else {
@@ -292,37 +288,47 @@ import dnssd
 
 @MainActor
 private class AdvertisedService: NSObject, NetServiceDelegate {
-    private let service: NetService
-    private var callback: JSValue?
+    private var service: NetService?
+    private var callback: JSCallback?
 
-    init(name: String, type: String, port: Int32, domain: String, callback: JSValue?) {
-        self.service = NetService(domain: domain, type: type, name: name, port: port)
-        self.callback = callback
+    init(name: String, type: String, port: Int, domain: String, callback: JSFunction?) {
         super.init()
-        unsafe self.service.delegate = self
+
+        self.service = NetService(domain: domain, type: type, name: name, port: Int32(port))
+        unsafe self.service?.delegate = self
+
+        if let callback {
+            self.callback = JSCallback(value: callback, owner: self)
+        }
     }
 
     func publish() {
-        service.publish()
+        service?.publish()
     }
 
     func stop() {
-        service.stop()
+        service?.stop()
+        unsafe service?.delegate = nil
+        self.callback?.detach(from: self)
         callback = nil
+        service = nil
     }
 
     func netServiceDidPublish(_ sender: NetService) {
+        guard let service else { return }
         AKTrace("hs.bonjour: Published '\(service.name)'")
         _ = callback?.call(withArguments: ["published"])
     }
 
     func netService(_ sender: NetService, didNotPublish errorDict: [String: NSNumber]) {
+        guard let service else { return }
         let msg = HSBonjourService.errorMessage(from: errorDict)
         AKError("hs.bonjour: Failed to publish '\(service.name)': \(msg)")
         _ = callback?.call(withArguments: ["error", msg])
     }
 
     func netServiceDidStop(_ sender: NetService) {
+        guard let service else { return }
         AKTrace("hs.bonjour: Stopped '\(service.name)'")
         _ = callback?.call(withArguments: ["stopped"])
         callback = nil

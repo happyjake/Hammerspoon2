@@ -15,6 +15,8 @@
      * @param {string} options.workingDirectory - Working directory (optional)
      * @param {Function} options.onOutput - Callback for streaming output: (stream, data) => {} (optional)
      * @param {Function} legacyStreamCallback - Legacy streaming callback (optional)
+     * @example
+     * hs.task.runAsync("/bin/echo", ["hi"]).then(r => console.log(r.stdout))
      * @returns {Promise<{exitCode: number, stdout: string, stderr: string}>}
      */
     hs.task.runAsync = function(launchPath, args, options, legacyStreamCallback) {
@@ -31,7 +33,7 @@
                 const terminationCallback = options;
                 streamCallback = legacyStreamCallback;
 
-                const task = hs.task.new.call(hs.task, launchPath, args, terminationCallback, streamCallback);
+                const task = hs.task.create.call(hs.task, launchPath, args, terminationCallback, streamCallback);
                 task.start();
                 return; // Legacy mode doesn't return a promise
             }
@@ -76,7 +78,7 @@
             };
 
             // Create and start the task
-            const task = hs.task.new.call(hs.task, launchPath, args, terminationCallback, environment, streamCallback);
+            const task = hs.task.create.call(hs.task, launchPath, args, terminationCallback, environment, streamCallback);
 
             if (workingDirectory) {
                 task.workingDirectory = workingDirectory;
@@ -90,6 +92,8 @@
      * Run a shell command asynchronously
      * @param {string} command - Shell command to execute
      * @param {Object} options - Options (same as run)
+     * @example
+     * hs.task.shell("ls -la /tmp").then(r => console.log(r.stdout))
      * @returns {Promise<{exitCode: number, stdout: string, stderr: string}>}
      */
     hs.task.shell = function(command, options) {
@@ -98,8 +102,13 @@
 
     /**
      * Run multiple tasks in parallel
-     * @param {Array} tasks - Array of task specifications: [{path, args, options}, ...]
-     * @returns {Promise<Array>} Array of results
+     * @param {Array<{string, string[], Object|Function, Function}>} tasks - Array of task specifications: [{path, args, options}, ...]
+     * @example
+     * hs.task.parallel([
+     *   ["/bin/echo", ["one"]],
+     *   ["/bin/echo", ["two"]]
+     * ]).then(results => console.log(results))
+     * @returns {Promise<Array<{exitCode: number, stdout: string, stderr: string}>>} Array of results
      */
     hs.task.parallel = function(tasks) {
         const promises = tasks.map(task =>
@@ -125,6 +134,9 @@
     /**
      * Create a task builder for fluent API
      * @param {string} launchPath - Full path to the executable
+     * @example
+     *  const b = hs.task.builder().launchPath("/bin/echo").arguments(["hi"])
+     *  b.build().start()
      * @returns {TaskBuilder}
      */
     hs.task.builder = function(launchPath) {
@@ -206,7 +218,7 @@
                 streamCallback = this.outputCallback;
             }
 
-            const task = hs.task.new.call(hs.task, this.launchPath, this.args, null, this.env, streamCallback);
+            const task = hs.task.create.call(hs.task, this.launchPath, this.args, null, this.env, streamCallback);
 
             if (this.cwd) {
                 task.workingDirectory = this.cwd;

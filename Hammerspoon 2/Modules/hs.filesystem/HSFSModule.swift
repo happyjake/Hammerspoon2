@@ -86,7 +86,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
     ///
     /// - Parameters:
     ///   - path: Path to the file. `~` is expanded.
-    ///   - callback: Called once per line with the line text. Return `true` to continue reading, or `false` to stop early.
+    ///   - callback: {(line: string) => boolean} Called once per line with the line text. Return `true` to continue reading, or `false` to stop early.
     /// - Returns: `true` if the file was read successfully (including early stops requested by the callback), or `false` if the file could not be opened.
     /// - Example:
     /// ```js
@@ -96,7 +96,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
     ///     return true
     /// })
     /// ```
-    @objc func readLines(_ path: String, _ callback: JSValue) -> Bool
+    @objc func readLines(_ path: String, _ callback: JSFunction) -> Bool
 
     /// Read a mozLz4 file and return its decompressed contents as a string.
     ///
@@ -124,7 +124,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
     /// - Parameters:
     ///   - path: Path to the file. `~` is expanded.
     ///   - content: String to write.
-    ///   - inPlace: Whether to write the file in-place or atomically. Defaults to atomically
+    ///   - inPlace?: Whether to write the file in-place or atomically. Defaults to atomically (false).
     /// - Returns: `true` on success, `false` on failure.
     /// - Example:
     /// ```js
@@ -246,7 +246,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
     /// ```
     @objc func move(_ source: String, _ destination: String) -> Bool
 
-    /// Delete a file or directory.
+    /// Delete a file or directory at the given path.
     ///
     /// Directories are removed recursively. To remove only an empty directory,
     /// use `rmdir` instead.
@@ -255,9 +255,9 @@ import Compression     // readMozLz4 (LZ4 raw block)
     /// - Returns: `true` on success, `false` on failure.
     /// - Example:
     /// ```js
-    /// hs.fs.delete("/tmp/old.txt")
+    /// hs.fs.deletePath("/tmp/old.txt")
     /// ```
-    @objc func delete(_ path: String) -> Bool
+    @objc func deletePath(_ path: String) -> Bool
 
     // MARK: - Directory Operations
 
@@ -300,7 +300,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
 
     /// Remove an empty directory.
     ///
-    /// Fails if the directory is not empty. Use `delete` to remove a non-empty
+    /// Fails if the directory is not empty. Use `deletePath` to remove a non-empty
     /// directory recursively.
     ///
     /// - Parameter path: Path of the directory to remove. `~` is expanded.
@@ -412,7 +412,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
     /// const info = hs.fs.attributes("/etc/hosts")
     /// console.log(info.size, info.type)
     /// ```
-    @objc func attributes(_ path: String) -> NSDictionary?
+    @objc func attributes(_ path: String) -> [String: Any]?
 
     /// Update the modification timestamp of a file to the current time.
     ///
@@ -570,13 +570,13 @@ import Compression     // readMozLz4 (LZ4 raw block)
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {}
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Private helpers
@@ -626,7 +626,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
         return result
     }
 
-    @objc func readLines(_ path: String, _ callback: JSValue) -> Bool {
+    @objc func readLines(_ path: String, _ callback: JSFunction) -> Bool {
         guard let handle = FileHandle(forReadingAtPath: expand(path)) else {
             AKError("hs.fs.readLines: could not open \(path)")
             return false
@@ -822,12 +822,12 @@ import Compression     // readMozLz4 (LZ4 raw block)
         }
     }
 
-    @objc func delete(_ path: String) -> Bool {
+    @objc func deletePath(_ path: String) -> Bool {
         do {
             try fm.removeItem(atPath: expand(path))
             return true
         } catch {
-            AKError("hs.fs.delete: \(error.localizedDescription)")
+            AKError("hs.fs.deletePath: \(error.localizedDescription)")
             return false
         }
     }
@@ -917,7 +917,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
 
     // MARK: - File Attributes
 
-    @objc func attributes(_ path: String) -> NSDictionary? {
+    @objc func attributes(_ path: String) -> [String: Any]? {
         let expandedPath = expand(path)
         var st = Darwin.stat()
         // Use lstat so the type field correctly reports symlinks.
@@ -940,7 +940,7 @@ import Compression     // readMozLz4 (LZ4 raw block)
             "inode":            Int(st.st_ino),
             "creationDate":     creationDate,
             "modificationDate": modDate,
-        ] as NSDictionary
+        ]
     }
 
     @objc func touch(_ path: String) -> Bool {

@@ -38,7 +38,7 @@ import JavaScriptCore
 /// ## Rich notification
 ///
 /// ```js
-/// const n = hs.notify.new({
+/// const n = hs.notify.create({
 ///     title:    "New message",
 ///     subtitle: "From Alice",
 ///     body:     "Are you free tonight?",
@@ -68,10 +68,10 @@ import JavaScriptCore
 /// |----------|------|-------------|
 /// | `actionIdentifier` | string | `"DEFAULT"` when the user tapped the notification body; `"DISMISS"` when dismissed (if `.customDismissAction` is set); otherwise the action's `identifier` string |
 /// | `userText` | string? | Text entered in a `textInput` action; only present when applicable |
-/// | `userInfo` | object | The `userInfo` object originally passed to `new()`, if any |
+/// | `userInfo` | object | The `userInfo` object originally passed to `create()`, if any |
 /// | `notificationId` | string | The notification's unique identifier |
 ///
-/// ## Options for `new()`
+/// ## Options for `create()`
 ///
 /// | Key | Type | Default | Description |
 /// |-----|------|---------|-------------|
@@ -89,7 +89,7 @@ import JavaScriptCore
 ///
 /// ## Triggers
 ///
-/// Pass a `trigger` object in `new()`'s options to schedule the notification instead of delivering it
+/// Pass a `trigger` object in `create()`'s options to schedule the notification instead of delivering it
 /// **Time interval** — deliver after a fixed delay in seconds (minimum 60 s):
 /// ```js
 /// trigger: { type: "timeInterval", interval: 300 }
@@ -126,13 +126,12 @@ import JavaScriptCore
     /// - Parameters:
     ///   - title: The notification title
     ///   - body: The notification body text
-    ///   - callback: Optional function called when the user taps the notification.
-    ///     Receives a response object (see module docs for shape).
+    ///   - callback: {(response: Record<string, any>) => void} Optional function called when the user taps the notification. Receives a response object (see module docs for shape).
     /// - Example:
     /// ```js
     /// hs.notify.show("Build complete", "Your project compiled successfully.")
     /// ```
-    @objc(show:::) func show(_ title: String, _ body: String, _ callback: JSValue)
+    @objc(show:::) func show(_ title: String, _ body: String, _ callback: JSFunction)
 
     // MARK: Rich API
 
@@ -142,10 +141,10 @@ import JavaScriptCore
     /// - Returns: An `HSNotification` object. Call `.send()` on it to deliver the notification.
     /// - Example:
     /// ```js
-    /// const n = hs.notify.new({ title: "Hello", body: "World" })
+    /// const n = hs.notify.create({ title: "Hello", body: "World" })
     /// n.send()
     /// ```
-    @objc func new(_ options: JSValue) -> HSNotification?
+    @objc func create(_ options: [String: Any]) -> HSNotification?
 
     // MARK: Management
 
@@ -172,7 +171,7 @@ import JavaScriptCore
     var name = "hs.notify"
     let engineID: UUID
 
-    private var callbacks: [String: JSValue] = [:]
+    private var callbacks: [String: JSCallback] = [:]
     private var loggedDeniedOnce = false
 
     // Private userInfo key used to carry the category ID through to didReceive for pruning.
@@ -187,27 +186,31 @@ import JavaScriptCore
         // If previously denied, this call is a no-op and we silently skip
         // show() calls below.
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
+        for key in callbacks.keys {
+            callbacks[key]?.detach(from: self)
+        }
         callbacks.removeAll()
+        UNUserNotificationCenter.current().delegate = nil
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
         shutdown()
     }
 
     // MARK: - Internal callback registration
 
-    func storeCallback(identifier: String, callback: JSValue) {
-        callbacks[identifier] = callback
+    func storeCallback(identifier: String, callback: JSFunction) {
+        callbacks[identifier] = JSCallback(value: callback, owner: self)
     }
 
     // MARK: - HSNotifyModuleAPI
 
-    @objc(show:::) func show(_ title: String, _ body: String, _ callback: JSValue) {
+    @objc(show:::) func show(_ title: String, _ body: String, _ callback: JSFunction) {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
@@ -215,7 +218,7 @@ import JavaScriptCore
 
         let id = UUID().uuidString
         if callback.isObject {
-            callbacks[id] = callback
+            callbacks[id] = JSCallback(value: callback, owner: self)
         }
 
         // Check authorization synchronously-ish; if denied or undetermined,
@@ -247,31 +250,26 @@ import JavaScriptCore
         AKWarning("hs.notify: notifications are denied for Hammerspoon 2. Enable them in System Settings → Notifications → Hammerspoon 2 (subsequent show() calls will be silently skipped).")
     }
 
-    @objc func new(_ options: JSValue) -> HSNotification? {
-        guard options.isObject, let dict = options.toDictionary() else {
-            AKError("hs.notify.new(): Expected a JavaScript object with options")
-            return nil
-        }
-
-        guard let title = dict["title"] as? String, !title.isEmpty else {
-            AKError("hs.notify.new(): 'title' is required and must be a non-empty string")
+    @objc func create(_ options: [String: Any]) -> HSNotification? {
+        guard let title = options["title"] as? String, !title.isEmpty else {
+            AKError("hs.notify.create(): 'title' is required and must be a non-empty string")
             return nil
         }
 
         let content = UNMutableNotificationContent()
         content.title = title
 
-        if let subtitle = dict["subtitle"] as? String         { content.subtitle = subtitle }
-        if let body = dict["body"] as? String                 { content.body = body }
-        if let threadId = dict["threadIdentifier"] as? String { content.threadIdentifier = threadId }
-        if let badge = dict["badge"] as? NSNumber             { content.badge = badge }
+        if let subtitle = options["subtitle"] as? String         { content.subtitle = subtitle }
+        if let body = options["body"] as? String                 { content.body = body }
+        if let threadId = options["threadIdentifier"] as? String { content.threadIdentifier = threadId }
+        if let badge = options["badge"] as? NSNumber             { content.badge = badge }
 
-        if let rawUserInfo = dict["userInfo"] as? [AnyHashable: Any] {
+        if let rawUserInfo = options["userInfo"] as? [AnyHashable: Any] {
             content.userInfo = rawUserInfo
         }
 
         // Sound: omitted → default, true → default, false → silent, string → named file
-        let soundVal = dict["sound"]
+        let soundVal = options["sound"]
         if let soundName = soundVal as? String {
             content.sound = UNNotificationSound(named: UNNotificationSoundName(soundName))
         } else if let soundBool = soundVal as? Bool {
@@ -281,7 +279,7 @@ import JavaScriptCore
         }
 
         if #available(macOS 12.0, *) {
-            if let level = dict["interruptionLevel"] as? String {
+            if let level = options["interruptionLevel"] as? String {
                 switch level {
                 case "passive":       content.interruptionLevel = .passive
                 case "timeSensitive": content.interruptionLevel = .timeSensitive
@@ -291,12 +289,12 @@ import JavaScriptCore
         }
 
         // Parse the optional trigger.
-        let trigger = Self.buildTrigger(from: dict["trigger"] as? [AnyHashable: Any])
+        let trigger = Self.buildTrigger(from: options["trigger"] as? [AnyHashable: Any])
 
         // Build action buttons into a UNNotificationCategory.
         // The category is NOT registered here — HSNotification.send() registers it atomically
         // with the notification request to eliminate the race between registration and delivery.
-        let actionsNS = dict["actions"] as? NSArray
+        let actionsNS = options["actions"] as? NSArray
         let actionsRaw = actionsNS?.compactMap { $0 as? [AnyHashable: Any] } ?? []
         var pendingCategory: UNNotificationCategory?
         if !actionsRaw.isEmpty {
@@ -337,8 +335,7 @@ import JavaScriptCore
 
         // Extract the callback via forProperty so the JSValue function is preserved
         // (toDictionary() silently drops function values).
-        let callbackVal = options.forProperty("callback")
-        let callback: JSValue? = (callbackVal?.isObject == true) ? callbackVal : nil
+        let callback = options["callback"] as? JSFunction
 
         let id = UUID().uuidString
         let notification = HSNotification(
@@ -441,7 +438,8 @@ extension HSNotifyModule: UNUserNotificationCenterDelegate {
                     "notificationId":   notifId,
                 ]
                 if let text = userText { responseObj["userText"] = text }
-                cb.callSafely(withArguments: [responseObj], context: "hs.notify response")
+                cb.value?.callSafely(withArguments: [responseObj], context: "hs.notify response")
+                cb.detach(from: self)
             }
 
             // Prune the per-notification category now that it has served its purpose.

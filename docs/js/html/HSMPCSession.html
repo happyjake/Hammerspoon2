@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSMPCSession - Hammerspoon 2 API</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="highlight.min.js"></script>
+</head>
+<body>
+    <!-- Top header bar -->
+    <header class="top-header">
+        <div class="header-left">
+            <a href="index.html" class="site-logo">Hammerspoon 2</a>
+            <span class="version-badge">API Docs</span>
+        </div>
+        <div class="header-center">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M11.5 7a4.499 4.499 0 11-8.998 0A4.499 4.499 0 0111.5 7zm-.82 4.74a6 6 0 111.06-1.06l3.04 3.04a.75.75 0 11-1.06 1.06L10.68 11.74z"></path>
+                </svg>
+                <input type="search" id="search-input" class="search-input" placeholder="Search properties and methods…" aria-label="Search">
+            <div id="search-results" class="search-results" hidden></div>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="https://github.com/cmsj/Hammerspoon2" class="github-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+                <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <div class="layout-body">
+        <!-- Left sidebar -->
+        <nav class="sidebar-left" aria-label="Site navigation">
+            <div class="nav-section" id="modules-section">
+                <div class="nav-section-label">MODULES</div>
+                <div id="modules-nav"></div>
+            </div>
+            <div class="nav-section" id="types-section">
+                <div class="nav-section-label">TYPES</div>
+                <div id="types-nav"></div>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="content" id="main-content">
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="index.html">API Reference</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">HSMPCSession</span>
+</nav>
+<div class="page-header">
+    <h1>HSMPCSession</h1>
+    <span class="page-badge">Type</span>
+</div>
+
+<div class="module-description"><p>A MultipeerConnectivity session — the CrossMac data plane.</p>
+<p>Obtain via <code>hs.multipeer.session(...)</code>. Call <code>start()</code> to advertise + browse;
+both peers advertise and browse, and whichever sees the other first invites,
+authenticated by the shared <code>context</code> string. Payloads cross the JS bridge as
+base64 strings (pairs with <code>HSImage.encode</code>).</p>
+</div>
+
+<h2 class="section-heading">Properties</h2>
+    <div class="property" id="peers">
+        <h3><a href="#peers">peers</a></h3>
+        <div class="prop-type">string[]</div>
+        <div class="description">The display names of all currently connected peers.</div>
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.multipeer/HSMPCSession.swift#L89" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift:89</a>
+        </div>
+    </div>
+
+<h2 class="section-heading">Methods</h2>
+    <div class="method" id="start">
+        <h3>
+<a href="#start">start() -> None</a>
+        </h3>
+
+        <div class="description">Start advertising and browsing for peers.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">start() -> None</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">s.start()</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.multipeer/HSMPCSession.swift#L38" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift:38</a>
+        </div>
+    </div>
+    <div class="method" id="stop">
+        <h3>
+<a href="#stop">stop() -> None</a>
+        </h3>
+
+        <div class="description">Stop advertising/browsing and disconnect the session.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">stop() -> None</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">s.stop()</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.multipeer/HSMPCSession.swift#L45" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift:45</a>
+        </div>
+    </div>
+    <div class="method" id="reset">
+        <h3>
+<a href="#reset">reset() -> None</a>
+        </h3>
+
+        <div class="description">Tear down and recreate the underlying session/advertiser/browser, then
+resume if it was started. The JS watchdog calls this to clear a wedged
+AWDL/MPC state.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">reset() -> None</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">if (peerlessForTooLong) s.reset()</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.multipeer/HSMPCSession.swift#L54" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift:54</a>
+        </div>
+    </div>
+    <div class="method" id="onPeer">
+        <h3>
+<a href="#onPeer">onPeer(cb) -> HSMPCSession</a>
+        </h3>
+
+        <div class="description">Register a callback for peer connection-state changes.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">onPeer(cb) -> HSMPCSession</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">cb</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">`function(peerName, state)` — state is `&quot;connected&quot;`, `&quot;connecting&quot;`, or `&quot;disconnected&quot;`.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSMPCSession</div>
+        <div class="return-desc">self, for chaining.</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">s.onPeer((peer, state) =&gt; console.log(peer, state))</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.multipeer/HSMPCSession.swift#L63" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift:63</a>
+        </div>
+    </div>
+    <div class="method" id="onReceive">
+        <h3>
+<a href="#onReceive">onReceive(cb) -> HSMPCSession</a>
+        </h3>
+
+        <div class="description">Register a callback for received payloads.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">onReceive(cb) -> HSMPCSession</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">cb</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">`function(base64, peerName)` — `base64` is the received bytes, base64-encoded.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSMPCSession</div>
+        <div class="return-desc">self, for chaining.</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">s.onReceive((b64, peer) =&gt; { /* decode + use */ })</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.multipeer/HSMPCSession.swift#L72" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift:72</a>
+        </div>
+    </div>
+    <div class="method" id="send">
+        <h3>
+<a href="#send">send(base64, opts) -> boolean</a>
+        </h3>
+
+        <div class="description">Send a payload to all connected peers.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">send(base64, opts) -> boolean</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">base64</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the payload bytes, base64-encoded.</td>
+                </tr>
+                <tr>
+                    <td class="param-name">opts</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">`{ reliable }` — `reliable` defaults to `true`.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">boolean</div>
+        <div class="return-desc">`true` if sent to at least one peer; `false` if there are no peers, the base64 is invalid, or send failed.</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">s.send(img.encode(&#39;jpeg&#39;, 0.8), { reliable: true })</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.multipeer/HSMPCSession.swift#L82" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.multipeer/HSMPCSession.swift:82</a>
+        </div>
+    </div>
+        </main>
+
+        <!-- Right TOC sidebar -->
+        <aside class="toc-sidebar" aria-label="On this page">
+            <div class="toc-label">ON THIS PAGE</div>
+            <nav id="toc-nav"></nav>
+        </aside>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNavigation('HSMPCSession');
+            generateTOC();
+            addCopyButtons();
+            initSearch();
+            initTOCObserver();
+        });
+    </script>
+</body>
+</html>

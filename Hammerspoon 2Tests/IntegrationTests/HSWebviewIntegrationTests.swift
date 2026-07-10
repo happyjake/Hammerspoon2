@@ -22,13 +22,13 @@ struct HSWebviewStructureTests {
         return harness
     }
 
-    @Test("new is a function") @MainActor func testNewIsFunction() {
-        makeHarness().expectTrue("typeof hs.webview.new === 'function'")
+    @Test("create is a function") @MainActor func testNewIsFunction() {
+        makeHarness().expectTrue("typeof hs.webview.create === 'function'")
     }
 
     @Test("new() returns an object with builder methods") @MainActor func testNewReturnsBuilder() {
         let h = makeHarness()
-        h.eval("const wv = hs.webview.new({x:0,y:0,w:400,h:300})")
+        h.eval("const wv = hs.webview.create({x:0,y:0,w:400,h:300})")
         h.expectTrue("typeof wv.url === 'function'")
         h.expectTrue("typeof wv.html === 'function'")
         h.expectTrue("typeof wv.reload === 'function'")
@@ -54,12 +54,12 @@ struct HSWebviewStructureTests {
     @Test("new() without a rect returns null") @MainActor func testNewWithoutRect() {
         let h = makeHarness()
         // Loose-equality null check tolerates undefined vs null bridging.
-        h.expectTrue("hs.webview.new('not-an-object') == null")
+        h.expectTrue("hs.webview.create('not-an-object') == null")
     }
 
     @Test("builder methods chain (return same object)") @MainActor func testBuilderChain() {
         let h = makeHarness()
-        h.eval("const wv = hs.webview.new({x:0,y:0,w:400,h:300})")
+        h.eval("const wv = hs.webview.create({x:0,y:0,w:400,h:300})")
         h.expectTrue("wv.url('about:blank') === wv")
         h.expectTrue("wv.level('floating') === wv")
         h.expectTrue("wv.windowStyle({titled:false, closable:false}) === wv")
@@ -80,14 +80,14 @@ struct HSWebviewStructureTests {
 
     @Test("setMessageHandler accepts null to unregister") @MainActor func testUnregisterHandler() {
         let h = makeHarness()
-        h.eval("const wv = hs.webview.new({x:0,y:0,w:400,h:300})")
+        h.eval("const wv = hs.webview.create({x:0,y:0,w:400,h:300})")
         h.eval("wv.setMessageHandler('vc', (m) => {})")
         h.expectTrue("wv.setMessageHandler('vc', null) === wv")
     }
 
     @Test("level accepts named values without throwing") @MainActor func testLevelNames() {
         let h = makeHarness()
-        h.eval("const wv = hs.webview.new({x:0,y:0,w:400,h:300})")
+        h.eval("const wv = hs.webview.create({x:0,y:0,w:400,h:300})")
         for level in ["normal", "floating", "modal", "popup", "screensaver", "mainmenu", "status", "garbage"] {
             h.expectTrue("wv.level('\(level)') === wv")
         }
@@ -95,7 +95,7 @@ struct HSWebviewStructureTests {
 
     @Test("windowStyle accepts partial dictionaries") @MainActor func testPartialStyle() {
         let h = makeHarness()
-        h.eval("const wv = hs.webview.new({x:0,y:0,w:400,h:300})")
+        h.eval("const wv = hs.webview.create({x:0,y:0,w:400,h:300})")
         h.expectTrue("wv.windowStyle({}) === wv")
         h.expectTrue("wv.windowStyle({titled:true}) === wv")
         h.expectTrue("wv.windowStyle({transparent:true, closable:false}) === wv")
@@ -103,13 +103,13 @@ struct HSWebviewStructureTests {
 
     @Test("currentFrame is null before show()") @MainActor func testCurrentFrameNullBeforeShow() {
         let h = makeHarness()
-        h.eval("const wv = hs.webview.new({x:0,y:0,w:400,h:300})")
+        h.eval("const wv = hs.webview.create({x:0,y:0,w:400,h:300})")
         h.expectTrue("wv.currentFrame() == null")
     }
 
     @Test("evaluateJavaScript before show() warns but does not crash") @MainActor func testEvalBeforeShow() {
         let h = makeHarness()
-        h.eval("const wv = hs.webview.new({x:0,y:0,w:400,h:300})")
+        h.eval("const wv = hs.webview.create({x:0,y:0,w:400,h:300})")
         // Just verify it does not throw a JS exception.
         h.eval("wv.evaluateJavaScript('1+1', null)")
         #expect(h.lastException == nil, "evaluateJavaScript before show should not throw, got: \(h.exceptionMessage ?? "nil")")
@@ -117,7 +117,7 @@ struct HSWebviewStructureTests {
 
     @Test("html() chains and accepts null baseURL") @MainActor func testHtmlChain() {
         let h = makeHarness()
-        h.eval("const wv = hs.webview.new({x:0,y:0,w:400,h:300})")
+        h.eval("const wv = hs.webview.create({x:0,y:0,w:400,h:300})")
         h.expectTrue("wv.html('<h1>hi</h1>', null) === wv")
         h.expectTrue("wv.html('<h1>hi</h1>', 'about:blank') === wv")
     }
@@ -139,7 +139,7 @@ struct HSWebviewLifecycleTests {
         // in the test runner; this drives the NSPanel host through its lifecycle.
         let h = makeHarness()
         h.eval("""
-            const wv = hs.webview.new({x:200, y:200, w:380, h:240})
+            const wv = hs.webview.create({x:200, y:200, w:380, h:240})
                 .windowStyle({titled:false, closable:false, transparent:true})
                 .nonActivating(true)
                 .canBecomeKey(false)
@@ -165,7 +165,7 @@ struct HSWebviewLifecycleTests {
         // effect is verified live via the vibecast toast probes.
         let h = makeHarness()
         h.eval("""
-            const wv = hs.webview.new({x:240, y:240, w:370, h:230})
+            const wv = hs.webview.create({x:240, y:240, w:370, h:230})
                 .windowStyle({titled:false, closable:false, transparent:true})
                 .nonActivating(true)
                 .canBecomeKey(false)
@@ -199,7 +199,7 @@ struct HSWebviewLifecycleTests {
         // verified live by vibecast's hud-verify hover snapshot.
         let h = makeHarness()
         h.eval("""
-            const wv = hs.webview.new({x:240, y:240, w:360, h:220})
+            const wv = hs.webview.create({x:240, y:240, w:360, h:220})
                 .windowStyle({titled:false, closable:false, transparent:true})
                 .ignoresMouseEvents(true)
                 .canBecomeKey(false)
@@ -226,7 +226,7 @@ struct HSWebviewLifecycleTests {
     @Test("show() then close() does not crash") @MainActor func testShowClose() {
         let h = makeHarness()
         h.eval("""
-            const wv = hs.webview.new({x:200, y:200, w:400, h:300})
+            const wv = hs.webview.create({x:200, y:200, w:400, h:300})
                 .windowStyle({titled:false, closable:false, transparent:true})
                 .level('floating')
                 .html('<!doctype html><html><body style="background:#222;color:#0f0">hi</body></html>', null)
@@ -249,7 +249,7 @@ struct HSWebviewLifecycleTests {
         let h = makeHarness()
         h.eval("""
             globalThis.__dropped = null
-            const wv = hs.webview.new({x:200, y:200, w:400, h:300})
+            const wv = hs.webview.create({x:200, y:200, w:400, h:300})
                 .windowStyle({titled:false, closable:false})
                 .onFileDrop((paths) => { globalThis.__dropped = paths })
                 .html('<!doctype html><html><body>drop</body></html>', null)

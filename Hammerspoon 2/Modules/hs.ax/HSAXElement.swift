@@ -205,13 +205,28 @@ import AXSwift
     @objc var typeName = "HSAXElement"
     let element: UIElement
 
+    /// Upper bound for every synchronous AX round-trip made through this
+    /// element. The macOS default lets a single call to a busy or wedged app
+    /// block the caller for multiple seconds — and hs.ax calls run on the JS
+    /// (main) thread, so a tree walk over such an app froze the whole app for
+    /// minutes. 1s is generous for a healthy-but-slow target while keeping the
+    /// worst case per call bounded. (hs.window/hs.switcher use 0.1s for their
+    /// registry reads; hs.ax stays looser because users deliberately query
+    /// deep, potentially slow attributes here.)
+    private static let messagingTimeout: Float = 1.0
+
     init(element: UIElement) {
         self.element = element
         super.init()
+        AXUIElementSetMessagingTimeout(element.element, Self.messagingTimeout)
     }
 
     isolated deinit {
-        AKTrace("deinit of HSAXElement: \(self.role ?? "unknown")")
+        // Deliberately does NOT touch self.role (or any other AX attribute):
+        // reading one is a synchronous IPC to the target app, and deinit runs
+        // whenever JSC collects a wrapper — an AX call here stalled the main
+        // thread at arbitrary GC points when the target app was busy.
+        AKDebug("deinit of HSAXElement")
     }
 
     // MARK: - Basic Properties

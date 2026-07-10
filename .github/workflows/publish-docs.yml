@@ -1,21 +1,34 @@
 name: Build and Publish Documentation
 
 on:
-  # Run on pushes to main branch
+  # Publish main-branch docs under the "main" version directory
   push:
-    branches:
-      - main
+    branches: [main]
+    # Publish a tagged release under a directory named after the tag
+    tags: ['*']
 
-  # Allow manual trigger
+  # Manual trigger: optionally specify a ref to check out and/or a version
+  # directory name. Useful for re-publishing a tag or fixing a broken deploy.
   workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to check out (branch, tag, or SHA). Defaults to the workflow ref.'
+        required: false
+        default: ''
+      version:
+        description: 'Version directory name (e.g. "0.0.5"). Defaults to tag name or "main".'
+        required: false
+        default: ''
 
-# Sets permissions for GitHub Pages deployment
+# Pages deployment needs write access; contents write is needed to update the
+# gh-pages persistence branch.
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
+# Serialise deployments so that concurrent tag + main pushes don't race when
+# reading/writing the gh-pages persistence branch.
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -27,6 +40,35 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Overlay doc-generation scripts from main
+        run: |
+          # The target ref may be an older tag that predates certain scripts.
+          # Always use scripts/, package.json, and package-lock.json from main
+          # so we run the latest documentation tooling against any source version.
+          git fetch origin main --depth=1
+          git checkout origin/main -- scripts/ package.json package-lock.json
+
+      - name: Determine version name
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            # Explicit override from workflow_dispatch input
+            echo "name=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          elif [ -n "${{ inputs.ref }}" ]; then
+            # Manual dispatch with a ref — strip refs/tags/ or refs/heads/ prefix
+            REF="${{ inputs.ref }}"
+            NAME="${REF#refs/tags/}"
+            NAME="${NAME#refs/heads/}"
+            echo "name=${NAME}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=main" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,25 +79,66 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Extract documentation
-        run: node scripts/extract-docs.js
+      - name: Generate documentation
+        run: npm run docs:generate
 
-      - name: Generate HTML documentation
-        run: node scripts/generate-html.js
-
-      - name: Generate TypeScript definitions
-        run: node scripts/generate-typescript.js
-
-      - name: Copy TypeScript files to HTML output
+      - name: Copy TypeScript files to JS HTML output
         run: |
-          cp docs/hammerspoon.d.ts docs/html/
-          cp docs/tsconfig.example.json docs/html/
-          cp docs/TYPESCRIPT.md docs/html/
+          cp docs/hammerspoon.d.ts docs/js/html/
+          cp docs/tsconfig.example.json docs/js/html/
+          cp docs/TYPESCRIPT.md docs/js/html/
 
-      - name: Upload artifact
+      - name: Fetch existing versioned site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p site
+          # Clone the gh-pages persistence branch if it exists so we keep all
+          # previously published version directories.
+          if git ls-remote --exit-code origin refs/heads/gh-pages 2>/dev/null; then
+            git clone \
+              --branch gh-pages \
+              --single-branch \
+              --depth 1 \
+              "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" \
+              site-existing
+            rsync -a --exclude='.git' site-existing/ site/
+            rm -rf site-existing
+          fi
+
+      - name: Install new version docs into site
+        run: |
+          VERSION="${{ steps.version.outputs.name }}"
+          echo "Publishing docs as: $VERSION"
+          rm -rf "site/$VERSION"
+          mkdir -p "site/$VERSION"
+          cp -r docs/js/html "site/$VERSION/js"
+          cp -r docs/ts/html "site/$VERSION/ts"
+
+      - name: Generate root version index
+        run: node scripts/generate-versions-index.js site
+
+      - name: Persist full site to gh-pages branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create a single orphan commit on gh-pages containing the complete
+          # current site. Force-push keeps the branch lean (no history).
+          cd site
+          git init
+          git checkout --orphan gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: publish ${{ steps.version.outputs.name }}"
+          git push --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" \
+            gh-pages
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/html
+          path: site
 
   deploy:
     environment:

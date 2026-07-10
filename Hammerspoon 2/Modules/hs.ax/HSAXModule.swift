@@ -85,7 +85,7 @@ import AXSwift
     /// - Parameters:
     ///   - application: An HSApplication object
     ///   - notification: An event name
-    ///   - listener: A function/lambda to be called when the event is fired. The function/lambda will be called with two arguments: the name of the event, and the element it applies to
+    ///   - listener: {(notification: string, element: HSAXElement) => void} A function called with the notification name and the accessibility element it applies to
     /// - Example:
     /// ```js
     /// const app = hs.application.frontmost()
@@ -93,7 +93,7 @@ import AXSwift
     ///     console.log("New window:", element.title)
     /// })
     /// ```
-    @objc func addWatcher(_ application: HSApplication, _ notification: String, _ listener: JSValue)
+    @objc func addWatcher(_ application: HSApplication, _ notification: String, _ listener: JSFunction)
 
     /// Remove a watcher for application AX events
     /// - Parameters:
@@ -105,49 +105,29 @@ import AXSwift
     /// const app = hs.application.frontmost()
     /// hs.ax.removeWatcher(app, "AXWindowCreated", myHandler)
     /// ```
-    @objc func removeWatcher(_ application: HSApplication, _ notification: String, _ listener: JSValue)
+    @objc func removeWatcher(_ application: HSApplication, _ notification: String, _ listener: JSFunction)
 
     // NOTE: These are private API for JavaScript code to use
     /// SKIP_DOCS
-    @objc(_addWatcher:::) func _addWatcher(_ application: HSApplication, notification: String, callback: JSValue)
+    @objc(_addWatcher:::) func _addWatcher(_ application: HSApplication, notification: String, callback: JSFunction)
     /// SKIP_DOCS
     @objc(_removeWatcher::) func _removeWatcher(_ application: HSApplication, notification: String)
 
     /// Swift-retained storage for the JS AXModuleWatcherEmitter instance
     /// SKIP_DOCS
-    @objc var _watcherEmitter: JSValue? { get set }
+    @objc var _watcherEmitter: JSFunction? { get set }
 
-    /// Fetch the focused UI element. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// const el = hs.ax.focusedElement()
-    /// console.log(el.role, el.title)
-    /// ```
-    @objc var focusedElement: JSValue? { get set }
+    /// SKIP_DOCS
+    @objc var focusedElement: JSFunction? { get set }
 
-    /// Find AX elements by role. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// const app = hs.application.frontmost()
-    /// const buttons = hs.ax.findByRole(app, "AXButton")
-    /// ```
-    @objc var findByRole: JSValue? { get set }
+    /// SKIP_DOCS
+    @objc var findByRole: JSFunction? { get set }
 
-    /// Find AX elements by title. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// const app = hs.application.frontmost()
-    /// const matches = hs.ax.findByTitle(app, "OK")
-    /// ```
-    @objc var findByTitle: JSValue? { get set }
+    /// SKIP_DOCS
+    @objc var findByTitle: JSFunction? { get set }
 
-    /// Print the element hierarchy. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// const app = hs.application.frontmost()
-    /// hs.ax.printHierarchy(app)
-    /// ```
-    @objc var printHierarchy: JSValue? { get set }
+    /// SKIP_DOCS
+    @objc var printHierarchy: JSFunction? { get set }
 }
 
 // MARK: - Implementation
@@ -168,11 +148,11 @@ import AXSwift
     @objc var _notificationTypes: [String: String] = [:]
 
     // Swift-retained storage for JS-defined functions
-    @objc var _watcherEmitter: JSValue? = nil
-    @objc var focusedElement: JSValue? = nil
-    @objc var findByRole: JSValue? = nil
-    @objc var findByTitle: JSValue? = nil
-    @objc var printHierarchy: JSValue? = nil
+    @objc var _watcherEmitter: JSFunction? = nil
+    @objc var focusedElement: JSFunction? = nil
+    @objc var findByRole: JSFunction? = nil
+    @objc var findByTitle: JSFunction? = nil
+    @objc var printHierarchy: JSFunction? = nil
 
     // MARK: - Module lifecycle
 
@@ -191,12 +171,12 @@ import AXSwift
             _notificationTypes[name] = notificationType.rawValue
         }
         super.init()
-        AKTrace("Init of \(self.name)")
+        AKDebug("Init of \(self.name)")
     }
 
     func shutdown() {
         // Clean up all watchers
-        for key in watchers.keys {
+        for key in Array(watchers.keys) {
             if let watcherObject = watchers[key] {
                 do {
                     let pid = try watcherObject.element.pid()
@@ -212,18 +192,24 @@ import AXSwift
                     AKError("hs.ax: Error getting PID during shutdown: \(error)")
                 }
             }
-            watchers.removeValue(forKey: key)
         }
+        watchers.removeAll()
 
         // Stop all observers
         for (_, observer) in observers {
             observer.stop()
         }
         observers.removeAll()
+
+        _watcherEmitter = nil
+        focusedElement = nil
+        findByRole = nil
+        findByTitle = nil
+        printHierarchy = nil
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
         shutdown()
     }
 
@@ -278,15 +264,15 @@ import AXSwift
         return "\(pid):\(notification)"
     }
 
-    @objc func addWatcher(_ application: HSApplication, _ notification: String, _ listener: JSValue) {
+    @objc func addWatcher(_ application: HSApplication, _ notification: String, _ listener: JSFunction) {
         _watcherEmitter?.invokeMethod("on", withArguments: [application, notification, listener])
     }
 
-    @objc func removeWatcher(_ application: HSApplication, _ notification: String, _ listener: JSValue) {
+    @objc func removeWatcher(_ application: HSApplication, _ notification: String, _ listener: JSFunction) {
         _watcherEmitter?.invokeMethod("removeListener", withArguments: [application, notification, listener])
     }
 
-    @objc(_addWatcher:::) func _addWatcher(_ application: HSApplication, notification: String, callback: JSValue) {
+    @objc(_addWatcher:::) func _addWatcher(_ application: HSApplication, notification: String, callback: JSFunction) {
         guard isAccessibilityEnabled() else {
             AKError("hs.ax.addWatcher(): Accessibility permissions not granted")
             return

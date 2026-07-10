@@ -26,10 +26,10 @@ import AppKit
 /// - **Text Input**: Prompt users for text input
 /// - **File Pickers**: Let users select files or directories
 /// - **Reactive Colors**: Pass an `HSColor` object to `.fill()`, `.stroke()`, or `.foregroundColor()`,
-///   then call `.set()` on it from any callback to re-render the canvas automatically
+///   then call `.replaceWithColor()` or `.replaceWithHex()` on it from any callback to re-render the canvas automatically
 /// - **Reactive Text**: Create a string with `hs.ui.string()`, pass it to `.text()`,
 ///   then call `.set()` on it to update the displayed content live
-/// - **Reactive Images**: Pass an `HSImage` object to `.image()`, then call `.set()` on it
+/// - **Reactive Images**: Pass an `HSImage` object to `.image()`, then call `.replaceWithImage()` or `.replaceFromFile()` on it
 ///   to swap the image without rebuilding the window
 ///
 /// ## Basic Examples
@@ -47,7 +47,7 @@ import AppKit
 ///     .informativeText("Your document has unsaved changes.")
 ///     .buttons(["Save", "Don't Save", "Cancel"])
 ///     .onButton((index) => {
-///         if (index === 0) print("Saving...");
+///         if (index === 0) console.log("Saving...");
 ///     })
 ///     .show();
 /// ```
@@ -57,7 +57,7 @@ import AppKit
 /// hs.ui.textPrompt("Enter your name")
 ///     .defaultText("John Doe")
 ///     .onButton((buttonIndex, text) => {
-///         print("User entered: " + text);
+///         console.log("User entered: " + text);
 ///     })
 ///     .show();
 /// ```
@@ -68,7 +68,7 @@ import AppKit
 ///     .message("Choose a file")
 ///     .allowedFileTypes(["txt", "md"])
 ///     .onSelection((path) => {
-///         if (path) print("Selected: " + path);
+///         if (path) console.log("Selected: " + path);
 ///     })
 ///     .show();
 /// ```
@@ -102,7 +102,7 @@ import AppKit
 ///         .cornerRadius(8)
 ///         .frame({w: "100%", h: "100%"})
 ///         .onHover((isHovered) => {
-///             btnColor.set(isHovered ? "#E24A4A" : "#4A90E2");
+///             btnColor.replaceWithHex(isHovered ? "#E24A4A" : "#4A90E2");
 ///         })
 ///     .show();
 /// ```
@@ -133,10 +133,10 @@ import AppKit
 ///         .aspectRatio("fit")
 ///         .frame({w: 64, h: 64})
 ///         .onClick(() => {
-///             const next = (icon.name() === "NSStatusAvailable")
+///             const next = (icon.name === "NSStatusAvailable")
 ///                 ? HSImage.fromName("NSStatusUnavailable")
 ///                 : HSImage.fromName("NSStatusAvailable");
-///             icon.set(next);
+///             icon.replaceWithImage(next);
 ///         })
 ///     .show();
 /// ```
@@ -250,7 +250,7 @@ import AppKit
 ///             .cornerRadius(10)
 ///             .frame({w: "100%", h: 60})
 ///             .onHover((isHovered) => {
-///                 cardColor.set(isHovered ? "#E74C3C" : "#3498DB");
+///                 cardColor.replaceWithHex(isHovered ? "#E74C3C" : "#3498DB");
 ///                 cardLabel.set(isHovered ? "You found it!" : "Hover the card");
 ///             })
 ///         .text(cardLabel)
@@ -364,6 +364,29 @@ import AppKit
     ///     .show()
     /// ```
     @objc func filePicker() -> HSUIFilePicker
+
+    /// Create a web browser element for embedding in `hs.ui.window` (macOS 26+)
+    ///
+    /// Returns a `UIWebView` element that you configure and then embed in any `hs.ui.window`
+    /// via `.webview(element)`. The element fills the available space inside the window layout.
+    /// Keep a reference to call navigation methods after the window is shown.
+    ///
+    /// - Returns: A `UIWebView` element for configuration and embedding
+    /// - Example:
+    /// ```js
+    /// const wv = hs.ui.webview()
+    ///     .toolbar(["back", "forward", "reload", "url"])
+    ///     .loadURL("https://apple.com")
+    ///
+    /// hs.ui.window({x: 100, y: 100, w: 1024, h: 768})
+    ///     .webview(wv)
+    ///     .show()
+    ///
+    /// // Navigate later:
+    /// wv.loadURL("https://google.com")
+    /// ```
+    @available(macOS 26.0, *)
+    @objc func webview() -> UIWebView
 }
 
 // MARK: - Implementation
@@ -383,7 +406,7 @@ import AppKit
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
@@ -407,7 +430,7 @@ import AppKit
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Object Registration (called by UI objects when shown/closed)
@@ -479,6 +502,13 @@ import AppKit
         return MainActor.assumeIsolated {
             let picker = HSUIFilePicker(module: self)
             return picker
+        }
+    }
+
+    @available(macOS 26.0, *)
+    @objc func webview() -> UIWebView {
+        return MainActor.assumeIsolated {
+            UIWebView()
         }
     }
 }

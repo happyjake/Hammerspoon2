@@ -110,7 +110,7 @@ import AXSwift
         // JS hasn't called any hs.window API yet (hs.switcher reads it on the
         // first ctrl×2 trigger).
         _ = HSWindowRegistry.shared
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     /// Internal accessor for other modules (e.g. `hs.switcher`).
@@ -127,7 +127,7 @@ import AXSwift
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Helper Methods

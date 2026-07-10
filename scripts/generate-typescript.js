@@ -15,11 +15,30 @@ const JSON_DIR = path.join(__dirname, '..', 'docs', 'json');
 const OUTPUT_FILE = path.join(__dirname, '..', 'docs', 'hammerspoon.d.ts');
 
 /**
- * Convert Swift type to TypeScript type
+ * Find the index of the first colon at bracket-depth 0 within a string.
+ * Returns -1 if no such colon exists (i.e. the string is an array type, not a dictionary).
+ */
+function findTopLevelColon(s) {
+    let depth = 0;
+    for (let i = 0; i < s.length; i++) {
+        if (s[i] === '[') depth++;
+        else if (s[i] === ']') depth--;
+        else if (s[i] === ':' && depth === 0) return i;
+    }
+    return -1;
+}
+
+/**
+ * Convert Swift type to TypeScript type.
+ * Uses bracket-counting rather than regex so nested types like [[String: Any]] resolve correctly.
  * @param {string} swiftType - The Swift type to convert
  * @param {string|null} promiseType - If this is a JSPromise, the inner type from documentation
  */
 function swiftTypeToTS(swiftType, promiseType = null) {
+    if (!swiftType) return 'any';
+
+    const s = swiftType.trim();
+
     const typeMap = {
         'String': 'string',
         'Int': 'number',
@@ -28,36 +47,62 @@ function swiftTypeToTS(swiftType, promiseType = null) {
         'Bool': 'boolean',
         'TimeInterval': 'number',
         'UInt32': 'number',
+        'NSNumber': 'number',
+        'NSDate': 'Date',
         'Any': 'any',
-        'Void': 'void'
+        'Void': 'void',
+        // Raw JSValue params accept any JS value; several fork modules still
+        // use them for polymorphic/options arguments. Emit `any` so the
+        // typedoc validation step doesn't trip on an undeclared type name.
+        'JSValue': 'any'
     };
+
+    // Handle JSFunction - convert to a callable type.
+    // JSFunction? must be handled before the generic ?-stripper to fix precedence:
+    // "(...args: any[]) => any | null" would be parsed by TS as a function returning
+    // "any | null" rather than an optional function. We parenthesise to fix that.
+    if (s === 'JSFunction?' || s === 'JSFunction') {
+        const fnType = '(...args: any[]) => any';
+        return s.endsWith('?') ? `(${fnType}) | null` : fnType;
+    }
 
     // Handle JSPromise - convert to Promise<T>
     // JSPromise? -> Promise<T> (the ? is expected since promises can fail to create)
-    if (swiftType === 'JSPromise?' || swiftType === 'JSPromise') {
+    if (s === 'JSPromise?' || s === 'JSPromise') {
         const innerType = promiseType ? swiftTypeToTS(promiseType) : 'any';
         return `Promise<${innerType}>`;
     }
 
-    // Handle arrays
-    if (swiftType.match(/^\[([^\]:]+)\]$/)) {
-        const inner = swiftType.match(/^\[([^\]:]+)\]$/)[1];
+    // Handle optionals — strip trailing ? and recurse.
+    // Swift nil bridges to JS null (not undefined), so all optional types use | null.
+    if (s.endsWith('?')) {
+        return `${swiftTypeToTS(s.slice(0, -1))} | null`;
+    }
+
+    // Handle [T] arrays and [K: V] dictionaries.
+    // Regex alone can't distinguish these when T is itself a dictionary (e.g. [[String: Any]]),
+    // so we use bracket-counting to find the key/value split at depth 0.
+    if (s.startsWith('[') && s.endsWith(']')) {
+        const inner = s.slice(1, -1).trim();
+        const colonPos = findTopLevelColon(inner);
+        if (colonPos !== -1) {
+            const key = inner.slice(0, colonPos).trim();
+            const value = inner.slice(colonPos + 1).trim();
+            return `Record<${swiftTypeToTS(key)}, ${swiftTypeToTS(value)}>`;
+        }
         return `${swiftTypeToTS(inner)}[]`;
     }
 
-    // Handle dictionaries
-    if (swiftType.match(/^\[([^:]+):\s*([^\]]+)\]$/)) {
-        const match = swiftType.match(/^\[([^:]+):\s*([^\]]+)\]$/);
-        return `Record<${swiftTypeToTS(match[1])}, ${swiftTypeToTS(match[2])}>`;
-    }
+    return typeMap[s] || s;
+}
 
-    // Handle optionals - TypeScript uses | undefined
-    if (swiftType.endsWith('?')) {
-        const cleanType = swiftType.slice(0, -1);
-        return `${swiftTypeToTS(cleanType)} | undefined`;
-    }
-
-    return typeMap[swiftType] || swiftType;
+/**
+ * Resolve the TypeScript type for a parameter.
+ * A {TypeScript type} annotation in the doc comment overrides the Swift-derived type.
+ */
+function resolveParamType(p, fromSwift = true) {
+    if (p.tsType) return p.tsType;
+    return fromSwift ? swiftTypeToTS(p.type) : p.type;
 }
 
 /**
@@ -66,6 +111,13 @@ function swiftTypeToTS(swiftType, promiseType = null) {
 function extractPropertyType(signature) {
     const typeMatch = signature.match(/var\s+\w+\s*:\s*([^{]+)/);
     return typeMatch ? typeMatch[1].trim() : 'any';
+}
+
+/**
+ * Returns true if the Swift property signature declares both get and set accessors
+ */
+function isWritableProperty(signature) {
+    return signature.includes('get set');
 }
 
 /**
@@ -96,6 +148,9 @@ function generateModuleDefinitions(moduleData) {
         if (method.description) {
             output += `     * ${escapeDocComment(method.description)}\n`;
         }
+        if (method.notes && method.notes.length > 0) {
+            output += `     * @remarks ${method.notes.map(escapeDocComment).join(' ')}\n`;
+        }
         if (method.params && method.params.length > 0) {
             for (const param of method.params) {
                 const desc = param.description ? ` ${escapeDocComment(param.description)}` : '';
@@ -107,10 +162,9 @@ function generateModuleDefinitions(moduleData) {
         }
         output += `     */\n`;
 
-        // Method signature
+        // Method signature — p.optional maps to TypeScript's optional parameter (name?: type)
         const params = (method.params || []).map(p => {
-            const tsType = method.source === 'swift' ? swiftTypeToTS(p.type) : p.type;
-            return `${p.name}: ${tsType}`;
+            return `${p.name}${p.optional ? '?' : ''}: ${resolveParamType(p, method.source === 'swift')}`;
         }).join(', ');
 
         const returnType = method.returns
@@ -126,11 +180,14 @@ function generateModuleDefinitions(moduleData) {
         if (prop.description) {
             output += `     * ${escapeDocComment(prop.description)}\n`;
         }
+        if (prop.notes && prop.notes.length > 0) {
+            output += `     * @remarks ${prop.notes.map(escapeDocComment).join(' ')}\n`;
+        }
         output += `     */\n`;
 
-        const propType = swiftTypeToTS(extractPropertyType(prop.signature));
-        // Properties are const in TypeScript (readonly)
-        output += `    const ${prop.name}: ${propType};\n\n`;
+        const propType = prop.tsType || swiftTypeToTS(extractPropertyType(prop.signature));
+        const keyword = isWritableProperty(prop.signature) ? 'let' : 'const';
+        output += `    ${keyword} ${prop.name}: ${propType};\n\n`;
     }
 
     output += `}\n\n`;
@@ -174,7 +231,7 @@ function generateTypeDefinition(protocol) {
             output += `     */\n`;
 
             const params = (initMethod.params || []).map(p => {
-                return `${p.name}: ${swiftTypeToTS(p.type)}`;
+                return `${p.name}: ${resolveParamType(p)}`;
             }).join(', ');
 
             output += `    constructor(${params});\n\n`;
@@ -188,6 +245,9 @@ function generateTypeDefinition(protocol) {
             if (method.description) {
                 output += `     * ${escapeDocComment(method.description)}\n`;
             }
+            if (method.notes && method.notes.length > 0) {
+                output += `     * @remarks ${method.notes.map(escapeDocComment).join(' ')}\n`;
+            }
             for (const param of method.params || []) {
                 const desc = param.description ? ` ${escapeDocComment(param.description)}` : '';
                 output += `     * @param ${param.name}${desc}\n`;
@@ -198,12 +258,13 @@ function generateTypeDefinition(protocol) {
             output += `     */\n`;
 
             const params = (method.params || []).map(p => {
-                return `${p.name}: ${swiftTypeToTS(p.type)}`;
+                return `${p.name}${p.optional ? '?' : ''}: ${resolveParamType(p)}`;
             }).join(', ');
 
             const returnType = method.returns ? swiftTypeToTS(method.returns.type, method.returns.promiseType) : 'void';
+            const staticPrefix = method.isStatic ? 'static ' : '';
 
-            output += `    static ${method.name}(${params}): ${returnType};\n\n`;
+            output += `    ${staticPrefix}${method.name}(${params}): ${returnType};\n\n`;
         }
 
         // Properties as instance members
@@ -212,9 +273,13 @@ function generateTypeDefinition(protocol) {
             if (prop.description) {
                 output += `     * ${escapeDocComment(prop.description)}\n`;
             }
+            if (prop.notes && prop.notes.length > 0) {
+                output += `     * @remarks ${prop.notes.map(escapeDocComment).join(' ')}\n`;
+            }
             output += `     */\n`;
-            const propType = swiftTypeToTS(extractPropertyType(prop.signature));
-            output += `    ${prop.name}: ${propType};\n\n`;
+            const propType = prop.tsType || swiftTypeToTS(extractPropertyType(prop.signature));
+            const readonlyPrefix = isWritableProperty(prop.signature) ? '' : 'readonly ';
+            output += `    ${readonlyPrefix}${prop.name}: ${propType};\n\n`;
         }
 
         output += `}\n\n`;
@@ -236,7 +301,7 @@ function generateTypeDefinition(protocol) {
             output += `     */\n`;
 
             const params = (initMethod.params || []).map(p => {
-                return `${p.name}: ${swiftTypeToTS(p.type)}`;
+                return `${p.name}: ${resolveParamType(p)}`;
             }).join(', ');
 
             output += `    constructor(${params});\n\n`;
@@ -248,9 +313,13 @@ function generateTypeDefinition(protocol) {
             if (prop.description) {
                 output += `     * ${escapeDocComment(prop.description)}\n`;
             }
+            if (prop.notes && prop.notes.length > 0) {
+                output += `     * @remarks ${prop.notes.map(escapeDocComment).join(' ')}\n`;
+            }
             output += `     */\n`;
-            const propType = swiftTypeToTS(extractPropertyType(prop.signature));
-            output += `    ${prop.name}: ${propType};\n\n`;
+            const propType = prop.tsType || swiftTypeToTS(extractPropertyType(prop.signature));
+            const readonlyPrefix = isWritableProperty(prop.signature) ? '' : 'readonly ';
+            output += `    ${readonlyPrefix}${prop.name}: ${propType};\n\n`;
         }
 
         // Methods
@@ -260,6 +329,9 @@ function generateTypeDefinition(protocol) {
             output += `    /**\n`;
             if (method.description) {
                 output += `     * ${escapeDocComment(method.description)}\n`;
+            }
+            if (method.notes && method.notes.length > 0) {
+                output += `     * @remarks ${method.notes.map(escapeDocComment).join(' ')}\n`;
             }
             for (const param of method.params || []) {
                 const desc = param.description ? ` ${escapeDocComment(param.description)}` : '';
@@ -271,7 +343,7 @@ function generateTypeDefinition(protocol) {
             output += `     */\n`;
 
             const params = (method.params || []).map(p => {
-                return `${p.name}: ${swiftTypeToTS(p.type)}`;
+                return `${p.name}${p.optional ? '?' : ''}: ${resolveParamType(p)}`;
             }).join(', ');
 
             const returnType = method.returns ? swiftTypeToTS(method.returns.type, method.returns.promiseType) : 'void';

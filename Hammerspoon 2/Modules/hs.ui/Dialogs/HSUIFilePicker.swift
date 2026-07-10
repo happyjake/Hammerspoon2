@@ -26,9 +26,9 @@ import UniformTypeIdentifiers
 ///     .allowedFileTypes(["txt", "md", "js"])
 ///     .onSelection((path) => {
 ///         if (path) {
-///             print("Selected: " + path);
+///             console.log("Selected: " + path);
 ///         } else {
-///             print("User cancelled");
+///             console.log("User cancelled");
 ///         }
 ///     })
 ///     .show();
@@ -43,7 +43,7 @@ import UniformTypeIdentifiers
 ///     .allowsMultipleSelection(true)
 ///     .onSelection((paths) => {
 ///         if (paths) {
-///             paths.forEach(p => print("Dir: " + p));
+///             paths.forEach(p => console.log("Dir: " + p));
 ///         }
 ///     })
 ///     .show();
@@ -113,9 +113,7 @@ import UniformTypeIdentifiers
     @objc func resolvesAliases(_ value: Bool) -> HSUIFilePicker
 
     /// Set the callback for file selection
-    /// - Parameter callback: Function receiving selected path(s) or null if cancelled
-    ///   - Single selection: receives a string path or null
-    ///   - Multiple selection: receives an array of paths or null
+    /// - Parameter callback: {(paths: string | string[] | null) => void} Function receiving the selected path(s) or null if cancelled. Single selection receives a string; multiple selection receives an array of strings.
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
@@ -123,7 +121,7 @@ import UniformTypeIdentifiers
     ///     .onSelection((path) => console.log("picked:", path))
     ///     .show()
     /// ```
-    @objc func onSelection(_ callback: JSValue) -> HSUIFilePicker
+    @objc func onSelection(_ callback: JSFunction) -> HSUIFilePicker
 
     /// Show the file picker dialog
     /// - Example:
@@ -145,7 +143,7 @@ import UniformTypeIdentifiers
     var allowedFileTypes: [String]?
     var resolvesAliases: Bool = true
 
-    private var selectionCallback: JSValue?
+    private var selectionCallback: JSFunction?
     private weak var module: HSUIModule?
 
     init(module: HSUIModule) {
@@ -190,7 +188,7 @@ import UniformTypeIdentifiers
         return self
     }
 
-    @objc func onSelection(_ callback: JSValue) -> HSUIFilePicker {
+    @objc func onSelection(_ callback: JSFunction) -> HSUIFilePicker {
         self.selectionCallback = callback
         return self
     }
@@ -232,11 +230,12 @@ import UniformTypeIdentifiers
             }
         }
 
-        // Invoke callback
+        // Invoke callback, then release it so the captured JSValue doesn't outlive
+        // the call. show() is one-shot — the callback won't be needed again.
         if let callback = selectionCallback {
+            selectionCallback = nil
             callback.call(withArguments: [result])
 
-            // Check for JavaScript errors
             if let context = callback.context,
                let exception = context.exception,
                !exception.isUndefined {

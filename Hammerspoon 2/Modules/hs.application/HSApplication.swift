@@ -118,6 +118,122 @@ import AXSwift
     /// const ax = app.axElement()
     /// ```
     @objc func axElement() -> HSAXElement?
+
+    /// Bring this application to the foreground
+    /// - Parameter allWindows?: Pass true to raise all application windows. Defaults to false.
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.matchingName("Safari")
+    /// app.activate()
+    /// app.activate(true)
+    /// ```
+    @objc func activate(_ allWindows: Bool)
+
+    /// Hide this application and all its windows
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.matchingName("Safari")
+    /// app.hide()
+    /// ```
+    @objc func hide()
+
+    /// Unhide this application
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.matchingName("Safari")
+    /// app.unhide()
+    /// ```
+    @objc func unhide()
+
+    /// Whether the application process is still running
+    /// - Returns: true if the application is running, false if it has terminated
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.matchingName("Calculator")
+    /// app.kill()
+    /// console.log(app.isRunning)
+    /// ```
+    @objc var isRunning: Bool { get }
+
+    /// The kind of application: "standard" (regular dock app), "accessory" (no dock), or "background" (agent)
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// console.log(app.kind)
+    /// ```
+    @objc var kind: String { get }
+
+    /// Get the full menu structure of this application
+    /// - Note: This traverses the accessibility hierarchy and may be slow for apps with large menus.
+    /// - Returns: An array of top-level menu objects, each with title and items keys, or null if unavailable
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// app.getMenuItems().forEach(m => console.log(m.title))
+    /// ```
+    @objc func getMenuItems() -> [[String: Any]]?
+
+    /// Find a menu item by searching all menus for a matching title (case-insensitive)
+    /// - Parameter name: The menu item title to search for
+    /// - Returns: An object with title and enabled keys, or null if not found
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const item = app.findMenuItemByName("Select All")
+    /// console.log(item.enabled)
+    /// ```
+    @objc func findMenuItemByName(_ name: String) -> [String: Any]?
+
+    /// Find a menu item by following a hierarchical path of titles
+    /// - Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. ["Edit", "Select All"]
+    /// - Returns: An object with title and enabled keys, or null if not found
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const item = app.findMenuItemByPath(["Edit", "Select All"])
+    /// console.log(item.enabled)
+    /// ```
+    @objc func findMenuItemByPath(_ path: [String]) -> [String: Any]?
+
+    /// Click a menu item found by searching all menus for a matching title (case-insensitive)
+    /// - Parameter name: The menu item title to search for
+    /// - Returns: true if the menu item was found and clicked, false otherwise
+    /// - Example:
+    /// ```js
+    /// const safari = hs.application.matchingName("Safari")
+    /// safari.selectMenuItemByName("New Window")
+    /// ```
+    @objc func selectMenuItemByName(_ name: String) -> Bool
+
+    /// Click a menu item found by following a hierarchical path of titles
+    /// - Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. ["File", "New Window"]
+    /// - Returns: true if the menu item was found and clicked, false otherwise
+    /// - Example:
+    /// ```js
+    /// const safari = hs.application.matchingName("Safari")
+    /// safari.selectMenuItemByPath(["File", "New Window"])
+    /// ```
+    @objc func selectMenuItemByPath(_ path: [String]) -> Bool
+
+    /// Find windows whose title contains the given string (case-insensitive)
+    /// - Parameter pattern: A string to search for in window titles
+    /// - Returns: An array of matching HSWindow objects
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// app.findWindow("untitled").forEach(w => console.log(w.title))
+    /// ```
+    @objc func findWindow(_ pattern: String) -> [HSWindow]
+
+    /// Get the first window with exactly the given title
+    /// - Parameter title: The exact window title to search for
+    /// - Returns: The matching HSWindow, or null if not found
+    /// - Example:
+    /// ```js
+    /// const app = hs.application.frontmost()
+    /// const win = app.getWindow("index.html")
+    /// ```
+    @objc func getWindow(_ title: String) -> HSWindow?
 }
 
 @_documentation(visibility: private)
@@ -132,7 +248,7 @@ import AXSwift
     }
 
     deinit {
-        print("deinit of \(self): \(self.runningApplication.localizedName ?? "UNKNOWN")")
+//        AKDebug("deinit of \(self): \(self.runningApplication.localizedName ?? "UNKNOWN")")
     }
 
     @objc var pid: Int { Int(self.runningApplication.processIdentifier) }
@@ -188,5 +304,163 @@ import AXSwift
             return nil
         }
         return HSAXElement(element: axApp)
+    }
+
+    // MARK: - Focus and visibility
+
+    @objc func activate(_ allWindows: Bool) {
+        let options: NSApplication.ActivationOptions = allWindows ? [.activateAllWindows] : []
+        runningApplication.activate(options: options)
+    }
+
+    @objc func hide() {
+        runningApplication.hide()
+    }
+
+    @objc func unhide() {
+        runningApplication.unhide()
+    }
+
+    @objc var isRunning: Bool {
+        !runningApplication.isTerminated
+    }
+
+    @objc var kind: String {
+        switch runningApplication.activationPolicy {
+        case .regular:    return "standard"
+        case .accessory:  return "accessory"
+        case .prohibited: return "background"
+        @unknown default: return "unknown"
+        }
+    }
+
+    // MARK: - Window search
+
+    @objc func findWindow(_ pattern: String) -> [HSWindow] {
+        let lower = pattern.lowercased()
+        return allWindows.filter { ($0.title ?? "").lowercased().contains(lower) }
+    }
+
+    @objc func getWindow(_ title: String) -> HSWindow? {
+        return allWindows.first { $0.title == title }
+    }
+
+    // MARK: - Menu traversal
+
+    @objc func getMenuItems() -> [[String: Any]]? {
+        guard let menuBar: UIElement = try? axUIElement?.attribute(.menuBar) else {
+            AKError("hs.application.getMenuItems: Failed to get menu bar for \(self.title ?? "unknown")")
+            return nil
+        }
+        guard let menuBarItems: [UIElement] = try? menuBar.attribute(.children) else {
+            return []
+        }
+        return menuBarItems.compactMap { menuBarItemToDict($0) }
+    }
+
+    @objc func findMenuItemByName(_ name: String) -> [String: Any]? {
+        guard let element = findMenuElement(byName: name) else { return nil }
+        return menuElementToDict(element)
+    }
+
+    @objc func findMenuItemByPath(_ path: [String]) -> [String: Any]? {
+        guard let element = findMenuElement(byPath: path) else { return nil }
+        return menuElementToDict(element)
+    }
+
+    @objc func selectMenuItemByName(_ name: String) -> Bool {
+        guard let element = findMenuElement(byName: name) else { return false }
+        return pressMenuElement(element, context: "selectMenuItemByName")
+    }
+
+    @objc func selectMenuItemByPath(_ path: [String]) -> Bool {
+        guard let element = findMenuElement(byPath: path) else { return false }
+        return pressMenuElement(element, context: "selectMenuItemByPath")
+    }
+
+    private func menuBarItems() -> [UIElement]? {
+        guard let menuBar: UIElement = try? axUIElement?.attribute(.menuBar) else { return nil }
+        return try? menuBar.attribute(.children)
+    }
+
+    private func findMenuElement(byName name: String) -> UIElement? {
+        guard let items = menuBarItems() else { return nil }
+        let target = name.lowercased()
+        for barItem in items {
+            if let found = searchMenuElement(withTitle: target, in: barItem) { return found }
+        }
+        return nil
+    }
+
+    private func findMenuElement(byPath path: [String]) -> UIElement? {
+        guard let items = menuBarItems(), let first = path.first else { return nil }
+        guard let topItem = items.first(where: {
+            ((try? $0.attribute(.title) as String?) ?? "").lowercased() == first.lowercased()
+        }) else { return nil }
+        return path.count == 1 ? topItem : navigateMenuPath(Array(path.dropFirst()), from: topItem)
+    }
+
+    private func menuElementToDict(_ element: UIElement) -> [String: Any] {
+        let title: String = (try? element.attribute(.title)) ?? ""
+        let enabled: Bool = (try? element.attribute(.enabled)) ?? false
+        return ["title": title, "enabled": enabled]
+    }
+
+    private func pressMenuElement(_ element: UIElement, context: String) -> Bool {
+        do {
+            try element.performAction(.press)
+            return true
+        } catch {
+            AKError("hs.application.\(context): \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    private func searchMenuElement(withTitle title: String, in element: UIElement) -> UIElement? {
+        guard let children: [UIElement] = try? element.attribute(.children) else { return nil }
+        for child in children {
+            let childTitle = ((try? child.attribute(.title) as String?) ?? "").lowercased()
+            if childTitle == title { return child }
+            if let found = searchMenuElement(withTitle: title, in: child) { return found }
+        }
+        return nil
+    }
+
+    private func navigateMenuPath(_ path: [String], from element: UIElement) -> UIElement? {
+        guard let children: [UIElement] = try? element.attribute(.children) else { return nil }
+        let target = path[0].lowercased()
+        for child in children {
+            let childTitle = ((try? child.attribute(.title) as String?) ?? "").lowercased()
+            if childTitle == target {
+                return path.count == 1 ? child : navigateMenuPath(Array(path.dropFirst()), from: child)
+            }
+        }
+        return nil
+    }
+
+    private func menuBarItemToDict(_ element: UIElement) -> [String: Any]? {
+        let title: String = (try? element.attribute(.title)) ?? ""
+        var dict: [String: Any] = ["title": title]
+        if let children: [UIElement] = try? element.attribute(.children),
+           let menu = children.first,
+           let items: [UIElement] = try? menu.attribute(.children) {
+            dict["items"] = items.compactMap { menuItemToDict($0) }
+        }
+        return dict
+    }
+
+    private func menuItemToDict(_ element: UIElement) -> [String: Any]? {
+        if (try? element.role()?.rawValue) == "AXMenuItemSeparator" {
+            return ["title": "-", "isSeparator": true]
+        }
+        let title: String = (try? element.attribute(.title)) ?? ""
+        let enabled: Bool = (try? element.attribute(.enabled)) ?? false
+        var dict: [String: Any] = ["title": title, "enabled": enabled]
+        if let children: [UIElement] = try? element.attribute(.children),
+           let submenu = children.first,
+           let submenuItems: [UIElement] = try? submenu.attribute(.children) {
+            dict["items"] = submenuItems.compactMap { menuItemToDict($0) }
+        }
+        return dict
     }
 }

@@ -23,13 +23,13 @@ struct HSMenubarStructureTests {
         return harness
     }
 
-    @Test("new is a function") @MainActor func testNewIsFunction() {
-        makeHarness().expectTrue("typeof hs.menubar.new === 'function'")
+    @Test("create is a function") @MainActor func testNewIsFunction() {
+        makeHarness().expectTrue("typeof hs.menubar.create === 'function'")
     }
 
     @Test("new() returns an item with builder methods") @MainActor func testNewReturnsItem() {
         let h = makeHarness()
-        h.eval("globalThis.it = hs.menubar.new()")
+        h.eval("globalThis.it = hs.menubar.create()")
         h.expectTrue("typeof it.setTitle === 'function'")
         h.expectTrue("typeof it.setIcon === 'function'")
         h.expectTrue("typeof it.setImage === 'function'")
@@ -42,7 +42,7 @@ struct HSMenubarStructureTests {
 
     @Test("builder methods chain (return same object)") @MainActor func testBuilderChain() {
         let h = makeHarness()
-        h.eval("globalThis.it = hs.menubar.new()")
+        h.eval("globalThis.it = hs.menubar.create()")
         h.expectTrue("it.setIcon('eye', {}) === it")
         h.expectTrue("it.setTitle('47:12', {monospaced:true, color:'#5BE08B'}) === it")
         h.expectTrue("it.highlight(true) === it")
@@ -52,7 +52,7 @@ struct HSMenubarStructureTests {
 
     @Test("setters accept input (incl. missing opts) without throwing") @MainActor func testSettersNoThrow() {
         let h = makeHarness()
-        h.eval("globalThis.it = hs.menubar.new()")
+        h.eval("globalThis.it = hs.menubar.create()")
         // Calling setIcon with an undefined opts arg must be tolerated.
         h.expectTrue("(function(){ try { it.setIcon('eye.slash', undefined); it.setTitle('', {}); it.setImage('not-base64', {}); return true } catch (e) { return false } })()")
         h.eval("it.remove()")
@@ -60,7 +60,7 @@ struct HSMenubarStructureTests {
 
     @Test("frame() returns null or an {x,y,w,h} object") @MainActor func testFrameShape() {
         let h = makeHarness()
-        h.eval("globalThis.it = hs.menubar.new()")
+        h.eval("globalThis.it = hs.menubar.create()")
         // Under the test host the hosting window may be unrealized → null is OK.
         h.expectTrue("(function(){ const f = it.frame(); return f === null || (typeof f === 'object' && 'x' in f && 'y' in f && 'w' in f && 'h' in f) })()")
         h.eval("it.remove()")
@@ -68,7 +68,7 @@ struct HSMenubarStructureTests {
 
     @Test("setSVG chains and tolerates input") @MainActor func testSetSVG() {
         let h = makeHarness()
-        h.eval("globalThis.it = hs.menubar.new()")
+        h.eval("globalThis.it = hs.menubar.create()")
         let svg = "<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" width=\\\"18\\\" height=\\\"18\\\" viewBox=\\\"0 0 24 24\\\"><circle cx=\\\"12\\\" cy=\\\"12\\\" r=\\\"8\\\" fill=\\\"none\\\" stroke=\\\"#000\\\" stroke-width=\\\"2\\\"/></svg>"
         h.expectTrue("typeof it.setSVG === 'function'")
         h.expectTrue("it.setSVG('\(svg)', {}) === it")

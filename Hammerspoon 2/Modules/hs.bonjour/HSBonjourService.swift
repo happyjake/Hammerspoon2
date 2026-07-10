@@ -101,7 +101,7 @@ import Darwin
     /// - `"stopped"` — resolution stopped before completing
     /// - `"error"` — resolution failed; error message in second argument
     /// - Parameter timeout: seconds before giving up; pass `0` for no timeout
-    /// - Parameter callback: `function(event, data?)` called on status changes
+    /// - Parameter callback: {(event: string, error?: string) => void} Called on status changes with event name and optional error message
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
@@ -110,19 +110,19 @@ import Darwin
     ///     else console.error('Resolve failed:', err)
     /// })
     /// ```
-    @objc @discardableResult func resolve(_ timeout: Double, _ callback: JSValue) -> HSBonjourService
+    @objc @discardableResult func resolve(_ timeout: Double, _ callback: JSFunction) -> HSBonjourService
 
     /// Starts monitoring the TXT record for changes. The callback fires whenever
     /// the TXT record is updated.
     ///
     /// Call `stopMonitoring()` to unsubscribe.
-    /// - Parameter callback: `function(txtRecord)` called when TXT data changes
+    /// - Parameter callback: {(txtRecord: Record<string, string>) => void} Called when TXT data changes with the updated record
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
     /// service.monitor(txt => console.log('TXT updated:', txt))
     /// ```
-    @objc @discardableResult func monitor(_ callback: JSValue) -> HSBonjourService
+    @objc @discardableResult func monitor(_ callback: JSFunction) -> HSBonjourService
 
     /// Stops any active resolution.
     /// - Returns: self, for chaining
@@ -150,8 +150,8 @@ import Darwin
     @objc let identifier = UUID().uuidString
 
     let service: NetService
-    private var resolveCallback: JSValue?
-    private var monitorCallback: JSValue?
+    private var resolveCallback: JSCallback?
+    private var monitorCallback: JSCallback?
 
     init(netService: NetService) {
         self.service = netService
@@ -185,16 +185,16 @@ import Darwin
 
     // MARK: - HSBonjourServiceAPI methods
 
-    @objc @discardableResult func resolve(_ timeout: Double, _ callback: JSValue) -> HSBonjourService {
+    @objc @discardableResult func resolve(_ timeout: Double, _ callback: JSFunction) -> HSBonjourService {
         service.stop()
-        resolveCallback = callback.isObject ? callback : nil
+        resolveCallback = callback.isObject ? JSCallback(value: callback, owner: self) : nil
         service.resolve(withTimeout: timeout)
         AKTrace("HSBonjourService(\(identifier)).resolve(): Resolving '\(name)' (timeout: \(timeout)s)")
         return self
     }
 
-    @objc @discardableResult func monitor(_ callback: JSValue) -> HSBonjourService {
-        monitorCallback = callback.isObject ? callback : nil
+    @objc @discardableResult func monitor(_ callback: JSFunction) -> HSBonjourService {
+        monitorCallback = callback.isObject ? JSCallback(value: callback, owner: self) : nil
         service.startMonitoring()
         AKTrace("HSBonjourService(\(identifier)).monitor(): Started TXT monitoring for '\(name)'")
         return self
@@ -216,6 +216,8 @@ import Darwin
     // MARK: - Internal helpers for module shutdown
 
     func clearCallbacks() {
+        resolveCallback?.detach(from: self)
+        monitorCallback?.detach(from: self)
         resolveCallback = nil
         monitorCallback = nil
     }
@@ -266,20 +268,22 @@ import Darwin
 
     static func parseIPAddresses(from addressData: [Data]) -> [String] {
         return addressData.compactMap { data in
-            data.withUnsafeBytes { rawBuffer -> String? in
+            unsafe data.withUnsafeBytes { rawBuffer -> String? in
                 guard let base = rawBuffer.baseAddress else { return nil }
-                let family = Int32(base.assumingMemoryBound(to: sockaddr.self).pointee.sa_family)
+                let family = unsafe Int32(base.assumingMemoryBound(to: sockaddr.self).pointee.sa_family)
                 switch family {
                 case AF_INET:
-                    var addr = base.assumingMemoryBound(to: sockaddr_in.self).pointee.sin_addr
+                    var addr = unsafe base.assumingMemoryBound(to: sockaddr_in.self).pointee.sin_addr
                     var buffer = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
-                    guard inet_ntop(AF_INET, &addr, &buffer, socklen_t(INET_ADDRSTRLEN)) != nil else { return nil }
-                    return String(cString: buffer)
+                    guard unsafe inet_ntop(AF_INET, &addr, &buffer, socklen_t(INET_ADDRSTRLEN)) != nil else { return nil }
+                    let address = String(utf8String: buffer)
+                    return address
                 case AF_INET6:
-                    var addr = base.assumingMemoryBound(to: sockaddr_in6.self).pointee.sin6_addr
+                    var addr = unsafe base.assumingMemoryBound(to: sockaddr_in6.self).pointee.sin6_addr
                     var buffer = [CChar](repeating: 0, count: Int(INET6_ADDRSTRLEN))
-                    guard inet_ntop(AF_INET6, &addr, &buffer, socklen_t(INET6_ADDRSTRLEN)) != nil else { return nil }
-                    return String(cString: buffer)
+                    guard unsafe inet_ntop(AF_INET6, &addr, &buffer, socklen_t(INET6_ADDRSTRLEN)) != nil else { return nil }
+                    let address = String(utf8String: buffer)
+                    return address
                 default:
                     return nil
                 }

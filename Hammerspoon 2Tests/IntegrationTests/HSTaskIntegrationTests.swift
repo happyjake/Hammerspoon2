@@ -13,7 +13,7 @@ import JavaScriptCore
 ///
 /// These tests verify task creation, process execution, callbacks, and JavaScript enhancements.
 /// Tests use real system commands (/bin/echo, /bin/sh, etc.) to verify actual process behavior.
-@Suite(.serialized) struct HSTaskIntegrationTests {
+@Suite("hs.task tests", .serialized) struct HSTaskIntegrationTests {
 
     // MARK: - Test Lifecycle
 
@@ -24,13 +24,13 @@ import JavaScriptCore
 
     // MARK: - Basic Task Creation Tests
 
-    @Test("hs.task.new() creates a task object")
+    @Test("hs.task.create() creates a task object")
     func testNewTask() {
         let harness = JSTestHarness()
         harness.loadModule(HSTaskModule.self, as: "task")
 
         harness.eval("""
-        var task = hs.task.new('/bin/echo', ['hello']);
+        var task = hs.task.create('/bin/echo', ['hello']);
         """)
 
         harness.expectTrue("typeof task === 'object'")
@@ -43,7 +43,7 @@ import JavaScriptCore
         let harness = JSTestHarness()
         harness.loadModule(HSTaskModule.self, as: "task")
 
-        harness.eval("var t = hs.task.new('/bin/echo', ['test'])")
+        harness.eval("var t = hs.task.create('/bin/echo', ['test'])")
 
         // Lifecycle methods
         harness.expectTrue("typeof t.start === 'function'")
@@ -82,7 +82,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new('/bin/echo', ['hello'], function(exitCode, reason) {
+        var task = hs.task.create('/bin/echo', ['hello'], function(exitCode, reason) {
             taskComplete(exitCode);
         });
         task.start();
@@ -106,7 +106,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new(
+        var task = hs.task.create(
             '/bin/echo',
             ['Hello from stdout'],
             null,
@@ -138,7 +138,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new(
+        var task = hs.task.create(
             '/bin/sh',
             ['-c', 'echo "Error message" >&2'],
             null,
@@ -170,7 +170,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new('/bin/sleep', ['0.2'], function() {
+        var task = hs.task.create('/bin/sleep', ['0.2'], function() {
             __test_callback('onComplete');
         });
         """)
@@ -205,7 +205,7 @@ import JavaScriptCore
 //        }
 
         harness.eval("""
-        var task = hs.task.new('/bin/sleep', ['0.1']);
+        var task = hs.task.create('/bin/sleep', ['0.1']);
         """)
 
         // Before starting, pid should be -1
@@ -235,7 +235,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new('/bin/sh', ['-c', 'exit 42'], function() {
+        var task = hs.task.create('/bin/sh', ['-c', 'exit 42'], function() {
             __test_callback('onComplete');
         });
         """)
@@ -264,7 +264,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new('/bin/echo', ['test'], function() {
+        var task = hs.task.create('/bin/echo', ['test'], function() {
             __test_callback('onComplete');
         });
         task.start();
@@ -290,7 +290,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new('/bin/sleep', ['10'], function() {
+        var task = hs.task.create('/bin/sleep', ['10'], function() {
             __test_callback('onTerminate');
         });
         task.start();
@@ -313,7 +313,7 @@ import JavaScriptCore
 
         harness.eval("""
         var outputCount = 0;
-        var task = hs.task.new(
+        var task = hs.task.create(
             '/bin/sh',
             ['-c', 'for i in 1 2 3 4 5; do echo $i; sleep 1; done'],
             null,
@@ -365,7 +365,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new(
+        var task = hs.task.create(
             '/bin/cat',
             [],
             null,
@@ -398,7 +398,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new('/bin/cat', [], function() {
+        var task = hs.task.create('/bin/cat', [], function() {
             __test_callback('onExit');
         });
         task.start();
@@ -430,7 +430,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new(
+        var task = hs.task.create(
             '/usr/bin/env',
             ['bash', '-c', 'echo $MY_TEST_VAR'],
             null,
@@ -460,7 +460,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var task = hs.task.new(
+        var task = hs.task.create(
             '/bin/pwd',
             [],
             null,
@@ -484,7 +484,7 @@ import JavaScriptCore
         harness.loadModule(HSTaskModule.self, as: "task")
 
         harness.eval("""
-        var task = hs.task.new('/bin/echo', ['test']);
+        var task = hs.task.create('/bin/echo', ['test']);
         task.environment = { TEST: 'before' };
         task.start();
         task.environment = { TEST: 'after' };
@@ -501,7 +501,7 @@ import JavaScriptCore
         harness.loadModule(HSTaskModule.self, as: "task")
 
         harness.eval("""
-        var task = hs.task.new('/bin/echo', ['test']);
+        var task = hs.task.create('/bin/echo', ['test']);
         task.workingDirectory = '/tmp';
         task.start();
         task.workingDirectory = '/var';
@@ -1003,7 +1003,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var monitoredTask = hs.task.new(
+        var monitoredTask = hs.task.create(
             '/bin/sh',
             ['-c', 'for i in 1 2 3; do echo "line $i"; sleep 0.05; done'],
             null,
@@ -1070,7 +1070,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var interactiveTask = hs.task.new(
+        var interactiveTask = hs.task.create(
             '/bin/cat',
             [],
             null,
@@ -1113,7 +1113,7 @@ import JavaScriptCore
         }
 
         harness.eval("""
-        var longTask = hs.task.new('/bin/sleep', ['10']);
+        var longTask = hs.task.create('/bin/sleep', ['10']);
         longTask.start();
 
         var timeout = hs.timer.doAfter(0.2, function() {

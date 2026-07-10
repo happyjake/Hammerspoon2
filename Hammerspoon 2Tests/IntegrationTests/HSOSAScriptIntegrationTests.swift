@@ -15,7 +15,8 @@ import JavaScriptCore
 /// Tests that communicate with the XPC helper require the
 /// HammerspoonOSAScriptHelper service to be available, which it is when running
 /// tests inside Xcode with the built app bundle present.
-@Suite(.serialized) struct HSOSAScriptIntegrationTests {
+@Suite("hs.osascript tests", .serialized)
+struct HSOSAScriptIntegrationTests {
 
     // MARK: - Test Lifecycle
 

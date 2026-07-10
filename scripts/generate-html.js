@@ -15,7 +15,7 @@ const { marked } = require('marked');
 const hljs = require('highlight.js');
 
 const JSON_DIR = path.join(__dirname, '..', 'docs', 'json');
-const OUTPUT_DIR = path.join(__dirname, '..', 'docs', 'html');
+const OUTPUT_DIR = path.join(__dirname, '..', 'docs', 'js', 'html');
 const COMBINED_DIR = path.join(JSON_DIR, 'combined');
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 
@@ -51,6 +51,10 @@ env.addFilter('formatType', function(swiftType, promiseType) {
 env.addFilter('formatReturnType', function(returns) {
     if (!returns) return 'void';
     return formatType(returns.type, returns.promiseType);
+});
+
+env.addFilter('resolveParamType', function(param) {
+    return formatType(param.type);
 });
 
 env.addFilter('extractPropertyType', function(signature) {
@@ -139,6 +143,11 @@ function formatType(swiftType, promiseType = null) {
         'UInt32': 'number',
         'Any': 'any'
     };
+
+    // Handle JSFunction - display as JS-friendly "function" type
+    if (swiftType === 'JSFunction?' || swiftType === 'JSFunction') {
+        return swiftType.endsWith('?') ? 'function | null' : 'function';
+    }
 
     // Handle JSPromise - convert to Promise<T>
     if (swiftType === 'JSPromise?' || swiftType === 'JSPromise') {
@@ -245,18 +254,104 @@ function generateIndexPage(modules, types) {
 }
 
 /**
- * Generate JavaScript for navigation
+ * Strip basic markdown syntax so descriptions read as plain text in search results.
  */
-function generateJavaScript(modules, types) {
+function stripMarkdown(text) {
+    if (!text) return '';
+    return text
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .trim();
+}
+
+/**
+ * Build a flat search index of every property and method across all modules and types.
+ * @param {object[]} allModuleData - Array of parsed module JSON objects
+ * @param {{typeName: string, protocol: object}[]} allTypeEntries - Array of type entries
+ */
+function buildSearchIndex(allModuleData, allTypeEntries) {
+    const entries = [];
+
+    function firstParagraph(text) {
+        return stripMarkdown(text || '').split(/\n\n/)[0].replace(/\n/g, ' ').trim();
+    }
+
+    for (const moduleData of allModuleData) {
+        const parentName = moduleData.name;
+
+        entries.push({
+            fullName: parentName,
+            description: firstParagraph(moduleData.rawDocumentation),
+            url: `${parentName}.html`,
+            kind: 'module'
+        });
+
+        for (const prop of moduleData.properties || []) {
+            entries.push({
+                fullName: `${parentName}.${prop.name}`,
+                description: firstParagraph(prop.description),
+                url: `${parentName}.html#${prop.name}`,
+                kind: 'property'
+            });
+        }
+
+        for (const method of moduleData.methods || []) {
+            const params = (method.params || []).map(p => p.name).join(', ');
+            entries.push({
+                fullName: `${parentName}.${method.name}(${params})`,
+                description: firstParagraph(method.description),
+                url: `${parentName}.html#${method.name}`,
+                kind: 'method'
+            });
+        }
+    }
+
+    for (const { typeName, protocol } of allTypeEntries) {
+        entries.push({
+            fullName: typeName,
+            description: firstParagraph(protocol.description),
+            url: `${typeName}.html`,
+            kind: 'type'
+        });
+
+        for (const prop of protocol.properties || []) {
+            entries.push({
+                fullName: `${typeName}.${prop.name}`,
+                description: firstParagraph(prop.description),
+                url: `${typeName}.html#${prop.name}`,
+                kind: 'property'
+            });
+        }
+
+        for (const method of protocol.methods || []) {
+            if (method.name === 'init') continue;
+            const params = (method.params || []).map(p => p.name).join(', ');
+            entries.push({
+                fullName: `${typeName}.${method.name}(${params})`,
+                description: firstParagraph(method.description),
+                url: `${typeName}.html#${method.name}`,
+                kind: 'method'
+            });
+        }
+    }
+
+    return entries;
+}
+
+/**
+ * Generate JavaScript for navigation and search
+ */
+function generateJavaScript(modules, types, searchIndex) {
     const navigationData = {
         modules: modules.map(m => ({ name: m.name, url: m.name + '.html' })),
         types: types.map(t => ({ name: t, url: t + '.html' }))
     };
 
-    const script = scriptTemplate.replace(
-        '{{NAVIGATION_DATA}}',
-        JSON.stringify(navigationData, null, 2)
-    );
+    const script = scriptTemplate
+        .replace('{{NAVIGATION_DATA}}', JSON.stringify(navigationData, null, 2))
+        .replace('{{SEARCH_INDEX}}', JSON.stringify(searchIndex));
 
     const outputPath = path.join(OUTPUT_DIR, 'script.js');
     fs.writeFileSync(outputPath, script);
@@ -295,16 +390,22 @@ function main() {
     const indexPath = path.join(JSON_DIR, 'index.json');
     const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
 
+    // Data collected for the search index
+    const allModuleData = [];
+    const allTypeEntries = [];
+
     // Generate module pages
     console.log('Generating module pages:');
     for (const module of index.modules) {
         const modulePath = path.join(JSON_DIR, `${module.name}.json`);
         const moduleData = JSON.parse(fs.readFileSync(modulePath, 'utf8'));
+        allModuleData.push(moduleData);
         generateModulePage(moduleData);
 
         // Generate type pages for types defined in this module
         for (const typeDef of moduleData.types || []) {
             const typeName = typeDef.name.replace(/API$/, '');
+            allTypeEntries.push({ typeName, protocol: typeDef });
             generateTypePage(typeName, typeDef, true);
         }
     }
@@ -319,35 +420,33 @@ function main() {
         for (const typeDef of typesData.types || []) {
             const typeName = typeDef.name.replace(/(API|JSExports?)$/, '');
             allTypes.push(typeName);
+            allTypeEntries.push({ typeName, protocol: typeDef });
             generateTypePage(typeName, typeDef, true);
         }
     }
 
-    // Collect all type names from modules too
-    for (const module of index.modules) {
-        const modulePath = path.join(JSON_DIR, `${module.name}.json`);
-        const moduleData = JSON.parse(fs.readFileSync(modulePath, 'utf8'));
-
-        for (const typeDef of moduleData.types || []) {
-            const typeName = typeDef.name.replace(/API$/, '');
-            if (!allTypes.includes(typeName)) {
-                allTypes.push(typeName);
-            }
+    // Collect module type names (global types listed first to match original ordering)
+    for (const { typeName } of allTypeEntries) {
+        if (!allTypes.includes(typeName)) {
+            allTypes.push(typeName);
         }
     }
+
+    // Build search index from collected data
+    const searchIndex = buildSearchIndex(allModuleData, allTypeEntries);
 
     // Generate index page
     console.log('\nGenerating index and assets:');
     generateIndexPage(index.modules, allTypes);
 
     // Generate JavaScript and CSS
-    generateJavaScript(index.modules, allTypes);
+    generateJavaScript(index.modules, allTypes, searchIndex);
     generateCSS();
     copyHighlightJS();
 
     console.log(`\n✅ HTML documentation generated successfully!`);
     console.log(`   Output directory: ${OUTPUT_DIR}`);
-    console.log(`   Open docs/html/index.html in your browser`);
+    console.log(`   Open docs/js/html/index.html in your browser`);
 }
 
 main();

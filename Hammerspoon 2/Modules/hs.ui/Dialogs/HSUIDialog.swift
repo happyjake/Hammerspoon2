@@ -25,9 +25,9 @@ import SwiftUI
 ///     .buttons(["Save", "Don't Save", "Cancel"])
 ///     .onButton((index) => {
 ///         if (index === 0) {
-///             print("Saving...");
+///             console.log("Saving...");
 ///         } else if (index === 1) {
-///             print("Discarding changes...");
+///             console.log("Discarding changes...");
 ///         }
 ///     })
 ///     .show();
@@ -61,7 +61,7 @@ import SwiftUI
     @objc func style(_ style: String) -> HSUIDialog
 
     /// Set the callback for button presses
-    /// - Parameter callback: Function receiving button index (0-based)
+    /// - Parameter callback: {(buttonIndex: number) => void} Function receiving the 0-based index of the button the user pressed
     /// - Returns: Self for chaining
     /// - Example:
     /// ```js
@@ -69,7 +69,7 @@ import SwiftUI
     ///     .onButton((i) => console.log("button", i))
     ///     .show()
     /// ```
-    @objc func onButton(_ callback: JSValue) -> HSUIDialog
+    @objc func onButton(_ callback: JSFunction) -> HSUIDialog
 
     /// Show the dialog
     /// - Returns: Self for chaining
@@ -97,7 +97,7 @@ import SwiftUI
     var buttons: [String] = ["OK"]
     var style: String = "informational"
 
-    private var buttonCallback: JSValue?
+    private var buttonCallback: JSFunction?
     private var nsWindow: NSWindow?
     private let dialogID: UUID = UUID()
     private weak var module: HSUIModule?
@@ -110,7 +110,7 @@ import SwiftUI
 
     isolated deinit {
         close()
-        AKTrace("deinit of HSUIDialog: \(dialogID)")
+        AKDebug("deinit of HSUIDialog: \(dialogID)")
     }
 
     // MARK: - Builder Methods
@@ -132,7 +132,7 @@ import SwiftUI
         return self
     }
 
-    @objc func onButton(_ callback: JSValue) -> HSUIDialog {
+    @objc func onButton(_ callback: JSFunction) -> HSUIDialog {
         self.buttonCallback = callback
         return self
     }
@@ -185,13 +185,15 @@ import SwiftUI
     @objc func close() {
         guard nsWindow != nil else { return } // Already closed
 
-        // Unregister from module
         module?.unregister(dialog: dialogID)
 
         nsWindow?.delegate = nil
         nsWindow?.orderOut(nil)
         nsWindow?.close()
         nsWindow = nil
+
+        // Release the callback so its captured JSValue doesn't hold the old JSContext alive.
+        buttonCallback = nil
     }
 
     // MARK: - NSWindowDelegate

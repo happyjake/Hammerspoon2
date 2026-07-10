@@ -71,7 +71,7 @@
                 {% for param in method.params %}
                 <tr>
                     <td class="param-name">{{ param.name }}</td>
-                    <td class="param-type">{{ param.type | formatType }}</td>
+                    <td class="param-type">{{ param | resolveParamType }}</td>
                     <td class="param-desc">{{ param.description }}</td>
                 </tr>
                 {% endfor %}
@@ -85,6 +85,13 @@
         <div class="return-desc">{{ method.returns.description }}</div>
         {% else %}
         <div class="return-desc" style="color: var(--text-muted);">None</div>
+        {% endif %}
+
+        {% if method.notes and method.notes.length > 0 %}
+        <div class="card-section-label">Notes</div>
+        {% for note in method.notes %}
+        <div class="note">{{ note }}</div>
+        {% endfor %}
         {% endif %}
 
         {% if method.examples and method.examples.length > 0 %}

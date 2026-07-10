@@ -14,7 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     static private(set) var instance: AppDelegate! = nil
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        AKTrace("applicationDidFinishLaunching: Creating/booting shared manager")
+        AKDebug("applicationDidFinishLaunching: Creating/booting shared manager")
 
         // Raise the open-file-descriptor limit before any subsystem starts
         // opening sockets, webviews, SQLite handles or image destinations.
@@ -27,6 +27,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             try managerManager.boot()
         } catch {
             fatalError(error.localizedDescription)
+        }
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            URLEventDispatcher.shared.dispatch(url)
         }
     }
 
@@ -81,6 +87,8 @@ struct Hammerspoon_2App: App {
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openWindow) private var openWindow
 
+    @State private var settingsManager = SettingsManager.shared
+
     private let updaterController: SPUStandardUpdaterController
 
     init() {
@@ -88,23 +96,23 @@ struct Hammerspoon_2App: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("Hammerspoon 2", systemImage: "hammer") { // FIXME: Use the real logo here
+        MenuBarExtra("Hammerspoon 2", systemImage: "hammer", isInserted: $settingsManager.dockMenuBehaviour.showMenuItem) { // FIXME: Use the real logo here
             let managerManager = ManagerManager.shared
 
             Button("Reload Config") {
-                try? managerManager.boot()
+                try? managerManager.reload()
             }
 
             Divider()
 
             Button("Settings") {
+                NSApplication.shared.activate(ignoringOtherApps: true)
                 openSettings()
             }
 
             Button("Open Console") {
-                if let url = URL(string:"hammerspoon2://openConsole") {
-                    NSWorkspace.shared.open(url)
-                }
+                NSApplication.shared.activate(ignoringOtherApps: true)
+                openWindow(id: "console")
             }
 
             Divider()
@@ -117,8 +125,8 @@ struct Hammerspoon_2App: App {
                 managerManager.shutdown()
             }
         }
-        Window("Content", id: "content") {
-            ContentView()
+        .onChange(of: settingsManager.dockMenuBehaviour, initial: true) {
+            NSApplication.shared.setActivationPolicy(settingsManager.dockMenuBehaviour.activationPolicy)
         }
 
         Window("Console", id: "console") {
@@ -145,6 +153,7 @@ struct Hammerspoon_2App: App {
         .windowBackgroundDragBehavior(.enabled)
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
+        .handlesExternalEvents(matching: [])
 
         Settings() {
             SettingsView()

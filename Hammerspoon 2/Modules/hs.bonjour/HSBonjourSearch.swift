@@ -35,9 +35,15 @@ import JavaScriptCore
 /// ```js
 /// const search = hs.bonjour.newSearch()
 /// search.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {
-///     if (event === 'serviceFound') {
-///         console.log('Found:', svc.name, '— more coming:', moreComing)
-///     }
+///     if (event !== 'serviceFound') return
+///     console.log('Discovered: ' + svc.name + ' (' + svc.type + ' ' + svc.domain + ')')
+///     svc.resolve(5, ev => {
+///         if (ev === 'error') { console.error('Resolve failed for' + svc.name); return }
+///         if (ev !== 'resolved') return
+///         console.log('  Host:      ' + svc.hostname + ' port ' + svc.port)
+///         console.log('  Addresses: ' + svc.addresses.join(', '))
+///         if (svc.txtRecord) console.log('  TXT record:', JSON.stringify(svc.txtRecord))
+///     })
 /// })
 /// ```
 @objc protocol HSBonjourSearchAPI: HSTypeAPI, JSExport {
@@ -65,7 +71,7 @@ import JavaScriptCore
     /// complete event table.
     /// - Parameter type: service type string, e.g. `"_http._tcp."` or `"_ssh._tcp."`
     /// - Parameter domain: mDNS domain; `"local."` for the local link, `""` for all domains
-    /// - Parameter callback: `function(event, service, moreComing)` called for each result
+    /// - Parameter callback: {(event: string, service: HSBonjourService, moreComing: boolean) => void} Called for each result with event name, service object, and whether more results are expected
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
@@ -73,14 +79,14 @@ import JavaScriptCore
     ///     if (ev === 'serviceFound') console.log('Found:', svc.name)
     /// })
     /// ```
-    @objc @discardableResult func findServices(_ type: String, _ domain: String, _ callback: JSValue) -> HSBonjourSearch
+    @objc @discardableResult func findServices(_ type: String, _ domain: String, _ callback: JSFunction) -> HSBonjourSearch
 
     /// Searches for domains visible to this machine (browsable domains).
     ///
     /// If a browsable-domain search is already active it is stopped before
     /// starting the new one. Service and registration-domain searches are
     /// unaffected. The callback receives `(event, domain, moreComing)`.
-    /// - Parameter callback: `function(event, domain, moreComing)` called for each result
+    /// - Parameter callback: {(event: string, domain: string, moreComing: boolean) => void} Called for each result with event name, domain string, and whether more results are expected
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
@@ -88,14 +94,14 @@ import JavaScriptCore
     ///     if (ev === 'domainFound') console.log('Domain:', domain)
     /// })
     /// ```
-    @objc @discardableResult func findBrowsableDomains(_ callback: JSValue) -> HSBonjourSearch
+    @objc @discardableResult func findBrowsableDomains(_ callback: JSFunction) -> HSBonjourSearch
 
     /// Searches for domains on which this machine can register services.
     ///
     /// If a registration-domain search is already active it is stopped before
     /// starting the new one. Service and browsable-domain searches are
     /// unaffected. The callback receives `(event, domain, moreComing)`.
-    /// - Parameter callback: `function(event, domain, moreComing)` called for each result
+    /// - Parameter callback: {(event: string, domain: string, moreComing: boolean) => void} Called for each result with event name, domain string, and whether more results are expected
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
@@ -103,7 +109,7 @@ import JavaScriptCore
     ///     if (ev === 'domainFound') console.log('Can register in:', domain)
     /// })
     /// ```
-    @objc @discardableResult func findRegistrationDomains(_ callback: JSValue) -> HSBonjourSearch
+    @objc @discardableResult func findRegistrationDomains(_ callback: JSFunction) -> HSBonjourSearch
 
     /// Stops all active searches. Safe to call when no search is active.
     /// - Returns: self, for chaining
@@ -126,9 +132,9 @@ import JavaScriptCore
     private let domainsBrowser = NetServiceBrowser()
     private let registrationBrowser = NetServiceBrowser()
 
-    private var servicesCallback: JSValue?
-    private var domainsCallback: JSValue?
-    private var registrationCallback: JSValue?
+    private var servicesCallback: JSCallback?
+    private var domainsCallback: JSCallback?
+    private var registrationCallback: JSCallback?
 
     // Tracks NetService → HSBonjourService identity so the same wrapper object
     // is delivered for both "found" and "removed" events.
@@ -150,28 +156,43 @@ import JavaScriptCore
         unsafe registrationBrowser.delegate = self
     }
 
+    isolated deinit {
+        destroy()
+    }
+
+    func destroy() {
+        stopAllDiscoveredServices()
+        _ = stop()
+        unsafe servicesBrowser.delegate = nil
+        unsafe domainsBrowser.delegate = nil
+        unsafe registrationBrowser.delegate = nil
+    }
+
     // MARK: - HSBonjourSearchAPI
 
-    @objc @discardableResult func findServices(_ type: String, _ domain: String, _ callback: JSValue) -> HSBonjourSearch {
+    @objc @discardableResult func findServices(_ type: String, _ domain: String, _ callback: JSFunction) -> HSBonjourSearch {
         servicesBrowser.stop()
         serviceTable.removeAll()
-        servicesCallback = callback.isObject ? callback : nil
+        servicesCallback?.detach(from: self)
+        servicesCallback = JSCallback(value: callback, owner: self)
         servicesBrowser.searchForServices(ofType: type, inDomain: domain)
         AKTrace("HSBonjourSearch(\(identifier)): Searching for \(type) in '\(domain)'")
         return self
     }
 
-    @objc @discardableResult func findBrowsableDomains(_ callback: JSValue) -> HSBonjourSearch {
+    @objc @discardableResult func findBrowsableDomains(_ callback: JSFunction) -> HSBonjourSearch {
         domainsBrowser.stop()
-        domainsCallback = callback.isObject ? callback : nil
+        domainsCallback?.detach(from: self)
+        domainsCallback = JSCallback(value: callback, owner: self)
         domainsBrowser.searchForBrowsableDomains()
         AKTrace("HSBonjourSearch(\(identifier)): Searching for browsable domains")
         return self
     }
 
-    @objc @discardableResult func findRegistrationDomains(_ callback: JSValue) -> HSBonjourSearch {
+    @objc @discardableResult func findRegistrationDomains(_ callback: JSFunction) -> HSBonjourSearch {
         registrationBrowser.stop()
-        registrationCallback = callback.isObject ? callback : nil
+        registrationCallback?.detach(from: self)
+        registrationCallback = JSCallback(value: callback, owner: self)
         registrationBrowser.searchForRegistrationDomains()
         AKTrace("HSBonjourSearch(\(identifier)): Searching for registration domains")
         return self
@@ -181,8 +202,11 @@ import JavaScriptCore
         servicesBrowser.stop()
         domainsBrowser.stop()
         registrationBrowser.stop()
+        servicesCallback?.detach(from: self)
         servicesCallback = nil
+        domainsCallback?.detach(from: self)
         domainsCallback = nil
+        registrationCallback?.detach(from: self)
         registrationCallback = nil
         serviceTable.removeAll()
         AKTrace("HSBonjourSearch(\(identifier)): Stopped all searches")
@@ -211,40 +235,40 @@ import JavaScriptCore
             serviceTable[key] = wrapper
         }
         AKTrace("HSBonjourSearch(\(identifier)): serviceFound '\(service.name)' (moreComing: \(moreComing))")
-        _ = servicesCallback?.call(withArguments: ["serviceFound", wrapper, moreComing])
+        _ = servicesCallback?.value?.call(withArguments: ["serviceFound", wrapper, moreComing])
     }
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didRemove service: NetService, moreComing: Bool) {
         let key = ObjectIdentifier(service)
         let wrapper = serviceTable.removeValue(forKey: key) ?? HSBonjourService(netService: service)
         AKTrace("HSBonjourSearch(\(identifier)): serviceRemoved '\(service.name)' (moreComing: \(moreComing))")
-        _ = servicesCallback?.call(withArguments: ["serviceRemoved", wrapper, moreComing])
+        _ = servicesCallback?.value?.call(withArguments: ["serviceRemoved", wrapper, moreComing])
     }
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didFindDomain domain: String, moreComing: Bool) {
         AKTrace("HSBonjourSearch(\(identifier)): domainFound '\(domain)' (moreComing: \(moreComing))")
         let cb = browser === domainsBrowser ? domainsCallback : registrationCallback
-        _ = cb?.call(withArguments: ["domainFound", domain, moreComing])
+        _ = cb?.value?.call(withArguments: ["domainFound", domain, moreComing])
     }
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didRemoveDomain domain: String, moreComing: Bool) {
         AKTrace("HSBonjourSearch(\(identifier)): domainRemoved '\(domain)' (moreComing: \(moreComing))")
         let cb = browser === domainsBrowser ? domainsCallback : registrationCallback
-        _ = cb?.call(withArguments: ["domainRemoved", domain, moreComing])
+        _ = cb?.value?.call(withArguments: ["domainRemoved", domain, moreComing])
     }
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String: NSNumber]) {
         let code = errorDict["NSNetServicesErrorCode"]?.intValue ?? -1
         let message = "Bonjour search failed (error code \(code))"
         AKError("HSBonjourSearch(\(identifier)): \(message)")
-        let cb: JSValue?
+        let cb: JSCallback?
         switch browser {
         case servicesBrowser:     cb = servicesCallback
         case domainsBrowser:      cb = domainsCallback
         case registrationBrowser: cb = registrationCallback
         default:                  cb = nil
         }
-        _ = cb?.call(withArguments: ["error", message])
+        _ = cb?.value?.call(withArguments: ["error", message])
     }
 
     func netServiceBrowserDidStopSearch(_ browser: NetServiceBrowser) {

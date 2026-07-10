@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSWebview - Hammerspoon 2 API</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="highlight.min.js"></script>
+</head>
+<body>
+    <!-- Top header bar -->
+    <header class="top-header">
+        <div class="header-left">
+            <a href="index.html" class="site-logo">Hammerspoon 2</a>
+            <span class="version-badge">API Docs</span>
+        </div>
+        <div class="header-center">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M11.5 7a4.499 4.499 0 11-8.998 0A4.499 4.499 0 0111.5 7zm-.82 4.74a6 6 0 111.06-1.06l3.04 3.04a.75.75 0 11-1.06 1.06L10.68 11.74z"></path>
+                </svg>
+                <input type="search" id="search-input" class="search-input" placeholder="Search properties and methods…" aria-label="Search">
+            <div id="search-results" class="search-results" hidden></div>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="https://github.com/cmsj/Hammerspoon2" class="github-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+                <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <div class="layout-body">
+        <!-- Left sidebar -->
+        <nav class="sidebar-left" aria-label="Site navigation">
+            <div class="nav-section" id="modules-section">
+                <div class="nav-section-label">MODULES</div>
+                <div id="modules-nav"></div>
+            </div>
+            <div class="nav-section" id="types-section">
+                <div class="nav-section-label">TYPES</div>
+                <div id="types-nav"></div>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="content" id="main-content">
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="index.html">API Reference</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">HSWebview</span>
+</nav>
+<div class="page-header">
+    <h1>HSWebview</h1>
+    <span class="page-badge">Type</span>
+</div>
+
+<div class="module-description"><p>A WKWebView hosted inside a borderless NSWindow, created via <code>hs.webview.create()</code>.
+Provides a builder-style API for loading URLs or HTML, styling the window,
+registering JS message handlers, evaluating JavaScript, and managing the window lifecycle.</p>
+</div>
+
+<h2 class="section-heading">Properties</h2>
+<p style="color: var(--text-secondary); font-size: 0.9375rem; margin-bottom: 1.5rem;">This type has no properties.</p>
+
+<h2 class="section-heading">Methods</h2>
+    <div class="method" id="url">
+        <h3>
+<a href="#url">url(urlString) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Load a URL into the webview. Accepts `https://`, `http://`, and `file://` URLs.
+File URLs must be absolute paths; tilde is expanded.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">url(urlString) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">urlString</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the URL to load</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">hs.webview.create({x:0,y:0,w:600,h:400}).url(&#39;https://example.com&#39;).show()</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L35" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:35</a>
+        </div>
+    </div>
+    <div class="method" id="html">
+        <h3>
+<a href="#html">html(html, baseURL) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Load HTML source directly into the webview.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">html(html, baseURL) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">html</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">HTML source string</td>
+                </tr>
+                <tr>
+                    <td class="param-name">baseURL</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">optional base URL (string) for resolving relative refs; null to use about:blank</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">wv.html(&#39;&lt;h1&gt;hi&lt;/h1&gt;&#39;).show()</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L46" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:46</a>
+        </div>
+    </div>
+    <div class="method" id="reload">
+        <h3>
+<a href="#reload">reload() -> HSWebview</a>
+        </h3>
+
+        <div class="description">Reload the currently-loaded content.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">reload() -> HSWebview</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L50" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:50</a>
+        </div>
+    </div>
+    <div class="method" id="windowStyle">
+        <h3>
+<a href="#windowStyle">windowStyle(opts) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Configure window chrome.
+`transparent: true` makes the NSWindow opaque-bg false so the page&#39;s own background shows through.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">windowStyle(opts) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">opts</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">`{ titled?, closable?, resizable?, miniaturizable?, transparent? }` — all optional booleans.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">wv.windowStyle({ titled: false, closable: false, transparent: true })</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L62" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:62</a>
+        </div>
+    </div>
+    <div class="method" id="level">
+        <h3>
+<a href="#level">level(name) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Set the window level by name. Same vocabulary as `hs.ui.window.level()`.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">level(name) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">name</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">`&#39;normal&#39; | &#39;floating&#39; | &#39;modal&#39; | &#39;popup&#39; | &#39;screensaver&#39; | &#39;mainmenu&#39; | &#39;status&#39;`</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L67" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:67</a>
+        </div>
+    </div>
+    <div class="method" id="canBecomeKey">
+        <h3>
+<a href="#canBecomeKey">canBecomeKey(value) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Allow this window to become key (capture keyboard focus). Default true for webviews.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">canBecomeKey(value) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">value</td>
+                    <td class="param-type">boolean</td>
+                    <td class="param-desc">whether the window can become key</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L72" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:72</a>
+        </div>
+    </div>
+    <div class="method" id="nonActivating">
+        <h3>
+<a href="#nonActivating">nonActivating(value) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Never activate Hammerspoon 2 when this window is shown or clicked. The
+webview is hosted in a non-activating panel: the page still gets clicks
+and drags but the frontmost app keeps focus throughout — what you want
+for a toast or notification overlay.
+Neither AppKit nor WebKit deliver pointer movement to a window that
+can&#39;t become key (so CSS `:hover` and mouseenter/mouseleave are dead).
+Instead, while the window is visible an event monitor publishes the
+pointer to the page as `window.__hsPointer(x, y, inside)` (CSS pixel
+coordinates, ~40 Hz, one `inside=false` call as the pointer leaves) —
+define that function and hit-test (e.g. `document.elementFromPoint`)
+to drive hover effects yourself.
+Combine with `canBecomeKey(true)` for a Spotlight-style panel that takes
+keyboard input while the previous app stays active, or with
+`canBecomeKey(false)` so the page never captures keyboard at all.
+Must be set before `show()`.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">nonActivating(value) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">value</td>
+                    <td class="param-type">boolean</td>
+                    <td class="param-desc">true to host the webview in a non-activating panel</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const toast = hs.webview.create({x: 100, y: 100, w: 400, h: 200})
+  .windowStyle({ titled: false, transparent: true })
+  .nonActivating(true)
+  .canBecomeKey(false)
+  .url(&#39;file://~/toast/index.html&#39;)
+  .show()  // appears without stealing focus from the current app</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L100" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:100</a>
+        </div>
+    </div>
+    <div class="method" id="ignoresMouseEvents">
+        <h3>
+<a href="#ignoresMouseEvents">ignoresMouseEvents(value) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Make the window click-through: mouse events pass to whatever is beneath it. Essential for a
+transparent, screen-covering HUD overlay so it never steals the user&#39;s input.
+A click-through window&#39;s page never receives pointer movement either (CSS
+`:hover` is dead), so — like `nonActivating(true)` — while the window is
+visible an event monitor publishes the pointer to the page as
+`window.__hsPointer(x, y, inside)` (CSS pixel coordinates, ~40 Hz, one
+`inside=false` call as the pointer leaves). Define that function and
+hit-test (e.g. `document.elementFromPoint`) to drive hover effects for
+any host-side click handling (e.g. an eventtap consuming clicks over
+reported keycap rects).</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">ignoresMouseEvents(value) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">value</td>
+                    <td class="param-type">boolean</td>
+                    <td class="param-desc">true to ignore mouse events</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const hud = hs.webview.create({x: 0, y: 0, w: 800, h: 600})
+  .windowStyle({ titled: false, transparent: true })
+  .ignoresMouseEvents(true)
+  .url(&#39;file:///tmp/hud.html&#39;)  // page may define window.__hsPointer(x, y, inside)
+  .show()</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L122" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:122</a>
+        </div>
+    </div>
+    <div class="method" id="canJoinAllSpaces">
+        <h3>
+<a href="#canJoinAllSpaces">canJoinAllSpaces(value) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Make the window appear on every Space and stay put across Space switches (HUD overlay).</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">canJoinAllSpaces(value) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">value</td>
+                    <td class="param-type">boolean</td>
+                    <td class="param-desc">true to join all Spaces (canJoinAllSpaces + stationary)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L127" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:127</a>
+        </div>
+    </div>
+    <div class="method" id="windowShadow">
+        <h3>
+<a href="#windowShadow">windowShadow(value) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Control the system window shadow. If never called, the window&#39;s shadow
+is left entirely untouched (AppKit decides). Turn it off for
+transparent overlays whose page draws its own CSS shadows — the system
+shadow is computed from the window&#39;s opaque pixels and can show up as
+a rectangular halo/edge around translucent content (backdrop-filter
+regions especially).</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">windowShadow(value) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">value</td>
+                    <td class="param-type">boolean</td>
+                    <td class="param-desc">false to disable the system window shadow</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const hud = hs.webview.create({x: 0, y: 0, w: 400, h: 300})
+  .windowStyle({ titled: false, transparent: true })
+  .windowShadow(false)</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L143" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:143</a>
+        </div>
+    </div>
+    <div class="method" id="center">
+        <h3>
+<a href="#center">center() -> HSWebview</a>
+        </h3>
+
+        <div class="description">Center the window on the main screen on `show()`.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">center() -> HSWebview</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L153" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:153</a>
+        </div>
+    </div>
+    <div class="method" id="windowCornerRadius">
+        <h3>
+<a href="#windowCornerRadius">windowCornerRadius(radius) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Set window corner radius. Applied to the contentView (clipped) so the
+rounded shape is preserved when the window is transparent.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">windowCornerRadius(radius) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">radius</td>
+                    <td class="param-type">number</td>
+                    <td class="param-desc">pixel radius</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L159" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:159</a>
+        </div>
+    </div>
+    <div class="method" id="backgroundColor">
+        <h3>
+<a href="#backgroundColor">backgroundColor(color) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Set the background color used by the host NSWindow and content wrapper.
+This color is what users see during the brief window between window
+creation and the page&#39;s own background painting — set it to match your
+page&#39;s body background to eliminate the &quot;white flash&quot; on open. Also
+disables the WKWebView&#39;s own opaque background so the window color is
+visible through any gaps before/around the page content.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">backgroundColor(color) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">color</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">hex string (e.g. `&#39;#18181C&#39;`) or an `HSColor`</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">hs.webview.create({x:0,y:0,w:600,h:400}).backgroundColor(&#39;#18181C&#39;).url(...).show()</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L173" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:173</a>
+        </div>
+    </div>
+    <div class="method" id="keepsRenderingWhenInactive">
+        <h3>
+<a href="#keepsRenderingWhenInactive">keepsRenderingWhenInactive(value) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Keep the page rendering even when the window is inactive or considered
+not visible. By default WebKit suspends a page whose window is non-key /
+occluded — for a transparent, click-through HUD overlay (which can never
+become key) the compositor parks after a few seconds and JS-driven UI
+changes stop painting. Pass `true` BEFORE `show()` to opt the page out
+of that suspension (`WKPreferences.inactiveSchedulingPolicy = .none`).</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">keepsRenderingWhenInactive(value) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">value</td>
+                    <td class="param-type">boolean</td>
+                    <td class="param-desc">whether to keep rendering while inactive</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const hud = hs.webview.create({x:0, y:0, w:800, h:600})
+  .windowStyle({ transparent: true })
+  .ignoresMouseEvents(true)
+  .keepsRenderingWhenInactive(true)</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L192" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:192</a>
+        </div>
+    </div>
+    <div class="method" id="show">
+        <h3>
+<a href="#show">show() -> HSWebview</a>
+        </h3>
+
+        <div class="description">Show the window. If already shown (or pre-warmed), activates the app,
+makes the window key, and brings it to front.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">show() -> HSWebview</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L197" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:197</a>
+        </div>
+    </div>
+    <div class="method" id="prewarm">
+        <h3>
+<a href="#prewarm">prewarm() -> HSWebview</a>
+        </h3>
+
+        <div class="description">Build and load the page WITHOUT showing the window — a warm, off-screen
+instance ready for an instant `show()`. The WKWebView spins up, the page
+loads and renders, but the window is never ordered front and the app is
+never activated (so it won&#39;t steal focus at boot). Pair with
+`keepsRenderingWhenInactive(true)` so the never-visible page actually
+paints instead of being suspended by WebKit. A later `show()` is then a
+near-instant order-front of an already-rendered window.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">prewarm() -> HSWebview</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const wv = hs.webview.create(rect)
+  .keepsRenderingWhenInactive(true)
+  .url(&#39;file://…/index.html&#39;)
+  .prewarm()      // builds + renders hidden at boot
+// …later, on a hotkey:
+wv.show()         // instant — no WebKit spin-up, no first-paint gap</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L216" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:216</a>
+        </div>
+    </div>
+    <div class="method" id="hide">
+        <h3>
+<a href="#hide">hide() -> HSWebview</a>
+        </h3>
+
+        <div class="description">Hide the window. Keeps the WKWebView and its loaded page in memory.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hide() -> HSWebview</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L220" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:220</a>
+        </div>
+    </div>
+    <div class="method" id="close">
+        <h3>
+<a href="#close">close() -> None</a>
+        </h3>
+
+        <div class="description">Close and destroy the window. Drops the WKWebView and frees handlers.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">close() -> None</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L223" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:223</a>
+        </div>
+    </div>
+    <div class="method" id="bringToFront">
+        <h3>
+<a href="#bringToFront">bringToFront() -> HSWebview</a>
+        </h3>
+
+        <div class="description">Bring the window to the foreground without reordering across spaces.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">bringToFront() -> HSWebview</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L227" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:227</a>
+        </div>
+    </div>
+    <div class="method" id="currentFrame">
+        <h3>
+<a href="#currentFrame">currentFrame() -> [String: Double]</a>
+        </h3>
+
+        <div class="description">Return the current on-screen frame as `{x, y, w, h}`, or null if not shown.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">currentFrame() -> [String: Double]</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">[String: Double]</div>
+        <div class="return-desc">`{x, y, w, h}` in NSWindow (bottom-left origin) coordinates, or null if not shown</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L231" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:231</a>
+        </div>
+    </div>
+    <div class="method" id="setFrame">
+        <h3>
+<a href="#setFrame">setFrame(rect) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Resize and/or move the on-screen window.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">setFrame(rect) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">rect</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">`{ x, y, w, h }` in NSWindow coordinates</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L236" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:236</a>
+        </div>
+    </div>
+    <div class="method" id="snapshotToPNG">
+        <h3>
+<a href="#snapshotToPNG">snapshotToPNG(path, callback) -> None</a>
+        </h3>
+
+        <div class="description">Render the page to a PNG file at the given path. Uses WKWebView&#39;s own
+`takeSnapshot`, which renders in the web content process — so it sees the
+real page even when WebKit composites it out-of-process (GPU-accelerated
+layers), where an AppKit `cacheDisplay` capture intermittently came back
+blank/white. No Screen Recording permission is required. The capture is
+asynchronous: pass a callback to learn when the file is written.
+written; on failure `errorMessage` describes why. Pass `null` to skip.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">snapshotToPNG(path, callback) -> None</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">path</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">absolute filesystem path to write</td>
+                </tr>
+                <tr>
+                    <td class="param-name">callback</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">optional `(ok, errorMessage)` — `ok` is true once the PNG is</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">wv.snapshotToPNG(&#39;/tmp/page.png&#39;, (ok, err) =&gt; console.log(&#39;snapshot: &#39; + (ok ? &#39;ok&#39; : err)))</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L252" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:252</a>
+        </div>
+    </div>
+    <div class="method" id="setMessageHandler">
+        <h3>
+<a href="#setMessageHandler">setMessageHandler(name, callback) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Register a named handler for messages posted from JS.
+In the page, call `window.webkit.messageHandlers.&lt;name&gt;.postMessage(body)`.
+The Swift callback fires with the deserialized body (object/string/number).
+Pass `null` to unregister.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">setMessageHandler(name, callback) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">name</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">handler name (matches the page&#39;s `messageHandlers.&lt;name&gt;`)</td>
+                </tr>
+                <tr>
+                    <td class="param-name">callback</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">function to call with each message body, or null to remove</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">wv.setMessageHandler(&#39;vibecast&#39;, (msg) =&gt; {
+  const { id, op, args } = msg
+  const reply = JSON.stringify({ ok: true })
+  wv.evaluateJavaScript(`__vc.resolve(${id}, ${reply})`)
+})</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L272" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:272</a>
+        </div>
+    </div>
+    <div class="method" id="injectUserScript">
+        <h3>
+<a href="#injectUserScript">injectUserScript(source) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Inject JavaScript that runs at document-start, before the page&#39;s own scripts.
+Use to install a bridge client so postMessage calls work from page load.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">injectUserScript(source) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">source</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">JavaScript source</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L278" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:278</a>
+        </div>
+    </div>
+    <div class="method" id="evaluateJavaScript">
+        <h3>
+<a href="#evaluateJavaScript">evaluateJavaScript(script, callback) -> None</a>
+        </h3>
+
+        <div class="description">Evaluate a JS expression inside the page. Optional callback receives
+`(result, errorMessage)` — result is the stringified JS value (null if
+not representable as JSON), errorMessage is null on success.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">evaluateJavaScript(script, callback) -> None</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">script</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">JS expression or block</td>
+                </tr>
+                <tr>
+                    <td class="param-name">callback</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">optional completion `(result, error) =&gt; void`</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L286" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:286</a>
+        </div>
+    </div>
+    <div class="method" id="windowCallback">
+        <h3>
+<a href="#windowCallback">windowCallback(callback) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Register a callback for window lifecycle events. Currently fires with
+the string `&#39;closing&#39;` when the window is about to close.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">windowCallback(callback) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">callback</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">`(event) =&gt; void`</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L292" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:292</a>
+        </div>
+    </div>
+    <div class="method" id="onFileDrop">
+        <h3>
+<a href="#onFileDrop">onFileDrop(callback) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Register a callback for native file drops onto the webview. When set,
+dragging files from Finder onto the page is handled natively and the
+callback fires with an array of absolute filesystem paths — so you can
+stream the real file from disk instead of reading its bytes through the
+JS bridge. The page&#39;s own HTML5 `drop` event does NOT fire for files
+while a handler is registered; non-file drags (text, images from other
+apps) fall through to WebKit unchanged. While a file drag is over the
+window the page is notified via `window.__hsFileDrag(active)` (a boolean)
+so it can show a drop highlight. Pass `null` to unregister (file drops
+then revert to the page&#39;s own HTML5 handling).
+absolute file paths, or null to unregister</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">onFileDrop(callback) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">callback</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">`(paths) =&gt; void` where `paths` is an array of</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">wv.onFileDrop((paths) =&gt; {
+  paths.forEach((p) =&gt; hs.http.request({ url, method: &#39;POST&#39;, bodyFile: p }, () =&gt; {}))
+})
+// in the page: window.__hsFileDrag = (on) =&gt; dropZone.classList.toggle(&#39;over&#39;, on)</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L314" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:314</a>
+        </div>
+    </div>
+    <div class="method" id="_simulateFileDrop">
+        <h3>
+<a href="#_simulateFileDrop">_simulateFileDrop(paths) -> None</a>
+        </h3>
+
+        <div class="description">Test hook: invoke the registered `onFileDrop` callback directly with
+`paths`, bypassing the AppKit drag session (which a unit test can&#39;t
+stage). No-op if the webview isn&#39;t shown or no handler is registered.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">_simulateFileDrop(paths) -> None</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">paths</td>
+                    <td class="param-type">string[]</td>
+                    <td class="param-desc">absolute file paths to deliver to the handler</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L320" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:320</a>
+        </div>
+    </div>
+    <div class="method" id="developerExtras">
+        <h3>
+<a href="#developerExtras">developerExtras(enabled) -> HSWebview</a>
+        </h3>
+
+        <div class="description">Enable Safari &quot;Inspect Element&quot; right-click for this webview. Off by default.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">developerExtras(enabled) -> HSWebview</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">enabled</td>
+                    <td class="param-type">boolean</td>
+                    <td class="param-desc">whether to enable</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">HSWebview</div>
+        <div class="return-desc">self for chaining</div>
+
+
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.webview/HSWebview.swift#L325" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.webview/HSWebview.swift:325</a>
+        </div>
+    </div>
+        </main>
+
+        <!-- Right TOC sidebar -->
+        <aside class="toc-sidebar" aria-label="On this page">
+            <div class="toc-label">ON THIS PAGE</div>
+            <nav id="toc-nav"></nav>
+        </aside>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNavigation('HSWebview');
+            generateTOC();
+            addCopyButtons();
+            initSearch();
+            initTOCObserver();
+        });
+    </script>
+</body>
+</html>

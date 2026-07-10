@@ -37,29 +37,21 @@ import Carbon
     /// ```
     @objc func isEnabled() -> Bool
 
-    /// Delete the hotkey (disables and clears callbacks)
-    /// - Example:
-    /// ```js
-    /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
-    /// hk.delete()
-    /// ```
-    @objc func delete()
-
-    /// The callback function to be called when the hotkey is pressed
+    /// {(() => void) | null} The callback function to be called when the hotkey is pressed, or null to remove it
     /// - Example:
     /// ```js
     /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
     /// hk.callbackPressed = () => console.log("new handler")
     /// ```
-    @objc var callbackPressed: JSValue? { get set }
+    @objc var callbackPressed: JSFunction? { get set }
 
-    /// The callback function to be called when the hotkey is released
+    /// {(() => void) | null} The callback function to be called when the hotkey is released, or null to remove it
     /// - Example:
     /// ```js
     /// const hk = hs.hotkey.bind(["cmd"], "h", () => {})
     /// hk.callbackReleased = () => console.log("released")
     /// ```
-    @objc var callbackReleased: JSValue? { get set }
+    @objc var callbackReleased: JSFunction? { get set }
 }
 
 @_documentation(visibility: private)
@@ -68,8 +60,22 @@ import Carbon
     @objc var typeName = "HSHotkey"
     private let keyCode: UInt32
     private let modifiers: UInt32
-    @objc var callbackPressed: JSValue?
-    @objc var callbackReleased: JSValue?
+    private var _callbackPressed: JSCallback?
+    private var _callbackReleased: JSCallback?
+    @objc var callbackPressed: JSFunction? {
+        get { _callbackPressed?.value }
+        set {
+            _callbackPressed?.detach(from: self)
+            _callbackPressed = newValue.flatMap { JSCallback(value: $0, owner: self) }
+        }
+    }
+    @objc var callbackReleased: JSFunction? {
+        get { _callbackReleased?.value }
+        set {
+            _callbackReleased?.detach(from: self)
+            _callbackReleased = newValue.flatMap { JSCallback(value: $0, owner: self) }
+        }
+    }
     nonisolated(unsafe) private var carbonHotKeyRef: EventHotKeyRef?
     private var enabled = false
     private let hotkeyID: UInt32
@@ -77,23 +83,29 @@ import Carbon
     // Generate unique IDs for each hotkey
     private static var nextID: UInt32 = 1
 
-    init(keyCode: UInt32, modifiers: UInt32, callbackPressed: JSValue? = nil, callbackReleased: JSValue? = nil) {
+    init(keyCode: UInt32, modifiers: UInt32, callbackPressed: JSFunction? = nil, callbackReleased: JSFunction? = nil) {
         self.keyCode = keyCode
         self.modifiers = modifiers
-        self.callbackPressed = callbackPressed
-        self.callbackReleased = callbackReleased
-
-        // Generate unique ID
         self.hotkeyID = Self.nextID
         Self.nextID += 1
-
         super.init()
+        // Phase 2 — JSContext.current() is valid because init is called from JS
+        self.callbackPressed = callbackPressed
+        self.callbackReleased = callbackReleased
     }
 
     isolated deinit {
+        destroy()
+        AKDebug("deinit of HSHotkeyObject: id=\(hotkeyID)")
+    }
+
+    func destroy() {
+        _callbackPressed?.detach(from: self)
+        _callbackPressed = nil
+        _callbackReleased?.detach(from: self)
+        _callbackReleased = nil
         disable()
         HotkeyManager.shared.unregister(hotkeyID: hotkeyID)
-        AKTrace("deinit of HSHotkeyObject: id=\(hotkeyID)")
     }
 
     @objc func enable() -> Bool {
@@ -133,6 +145,9 @@ import Carbon
 
         unsafe UnregisterEventHotKey(hotKeyRef)
         unsafe carbonHotKeyRef = nil
+
+        // Unregister with the manager so we can be garbage collected if needed
+        HotkeyManager.shared.unregister(hotkeyID: hotkeyID)
         enabled = false
     }
 
@@ -140,32 +155,23 @@ import Carbon
         return enabled
     }
 
-    @objc func delete() {
-        disable()
-        HotkeyManager.shared.unregister(hotkeyID: hotkeyID)
-    }
-
     /// Internal method called by HotkeyManager when the hotkey is triggered
     func trigger(eventKind: UInt32) {
-        var callback: JSValue? = nil
+        let callback: JSFunction?
 
         switch eventKind {
         case UInt32(kEventHotKeyPressed):
-            if self.callbackPressed != nil && !self.callbackPressed!.isNull {
-                callback = self.callbackPressed
-            }
+            callback = _callbackPressed?.value
         case UInt32(kEventHotKeyReleased):
-            if self.callbackReleased != nil && !self.callbackReleased!.isNull{
-                callback = self.callbackReleased
-            }
+            callback = _callbackReleased?.value
         default:
             AKError("Unknown hotkey event kind: \(eventKind)")
             return
         }
 
-        if let callback {
-            callback.callSafely(withArguments: [], context: "hs.hotkey")
-        }
+        guard let callback, !callback.isNull else { return }
+
+        callback.callSafely(withArguments: [], context: "hs.hotkey")
     }
 }
 

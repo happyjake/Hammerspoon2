@@ -2,7 +2,7 @@
 //  HSMenubarItem.swift
 //  Hammerspoon 2
 //
-//  A single NSStatusItem in the macOS menu bar, created via hs.menubar.new().
+//  A single NSStatusItem in the macOS menu bar, created via hs.menubar.create().
 //  Builder-style: set an icon (SF Symbol or template PNG) and/or a title (the
 //  live countdown), register a click callback, query its on-screen frame so
 //  callers can anchor a popover beneath it, and remove it.
@@ -12,7 +12,7 @@ import Foundation
 import JavaScriptCore
 import AppKit
 
-/// A single status item in the macOS menu bar, created via `hs.menubar.new()`.
+/// A single status item in the macOS menu bar, created via `hs.menubar.create()`.
 /// Provides a builder-style API for setting an icon, title, click callback, and
 /// querying the on-screen frame so callers can anchor a popover beneath it.
 @objc protocol HSMenubarItemAPI: HSTypeAPI, JSExport {

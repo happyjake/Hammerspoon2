@@ -15,58 +15,44 @@ import JavaScriptCore
     /// Create a new timer
     /// - Parameters:
     ///   - interval: The interval in seconds at which the timer should fire
-    ///   - callback: A JavaScript function to call when the timer fires
-    ///   - continueOnError: If true, the timer will continue running even if the callback throws an error
+    ///   - callback: {() => void} A JavaScript function to call when the timer fires
+    ///   - continueOnError?: If true, the timer will continue running even if the callback throws an error
     /// - Returns: A timer object. Call start() to begin the timer.
     /// - Example:
     /// ```js
     /// const t = hs.timer.create(5, () => console.log("tick"), false)
     /// t.start()
     /// ```
-    @objc func create(_ interval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool) -> HSTimer
-
-    /// Create a new timer (alias for create())
-    /// - Parameters:
-    ///   - interval: The interval in seconds at which the timer should fire
-    ///   - callback: A JavaScript function to call when the timer fires
-    ///   - continueOnError: If true, the timer will continue running even if the callback throws an error
-    /// - Returns: A timer object. Call start() to begin the timer.
-    /// - Example:
-    /// ```js
-    /// const t = hs.timer.new(5, () => console.log("tick"), false)
-    /// t.start()
-    /// ```
-    @objc(new:::)
-    func new(_ interval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool) -> HSTimer
+    @objc func create(_ interval: TimeInterval, _ callback: JSFunction, _ continueOnError: Bool) -> HSTimer
 
     /// Create and start a one-shot timer
     /// - Parameters:
     ///   - seconds: Number of seconds to wait before firing
-    ///   - callback: A JavaScript function to call when the timer fires
+    ///   - callback: {() => void} A JavaScript function to call when the timer fires
     /// - Returns: A timer object (already started)
     /// - Example:
     /// ```js
     /// hs.timer.doAfter(5, () => console.log("fired"))
     /// ```
-    @objc func doAfter(_ seconds: TimeInterval, _ callback: JSValue) -> HSTimer
+    @objc func doAfter(_ seconds: TimeInterval, _ callback: JSFunction) -> HSTimer
 
     /// Create and start a repeating timer
     /// - Parameters:
     ///   - interval: The interval in seconds at which the timer should fire
-    ///   - callback: A JavaScript function to call when the timer fires
+    ///   - callback: {() => void} A JavaScript function to call when the timer fires
     /// - Returns: A timer object (already started)
     /// - Example:
     /// ```js
     /// hs.timer.doEvery(60, () => console.log("every minute"))
     /// ```
-    @objc func doEvery(_ interval: TimeInterval, _ callback: JSValue) -> HSTimer
+    @objc func doEvery(_ interval: TimeInterval, _ callback: JSFunction) -> HSTimer
 
     /// Create and start a timer that fires at a specific time
     /// - Parameters:
     ///   - time: Seconds since midnight (local time) when the timer should first fire
     ///   - repeatInterval: If provided, the timer will repeat at this interval. Pass 0 for one-shot.
-    ///   - callback: A JavaScript function to call when the timer fires
-    ///   - continueOnError: If true, the timer will continue running even if the callback throws an error
+    ///   - callback: {() => void} A JavaScript function to call when the timer fires
+    ///   - continueOnError?: If true, the timer will continue running even if the callback throws an error
     /// - Returns: A timer object (already started)
     /// - Example:
     /// ```js
@@ -74,7 +60,7 @@ import JavaScriptCore
     /// hs.timer.doAt(9 * 3600, 86400, () => console.log("morning"), false)
     /// ```
     @objc(doAt::::)
-    func doAt(_ time: TimeInterval, _ repeatInterval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool) -> HSTimer
+    func doAt(_ time: TimeInterval, _ repeatInterval: TimeInterval, _ callback: JSFunction, _ continueOnError: Bool) -> HSTimer
 
     /// Block execution for a specified number of microseconds (strongly discouraged)
     /// - Parameter microseconds: Number of microseconds to sleep
@@ -99,7 +85,7 @@ import JavaScriptCore
     /// ```js
     /// console.log(hs.timer.absoluteTime())
     /// ```
-    @objc func absoluteTime() -> UInt64
+    @objc func absoluteTime() -> Int
 
     /// Get the number of seconds since local midnight
     /// - Returns: Seconds since midnight in the local timezone
@@ -145,35 +131,17 @@ import JavaScriptCore
     /// ```
     @objc func weeks(_ n: Double) -> Double
 
-    /// Repeat a function until a predicate returns true. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// let count = 0
-    /// hs.timer.doUntil(() => count >= 3, () => { count++; console.log(count) }, 1)
-    /// ```
-    @objc var doUntil: JSValue? { get set }
+    /// SKIP_DOCS
+    @objc var doUntil: JSFunction? { get set }
 
-    /// Repeat a function while a predicate returns true. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// let count = 0
-    /// hs.timer.doWhile(() => count < 3, () => { count++; console.log(count) }, 1)
-    /// ```
-    @objc var doWhile: JSValue? { get set }
+    /// SKIP_DOCS
+    @objc var doWhile: JSFunction? { get set }
 
-    /// Wait to call a function until a predicate returns true. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// hs.timer.waitUntil(() => someCondition, () => console.log("ready"), 0.5)
-    /// ```
-    @objc var waitUntil: JSValue? { get set }
+    /// SKIP_DOCS
+    @objc var waitUntil: JSFunction? { get set }
 
-    /// Wait to call a function until a predicate returns false. Swift-retained storage for the JS implementation.
-    /// - Example:
-    /// ```js
-    /// hs.timer.waitWhile(() => stillLoading, () => console.log("done"), 0.5)
-    /// ```
-    @objc var waitWhile: JSValue? { get set }
+    /// SKIP_DOCS
+    @objc var waitWhile: JSFunction? { get set }
 }
 
 // MARK: - Implementation
@@ -184,77 +152,66 @@ import JavaScriptCore
     var name = "hs.timer"
     let engineID: UUID
 
-    /// Weak set of every timer this module has handed out, so shutdown() can stop
-    /// them all. A scheduled repeating Timer is retained by the run loop (which
-    /// retains its HSTimer target), so it never deinits on its own — without an
-    /// explicit stop it outlives an engine reload and keeps firing into the dead
-    /// JSContext. Weak so a timer JS has already dropped can still deallocate.
-    ///
-    /// NSHashTable is not thread-safe; this is sound only because every access is
-    /// on the main actor: add() here, allObjects()/removeAllObjects() in shutdown(),
-    /// and the weak-slot zeroing on HSTimer dealloc (forced onto main by HSTimer's
-    /// isolated deinit). Keep HSTimer main-isolated or this needs a lock.
-    private let liveTimers = NSHashTable<HSTimer>.weakObjects()
+    // Weak refs: running timers stay alive via the Foundation run loop (Timer target);
+    // stopped/GC'd timers are automatically zeroed. allObjects only returns live timers.
+    private var timers = HSWeakObjectSet<HSTimer>()
 
     // MARK: - Module lifecycle
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
-        AKTrace("Init of \(name): \(engineID)")
+        AKDebug("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
-        // Stop every timer we created. They're retained by the run loop, not by
-        // this module, so they'd otherwise survive an engine reload and keep firing
-        // their callbacks into the torn-down JSContext. (Such a stale fire is how a
-        // request reached an already-invalidated hs.http session and aborted the
-        // process.) stop() removes the run-loop anchor that keeps a fired-and-done
-        // timer alive; it doesn't by itself free the old JSContext (the callback is
-        // a strong JSValue), but it ends the firing that caused the crash.
-        for timer in liveTimers.allObjects { timer.stop() }
-        liveTimers.removeAllObjects()
+        // Destroy every live timer at engine teardown. Scheduled timers are
+        // retained by the run loop, not this module, so they'd otherwise survive
+        // a reload and keep firing callbacks into the torn-down JSContext (a
+        // stale fire once reached an invalidated hs.http session and aborted the
+        // process).
+        for timer in timers.allObjects {
+            timer.destroy()
+        }
+        timers.removeAllObjects()
+        doUntil = nil
+        doWhile = nil
+        waitUntil = nil
+        waitWhile = nil
     }
 
     isolated deinit {
-        AKTrace("Deinit of \(name): \(engineID)")
+        AKDebug("Deinit of \(name): \(engineID)")
     }
 
     // MARK: - Swift-retained storage for JS-defined functions
-    @objc var doUntil: JSValue? = nil
-    @objc var doWhile: JSValue? = nil
-    @objc var waitUntil: JSValue? = nil
-    @objc var waitWhile: JSValue? = nil
+    @objc var doUntil: JSFunction? = nil
+    @objc var doWhile: JSFunction? = nil
+    @objc var waitUntil: JSFunction? = nil
+    @objc var waitWhile: JSFunction? = nil
 
     // MARK: - Timer constructors
 
-    /// Register a freshly-created timer so shutdown() can stop it on engine teardown.
-    @discardableResult private func track(_ timer: HSTimer) -> HSTimer {
-        liveTimers.add(timer)
+    @objc func create(_ interval: TimeInterval, _ callback: JSFunction, _ continueOnError: Bool = false) -> HSTimer {
+        let timer = HSTimer(interval: interval, repeats: true, callback: callback, continueOnError: continueOnError)
+        timers.add(timer)
         return timer
     }
 
-    @objc func create(_ interval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool = false) -> HSTimer {
-        return track(HSTimer(interval: interval, repeats: true, callback: callback, continueOnError: continueOnError))
-    }
-
-    @objc(new:::)
-    func new(_ interval: TimeInterval, _ callback: JSValue, _ continueOnError: Bool = false) -> HSTimer {
-        return create(interval, callback, continueOnError)
-    }
-
-    @objc func doAfter(_ seconds: TimeInterval, _ callback: JSValue) -> HSTimer {
-        let timer = track(HSTimer(interval: seconds, repeats: false, callback: callback))
+    @objc func doAfter(_ seconds: TimeInterval, _ callback: JSFunction) -> HSTimer {
+        let timer = HSTimer(interval: seconds, repeats: false, callback: callback)
+        timers.add(timer)
         timer.start()
         return timer
     }
 
-    @objc func doEvery(_ interval: TimeInterval, _ callback: JSValue) -> HSTimer {
-        let timer = track(HSTimer(interval: interval, repeats: true, callback: callback))
+    @objc func doEvery(_ interval: TimeInterval, _ callback: JSFunction) -> HSTimer {
+        let timer = HSTimer(interval: interval, repeats: true, callback: callback)
+        timers.add(timer)
         timer.start()
         return timer
     }
 
-    @objc func doAt(_ time: TimeInterval, _ repeatInterval: TimeInterval = 0, _ callback: JSValue, _ continueOnError: Bool = false) -> HSTimer {
+    @objc func doAt(_ time: TimeInterval, _ repeatInterval: TimeInterval = 0, _ callback: JSFunction, _ continueOnError: Bool = false) -> HSTimer {
         // Calculate seconds until target time (time is seconds since midnight)
         let now = localTime()
         var secondsUntilTarget = time - now
@@ -264,11 +221,8 @@ import JavaScriptCore
             secondsUntilTarget += 86400 // Add 24 hours
         }
 
-        // Create initial one-shot timer to fire at the target time
-        let timer = track(HSTimer(interval: secondsUntilTarget, repeats: false, callback: callback, continueOnError: continueOnError))
-
-        // If repeatInterval is specified, we'll need to reschedule after each fire
-        // This is handled in JavaScript for simplicity
+        let timer = HSTimer(interval: secondsUntilTarget, repeats: false, callback: callback, continueOnError: continueOnError)
+        timers.add(timer)
         timer.start()
         return timer
     }
@@ -290,13 +244,18 @@ import JavaScriptCore
         return Date().timeIntervalSince1970
     }
 
-    @objc func absoluteTime() -> UInt64 {
+    @objc func absoluteTime() -> Int {
         var info = mach_timebase_info_data_t()
         unsafe mach_timebase_info(&info)
 
         let currentTime = mach_absolute_time()
         let nanos = currentTime * UInt64(info.numer) / UInt64(info.denom)
-        return nanos
+
+        // We are checking if nanos exceeds the largest possible Int, to ensure we don't trip
+        // Swift's internal arithmetic checking. Please not that this is exceedingly unlikely
+        // to ever actually matter, because Int.max nanoseconds would be ~292 years, which would
+        // be an extremely impressive uptime.
+        return nanos > UInt64(Int.max) ? Int.max : Int(nanos)
     }
 
     @objc func localTime() -> TimeInterval {

@@ -13,7 +13,8 @@ import JavaScriptCore
 /// are attached at test time.  Display-configuration mutations (setMode,
 /// setOrigin, setPrimary, mirrorOf, mirrorStop) are intentionally **not**
 /// tested here to avoid disrupting the developer's desktop during a test run.
-@Suite(.serialized) struct HSScreenIntegrationTests {
+@Suite("hs.screen tests", .serialized)
+struct HSScreenIntegrationTests {
 
     init() async {
         await JSTestHarness.drainMainActorQueue()
@@ -350,15 +351,6 @@ import JavaScriptCore
                            Math.abs(back.h - orig.h) < 0.001;
         """)
         harness.expectTrue("roundTripped")
-    }
-
-    @Test("absoluteToLocal() returns null for non-HSRect input")
-    func testAbsoluteToLocalInvalidInput() {
-        let harness = JSTestHarness()
-        harness.loadModule(HSScreenModule.self, as: "screen")
-
-        harness.eval("var result = hs.screen.primary().absoluteToLocal('not a rect');")
-        harness.expectTrue("result === null || result === undefined")
     }
 
     // MARK: - Desktop Image

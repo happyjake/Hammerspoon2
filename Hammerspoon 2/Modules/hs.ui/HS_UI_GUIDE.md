@@ -175,11 +175,11 @@ hs.ui.dialog("Save changes?")
     .buttons(["Save", "Don't Save", "Cancel"])
     .onButton((index) => {
         if (index === 0) {
-            print("Saving...");
+            console.log("Saving...");
         } else if (index === 1) {
-            print("Discarding changes...");
+            console.log("Discarding changes...");
         } else {
-            print("Cancelled");
+            console.log("Cancelled");
         }
     })
     .show();

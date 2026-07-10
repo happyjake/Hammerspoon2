@@ -15,6 +15,7 @@ import AppKit
 ///
 /// These types allow JavaScript code to work with CoreGraphics types
 /// in a JavaScript-friendly way.
+@Suite("Bridged type tests")
 struct BridgeTypesTests {
 
     // MARK: - HSPoint Tests
@@ -432,8 +433,8 @@ struct BridgeTypesTests {
         harness.eval("var img = HSImage.fromBase64('\(b64)')")
 
         harness.expectTrue("img !== null && img !== undefined")
-        harness.expectEqual("img.size().w", 3.0)
-        harness.expectEqual("img.size().h", 2.0)
+        harness.expectEqual("img.size.w", 3.0)
+        harness.expectEqual("img.size.h", 2.0)
     }
 
     @Test("HSImage.fromBase64 round-trips with encode()")
@@ -449,7 +450,7 @@ struct BridgeTypesTests {
 
         harness.expectTrue("typeof reencoded === 'string' && reencoded.length > 0")
         harness.expectTrue("roundTripped !== null && roundTripped !== undefined")
-        harness.expectEqual("roundTripped.size().w", 4.0)
+        harness.expectEqual("roundTripped.size.w", 4.0)
     }
 
     @Test("HSImage.fromBase64 tolerates whitespace in the base64 input")

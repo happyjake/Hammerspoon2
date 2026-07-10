@@ -18,12 +18,12 @@ import AppKit
     ///   `.setMessageHandler(name, fn)`, then `.show()`.
     /// - Example:
     /// ```js
-    /// const wv = hs.webview.new({ x: 100, y: 100, w: 800, h: 600 })
+    /// const wv = hs.webview.create({ x: 100, y: 100, w: 800, h: 600 })
     ///     .url('https://example.com')
     ///     .level('floating')
     ///     .show()
     /// ```
-    @objc func new(_ rect: JSValue) -> HSWebview?
+    @objc func create(_ rect: JSValue) -> HSWebview?
 }
 
 @_documentation(visibility: private)
@@ -49,7 +49,7 @@ import AppKit
         AKTrace("Deinit of hs.webview: \(engineID)")
     }
 
-    @objc func new(_ rect: JSValue) -> HSWebview? {
+    @objc func create(_ rect: JSValue) -> HSWebview? {
         guard rect.isObject else {
             AKWarning("hs.webview.new: rect object {x, y, w, h} required")
             return nil

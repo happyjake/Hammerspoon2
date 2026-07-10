@@ -16,11 +16,11 @@ import AppKit
     ///   `.setCallback(fn)`, `.highlight(bool)`, and later `.remove()`.
     /// - Example:
     /// ```js
-    /// const item = hs.menubar.new()
+    /// const item = hs.menubar.create()
     ///     .setIcon('eye', {})
     ///     .setCallback(() => { /* open a popover */ })
     /// ```
-    @objc func new() -> HSMenubarItem
+    @objc func create() -> HSMenubarItem
 }
 
 @_documentation(visibility: private)
@@ -48,7 +48,7 @@ import AppKit
         AKTrace("Deinit of hs.menubar: \(engineID)")
     }
 
-    @objc func new() -> HSMenubarItem {
+    @objc func create() -> HSMenubarItem {
         let item = HSMenubarItem(module: self)
         items[item.id] = item
         return item

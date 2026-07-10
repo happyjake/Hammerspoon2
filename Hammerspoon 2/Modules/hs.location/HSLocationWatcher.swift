@@ -59,7 +59,7 @@ import CoreLocation
     @objc @discardableResult func stop() -> HSLocationWatcher
 
     /// Sets the callback function invoked when location events occur.
-    /// - Parameter fn: `function(event, data)` — see type documentation for event names
+    /// - Parameter fn: {(event: string, data: Record<string, any>) => void} Called with the event name and associated data; see type documentation for event names
     /// - Returns: self, for chaining
     /// - Example:
     /// ```js
@@ -67,7 +67,7 @@ import CoreLocation
     ///     if (event === 'location') console.log(data.latitude, data.longitude)
     /// })
     /// ```
-    @objc func setCallback(_ fn: JSValue) -> HSLocationWatcher
+    @objc func setCallback(_ fn: JSFunction) -> HSLocationWatcher
 
     /// Returns the most recently received location, or null if none yet.
     /// - Returns: a locationTable, or null
@@ -76,7 +76,7 @@ import CoreLocation
     /// const loc = w.location()
     /// if (loc) console.log(`${loc.latitude}, ${loc.longitude}`)
     /// ```
-    @objc func location() -> [AnyHashable: Any]?
+    @objc func location() -> [String: Any]?
 
     /// The minimum distance in metres the device must move before a new update
     /// is delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).
@@ -95,7 +95,7 @@ import CoreLocation
     @objc var typeName = "HSLocationWatcher"
     @objc let identifier = UUID().uuidString
     private let manager = CLLocationManager()
-    private var callback: JSValue?
+    private var callback: JSCallback?
     private var _lastLocation: CLLocation?
 
     @objc var distanceFilter: Double {
@@ -106,6 +106,17 @@ import CoreLocation
     override init() {
         super.init()
         manager.delegate = self
+    }
+
+    isolated deinit {
+        destroy()
+    }
+
+    func destroy() {
+        _ = stop()
+        callback?.detach(from: self)
+        callback = nil
+        manager.delegate = nil
     }
 
     @objc @discardableResult func start() -> HSLocationWatcher {
@@ -120,12 +131,13 @@ import CoreLocation
         return self
     }
 
-    @objc func setCallback(_ fn: JSValue) -> HSLocationWatcher {
-        callback = fn.isObject ? fn : nil
+    @objc func setCallback(_ fn: JSFunction) -> HSLocationWatcher {
+        callback?.detach(from: self)
+        callback = JSCallback(value: fn, owner: self)
         return self
     }
 
-    @objc func location() -> [AnyHashable: Any]? {
+    @objc func location() -> [String: Any]? {
         _lastLocation.map { HSLocationModule.locationTable(from: $0) }
     }
 
@@ -136,7 +148,7 @@ import CoreLocation
         MainActor.assumeIsolated {
             if let loc = lastLoc {
                 _lastLocation = loc
-                _ = callback?.call(withArguments: ["location", HSLocationModule.locationTable(from: loc)])
+                _ = callback?.value?.call(withArguments: ["location", HSLocationModule.locationTable(from: loc)])
             }
         }
     }
@@ -144,7 +156,7 @@ import CoreLocation
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         let message = error.localizedDescription
         MainActor.assumeIsolated {
-            _ = callback?.call(withArguments: ["error", message])
+            _ = callback?.value?.call(withArguments: ["error", message])
         }
     }
 
@@ -158,7 +170,7 @@ import CoreLocation
             case .restricted:                    status = "restricted"
             default:                             status = "notDetermined"
             }
-            _ = callback?.call(withArguments: ["authorizationChanged", status])
+            _ = callback?.value?.call(withArguments: ["authorizationChanged", status])
         }
     }
 }
