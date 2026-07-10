@@ -97,6 +97,7 @@ class JSEngine {
             context.globalObject.deleteProperty("hs")
             context.globalObject.deleteProperty("console")
             context.globalObject.deleteProperty("require")
+            context.globalObject.deleteProperty(CommonJSLoader.cacheGlobalName)
 
             // Force a synchronous full GC cycle (mark → sweep → finalize) before
             // tearing down the VM. JSC's concurrent GC defers ObjC bridge finalizers
@@ -214,16 +215,20 @@ struct RequireInstaller: JSContextInstallable {
     func install(in context: JSContext) throws {
         // Use a class to hold shared mutable state and enable recursive calls
         // without the Swift recursive-closure-capture limitation.
+        //
+        // Lifetime: the require function's block captures the loader STRONGLY,
+        // so the loader lives exactly as long as the require function — a JS-
+        // heap object that dies with the context. Do NOT anchor the loader to
+        // the context with objc_setAssociatedObject: combined with the loader's
+        // (former) strong context/cache ivars that made an ObjC retain cycle
+        // (context → loader → context) which leaked every JSContext across
+        // reloads — see testContextDeallocatesAfterRelease.
         let loader = CommonJSLoader(context: context)
-        let requireFn = loader.makeRequire(parentDirname: nil)
+        guard let requireFn = loader.makeRequire(parentDirname: nil) else {
+            throw HammerspoonError(.vmCreation, msg: "RequireInstaller: failed to create require()")
+        }
         context.setObject(requireFn, forKeyedSubscript: "require" as NSString)
-        // Keep the loader alive for the entire lifetime of this JSContext.
-        // Without this the [weak self] captures in makeRequire() would immediately
-        // become nil once install(in:) returns.
-        objc_setAssociatedObject(context, &RequireInstaller.loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
-
-    private static var loaderKey: UInt8 = 0
 }
 
 /// Implements Node-style CommonJS module loading for a single JSContext.
@@ -234,15 +239,31 @@ struct RequireInstaller: JSContextInstallable {
 /// `require.cache`. Files that never assign `module.exports` return the
 /// initial empty `{}` object.
 private final class CommonJSLoader {
-    private let context: JSContext
-    /// JS object: { [absPath]: moduleObject }  — shared across all require() calls.
-    private let cache: JSValue
+    // Weak: the loader is owned (via the require function's block capture) by
+    // the context's own JS heap. A strong ref here — or a stored JSValue,
+    // which retains its context internally — would cycle the context back to
+    // itself and leak it on every reload.
+    private weak var context: JSContext?
+
+    /// Hidden global that roots the module cache ({ [absPath]: moduleObject })
+    /// in the JS heap, so Swift never holds it strongly. Non-enumerable to keep
+    /// globalThis tidy; configurable so deleteContext() can remove it. The same
+    /// object is exposed to users as `require.cache`.
+    static let cacheGlobalName = "__hsRequireCache__"
 
     init(context: JSContext) {
         self.context = context
-        // Create the module cache as a plain JS object so JS code can mutate it
-        // (e.g. `delete require.cache[path]`).
-        cache = context.evaluateScript("({})") ?? JSValue(newObjectIn: context)
+        context.evaluateScript(
+            "Object.defineProperty(globalThis, '\(Self.cacheGlobalName)', { value: {}, enumerable: false, writable: false, configurable: true })"
+        )
+    }
+
+    /// The module cache, fetched from its JS-heap root. Nil once the context
+    /// is torn down (or after deleteContext removed the global).
+    private var cache: JSValue? {
+        guard let cache = context?.globalObject.objectForKeyedSubscript(Self.cacheGlobalName),
+              !cache.isUndefined, !cache.isNull else { return nil }
+        return cache
     }
 
     // MARK: - Path resolution
@@ -293,11 +314,14 @@ private final class CommonJSLoader {
 
     /// Returns a JS `require` function whose relative-path resolution is
     /// anchored at `parentDirname`.  Attach `.cache` and `.resolve` to it.
-    func makeRequire(parentDirname: String?) -> JSValue {
-        // Capture `self` (the loader) so the block can call back into loadModule.
-        let block: @convention(block) (String) -> JSValue? = { [weak self] rawPath in
-            guard let self else { return nil }
-            return self.loadModule(rawPath: rawPath, parentDirname: parentDirname)
+    func makeRequire(parentDirname: String?) -> JSValue? {
+        guard let context else { return nil }
+        // Capture `self` (the loader) STRONGLY: the block — and through it the
+        // loader — is owned by the require function object in the JS heap, so
+        // both die with the context. (The loader's back-reference to the
+        // context is weak, so this ownership is acyclic.)
+        let block: @convention(block) (String) -> JSValue? = { rawPath in
+            self.loadModule(rawPath: rawPath, parentDirname: parentDirname)
         }
         let jsRequire = JSValue(object: block, in: context)!
 
@@ -305,8 +329,7 @@ private final class CommonJSLoader {
         jsRequire.setObject(cache, forKeyedSubscript: "cache" as NSString)
 
         // Attach `.resolve` — returns the resolved absolute path without loading.
-        let resolveBlock: @convention(block) (String) -> String? = { [weak self] rawPath in
-            guard let self else { return nil }
+        let resolveBlock: @convention(block) (String) -> String? = { rawPath in
             guard let candidate = self.resolvePath(rawPath, parentDirname: parentDirname),
                   let abs = self.resolveWithExtensions(candidate)
             else { return nil }
@@ -321,6 +344,9 @@ private final class CommonJSLoader {
 
     /// Core loading logic; shared by all `require` closures regardless of parent.
     func loadModule(rawPath: String, parentDirname: String?) -> JSValue? {
+        // Torn-down context (or deleted cache global): require becomes a no-op.
+        guard let context, let cache else { return nil }
+
         // 1. Resolve path to an absolute filesystem path.
         guard let candidate = resolvePath(rawPath, parentDirname: parentDirname),
               let absPath = resolveWithExtensions(candidate)
@@ -361,7 +387,7 @@ private final class CommonJSLoader {
         cache.setObject(moduleObj, forKeyedSubscript: absPath as NSString)
 
         // 6. Build a child require that knows this file's dirname.
-        let childRequire = makeRequire(parentDirname: dirname)
+        guard let childRequire = makeRequire(parentDirname: dirname) else { return nil }
 
         // 7. Wrap source in the CJS function and compile it.
         //    We use a JS-level string escape via the URL source map name only;

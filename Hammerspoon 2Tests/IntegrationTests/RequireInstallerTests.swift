@@ -156,4 +156,24 @@ struct RequireInstallerTests {
         let expected = (realFile as NSString).deletingLastPathComponent as String
         #expect(dir == expected, "__dirname should resolve to the symlink target's dir")
     }
+
+    @Test("the JSContext deallocates when external references drop (no loader retain cycle)")
+    func testContextDeallocatesAfterRelease() {
+        // The require shim must not retain its JSContext strongly: with the
+        // loader anchored to the context via an associated object AND holding
+        // the context (or a JSValue, which retains the context) as a strong
+        // ivar, every context leaks — reload after reload accumulates whole
+        // JS heaps. The ObjC wrapper's dealloc is the observable.
+        weak var weakCtx: JSContext?
+        autoreleasepool {
+            let (ctx, eval) = makeContext()
+            weakCtx = ctx
+            // Exercise require end-to-end so the loader, its cache, and a
+            // child require function all actually exist.
+            let path = tmpJs("leak-probe.js", "module.exports = 42")
+            let result = eval("require('\(path)')") as? Int
+            #expect(result == 42)
+        }
+        #expect(weakCtx == nil, "JSContext leaked — the require loader retains its context")
+    }
 }
