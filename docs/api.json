@@ -4041,6 +4041,36 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
           "lineNumber": 63
+        },
+        {
+          "name": "createEvent",
+          "signature": "func createEvent(_ options: JSValue) -> [String: Any]?",
+          "isStatic": false,
+          "rawDocumentation": "Create a single Event.\n- Parameter options: Event fields: `title`, `start`, `end`, optional `calendar`, `allDay`, `location`, `notes`, `url`, and `alarms`\n  Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\n  `calendar` resolves by id first, then exact title, and defaults to the Calendar for new Events when omitted.\n  `alarms` contains non-negative minutes-before values. Recurring Event creation is unsupported.\n- Returns: The created Event as a plain object; invalid input, unavailable targets, and save failures throw a JavaScript `Error`\n- Example:\n```js\nconst event = hs.calendar.createEvent({\n  title: 'Project check-in',\n  start: '2026-07-13T01:00:00Z',\n  end: '2026-07-13T01:30:00Z',\n  alarms: [10]\n})\nconsole.log(event.id)\n```",
+          "description": "Create a single Event.\nTimed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\n`calendar` resolves by id first, then exact title, and defaults to the Calendar for new Events when omitted.\n`alarms` contains non-negative minutes-before values. Recurring Event creation is unsupported.",
+          "params": [
+            {
+              "name": "options",
+              "type": "JSValue",
+              "description": "Event fields: `title`, `start`, `end`, optional `calendar`, `allDay`, `location`, `notes`, `url`, and `alarms`",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "Object<String, Any>",
+            "description": "The created Event as a plain object; invalid input, unavailable targets, and save failures throw a JavaScript `Error`"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const event = hs.calendar.createEvent({\n  title: 'Project check-in',\n  start: '2026-07-13T01:00:00Z',\n  end: '2026-07-13T01:30:00Z',\n  alarms: [10]\n})\nconsole.log(event.id)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
+          "lineNumber": 81
         }
       ],
       "properties": [],
@@ -20978,5 +21008,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-11T19:17:36.098Z"
+  "generatedAt": "2026-07-11T19:46:19.790Z"
 }

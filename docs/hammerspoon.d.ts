@@ -1744,6 +1744,16 @@ declare namespace hs.calendar {
      */
     function searchEvents(query: string, start: string, end: string): Record<string, any>[];
 
+    /**
+     * Create a single Event.
+Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
+`calendar` resolves by id first, then exact title, and defaults to the Calendar for new Events when omitted.
+`alarms` contains non-negative minutes-before values. Recurring Event creation is unsupported.
+     * @param options Event fields: `title`, `start`, `end`, optional `calendar`, `allDay`, `location`, `notes`, `url`, and `alarms`
+     * @returns The created Event as a plain object; invalid input, unavailable targets, and save failures throw a JavaScript `Error`
+     */
+    function createEvent(options: any): Record<string, any> | null;
+
 }
 
 /**

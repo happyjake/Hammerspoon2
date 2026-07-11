@@ -15,8 +15,18 @@ private func makeThrowawayCalendar(
     in eventStore: EKEventStore,
     purpose: String
 ) throws -> EKCalendar {
+    try makeThrowawayCalendar(
+        in: eventStore,
+        named: "Hammerspoon 2 \(purpose) \(UUID().uuidString)"
+    )
+}
+
+private func makeThrowawayCalendar(
+    in eventStore: EKEventStore,
+    named name: String
+) throws -> EKCalendar {
     let calendar = EKCalendar(for: .event, eventStore: eventStore)
-    calendar.title = "Hammerspoon 2 issue 9 \(purpose) \(UUID().uuidString)"
+    calendar.title = name
     calendar.source = try #require(
         eventStore.sources.first(where: { $0.sourceType == .local }) ??
             eventStore.defaultCalendarForNewEvents?.source,
@@ -163,6 +173,110 @@ struct HSCalendarIntegrationTests {
                 }
             })()
             """)
+    }
+
+    @Test("createEvent is a function")
+    func testCreateEventIsFunction() {
+        makeHarness().expectTrue("typeof hs.calendar.createEvent === 'function'")
+    }
+
+    @Test("createEvent rejects a timed Event without an explicit UTC offset")
+    func testCreateEventRejectsNakedDatetime() {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.calendar.createEvent({
+                title: 'Naked datetime must fail',
+                start: '2026-07-13T09:00:00',
+                end: '2026-07-13T10:00:00'
+            })
+            """)
+
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("UTC offset or Z") == true)
+    }
+
+    @Test(
+        "createEvent rejects an out-of-range UTC offset",
+        arguments: ["+99:99", "+14:01", "+00:60"]
+    )
+    func testCreateEventRejectsInvalidUTCOffset(offset: String) {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.calendar.createEvent({
+                title: 'Invalid offset must fail',
+                start: '2026-07-13T09:00:00\(offset)',
+                end: '2026-07-13T10:00:00\(offset)'
+            })
+            """)
+
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("valid ISO 8601 datetime") == true)
+    }
+
+    @Test("createEvent requires date-only values for an all-day Event")
+    func testCreateEventRejectsDatetimeForAllDayEvent() {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.calendar.createEvent({
+                title: 'All-day datetime must fail',
+                start: '2026-07-13T00:00:00Z',
+                end: '2026-07-14T00:00:00Z',
+                allDay: true
+            })
+            """)
+
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("date-only YYYY-MM-DD") == true)
+    }
+
+    @Test("createEvent rejects recurrence authoring")
+    func testCreateEventRejectsRecurrence() {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.calendar.createEvent({
+                title: 'Recurring Event must fail',
+                start: '2026-07-13T01:00:00Z',
+                end: '2026-07-13T02:00:00Z',
+                recurrence: { frequency: 'weekly' }
+            })
+            """)
+
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("recurring Event creation is not supported") == true)
+    }
+
+    @Test("createEvent rejects alarms that are not minutes before the Event")
+    func testCreateEventRejectsNegativeAlarm() {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.calendar.createEvent({
+                title: 'Invalid alarm must fail',
+                start: '2026-07-13T01:00:00Z',
+                end: '2026-07-13T02:00:00Z',
+                alarms: [-10]
+            })
+            """)
+
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("non-negative minutes-before") == true)
+    }
+
+    @Test("createEvent rejects an alarms array with an absurd length")
+    func testCreateEventRejectsHugeSparseAlarmArray() {
+        let harness = makeHarness()
+        harness.eval("""
+            const alarms = []
+            alarms.length = 2147483648
+            hs.calendar.createEvent({
+                title: 'Huge sparse alarms array must fail',
+                start: '2026-07-13T01:00:00Z',
+                end: '2026-07-13T02:00:00Z',
+                alarms
+            })
+            """)
+
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("array of non-negative minutes-before numbers") == true)
     }
 }
 
@@ -362,5 +476,142 @@ struct HSCalendarLiveTests {
                     ])
             })()
             """)
+    }
+
+    @Test("createEvent writes a timed Event and returns the alarms EventKit persisted")
+    func testCreateTimedEventByCalendarID() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let testCalendar = try makeThrowawayCalendar(
+            in: eventStore,
+            named: "Hammerspoon 2 createEvent timed test \(UUID().uuidString)"
+        )
+        defer {
+            removeThrowawayCalendar(testCalendar, from: eventStore)
+        }
+
+        let eventTitle = "Hammerspoon 2 timed Event \(UUID().uuidString)"
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(testCalendar.calendarIdentifier, forKeyedSubscript: "testCalendarID" as NSString)
+        harness.context.setObject(eventTitle, forKeyedSubscript: "testEventTitle" as NSString)
+        harness.eval("""
+            createdEvent = hs.calendar.createEvent({
+                calendar: testCalendarID,
+                title: testEventTitle,
+                start: '2036-02-03T09:00:00+08:00',
+                end: '2036-02-03T10:30:00+08:00',
+                location: 'Test Room',
+                notes: 'Created by the hs.calendar live suite',
+                url: 'https://example.com/calendar-test',
+                alarms: [10, 60]
+            })
+            """)
+        #expect(!harness.hasException, "createEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("""
+            createdEvent &&
+            typeof createdEvent.id === 'string' && createdEvent.id.length > 0 &&
+            createdEvent.title === testEventTitle &&
+            createdEvent.start === '2036-02-03T01:00:00.000Z' &&
+            createdEvent.end === '2036-02-03T02:30:00.000Z' &&
+            createdEvent.allDay === false &&
+            createdEvent.location === 'Test Room' &&
+            createdEvent.notes === 'Created by the hs.calendar live suite' &&
+            createdEvent.url === 'https://example.com/calendar-test' &&
+            Array.isArray(createdEvent.alarms)
+            """)
+
+        let eventID = try #require(harness.eval("createdEvent.id") as? String)
+        let persisted = try #require(eventStore.calendarItem(withIdentifier: eventID) as? EKEvent)
+        let persistedAlarmMinutes = (persisted.alarms ?? [])
+            .map { -$0.relativeOffset / 60 }
+            .sorted()
+        #expect(persisted.calendar.calendarIdentifier == testCalendar.calendarIdentifier)
+        #expect(persisted.title == eventTitle)
+        #expect(!persistedAlarmMinutes.isEmpty)
+
+        harness.context.setObject(
+            persistedAlarmMinutes,
+            forKeyedSubscript: "persistedAlarmMinutes" as NSString
+        )
+        harness.expectTrue("""
+            JSON.stringify([...createdEvent.alarms].sort((a, b) => a - b)) ===
+            JSON.stringify(persistedAlarmMinutes)
+            """)
+    }
+
+    @Test("createEvent resolves a Calendar title and round-trips all-day dates")
+    func testCreateAllDayEventByCalendarTitle() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let testCalendar = try makeThrowawayCalendar(
+            in: eventStore,
+            named: "Hammerspoon 2 createEvent all-day test \(UUID().uuidString)"
+        )
+        defer {
+            removeThrowawayCalendar(testCalendar, from: eventStore)
+        }
+
+        let eventTitle = "Hammerspoon 2 all-day Event \(UUID().uuidString)"
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(testCalendar.title, forKeyedSubscript: "testCalendarTitle" as NSString)
+        harness.context.setObject(eventTitle, forKeyedSubscript: "testEventTitle" as NSString)
+        harness.eval("""
+            createdEvent = hs.calendar.createEvent({
+                calendar: testCalendarTitle,
+                title: testEventTitle,
+                start: '2036-02-03',
+                end: '2036-02-04',
+                allDay: true
+            })
+            """)
+        #expect(!harness.hasException, "createEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("""
+            createdEvent &&
+            createdEvent.title === testEventTitle &&
+            createdEvent.start === '2036-02-03' &&
+            createdEvent.end === '2036-02-04' &&
+            createdEvent.allDay === true &&
+            createdEvent.location === null &&
+            createdEvent.notes === null &&
+            createdEvent.url === null &&
+            Array.isArray(createdEvent.alarms) && createdEvent.alarms.length === 0
+            """)
+
+        let eventID = try #require(harness.eval("createdEvent.id") as? String)
+        let persisted = try #require(eventStore.calendarItem(withIdentifier: eventID) as? EKEvent)
+        #expect(persisted.calendar.calendarIdentifier == testCalendar.calendarIdentifier)
+        #expect(persisted.isAllDay)
+    }
+
+    @Test("createEvent reports every candidate when a Calendar title is ambiguous")
+    func testCreateEventRejectsAmbiguousCalendarTitle() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let sharedTitle = "Hammerspoon 2 ambiguous Calendar test \(UUID().uuidString)"
+        let firstCalendar = try makeThrowawayCalendar(in: eventStore, named: sharedTitle)
+        defer {
+            removeThrowawayCalendar(firstCalendar, from: eventStore)
+        }
+        let secondCalendar = try makeThrowawayCalendar(in: eventStore, named: sharedTitle)
+        defer {
+            removeThrowawayCalendar(secondCalendar, from: eventStore)
+        }
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(sharedTitle, forKeyedSubscript: "ambiguousCalendarTitle" as NSString)
+        harness.eval("""
+            hs.calendar.createEvent({
+                calendar: ambiguousCalendarTitle,
+                title: 'Must not be created',
+                start: '2036-02-03T01:00:00Z',
+                end: '2036-02-03T02:00:00Z'
+            })
+            """)
+
+        #expect(harness.hasException)
+        let message = try #require(harness.exceptionMessage)
+        #expect(message.contains("ambiguous"))
+        #expect(message.contains(firstCalendar.calendarIdentifier))
+        #expect(message.contains(secondCalendar.calendarIdentifier))
     }
 }

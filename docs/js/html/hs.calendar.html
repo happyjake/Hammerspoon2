@@ -214,6 +214,53 @@ console.log(status)</code></pre>
             <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L63" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:63</a>
         </div>
     </div>
+    <div class="method" id="createEvent">
+        <h3><a href="#createEvent">hs.calendar.createEvent(options) -> [String: Any]</a></h3>
+
+        <div class="description">Create a single Event.
+Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
+`calendar` resolves by id first, then exact title, and defaults to the Calendar for new Events when omitted.
+`alarms` contains non-negative minutes-before values. Recurring Event creation is unsupported.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.calendar.createEvent(options) -> [String: Any]</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">options</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">Event fields: `title`, `start`, `end`, optional `calendar`, `allDay`, `location`, `notes`, `url`, and `alarms`</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">[String: Any]</div>
+        <div class="return-desc">The created Event as a plain object; invalid input, unavailable targets, and save failures throw a JavaScript `Error`</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const event = hs.calendar.createEvent({
+  title: &#39;Project check-in&#39;,
+  start: &#39;2026-07-13T01:00:00Z&#39;,
+  end: &#39;2026-07-13T01:30:00Z&#39;,
+  alarms: [10]
+})
+console.log(event.id)</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L81" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:81</a>
+        </div>
+    </div>
         </main>
 
         <!-- Right TOC sidebar -->
