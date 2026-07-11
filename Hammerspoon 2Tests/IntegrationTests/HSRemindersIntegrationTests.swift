@@ -11,6 +11,26 @@ private nonisolated func hasRemindersModuleFullAccess() -> Bool {
     EKEventStore.authorizationStatus(for: .reminder) == .fullAccess
 }
 
+private func makeLiveReminderList(title: String, in eventStore: EKEventStore) throws -> EKCalendar {
+    let list = EKCalendar(for: .reminder, eventStore: eventStore)
+    list.title = title
+    list.source = try #require(
+        eventStore.defaultCalendarForNewReminders()?.source ??
+            eventStore.sources.first(where: { $0.sourceType == .local }),
+        "A writable Reminder List source is required for the live test"
+    )
+    try eventStore.saveCalendar(list, commit: true)
+    return list
+}
+
+private func removeLiveReminderList(_ list: EKCalendar, from eventStore: EKEventStore) {
+    do {
+        try eventStore.removeCalendar(list, commit: true)
+    } catch {
+        Issue.record("Could not remove the live-test Reminder List: \(error)")
+    }
+}
+
 @Suite("hs.reminders API structure tests")
 struct HSRemindersIntegrationTests {
     private func makeHarness() -> JSTestHarness {
@@ -93,7 +113,7 @@ struct HSRemindersIntegrationTests {
     .serialized,
     .disabled(if: !hasRemindersModuleFullAccess(), "Reminders full access is not granted")
 )
-struct HSRemindersLiveAuthorizationTests {
+struct HSRemindersLiveTests {
     @Test("authorizationStatus reports fullAccess when Reminders access is granted")
     func testAuthorizationStatusReportsFullAccess() {
         let harness = JSTestHarness()
@@ -104,22 +124,11 @@ struct HSRemindersLiveAuthorizationTests {
     @Test("listReminderLists returns the exact throwaway Reminder List summary")
     func testListReminderListsReturnsReminderListSummaries() throws {
         let eventStore = HSEventStore.shared.eventStore
-        let testList = EKCalendar(for: .reminder, eventStore: eventStore)
-        testList.title = "Hammerspoon 2 listReminderLists test \(UUID().uuidString)"
-        testList.source = try #require(
-            eventStore.defaultCalendarForNewReminders()?.source ??
-                eventStore.sources.first(where: { $0.sourceType == .local }),
-            "A writable Reminder List source is required for the live test"
+        let testList = try makeLiveReminderList(
+            title: "Hammerspoon 2 listReminderLists test \(UUID().uuidString)",
+            in: eventStore
         )
-
-        try eventStore.saveCalendar(testList, commit: true)
-        defer {
-            do {
-                try eventStore.removeCalendar(testList, commit: true)
-            } catch {
-                Issue.record("Could not remove the live-test Reminder List: \(error)")
-            }
-        }
+        defer { removeLiveReminderList(testList, from: eventStore) }
 
         let harness = JSTestHarness()
         harness.loadModule(HSRemindersModule.self, as: "reminders")
@@ -143,21 +152,11 @@ struct HSRemindersLiveAuthorizationTests {
     @MainActor
     func testListRemindersReturnsSeededIncompleteReminder() async throws {
         let eventStore = HSEventStore.shared.eventStore
-        let testList = EKCalendar(for: .reminder, eventStore: eventStore)
-        testList.title = "Hammerspoon 2 listReminders test \(UUID().uuidString)"
-        testList.source = try #require(
-            eventStore.defaultCalendarForNewReminders()?.source ??
-                eventStore.sources.first(where: { $0.sourceType == .local }),
-            "A writable Reminder List source is required for the live test"
+        let testList = try makeLiveReminderList(
+            title: "Hammerspoon 2 listReminders test \(UUID().uuidString)",
+            in: eventStore
         )
-        try eventStore.saveCalendar(testList, commit: true)
-        defer {
-            do {
-                try eventStore.removeCalendar(testList, commit: true)
-            } catch {
-                Issue.record("Could not remove the live-test Reminder List: \(error)")
-            }
-        }
+        defer { removeLiveReminderList(testList, from: eventStore) }
 
         let testReminder = EKReminder(eventStore: eventStore)
         testReminder.calendar = testList
@@ -209,21 +208,11 @@ struct HSRemindersLiveAuthorizationTests {
     @MainActor
     func testCreateReminderRoundTripsDateOnlyAndPriority() async throws {
         let eventStore = HSEventStore.shared.eventStore
-        let testList = EKCalendar(for: .reminder, eventStore: eventStore)
-        testList.title = "Hammerspoon 2 createReminder test \(UUID().uuidString)"
-        testList.source = try #require(
-            eventStore.defaultCalendarForNewReminders()?.source ??
-                eventStore.sources.first(where: { $0.sourceType == .local }),
-            "A writable Reminder List source is required for the live test"
+        let testList = try makeLiveReminderList(
+            title: "Hammerspoon 2 createReminder test \(UUID().uuidString)",
+            in: eventStore
         )
-        try eventStore.saveCalendar(testList, commit: true)
-        defer {
-            do {
-                try eventStore.removeCalendar(testList, commit: true)
-            } catch {
-                Issue.record("Could not remove the live-test Reminder List: \(error)")
-            }
-        }
+        defer { removeLiveReminderList(testList, from: eventStore) }
 
         let title = "Created Reminder \(UUID().uuidString)"
         let harness = JSTestHarness()
@@ -262,28 +251,26 @@ struct HSRemindersLiveAuthorizationTests {
             harness.eval("createdListDone") as? Bool ?? false
         }
         #expect(completed, "listReminders did not settle within 5 seconds")
-        harness.expectTrue("createdListResult.some(item => item.id === createdReminder.id && item.priority === 'high')")
+        harness.expectTrue("""
+            (() => {
+                const persisted = createdListResult.find(item => item.id === createdReminder.id)
+                return persisted !== undefined &&
+                    persisted.due === '2026-07-14' &&
+                    persisted.priority === 'high' &&
+                    persisted.notes === 'created fixture notes'
+            })()
+            """)
     }
 
     @Test("completeReminder moves the exact fixture between completion filters")
     @MainActor
     func testCompleteReminderUpdatesCompletionFilters() async throws {
         let eventStore = HSEventStore.shared.eventStore
-        let testList = EKCalendar(for: .reminder, eventStore: eventStore)
-        testList.title = "Hammerspoon 2 completeReminder test \(UUID().uuidString)"
-        testList.source = try #require(
-            eventStore.defaultCalendarForNewReminders()?.source ??
-                eventStore.sources.first(where: { $0.sourceType == .local }),
-            "A writable Reminder List source is required for the live test"
+        let testList = try makeLiveReminderList(
+            title: "Hammerspoon 2 completeReminder test \(UUID().uuidString)",
+            in: eventStore
         )
-        try eventStore.saveCalendar(testList, commit: true)
-        defer {
-            do {
-                try eventStore.removeCalendar(testList, commit: true)
-            } catch {
-                Issue.record("Could not remove the live-test Reminder List: \(error)")
-            }
-        }
+        defer { removeLiveReminderList(testList, from: eventStore) }
 
         let harness = JSTestHarness()
         harness.loadModule(HSRemindersModule.self, as: "reminders")
@@ -332,21 +319,11 @@ struct HSRemindersLiveAuthorizationTests {
     @MainActor
     func testDeleteReminderRemovesObservedFixture() async throws {
         let eventStore = HSEventStore.shared.eventStore
-        let testList = EKCalendar(for: .reminder, eventStore: eventStore)
-        testList.title = "Hammerspoon 2 deleteReminder test \(UUID().uuidString)"
-        testList.source = try #require(
-            eventStore.defaultCalendarForNewReminders()?.source ??
-                eventStore.sources.first(where: { $0.sourceType == .local }),
-            "A writable Reminder List source is required for the live test"
+        let testList = try makeLiveReminderList(
+            title: "Hammerspoon 2 deleteReminder test \(UUID().uuidString)",
+            in: eventStore
         )
-        try eventStore.saveCalendar(testList, commit: true)
-        defer {
-            do {
-                try eventStore.removeCalendar(testList, commit: true)
-            } catch {
-                Issue.record("Could not remove the live-test Reminder List: \(error)")
-            }
-        }
+        defer { removeLiveReminderList(testList, from: eventStore) }
 
         let harness = JSTestHarness()
         harness.loadModule(HSRemindersModule.self, as: "reminders")
@@ -390,21 +367,11 @@ struct HSRemindersLiveAuthorizationTests {
     @MainActor
     func testRawPrioritiesAreBucketedOnRead() async throws {
         let eventStore = HSEventStore.shared.eventStore
-        let testList = EKCalendar(for: .reminder, eventStore: eventStore)
-        testList.title = "Hammerspoon 2 priority bucket test \(UUID().uuidString)"
-        testList.source = try #require(
-            eventStore.defaultCalendarForNewReminders()?.source ??
-                eventStore.sources.first(where: { $0.sourceType == .local }),
-            "A writable Reminder List source is required for the live test"
+        let testList = try makeLiveReminderList(
+            title: "Hammerspoon 2 priority bucket test \(UUID().uuidString)",
+            in: eventStore
         )
-        try eventStore.saveCalendar(testList, commit: true)
-        defer {
-            do {
-                try eventStore.removeCalendar(testList, commit: true)
-            } catch {
-                Issue.record("Could not remove the live-test Reminder List: \(error)")
-            }
-        }
+        defer { removeLiveReminderList(testList, from: eventStore) }
 
         var expectedBuckets: [String: String] = [:]
         for (rawPriority, bucket) in [(0, "none"), (2, "high"), (5, "medium"), (8, "low")] {
@@ -448,23 +415,14 @@ struct HSRemindersLiveAuthorizationTests {
     }
 
     @Test("timed due values are accepted only as instants and returned in UTC")
-    func testTimedDueRoundTripsAsUTC() throws {
+    @MainActor
+    func testTimedDueRoundTripsAsUTC() async throws {
         let eventStore = HSEventStore.shared.eventStore
-        let testList = EKCalendar(for: .reminder, eventStore: eventStore)
-        testList.title = "Hammerspoon 2 timed due test \(UUID().uuidString)"
-        testList.source = try #require(
-            eventStore.defaultCalendarForNewReminders()?.source ??
-                eventStore.sources.first(where: { $0.sourceType == .local }),
-            "A writable Reminder List source is required for the live test"
+        let testList = try makeLiveReminderList(
+            title: "Hammerspoon 2 timed due test \(UUID().uuidString)",
+            in: eventStore
         )
-        try eventStore.saveCalendar(testList, commit: true)
-        defer {
-            do {
-                try eventStore.removeCalendar(testList, commit: true)
-            } catch {
-                Issue.record("Could not remove the live-test Reminder List: \(error)")
-            }
-        }
+        defer { removeLiveReminderList(testList, from: eventStore) }
 
         let harness = JSTestHarness()
         harness.loadModule(HSRemindersModule.self, as: "reminders")
@@ -478,34 +436,46 @@ struct HSRemindersLiveAuthorizationTests {
             """)
         #expect(!harness.hasException, "strict timed due should be accepted")
         harness.expectTrue("timedDueReminder.due === '2026-07-14T07:30:00Z'")
+
+        harness.eval("""
+            var timedDueResults = null
+            var timedDueError = null
+            var timedDueDone = false
+            hs.reminders.listReminders(timedDueListID, false).then(function(reminders) {
+                timedDueResults = reminders
+                timedDueDone = true
+            }).catch(function(error) {
+                timedDueError = String(error)
+                timedDueDone = true
+            })
+            """)
+        let settled = await harness.waitForAsync(timeout: 5.0) {
+            harness.eval("timedDueDone") as? Bool ?? false
+        }
+        #expect(settled, "timed due query did not settle within 5 seconds")
+        harness.expectTrue("timedDueError === null")
+        harness.expectTrue("""
+            timedDueResults.some(item =>
+                item.id === timedDueReminder.id &&
+                item.due === '2026-07-14T07:30:00Z'
+            )
+            """)
     }
 
     @Test("an ambiguous Reminder List title reports every candidate id")
     func testAmbiguousReminderListTitleReportsCandidates() throws {
         let eventStore = HSEventStore.shared.eventStore
         let sharedTitle = "Hammerspoon 2 ambiguous list \(UUID().uuidString)"
-        let firstList = EKCalendar(for: .reminder, eventStore: eventStore)
-        let secondList = EKCalendar(for: .reminder, eventStore: eventStore)
-        let source = try #require(
-            eventStore.defaultCalendarForNewReminders()?.source ??
-                eventStore.sources.first(where: { $0.sourceType == .local }),
-            "A writable Reminder List source is required for the live test"
-        )
-        firstList.title = sharedTitle
-        firstList.source = source
-        secondList.title = sharedTitle
-        secondList.source = source
-        try eventStore.saveCalendar(firstList, commit: true)
-        try eventStore.saveCalendar(secondList, commit: true)
+        var testLists: [EKCalendar] = []
         defer {
-            for list in [firstList, secondList] {
-                do {
-                    try eventStore.removeCalendar(list, commit: true)
-                } catch {
-                    Issue.record("Could not remove an ambiguous live-test Reminder List: \(error)")
-                }
+            for list in testLists {
+                removeLiveReminderList(list, from: eventStore)
             }
         }
+        let firstList = try makeLiveReminderList(title: sharedTitle, in: eventStore)
+        testLists.append(firstList)
+        let secondList = try makeLiveReminderList(title: sharedTitle, in: eventStore)
+        testLists.append(secondList)
 
         let harness = JSTestHarness()
         harness.loadModule(HSRemindersModule.self, as: "reminders")

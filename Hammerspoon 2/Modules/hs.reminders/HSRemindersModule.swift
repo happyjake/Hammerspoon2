@@ -99,6 +99,31 @@ private enum HSRemindersModuleError: LocalizedError {
     }
 }
 
+private enum HSReminderPriority: String {
+    case none
+    case low
+    case medium
+    case high
+
+    init(eventKitValue: Int) {
+        switch eventKitValue {
+        case 1...4: self = .high
+        case 5:     self = .medium
+        case 6...9: self = .low
+        default:    self = .none
+        }
+    }
+
+    var eventKitValue: Int {
+        switch self {
+        case .none:   return 0
+        case .high:   return 1
+        case .medium: return 5
+        case .low:    return 9
+        }
+    }
+}
+
 @_documentation(visibility: private)
 @MainActor
 @objc class HSRemindersModule: NSObject, HSModuleAPI, HSRemindersModuleAPI {
@@ -294,20 +319,11 @@ private enum HSRemindersModuleError: LocalizedError {
             "listTitle": reminder.calendar.title,
             "title": reminder.title ?? "",
             "due": reminder.dueDateComponents.flatMap(dueString) ?? NSNull(),
-            "priority": priorityBucket(reminder.priority),
+            "priority": HSReminderPriority(eventKitValue: reminder.priority).rawValue,
             "notes": reminder.notes ?? NSNull(),
             "completed": reminder.isCompleted,
             "completionDate": reminder.completionDate.map(instantString) ?? NSNull(),
         ]
-    }
-
-    private func priorityBucket(_ priority: Int) -> String {
-        switch priority {
-        case 1...4: return "high"
-        case 5:     return "medium"
-        case 6...9: return "low"
-        default:    return "none"
-        }
     }
 
     private func dueString(_ components: DateComponents) -> String? {
@@ -347,16 +363,12 @@ private enum HSRemindersModuleError: LocalizedError {
     }
 
     private func priorityValue(_ priority: String) throws -> Int {
-        switch priority {
-        case "none":   return 0
-        case "high":   return 1
-        case "medium": return 5
-        case "low":    return 9
-        default:
+        guard let priority = HSReminderPriority(rawValue: priority) else {
             throw HSRemindersModuleError.invalidInput(
                 "hs.reminders.createReminder: 'priority' must be one of none, low, medium, or high"
             )
         }
+        return priority.eventKitValue
     }
 
     private func parseDue(_ due: String) throws -> DateComponents {
