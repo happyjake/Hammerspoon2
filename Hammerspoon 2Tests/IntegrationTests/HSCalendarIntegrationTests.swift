@@ -608,8 +608,8 @@ struct HSCalendarLiveTests {
         #expect(persisted.isAllDay)
     }
 
-    @Test("updateEvent reschedules a uniquely named fixture and updates writable fields")
-    func testUpdateEventReschedulesFixture() throws {
+    @Test("updateEvent updates an ordinary single Event")
+    func testUpdateEventReschedulesSingleFixture() throws {
         let eventStore = HSEventStore.shared.eventStore
         let sourceCalendar = try makeThrowawayCalendar(in: eventStore, purpose: "updateEvent source")
         defer { removeThrowawayCalendar(sourceCalendar, from: eventStore) }
@@ -625,6 +625,12 @@ struct HSCalendarLiveTests {
         fixture.endDate = try instant("2041-05-06T02:00:00Z")
         try eventStore.save(fixture, span: .thisEvent, commit: true)
         let fixtureID = fixture.calendarItemIdentifier
+        let resolvedFixture = try #require(
+            eventStore.calendarItem(withIdentifier: fixtureID) as? EKEvent
+        )
+        #expect(!resolvedFixture.hasRecurrenceRules)
+        #expect(!resolvedFixture.isDetached)
+        #expect(resolvedFixture.occurrenceDate != nil)
 
         let harness = JSTestHarness()
         harness.loadModule(HSCalendarModule.self, as: "calendar")
@@ -696,6 +702,88 @@ struct HSCalendarLiveTests {
         #expect((persisted.alarms ?? []).map { -$0.relativeOffset / 60 } == [15])
     }
 
+    @Test("updateEvent converts an all-day Event to exact timed instants")
+    func testUpdateEventConvertsAllDayToTimed() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "updateEvent all-day to timed")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let fixture = EKEvent(eventStore: eventStore)
+        fixture.calendar = calendar
+        fixture.title = "Hammerspoon 2 all-day to timed \(UUID().uuidString)"
+        fixture.isAllDay = true
+        fixture.startDate = try localDate(year: 2042, month: 1, day: 10)
+        fixture.endDate = try localDate(year: 2042, month: 1, day: 11)
+        try eventStore.save(fixture, span: .thisEvent, commit: true)
+        let fixtureID = fixture.calendarItemIdentifier
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.eval("""
+            convertedEvent = hs.calendar.updateEvent(fixtureEventID, {
+                allDay: false,
+                start: '2042-01-10T09:15:00+08:00',
+                end: '2042-01-10T10:45:00+08:00'
+            })
+            """)
+        #expect(!harness.hasException, "updateEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("""
+            convertedEvent &&
+            convertedEvent.allDay === false &&
+            convertedEvent.start === '2042-01-10T01:15:00.000Z' &&
+            convertedEvent.end === '2042-01-10T02:45:00.000Z'
+            """)
+
+        let persisted = try #require(eventStore.calendarItem(withIdentifier: fixtureID) as? EKEvent)
+        let expectedStart = try instant("2042-01-10T01:15:00Z")
+        let expectedEnd = try instant("2042-01-10T02:45:00Z")
+        #expect(!persisted.isAllDay)
+        #expect(persisted.startDate == expectedStart)
+        #expect(persisted.endDate == expectedEnd)
+    }
+
+    @Test("updateEvent converts a timed Event to exact all-day dates")
+    func testUpdateEventConvertsTimedToAllDay() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "updateEvent timed to all-day")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let fixture = EKEvent(eventStore: eventStore)
+        fixture.calendar = calendar
+        fixture.title = "Hammerspoon 2 timed to all-day \(UUID().uuidString)"
+        fixture.startDate = try instant("2042-02-10T01:00:00Z")
+        fixture.endDate = try instant("2042-02-10T02:00:00Z")
+        fixture.timeZone = TimeZone(secondsFromGMT: 0)
+        try eventStore.save(fixture, span: .thisEvent, commit: true)
+        let fixtureID = fixture.calendarItemIdentifier
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.eval("""
+            convertedEvent = hs.calendar.updateEvent(fixtureEventID, {
+                allDay: true,
+                start: '2042-02-12',
+                end: '2042-02-14'
+            })
+            """)
+        #expect(!harness.hasException, "updateEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("""
+            convertedEvent &&
+            convertedEvent.allDay === true &&
+            convertedEvent.start === '2042-02-12' &&
+            convertedEvent.end === '2042-02-14'
+            """)
+
+        let persisted = try #require(eventStore.calendarItem(withIdentifier: fixtureID) as? EKEvent)
+        let expectedStart = try localDate(year: 2042, month: 2, day: 12)
+        let expectedEnd = try localDate(year: 2042, month: 2, day: 14)
+        #expect(persisted.isAllDay)
+        #expect(persisted.startDate == expectedStart)
+        #expect(persisted.endDate == expectedEnd)
+    }
+
     @Test("updateEvent preserves omitted timezone state")
     func testUpdateEventPreservesOmittedTimezone() throws {
         let eventStore = HSEventStore.shared.eventStore
@@ -731,8 +819,8 @@ struct HSCalendarLiveTests {
         #expect(persisted.endDate == originalEnd)
     }
 
-    @Test("deleteEvent removes the exact uniquely named fixture")
-    func testDeleteEventRemovesFixture() throws {
+    @Test("deleteEvent removes an ordinary single Event")
+    func testDeleteEventRemovesSingleFixture() throws {
         let eventStore = HSEventStore.shared.eventStore
         let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "deleteEvent")
         defer { removeThrowawayCalendar(calendar, from: eventStore) }
@@ -745,6 +833,10 @@ struct HSCalendarLiveTests {
         try eventStore.save(fixture, span: .thisEvent, commit: true)
         let fixtureEventID = try #require(fixture.eventIdentifier)
         let fixtureCalendarItemID = fixture.calendarItemIdentifier
+        let resolvedFixture = try #require(eventStore.event(withIdentifier: fixtureEventID))
+        #expect(!resolvedFixture.hasRecurrenceRules)
+        #expect(!resolvedFixture.isDetached)
+        #expect(resolvedFixture.occurrenceDate != nil)
 
         let harness = JSTestHarness()
         harness.loadModule(HSCalendarModule.self, as: "calendar")

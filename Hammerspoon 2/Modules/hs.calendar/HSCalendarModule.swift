@@ -845,7 +845,7 @@ import JavaScriptCore
     }
 
     private static func isRecurring(_ event: EKEvent) -> Bool {
-        event.occurrenceDate != nil || event.hasRecurrenceRules
+        event.hasRecurrenceRules || event.isDetached
     }
 
     @objc(updateEvent::)
@@ -1021,11 +1021,11 @@ import JavaScriptCore
             event.title = titleValue.toString()
         }
         event.calendar = targetCalendar
-        event.startDate = targetStart
-        event.endDate = targetEnd
-        event.isAllDay = targetAllDay
         if requestedAllDay != nil || !suppliedDateStrings.isEmpty {
+            event.isAllDay = targetAllDay
             event.timeZone = targetAllDay ? nil : TimeZone(secondsFromGMT: 0)
+            event.startDate = targetStart
+            event.endDate = targetEnd
         }
 
         for field in ["location", "notes"] {
