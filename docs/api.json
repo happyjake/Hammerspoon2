@@ -3908,6 +3908,37 @@
       "rawDocumentation": "Discover and publish Bonjour (mDNS / Zeroconf) network services.\n\nUse `createSearch()` to search the network for services advertised by other\ndevices, and `advertise()` to advertise your own. The `networkServices()`\nconvenience function returns a snapshot of all service types currently\nactive on the local network.\n\n## Common service type strings\n\nThe `hs.bonjour.serviceTypes` object maps short names to their mDNS strings,\ne.g. `hs.bonjour.serviceTypes.ssh` → `\"_ssh._tcp.\"`.\n\n## Searching for a service\n\n```js\n// Find all SSH services on the local network and resolve each one\nconst search = hs.bonjour.createSearch()\nsearch.findServices('_ssh._tcp.', 'local.', (event, svc, moreComing) => {\n    if (event === 'serviceFound') {\n        svc.resolve(5, ev => {\n            if (ev === 'resolved') console.log(svc.hostname + ':' + svc.port)\n        })\n    }\n})\n```\n\n## Advertising a service\n\n```js\nhs.bonjour.advertise('My Web Server', '_http._tcp.', 8080, ev => {\n    if (ev === 'published') console.log('Now advertising!')\n    else if (ev === 'error') console.error('Advertising failed')\n})\n// Later, to stop:\nhs.bonjour.stopAdvertising('My Web Server', '_http._tcp.')\n```\n\n## Listing all active service types\n\n```js\nhs.bonjour.networkServices(5).then(types => {\n    console.log('Active service types: ' + types.join(', '))\n})\n```"
     },
     {
+      "name": "hs.calendar",
+      "methods": [
+        {
+          "name": "authorizationStatus",
+          "signature": "func authorizationStatus() -> String",
+          "isStatic": false,
+          "rawDocumentation": "Return the app's current Calendar authorization status.\n- Returns: One of `fullAccess`, `writeOnly`, `denied`, `restricted`, or `notDetermined`\n- Example:\n```js\nconst status = hs.calendar.authorizationStatus()\nconsole.log(status)\n```",
+          "description": "Return the app's current Calendar authorization status.",
+          "params": [],
+          "returns": {
+            "type": "string",
+            "description": "One of `fullAccess`, `writeOnly`, `denied`, `restricted`, or `notDetermined`"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const status = hs.calendar.authorizationStatus()\nconsole.log(status)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
+          "lineNumber": 19
+        }
+      ],
+      "properties": [],
+      "types": [],
+      "description": "Module for accessing Calendar Events.",
+      "rawDocumentation": "Module for accessing Calendar Events."
+    },
+    {
       "name": "hs.camera",
       "methods": [
         {
@@ -10747,6 +10778,96 @@
           "lineNumber": 119
         },
         {
+          "name": "checkCalendar",
+          "signature": "func checkCalendar() -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Check whether the app has full Calendar access.\n- Returns: true if full Calendar access is granted, false otherwise\n- Example:\n```js\nconsole.log(hs.permissions.checkCalendar())\n```",
+          "description": "Check whether the app has full Calendar access.",
+          "params": [],
+          "returns": {
+            "type": "boolean",
+            "description": "true if full Calendar access is granted, false otherwise"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "console.log(hs.permissions.checkCalendar())"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 127
+        },
+        {
+          "name": "requestCalendar",
+          "signature": "func requestCalendar() -> JSPromise?",
+          "isStatic": false,
+          "rawDocumentation": "Request full Calendar access (shows the system dialog if the user has not yet decided).\n\nIt is safe to call this on every launch — macOS only shows the dialog once for this scope;\nsubsequent calls resolve with the durable authorization state.\n- Returns: {Promise<boolean>} A Promise that resolves to true if full access is granted, false otherwise\n- Example:\n```js\nhs.permissions.requestCalendar().then(granted => console.log(granted))\n```",
+          "description": "Request full Calendar access (shows the system dialog if the user has not yet decided).\nIt is safe to call this on every launch — macOS only shows the dialog once for this scope;\nsubsequent calls resolve with the durable authorization state.",
+          "params": [],
+          "returns": {
+            "type": "JSPromise",
+            "description": "A Promise that resolves to true if full access is granted, false otherwise",
+            "promiseType": "boolean"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.permissions.requestCalendar().then(granted => console.log(granted))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 138
+        },
+        {
+          "name": "checkReminders",
+          "signature": "func checkReminders() -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Check whether the app has full Reminders access.\n- Returns: true if full Reminders access is granted, false otherwise\n- Example:\n```js\nconsole.log(hs.permissions.checkReminders())\n```",
+          "description": "Check whether the app has full Reminders access.",
+          "params": [],
+          "returns": {
+            "type": "boolean",
+            "description": "true if full Reminders access is granted, false otherwise"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "console.log(hs.permissions.checkReminders())"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 146
+        },
+        {
+          "name": "requestReminders",
+          "signature": "func requestReminders() -> JSPromise?",
+          "isStatic": false,
+          "rawDocumentation": "Request full Reminders access (shows its independent system dialog if the user has not yet decided).\n\nIt is safe to call this on every launch — macOS only shows the dialog once for this scope;\nsubsequent calls resolve with the durable authorization state.\n- Returns: {Promise<boolean>} A Promise that resolves to true if full access is granted, false otherwise\n- Example:\n```js\nhs.permissions.requestReminders().then(granted => console.log(granted))\n```",
+          "description": "Request full Reminders access (shows its independent system dialog if the user has not yet decided).\nIt is safe to call this on every launch — macOS only shows the dialog once for this scope;\nsubsequent calls resolve with the durable authorization state.",
+          "params": [],
+          "returns": {
+            "type": "JSPromise",
+            "description": "A Promise that resolves to true if full access is granted, false otherwise",
+            "promiseType": "boolean"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.permissions.requestReminders().then(granted => console.log(granted))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 157
+        },
+        {
           "name": "checkInputMonitoring",
           "signature": "func checkInputMonitoring() -> Bool",
           "isStatic": false,
@@ -10766,7 +10887,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 130
+          "lineNumber": 168
         },
         {
           "name": "requestInputMonitoring",
@@ -10785,7 +10906,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
-          "lineNumber": 137
+          "lineNumber": 175
         }
       ],
       "properties": [],
@@ -11205,6 +11326,37 @@
       "types": [],
       "description": "Monitor and control system power: prevent sleep, read battery state, respond to\npower events, and lock or sleep the machine.\n## Preventing sleep\n```js\n// Prevent the display from sleeping while a task runs\nhs.power.preventSleep(\"display\")\n// ... do work ...\nhs.power.allowSleep(\"display\")\n```\n## Watching for system events\n```js\nhs.power.addEventWatcher(event => {\n    if (event === \"screensDidLock\") console.log(\"Screen locked!\")\n})\n```\n## Reading battery state\n```js\nconst info = hs.power.batteryInfo()\nif (info) {\n    console.log(`Battery: ${info.percentage}%, ${info.timeRemaining} minutes remaining`)\n}\n```",
       "rawDocumentation": "Monitor and control system power: prevent sleep, read battery state, respond to\npower events, and lock or sleep the machine.\n\n## Preventing sleep\n\n```js\n// Prevent the display from sleeping while a task runs\nhs.power.preventSleep(\"display\")\n// ... do work ...\nhs.power.allowSleep(\"display\")\n```\n\n## Watching for system events\n\n```js\nhs.power.addEventWatcher(event => {\n    if (event === \"screensDidLock\") console.log(\"Screen locked!\")\n})\n```\n\n## Reading battery state\n\n```js\nconst info = hs.power.batteryInfo()\nif (info) {\n    console.log(`Battery: ${info.percentage}%, ${info.timeRemaining} minutes remaining`)\n}\n```"
+    },
+    {
+      "name": "hs.reminders",
+      "methods": [
+        {
+          "name": "authorizationStatus",
+          "signature": "func authorizationStatus() -> String",
+          "isStatic": false,
+          "rawDocumentation": "Return the app's current Reminders authorization status.\n- Returns: One of `fullAccess`, `denied`, `restricted`, or `notDetermined`\n- Example:\n```js\nconst status = hs.reminders.authorizationStatus()\nconsole.log(status)\n```",
+          "description": "Return the app's current Reminders authorization status.",
+          "params": [],
+          "returns": {
+            "type": "string",
+            "description": "One of `fullAccess`, `denied`, `restricted`, or `notDetermined`"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const status = hs.reminders.authorizationStatus()\nconsole.log(status)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift",
+          "lineNumber": 19
+        }
+      ],
+      "properties": [],
+      "types": [],
+      "description": "Module for accessing Reminders.",
+      "rawDocumentation": "Module for accessing Reminders."
     },
     {
       "name": "hs.screen",
@@ -20716,5 +20868,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-10T12:48:35.718Z"
+  "generatedAt": "2026-07-11T17:13:10.538Z"
 }

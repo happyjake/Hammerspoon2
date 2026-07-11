@@ -1711,6 +1711,18 @@ Populated after `resolve()` completes or when updated via `monitor()`.
 }
 
 /**
+ * Module for accessing Calendar Events.
+ */
+declare namespace hs.calendar {
+    /**
+     * Return the app's current Calendar authorization status.
+     * @returns One of `fullAccess`, `writeOnly`, `denied`, `restricted`, or `notDetermined`
+     */
+    function authorizationStatus(): string;
+
+}
+
+/**
  * Module for discovering and interacting with camera devices.
 This module lets you enumerate cameras, capture still images, and react to
 device connect/disconnect events in real time.
@@ -4222,6 +4234,34 @@ resolve immediately with the previously granted or denied state.
     function requestLocation(): Promise<boolean>;
 
     /**
+     * Check whether the app has full Calendar access.
+     * @returns true if full Calendar access is granted, false otherwise
+     */
+    function checkCalendar(): boolean;
+
+    /**
+     * Request full Calendar access (shows the system dialog if the user has not yet decided).
+It is safe to call this on every launch — macOS only shows the dialog once for this scope;
+subsequent calls resolve with the durable authorization state.
+     * @returns A Promise that resolves to true if full access is granted, false otherwise
+     */
+    function requestCalendar(): Promise<boolean>;
+
+    /**
+     * Check whether the app has full Reminders access.
+     * @returns true if full Reminders access is granted, false otherwise
+     */
+    function checkReminders(): boolean;
+
+    /**
+     * Request full Reminders access (shows its independent system dialog if the user has not yet decided).
+It is safe to call this on every launch — macOS only shows the dialog once for this scope;
+subsequent calls resolve with the durable authorization state.
+     * @returns A Promise that resolves to true if full access is granted, false otherwise
+     */
+    function requestReminders(): Promise<boolean>;
+
+    /**
      * Check whether the user has granted Input Monitoring access to this app.
 Required for hs.eventtap to receive global key events.
      * @returns true if granted, false if denied or unknown
@@ -4381,6 +4421,18 @@ powered by a UPS, or `"unknown"` if the source cannot be determined.
 Returns one of: `"nominal"`, `"fair"`, `"serious"`, `"critical"`.
      */
     const thermalState: string;
+
+}
+
+/**
+ * Module for accessing Reminders.
+ */
+declare namespace hs.reminders {
+    /**
+     * Return the app's current Reminders authorization status.
+     * @returns One of `fullAccess`, `denied`, `restricted`, or `notDetermined`
+     */
+    function authorizationStatus(): string;
 
 }
 

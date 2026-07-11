@@ -42,6 +42,7 @@ import JavaScriptCoreExtras
     @objc var ax: HSAXModule { get }
     @objc var ble: HSBLEModule { get }
     @objc var bonjour: HSBonjourModule { get }
+    @objc var calendar: HSCalendarModule { get }
     @objc var camera: HSCameraModule { get }
     @objc var crypto: HSCryptoModule { get }
     @objc var eventtap: HSEventTapModule { get }
@@ -61,6 +62,7 @@ import JavaScriptCoreExtras
     @objc var osascript: HSOSAScriptModule { get }
     @objc var pasteboard: HSPasteboardModule { get }
     @objc var permissions: HSPermissionsModule { get }
+    @objc var reminders: HSRemindersModule { get }
     @objc var screen: HSScreenModule { get }
     @objc var serial: HSSerialModule { get }
     @objc var spotlight: HSSpotlightModule { get }
@@ -166,6 +168,7 @@ import JavaScriptCoreExtras
     @objc var ax: HSAXModule { get { getOrCreate(name: "ax", type: HSAXModule.self)}}
     @objc var ble: HSBLEModule { get { getOrCreate(name: "ble", type: HSBLEModule.self)}}
     @objc var bonjour: HSBonjourModule { get { getOrCreate(name: "bonjour", type: HSBonjourModule.self)}}
+    @objc var calendar: HSCalendarModule { get { getOrCreate(name: "calendar", type: HSCalendarModule.self)}}
     @objc var camera: HSCameraModule { get { getOrCreate(name: "camera", type: HSCameraModule.self)}}
     @objc var crypto: HSCryptoModule { get { getOrCreate(name: "crypto", type: HSCryptoModule.self)}}
     @objc var eventtap: HSEventTapModule { get { getOrCreate(name: "eventtap", type: HSEventTapModule.self)}}
@@ -185,6 +188,7 @@ import JavaScriptCoreExtras
     @objc var osascript: HSOSAScriptModule { get { getOrCreate(name: "osascript", type: HSOSAScriptModule.self)}}
     @objc var pasteboard: HSPasteboardModule { get { getOrCreate(name: "pasteboard", type: HSPasteboardModule.self)}}
     @objc var permissions: HSPermissionsModule { get { getOrCreate(name: "permissions", type: HSPermissionsModule.self)}}
+    @objc var reminders: HSRemindersModule { get { getOrCreate(name: "reminders", type: HSRemindersModule.self)}}
     @objc var screen: HSScreenModule { get { getOrCreate(name: "screen", type: HSScreenModule.self)}}
     @objc var serial: HSSerialModule { get { getOrCreate(name: "serial", type: HSSerialModule.self)}}
     @objc var spotlight: HSSpotlightModule { get { getOrCreate(name: "spotlight", type: HSSpotlightModule.self)}}

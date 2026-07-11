@@ -413,10 +413,14 @@ extension JSTestHarness {
                 loadModule(HSBonjourModule.self, as: name)
             case "camera":
                 loadModule(HSCameraModule.self, as: name)
+            case "calendar":
+                loadModule(HSCalendarModule.self, as: name)
             case "power":
                 loadModule(HSPowerModule.self, as: name)
             case "location":
                 loadModule(HSLocationModule.self, as: name)
+            case "reminders":
+                loadModule(HSRemindersModule.self, as: name)
             case "audiodevice":
                 loadModule(HSAudioDeviceModule.self, as: name)
             case "translation":
