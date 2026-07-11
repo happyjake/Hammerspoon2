@@ -35,6 +35,19 @@ struct HSCalendarIntegrationTests {
     func testAuthorizationStatusReturnsDocumentedStatus() {
         makeHarness().expectTrue("['fullAccess', 'writeOnly', 'denied', 'restricted', 'notDetermined'].includes(hs.calendar.authorizationStatus())")
     }
+
+    @Test("listCalendars returns Calendar summary objects")
+    func testListCalendarsReturnsCalendarSummaries() {
+        makeHarness().expectTrue("""
+            Array.isArray(hs.calendar.listCalendars()) &&
+            hs.calendar.listCalendars().every(calendar =>
+                typeof calendar.id === 'string' &&
+                typeof calendar.title === 'string' &&
+                typeof calendar.writable === 'boolean' &&
+                typeof calendar.isDefault === 'boolean'
+            )
+            """)
+    }
 }
 
 @Suite(

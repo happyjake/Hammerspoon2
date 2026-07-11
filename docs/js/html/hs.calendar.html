@@ -87,6 +87,29 @@ console.log(status)</code></pre>
             <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L19" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:19</a>
         </div>
     </div>
+    <div class="method" id="listCalendars">
+        <h3><a href="#listCalendars">hs.calendar.listCalendars() -> [[String: Any]]</a></h3>
+
+        <div class="description">List the Calendars available for Events.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.calendar.listCalendars() -> [[String: Any]]</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">[[String: Any]]</div>
+        <div class="return-desc">Calendar summaries containing `id`, `title`, `writable`, and `isDefault`</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">for (const calendar of hs.calendar.listCalendars()) {
+  console.log(calendar.title, calendar.id)
+}</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L29" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:29</a>
+        </div>
+    </div>
         </main>
 
         <!-- Right TOC sidebar -->
