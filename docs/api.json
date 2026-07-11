@@ -3953,6 +3953,94 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
           "lineNumber": 29
+        },
+        {
+          "name": "listEvents",
+          "signature": "func listEvents(_ calendar: String, _ start: String, _ end: String) -> [[String: Any]]",
+          "isStatic": false,
+          "rawDocumentation": "List Events from one Calendar that overlap a time window.\n- Parameters:\n  - calendar: Calendar id or exact title\n  - start: Window start as an ISO 8601 datetime with an explicit offset or `Z`\n  - end: Window end as an ISO 8601 datetime with an explicit offset or `Z`\n- Returns: Event objects containing `id`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, `attendees`, `organizer`, `status`, `availability`, `recurring`, and `occurrenceStart`. Timed values use UTC `Z`; all-day values are `YYYY-MM-DD`. Each attendee and organizer contains `name`, `url`, `status`, `role`, `type`, and `currentUser`. Non-recurring Events have a `null` `occurrenceStart`.\n- Example:\n```js\nconst events = hs.calendar.listEvents(\n  'Work',\n  '2026-07-12T00:00:00Z',\n  '2026-07-13T00:00:00Z'\n)\n```",
+          "description": "List Events from one Calendar that overlap a time window.",
+          "params": [
+            {
+              "name": "calendar",
+              "type": "string",
+              "description": "Calendar id or exact title",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "start",
+              "type": "string",
+              "description": "Window start as an ISO 8601 datetime with an explicit offset or `Z`",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "end",
+              "type": "string",
+              "description": "Window end as an ISO 8601 datetime with an explicit offset or `Z`",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "[[String: Any]]",
+            "description": "Event objects containing `id`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, `attendees`, `organizer`, `status`, `availability`, `recurring`, and `occurrenceStart`. Timed values use UTC `Z`; all-day values are `YYYY-MM-DD`. Each attendee and organizer contains `name`, `url`, `status`, `role`, `type`, and `currentUser`. Non-recurring Events have a `null` `occurrenceStart`."
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const events = hs.calendar.listEvents(\n  'Work',\n  '2026-07-12T00:00:00Z',\n  '2026-07-13T00:00:00Z'\n)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
+          "lineNumber": 46
+        },
+        {
+          "name": "searchEvents",
+          "signature": "func searchEvents(_ query: String, _ start: String, _ end: String) -> [[String: Any]]",
+          "isStatic": false,
+          "rawDocumentation": "Search Event titles across all Calendars in a time window.\n- Parameters:\n  - query: Case-insensitive text to find in Event titles\n  - start: Window start as an ISO 8601 datetime with an explicit offset or `Z`\n  - end: Window end as an ISO 8601 datetime with an explicit offset or `Z`\n- Returns: Matching Event objects in the same occurrence-aware shape as `listEvents`\n- Example:\n```js\nconst events = hs.calendar.searchEvents(\n  'planning',\n  '2026-07-12T00:00:00Z',\n  '2026-07-19T00:00:00Z'\n)\n```",
+          "description": "Search Event titles across all Calendars in a time window.",
+          "params": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Case-insensitive text to find in Event titles",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "start",
+              "type": "string",
+              "description": "Window start as an ISO 8601 datetime with an explicit offset or `Z`",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "end",
+              "type": "string",
+              "description": "Window end as an ISO 8601 datetime with an explicit offset or `Z`",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "[[String: Any]]",
+            "description": "Matching Event objects in the same occurrence-aware shape as `listEvents`"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const events = hs.calendar.searchEvents(\n  'planning',\n  '2026-07-12T00:00:00Z',\n  '2026-07-19T00:00:00Z'\n)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
+          "lineNumber": 63
         }
       ],
       "properties": [],
@@ -20890,5 +20978,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-11T17:56:43.655Z"
+  "generatedAt": "2026-07-11T18:46:59.478Z"
 }

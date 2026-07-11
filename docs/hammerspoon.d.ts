@@ -1726,6 +1726,24 @@ declare namespace hs.calendar {
      */
     function listCalendars(): Record<string, any>[];
 
+    /**
+     * List Events from one Calendar that overlap a time window.
+     * @param calendar Calendar id or exact title
+     * @param start Window start as an ISO 8601 datetime with an explicit offset or `Z`
+     * @param end Window end as an ISO 8601 datetime with an explicit offset or `Z`
+     * @returns Event objects containing `id`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, `attendees`, `organizer`, `status`, `availability`, `recurring`, and `occurrenceStart`. Timed values use UTC `Z`; all-day values are `YYYY-MM-DD`. Each attendee and organizer contains `name`, `url`, `status`, `role`, `type`, and `currentUser`. Non-recurring Events have a `null` `occurrenceStart`.
+     */
+    function listEvents(calendar: string, start: string, end: string): Record<string, any>[];
+
+    /**
+     * Search Event titles across all Calendars in a time window.
+     * @param query Case-insensitive text to find in Event titles
+     * @param start Window start as an ISO 8601 datetime with an explicit offset or `Z`
+     * @param end Window end as an ISO 8601 datetime with an explicit offset or `Z`
+     * @returns Matching Event objects in the same occurrence-aware shape as `listEvents`
+     */
+    function searchEvents(query: string, start: string, end: string): Record<string, any>[];
+
 }
 
 /**
