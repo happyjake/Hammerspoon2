@@ -261,6 +261,93 @@ console.log(event.id)</code></pre>
             <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L81" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:81</a>
         </div>
     </div>
+    <div class="method" id="updateEvent">
+        <h3><a href="#updateEvent">hs.calendar.updateEvent(id, fields) -> [String: Any]</a></h3>
+
+        <div class="description">Update writable fields on one non-recurring Event.
+Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
+Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
+`calendar` resolves by id first, then exact title. Recurring Event series editing is unsupported in v1.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.calendar.updateEvent(id, fields) -> [String: Any]</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">id</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`</td>
+                </tr>
+                <tr>
+                    <td class="param-name">fields</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">[String: Any]</div>
+        <div class="return-desc">The updated Event as a plain object; unknown ids, recurring series, invalid fields, and save failures throw a JavaScript `Error`</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const event = hs.calendar.updateEvent(&#39;EVENT_ID&#39;, {
+  start: &#39;2026-07-13T02:00:00Z&#39;,
+  end: &#39;2026-07-13T02:30:00Z&#39;
+})</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L99" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:99</a>
+        </div>
+    </div>
+    <div class="method" id="deleteEvent">
+        <h3><a href="#deleteEvent">hs.calendar.deleteEvent(id) -> boolean</a></h3>
+
+        <div class="description">Delete one non-recurring Event. Recurring Event series deletion is unsupported in v1.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.calendar.deleteEvent(id) -> boolean</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">id</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">boolean</div>
+        <div class="return-desc">`true` after the Event is removed; unknown ids, recurring series, and removal failures throw a JavaScript `Error`</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">hs.calendar.deleteEvent(&#39;EVENT_ID&#39;)</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L108" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:108</a>
+        </div>
+    </div>
         </main>
 
         <!-- Right TOC sidebar -->

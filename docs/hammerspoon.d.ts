@@ -1754,6 +1754,24 @@ Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values
      */
     function createEvent(options: any): Record<string, any> | null;
 
+    /**
+     * Update writable fields on one non-recurring Event.
+Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
+Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
+`calendar` resolves by id first, then exact title. Recurring Event series editing is unsupported in v1.
+     * @param id Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
+     * @param fields One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.
+     * @returns The updated Event as a plain object; unknown ids, recurring series, invalid fields, and save failures throw a JavaScript `Error`
+     */
+    function updateEvent(id: string, fields: any): Record<string, any> | null;
+
+    /**
+     * Delete one non-recurring Event. Recurring Event series deletion is unsupported in v1.
+     * @param id Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
+     * @returns `true` after the Event is removed; unknown ids, recurring series, and removal failures throw a JavaScript `Error`
+     */
+    function deleteEvent(id: string): boolean;
+
 }
 
 /**

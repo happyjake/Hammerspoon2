@@ -180,6 +180,31 @@ struct HSCalendarIntegrationTests {
         makeHarness().expectTrue("typeof hs.calendar.createEvent === 'function'")
     }
 
+    @Test("updateEvent is a function")
+    func testUpdateEventIsFunction() {
+        makeHarness().expectTrue("typeof hs.calendar.updateEvent === 'function'")
+    }
+
+    @Test("deleteEvent is a function")
+    func testDeleteEventIsFunction() {
+        makeHarness().expectTrue("typeof hs.calendar.deleteEvent === 'function'")
+    }
+
+    @Test("updateEvent rejects a timed Event change without an explicit UTC offset")
+    func testUpdateEventRejectsNakedDatetime() {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.calendar.updateEvent('Event lookup must not run', {
+                allDay: false,
+                start: '2026-07-13T09:00:00',
+                end: '2026-07-13T10:00:00'
+            })
+            """)
+
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("UTC offset or Z") == true)
+    }
+
     @Test("createEvent rejects a timed Event without an explicit UTC offset")
     func testCreateEventRejectsNakedDatetime() {
         let harness = makeHarness()
@@ -581,6 +606,234 @@ struct HSCalendarLiveTests {
         let persisted = try #require(eventStore.calendarItem(withIdentifier: eventID) as? EKEvent)
         #expect(persisted.calendar.calendarIdentifier == testCalendar.calendarIdentifier)
         #expect(persisted.isAllDay)
+    }
+
+    @Test("updateEvent reschedules a uniquely named fixture and updates writable fields")
+    func testUpdateEventReschedulesFixture() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let sourceCalendar = try makeThrowawayCalendar(in: eventStore, purpose: "updateEvent source")
+        defer { removeThrowawayCalendar(sourceCalendar, from: eventStore) }
+        let destinationCalendar = try makeThrowawayCalendar(in: eventStore, purpose: "updateEvent destination")
+        defer { removeThrowawayCalendar(destinationCalendar, from: eventStore) }
+
+        let originalTitle = "Hammerspoon 2 updateEvent original \(UUID().uuidString)"
+        let updatedTitle = "Hammerspoon 2 updateEvent updated \(UUID().uuidString)"
+        let fixture = EKEvent(eventStore: eventStore)
+        fixture.calendar = sourceCalendar
+        fixture.title = originalTitle
+        fixture.startDate = try instant("2041-05-06T01:00:00Z")
+        fixture.endDate = try instant("2041-05-06T02:00:00Z")
+        try eventStore.save(fixture, span: .thisEvent, commit: true)
+        let fixtureID = fixture.calendarItemIdentifier
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.context.setObject(updatedTitle, forKeyedSubscript: "updatedFixtureTitle" as NSString)
+        harness.context.setObject(
+            destinationCalendar.title,
+            forKeyedSubscript: "destinationCalendarTitle" as NSString
+        )
+        harness.eval("""
+            updatedEvent = hs.calendar.updateEvent(fixtureEventID, {
+                calendar: destinationCalendarTitle,
+                title: updatedFixtureTitle,
+                start: '2041-05-06T12:00:00+08:00',
+                end: '2041-05-06T13:30:00+08:00',
+                location: 'Issue 11 update room',
+                notes: 'Updated by the hs.calendar live suite',
+                url: 'https://example.test/vibecast/issue-11',
+                alarms: [15]
+            })
+            """)
+        #expect(!harness.hasException, "updateEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("""
+            updatedEvent &&
+            typeof updatedEvent.id === 'string' && updatedEvent.id.length > 0 &&
+            updatedEvent.title === updatedFixtureTitle &&
+            updatedEvent.start === '2041-05-06T04:00:00.000Z' &&
+            updatedEvent.end === '2041-05-06T05:30:00.000Z' &&
+            updatedEvent.allDay === false &&
+            updatedEvent.location === 'Issue 11 update room' &&
+            updatedEvent.notes === 'Updated by the hs.calendar live suite' &&
+            updatedEvent.url === 'https://example.test/vibecast/issue-11' &&
+            Array.isArray(updatedEvent.alarms) && updatedEvent.alarms.length === 1 &&
+            updatedEvent.alarms[0] === 15
+            """)
+
+        harness.context.setObject(
+            sourceCalendar.calendarIdentifier,
+            forKeyedSubscript: "sourceCalendarID" as NSString
+        )
+        harness.context.setObject(
+            destinationCalendar.calendarIdentifier,
+            forKeyedSubscript: "destinationCalendarID" as NSString
+        )
+        harness.context.setObject(originalTitle, forKeyedSubscript: "originalFixtureTitle" as NSString)
+        harness.expectTrue("""
+            (() => {
+                const inDestination = hs.calendar.listEvents(
+                    destinationCalendarID,
+                    '2041-05-06T00:00:00Z',
+                    '2041-05-07T00:00:00Z'
+                ).filter(event => event.title === updatedFixtureTitle)
+                const stillInSource = hs.calendar.listEvents(
+                    sourceCalendarID,
+                    '2041-05-06T00:00:00Z',
+                    '2041-05-07T00:00:00Z'
+                ).filter(event => event.title === originalFixtureTitle)
+                return inDestination.length === 1 &&
+                    inDestination[0].start === '2041-05-06T04:00:00Z' &&
+                    inDestination[0].end === '2041-05-06T05:30:00Z' &&
+                    stillInSource.length === 0
+            })()
+            """)
+
+        let updatedID = try #require(harness.eval("updatedEvent.id") as? String)
+        let persisted = try #require(eventStore.calendarItem(withIdentifier: updatedID) as? EKEvent)
+        #expect(persisted.calendar.calendarIdentifier == destinationCalendar.calendarIdentifier)
+        #expect(persisted.title == updatedTitle)
+        #expect((persisted.alarms ?? []).map { -$0.relativeOffset / 60 } == [15])
+    }
+
+    @Test("updateEvent preserves omitted timezone state")
+    func testUpdateEventPreservesOmittedTimezone() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "updateEvent timezone preservation")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let originalTimeZone = try #require(TimeZone(identifier: "America/Los_Angeles"))
+        let fixture = EKEvent(eventStore: eventStore)
+        fixture.calendar = calendar
+        fixture.title = "Hammerspoon 2 timezone preservation \(UUID().uuidString)"
+        fixture.startDate = try instant("2041-05-07T01:00:00Z")
+        fixture.endDate = try instant("2041-05-07T02:00:00Z")
+        fixture.timeZone = originalTimeZone
+        try eventStore.save(fixture, span: .thisEvent, commit: true)
+        let fixtureID = fixture.calendarItemIdentifier
+        let originalStart = fixture.startDate
+        let originalEnd = fixture.endDate
+
+        let updatedTitle = "Hammerspoon 2 timezone preserved \(UUID().uuidString)"
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.context.setObject(updatedTitle, forKeyedSubscript: "updatedFixtureTitle" as NSString)
+        harness.eval("""
+            hs.calendar.updateEvent(fixtureEventID, { title: updatedFixtureTitle })
+            """)
+        #expect(!harness.hasException, "updateEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+
+        let persisted = try #require(eventStore.calendarItem(withIdentifier: fixtureID) as? EKEvent)
+        #expect(persisted.title == updatedTitle)
+        #expect(persisted.timeZone?.identifier == originalTimeZone.identifier)
+        #expect(persisted.startDate == originalStart)
+        #expect(persisted.endDate == originalEnd)
+    }
+
+    @Test("deleteEvent removes the exact uniquely named fixture")
+    func testDeleteEventRemovesFixture() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "deleteEvent")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let fixture = EKEvent(eventStore: eventStore)
+        fixture.calendar = calendar
+        fixture.title = "Hammerspoon 2 deleteEvent fixture \(UUID().uuidString)"
+        fixture.startDate = try instant("2041-06-07T03:00:00Z")
+        fixture.endDate = try instant("2041-06-07T04:00:00Z")
+        try eventStore.save(fixture, span: .thisEvent, commit: true)
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+        let fixtureCalendarItemID = fixture.calendarItemIdentifier
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(
+            calendar.calendarIdentifier,
+            forKeyedSubscript: "fixtureCalendarID" as NSString
+        )
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.context.setObject(fixture.title, forKeyedSubscript: "fixtureEventTitle" as NSString)
+        harness.expectTrue("""
+            hs.calendar.listEvents(
+                fixtureCalendarID,
+                '2041-06-07T00:00:00Z',
+                '2041-06-08T00:00:00Z'
+            ).filter(event => event.id === fixtureEventID && event.title === fixtureEventTitle).length === 1
+            """)
+
+        harness.eval("deletedFixture = hs.calendar.deleteEvent(fixtureEventID)")
+        #expect(!harness.hasException, "deleteEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("deletedFixture === true")
+        #expect(eventStore.calendarItem(withIdentifier: fixtureCalendarItemID) == nil)
+        harness.expectTrue("""
+            !hs.calendar.listEvents(
+                fixtureCalendarID,
+                '2041-06-07T00:00:00Z',
+                '2041-06-08T00:00:00Z'
+            ).some(event => event.id === fixtureEventID || event.title === fixtureEventTitle)
+            """)
+    }
+
+    @Test("updateEvent and deleteEvent reject a recurring series without changing it")
+    func testRecurringSeriesMutationGuard() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "recurring mutation guard")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let fixture = EKEvent(eventStore: eventStore)
+        fixture.calendar = calendar
+        fixture.title = "Hammerspoon 2 recurring mutation guard \(UUID().uuidString)"
+        fixture.startDate = try instant("2041-07-08T05:00:00Z")
+        fixture.endDate = try instant("2041-07-08T06:00:00Z")
+        fixture.addRecurrenceRule(EKRecurrenceRule(
+            recurrenceWith: .weekly,
+            interval: 1,
+            end: EKRecurrenceEnd(occurrenceCount: 3)
+        ))
+        try eventStore.save(fixture, span: .thisEvent, commit: true)
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+        let fixtureCalendarItemID = fixture.calendarItemIdentifier
+        let originalTitle = try #require(fixture.title)
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "recurringFixtureID" as NSString)
+        harness.eval("""
+            hs.calendar.updateEvent(recurringFixtureID, { title: 'Must not change the series' })
+            """)
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("recurring Event series editing is not supported in v1") == true)
+
+        harness.eval("hs.calendar.deleteEvent(recurringFixtureID)")
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("recurring Event series deletion is not supported in v1") == true)
+
+        let persisted = try #require(
+            eventStore.calendarItem(withIdentifier: fixtureCalendarItemID) as? EKEvent
+        )
+        #expect(persisted.hasRecurrenceRules)
+        #expect(persisted.title == originalTitle)
+    }
+
+    @Test("updateEvent and deleteEvent report the exact unknown Event id")
+    func testMutationReportsUnknownEventID() throws {
+        let missingID = "Hammerspoon-2-missing-Event-\(UUID().uuidString)"
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(missingID, forKeyedSubscript: "missingEventID" as NSString)
+
+        harness.eval("hs.calendar.updateEvent(missingEventID, { title: 'Still missing' })")
+        #expect(harness.hasException)
+        let updateError = try #require(harness.exceptionMessage)
+        #expect(updateError.contains("was not found"))
+        #expect(updateError.contains(missingID))
+
+        harness.eval("hs.calendar.deleteEvent(missingEventID)")
+        #expect(harness.hasException)
+        let deleteError = try #require(harness.exceptionMessage)
+        #expect(deleteError.contains("was not found"))
+        #expect(deleteError.contains(missingID))
     }
 
     @Test("createEvent reports every candidate when a Calendar title is ambiguous")
