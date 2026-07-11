@@ -79,6 +79,33 @@ import JavaScriptCore
     /// console.log(event.id)
     /// ```
     @objc func createEvent(_ options: JSValue) -> [String: Any]?
+
+    /// Update writable fields on one non-recurring Event.
+    /// - Parameters:
+    ///   - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
+    ///   - fields: One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.
+    ///     Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
+    ///     Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
+    ///     `calendar` resolves by id first, then exact title. Recurring Event series editing is unsupported in v1.
+    /// - Returns: The updated Event as a plain object; unknown ids, recurring series, invalid fields, and save failures throw a JavaScript `Error`
+    /// - Example:
+    /// ```js
+    /// const event = hs.calendar.updateEvent('EVENT_ID', {
+    ///   start: '2026-07-13T02:00:00Z',
+    ///   end: '2026-07-13T02:30:00Z'
+    /// })
+    /// ```
+    @objc(updateEvent::)
+    func updateEvent(_ id: String, _ fields: JSValue) -> [String: Any]?
+
+    /// Delete one non-recurring Event. Recurring Event series deletion is unsupported in v1.
+    /// - Parameter id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
+    /// - Returns: `true` after the Event is removed; unknown ids, recurring series, and removal failures throw a JavaScript `Error`
+    /// - Example:
+    /// ```js
+    /// hs.calendar.deleteEvent('EVENT_ID')
+    /// ```
+    @objc func deleteEvent(_ id: String) -> Bool
 }
 
 @_documentation(visibility: private)
@@ -198,7 +225,7 @@ import JavaScriptCore
 
     private func eventSummary(_ event: EKEvent) -> [String: Any] {
         let occurrenceDate = event.occurrenceDate
-        let recurring = occurrenceDate != nil || event.hasRecurrenceRules
+        let recurring = Self.isRecurring(event)
         let organizer: Any
         if let eventOrganizer = event.organizer {
             organizer = participantSummary(eventOrganizer)
@@ -429,32 +456,20 @@ import JavaScriptCore
             return fail("'end' is required and must be a string", in: options)
         }
 
-        let startDate: Date
-        let endDate: Date
-        if allDay {
-            guard Self.isDateOnly(startString), let parsedStart = Self.parseDateOnly(startString) else {
-                return fail("'start' must be a date-only YYYY-MM-DD value when allDay is true", in: options)
-            }
-            guard Self.isDateOnly(endString), let parsedEnd = Self.parseDateOnly(endString) else {
-                return fail("'end' must be a date-only YYYY-MM-DD value when allDay is true", in: options)
-            }
-            startDate = parsedStart
-            endDate = parsedEnd
-        } else {
-            guard Self.hasExplicitUTCOffset(startString) else {
-                return fail("'start' must be an ISO 8601 datetime with a UTC offset or Z", in: options)
-            }
-            guard let parsedStart = Self.parseInstant(startString) else {
-                return fail("'start' must be a valid ISO 8601 datetime with a UTC offset or Z", in: options)
-            }
-            guard Self.hasExplicitUTCOffset(endString) else {
-                return fail("'end' must be an ISO 8601 datetime with a UTC offset or Z", in: options)
-            }
-            guard let parsedEnd = Self.parseInstant(endString) else {
-                return fail("'end' must be a valid ISO 8601 datetime with a UTC offset or Z", in: options)
-            }
-            startDate = parsedStart
-            endDate = parsedEnd
+        guard let startDate = parseEventDate(
+            startString,
+            field: "start",
+            allDay: allDay,
+            in: options,
+            method: "createEvent"
+        ), let endDate = parseEventDate(
+            endString,
+            field: "end",
+            allDay: allDay,
+            in: options,
+            method: "createEvent"
+        ) else {
+            return nil
         }
 
         guard endDate > startDate else {
@@ -492,27 +507,12 @@ import JavaScriptCore
 
         var alarmMinutes: [Double] = []
         if let alarmsValue = Self.property("alarms", in: options) {
-            guard alarmsValue.isArray else {
-                return fail("'alarms' must be an array of non-negative minutes-before numbers", in: options)
-            }
-            guard let lengthValue = alarmsValue.objectForKeyedSubscript("length"), lengthValue.isNumber else {
-                return fail("'alarms' must be an array of non-negative minutes-before numbers", in: options)
-            }
-            let unsignedCount = lengthValue.toUInt32()
-            guard unsignedCount <= UInt32(Int32.max) else {
-                return fail("'alarms' must be an array of non-negative minutes-before numbers", in: options)
-            }
-            let count = Int(unsignedCount)
-            for index in 0..<count {
-                guard let alarmValue = alarmsValue.atIndex(index), alarmValue.isNumber else {
-                    return fail("'alarms' must contain only non-negative minutes-before numbers", in: options)
-                }
-                let minutes = alarmValue.toDouble()
-                guard minutes.isFinite, minutes >= 0 else {
-                    return fail("'alarms' must contain only non-negative minutes-before numbers", in: options)
-                }
-                alarmMinutes.append(minutes)
-            }
+            guard let parsedMinutes = parseAlarmMinutes(
+                alarmsValue,
+                in: options,
+                method: "createEvent"
+            ) else { return nil }
+            alarmMinutes = parsedMinutes
         }
 
         let status = authorizationStatus()
@@ -520,7 +520,7 @@ import JavaScriptCore
             return fail("Calendar access is \(status); grant Calendar access in Hammerspoon 2 and retry", in: options)
         }
 
-        guard let calendar = calendarForCreation(selector: calendarSelector, options: options) else {
+        guard let calendar = resolveWritableCalendar(selector: calendarSelector, options: options) else {
             return nil
         }
 
@@ -648,7 +648,92 @@ import JavaScriptCore
         return date
     }
 
-    private func calendarForCreation(selector: String?, options: JSValue) -> EKCalendar? {
+    private func parseEventDate(
+        _ value: String,
+        field: String,
+        allDay: Bool,
+        in options: JSValue,
+        method: String
+    ) -> Date? {
+        if allDay {
+            guard Self.isDateOnly(value), let date = Self.parseDateOnly(value) else {
+                return fail(
+                    "'\(field)' must be a date-only YYYY-MM-DD value when allDay is true",
+                    in: options,
+                    method: method
+                )
+            }
+            return date
+        }
+
+        guard Self.hasExplicitUTCOffset(value) else {
+            return fail(
+                "'\(field)' must be an ISO 8601 datetime with a UTC offset or Z",
+                in: options,
+                method: method
+            )
+        }
+        guard let date = Self.parseInstant(value) else {
+            return fail(
+                "'\(field)' must be a valid ISO 8601 datetime with a UTC offset or Z",
+                in: options,
+                method: method
+            )
+        }
+        return date
+    }
+
+    private func parseAlarmMinutes(
+        _ value: JSValue,
+        in options: JSValue,
+        method: String
+    ) -> [Double]? {
+        guard value.isArray,
+              let lengthValue = value.objectForKeyedSubscript("length"),
+              lengthValue.isNumber else {
+            return fail(
+                "'alarms' must be an array of non-negative minutes-before numbers",
+                in: options,
+                method: method
+            )
+        }
+
+        let unsignedCount = lengthValue.toUInt32()
+        guard unsignedCount <= UInt32(Int32.max) else {
+            return fail(
+                "'alarms' must be an array of non-negative minutes-before numbers",
+                in: options,
+                method: method
+            )
+        }
+
+        var minutesBefore: [Double] = []
+        for index in 0..<Int(unsignedCount) {
+            guard let alarmValue = value.atIndex(index), alarmValue.isNumber else {
+                return fail(
+                    "'alarms' must contain only non-negative minutes-before numbers",
+                    in: options,
+                    method: method
+                )
+            }
+            let minutes = alarmValue.toDouble()
+            guard minutes.isFinite, minutes >= 0 else {
+                return fail(
+                    "'alarms' must contain only non-negative minutes-before numbers",
+                    in: options,
+                    method: method
+                )
+            }
+            minutesBefore.append(minutes)
+        }
+        return minutesBefore
+    }
+
+    private func resolveWritableCalendar(
+        selector: String?,
+        options: JSValue,
+        method: String = "createEvent"
+    ) -> EKCalendar? {
         let store = eventStore.eventStore
         let calendar: EKCalendar?
 
@@ -660,7 +745,7 @@ import JavaScriptCore
                 let titleMatches = calendars.filter { $0.title == selector }
                 switch titleMatches.count {
                 case 0:
-                    return fail("Calendar '\(selector)' was not found", in: options)
+                    return fail("Calendar '\(selector)' was not found", in: options, method: method)
                 case 1:
                     calendar = titleMatches[0]
                 default:
@@ -670,7 +755,8 @@ import JavaScriptCore
                         .joined(separator: ", ")
                     return fail(
                         "Calendar title '\(selector)' is ambiguous; retry with one of these ids: \(candidates)",
-                        in: options
+                        in: options,
+                        method: method
                     )
                 }
             }
@@ -679,7 +765,8 @@ import JavaScriptCore
             if calendar == nil {
                 return fail(
                     "no default Calendar is configured; pass 'calendar' as an id or title",
-                    in: options
+                    in: options,
+                    method: method
                 )
             }
         }
@@ -688,7 +775,8 @@ import JavaScriptCore
         guard calendar.allowsContentModifications else {
             return fail(
                 "Calendar '\(calendar.title)' (id: \(calendar.calendarIdentifier)) is read-only",
-                in: options
+                in: options,
+                method: method
             )
         }
         return calendar
@@ -729,15 +817,277 @@ import JavaScriptCore
         )
     }
 
-    private func fail<T>(_ message: String, in value: JSValue) -> T? {
-        setException(message, in: value)
+    private func fail<T>(_ message: String, in value: JSValue, method: String = "createEvent") -> T? {
+        setException(message, in: value, method: method)
         return nil
     }
 
-    private func setException(_ message: String, in value: JSValue) {
+    private func setException(_ message: String, in value: JSValue, method: String) {
         JSContext.current()?.exception = JSValue(
-            newErrorFromMessage: "hs.calendar.createEvent: \(message)",
+            newErrorFromMessage: "hs.calendar.\(method): \(message)",
             in: value.context
         )
+    }
+
+    private func fail(_ message: String, method: String) -> Bool {
+        guard let context = JSContext.current() else { return false }
+        context.exception = JSValue(
+            newErrorFromMessage: "hs.calendar.\(method): \(message)",
+            in: context
+        )
+        return false
+    }
+
+    private func eventForMutation(id: String) -> EKEvent? {
+        let store = eventStore.eventStore
+        return store.event(withIdentifier: id) ??
+            (store.calendarItem(withIdentifier: id) as? EKEvent)
+    }
+
+    private static func isRecurring(_ event: EKEvent) -> Bool {
+        event.hasRecurrenceRules || event.isDetached
+    }
+
+    @objc(updateEvent::)
+    func updateEvent(_ id: String, _ fields: JSValue) -> [String: Any]? {
+        let method = "updateEvent"
+        let requestedID = id.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !requestedID.isEmpty else {
+            return fail("'id' must be a non-empty Event identifier", in: fields, method: method)
+        }
+        guard fields.isObject, !fields.isArray else {
+            return fail("fields object required", in: fields, method: method)
+        }
+
+        let writableFields = [
+            "calendar", "title", "start", "end", "allDay",
+            "location", "notes", "url", "alarms",
+        ]
+        guard writableFields.contains(where: { Self.property($0, in: fields) != nil }) else {
+            return fail("at least one writable field is required", in: fields, method: method)
+        }
+
+        if let titleValue = Self.property("title", in: fields) {
+            guard titleValue.isString,
+                  let title = titleValue.toString(),
+                  !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return fail("'title' must be a non-empty string", in: fields, method: method)
+            }
+        }
+
+        if let calendarValue = Self.property("calendar", in: fields) {
+            guard calendarValue.isString,
+                  let selector = calendarValue.toString(),
+                  !selector.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return fail("'calendar' must be a non-empty Calendar id or title", in: fields, method: method)
+            }
+        }
+
+        var suppliedDateStrings: [String: String] = [:]
+        for field in ["start", "end"] {
+            guard let value = Self.property(field, in: fields) else { continue }
+            guard value.isString, let string = value.toString() else {
+                return fail("'\(field)' must be a string", in: fields, method: method)
+            }
+            suppliedDateStrings[field] = string
+        }
+
+        for field in ["location", "notes"] {
+            guard let value = Self.property(field, in: fields) else { continue }
+            guard value.isNull || value.isString else {
+                return fail("'\(field)' must be a string or null", in: fields, method: method)
+            }
+        }
+
+        var eventURL: URL?
+        if let urlValue = Self.property("url", in: fields), !urlValue.isNull {
+            guard urlValue.isString,
+                  let urlString = urlValue.toString(),
+                  let parsedURL = URL(string: urlString),
+                  parsedURL.scheme != nil else {
+                return fail("'url' must be an absolute URL or null", in: fields, method: method)
+            }
+            eventURL = parsedURL
+        }
+
+        var requestedAllDay: Bool?
+        if let allDayValue = Self.property("allDay", in: fields) {
+            guard allDayValue.isBoolean else {
+                return fail("'allDay' must be a boolean", in: fields, method: method)
+            }
+            requestedAllDay = allDayValue.toBool()
+        }
+
+        var parsedDates: [String: Date] = [:]
+        if let requestedAllDay {
+            for field in ["start", "end"] {
+                guard let string = suppliedDateStrings[field] else { continue }
+                guard let date = parseEventDate(
+                    string,
+                    field: field,
+                    allDay: requestedAllDay,
+                    in: fields,
+                    method: method
+                ) else { return nil }
+                parsedDates[field] = date
+            }
+        }
+
+        var alarmMinutes: [Double]?
+        if let alarmsValue = Self.property("alarms", in: fields) {
+            guard let parsedMinutes = parseAlarmMinutes(
+                alarmsValue,
+                in: fields,
+                method: method
+            ) else { return nil }
+            alarmMinutes = parsedMinutes
+        }
+
+        let status = authorizationStatus()
+        guard status == "fullAccess" else {
+            return fail(
+                "Calendar access is \(status); grant Calendar access in Hammerspoon 2 and retry",
+                in: fields,
+                method: method
+            )
+        }
+
+        guard let event = eventForMutation(id: requestedID) else {
+            return fail("Event id '\(requestedID)' was not found", in: fields, method: method)
+        }
+        guard !Self.isRecurring(event) else {
+            return fail(
+                "recurring Event series editing is not supported in v1",
+                in: fields,
+                method: method
+            )
+        }
+        guard event.calendar.allowsContentModifications else {
+            return fail(
+                "Calendar '\(event.calendar.title)' (id: \(event.calendar.calendarIdentifier)) is read-only",
+                in: fields,
+                method: method
+            )
+        }
+
+        let targetAllDay = requestedAllDay ?? event.isAllDay
+        if targetAllDay != event.isAllDay &&
+            (Self.property("start", in: fields) == nil || Self.property("end", in: fields) == nil) {
+            return fail(
+                "changing 'allDay' requires both 'start' and 'end'",
+                in: fields,
+                method: method
+            )
+        }
+
+        guard var targetStart = event.startDate, var targetEnd = event.endDate else {
+            return fail("stored Event is missing a start or end", in: fields, method: method)
+        }
+        for field in ["start", "end"] {
+            guard let string = suppliedDateStrings[field] else { continue }
+            let parsed: Date
+            if let prevalidated = parsedDates[field] {
+                parsed = prevalidated
+            } else {
+                guard let parsedDate = parseEventDate(
+                    string,
+                    field: field,
+                    allDay: targetAllDay,
+                    in: fields,
+                    method: method
+                ) else { return nil }
+                parsed = parsedDate
+            }
+            if field == "start" { targetStart = parsed } else { targetEnd = parsed }
+        }
+        guard targetEnd > targetStart else {
+            return fail("'end' must be later than 'start'", in: fields, method: method)
+        }
+
+        var targetCalendar = event.calendar
+        if let calendarValue = Self.property("calendar", in: fields),
+           let selector = calendarValue.toString() {
+            guard let resolved = resolveWritableCalendar(
+                selector: selector,
+                options: fields,
+                method: method
+            ) else {
+                return nil
+            }
+            targetCalendar = resolved
+        }
+
+        if let titleValue = Self.property("title", in: fields) {
+            event.title = titleValue.toString()
+        }
+        event.calendar = targetCalendar
+        if requestedAllDay != nil || !suppliedDateStrings.isEmpty {
+            event.isAllDay = targetAllDay
+            event.timeZone = targetAllDay ? nil : TimeZone(secondsFromGMT: 0)
+            event.startDate = targetStart
+            event.endDate = targetEnd
+        }
+
+        for field in ["location", "notes"] {
+            guard let value = Self.property(field, in: fields) else { continue }
+            let string = value.isNull ? nil : value.toString()
+            if field == "location" { event.location = string } else { event.notes = string }
+        }
+        if let urlValue = Self.property("url", in: fields) {
+            event.url = urlValue.isNull ? nil : eventURL
+        }
+        if let alarmMinutes {
+            for alarm in event.alarms ?? [] { event.removeAlarm(alarm) }
+            for minutes in alarmMinutes {
+                event.addAlarm(EKAlarm(relativeOffset: -minutes * 60))
+            }
+        }
+
+        do {
+            try eventStore.eventStore.save(event, span: .thisEvent, commit: true)
+        } catch {
+            return fail(
+                "could not save Event: \(error.localizedDescription)",
+                in: fields,
+                method: method
+            )
+        }
+        return Self.eventResult(event)
+    }
+
+    @objc func deleteEvent(_ id: String) -> Bool {
+        let method = "deleteEvent"
+        let requestedID = id.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !requestedID.isEmpty else {
+            return fail("'id' must be a non-empty Event identifier", method: method)
+        }
+
+        let status = authorizationStatus()
+        guard status == "fullAccess" else {
+            return fail(
+                "Calendar access is \(status); grant Calendar access in Hammerspoon 2 and retry",
+                method: method
+            )
+        }
+        guard let event = eventForMutation(id: requestedID) else {
+            return fail("Event id '\(requestedID)' was not found", method: method)
+        }
+        guard !Self.isRecurring(event) else {
+            return fail("recurring Event series deletion is not supported in v1", method: method)
+        }
+        guard event.calendar.allowsContentModifications else {
+            return fail(
+                "Calendar '\(event.calendar.title)' (id: \(event.calendar.calendarIdentifier)) is read-only",
+                method: method
+            )
+        }
+
+        do {
+            // Recurring Events are rejected above, so .thisEvent cannot imply a guessed series span.
+            try eventStore.eventStore.remove(event, span: .thisEvent, commit: true)
+        } catch {
+            return fail("could not delete Event: \(error.localizedDescription)", method: method)
+        }
+        return true
     }
 }

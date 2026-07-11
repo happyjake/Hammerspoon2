@@ -4071,6 +4071,73 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
           "lineNumber": 81
+        },
+        {
+          "name": "updateEvent",
+          "signature": "func updateEvent(_ id: String, _ fields: JSValue) -> [String: Any]?",
+          "isStatic": false,
+          "rawDocumentation": "Update writable fields on one non-recurring Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - fields: One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.\n    Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\n    Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.\n    `calendar` resolves by id first, then exact title. Recurring Event series editing is unsupported in v1.\n- Returns: The updated Event as a plain object; unknown ids, recurring series, invalid fields, and save failures throw a JavaScript `Error`\n- Example:\n```js\nconst event = hs.calendar.updateEvent('EVENT_ID', {\n  start: '2026-07-13T02:00:00Z',\n  end: '2026-07-13T02:30:00Z'\n})\n```",
+          "description": "Update writable fields on one non-recurring Event.\nTimed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\nChanging `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.\n`calendar` resolves by id first, then exact title. Recurring Event series editing is unsupported in v1.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`",
+              "optional": false,
+              "tsType": null
+            },
+            {
+              "name": "fields",
+              "type": "JSValue",
+              "description": "One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "Object<String, Any>",
+            "description": "The updated Event as a plain object; unknown ids, recurring series, invalid fields, and save failures throw a JavaScript `Error`"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const event = hs.calendar.updateEvent('EVENT_ID', {\n  start: '2026-07-13T02:00:00Z',\n  end: '2026-07-13T02:30:00Z'\n})"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
+          "lineNumber": 99
+        },
+        {
+          "name": "deleteEvent",
+          "signature": "func deleteEvent(_ id: String) -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Delete one non-recurring Event. Recurring Event series deletion is unsupported in v1.\n- Parameter id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n- Returns: `true` after the Event is removed; unknown ids, recurring series, and removal failures throw a JavaScript `Error`\n- Example:\n```js\nhs.calendar.deleteEvent('EVENT_ID')\n```",
+          "description": "Delete one non-recurring Event. Recurring Event series deletion is unsupported in v1.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "boolean",
+            "description": "`true` after the Event is removed; unknown ids, recurring series, and removal failures throw a JavaScript `Error`"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.calendar.deleteEvent('EVENT_ID')"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
+          "lineNumber": 108
         }
       ],
       "properties": [],
@@ -21158,5 +21225,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-11T20:35:14.890Z"
+  "generatedAt": "2026-07-11T21:10:51.981Z"
 }
