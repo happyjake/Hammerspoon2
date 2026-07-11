@@ -194,7 +194,14 @@ import JavaScriptCore
             guard alarmsValue.isArray else {
                 return fail("'alarms' must be an array of non-negative minutes-before numbers", in: options)
             }
-            let count = Int(alarmsValue.objectForKeyedSubscript("length")?.toInt32() ?? 0)
+            guard let lengthValue = alarmsValue.objectForKeyedSubscript("length"), lengthValue.isNumber else {
+                return fail("'alarms' must be an array of non-negative minutes-before numbers", in: options)
+            }
+            let unsignedCount = lengthValue.toUInt32()
+            guard unsignedCount <= UInt32(Int32.max) else {
+                return fail("'alarms' must be an array of non-negative minutes-before numbers", in: options)
+            }
+            let count = Int(unsignedCount)
             for index in 0..<count {
                 guard let alarmValue = alarmsValue.atIndex(index), alarmValue.isNumber else {
                     return fail("'alarms' must contain only non-negative minutes-before numbers", in: options)
@@ -237,7 +244,7 @@ import JavaScriptCore
             return fail("could not save Event: \(error.localizedDescription)", in: options)
         }
 
-        return Self.eventResult(event, alarmMinutes: alarmMinutes)
+        return Self.eventResult(event)
     }
 
     private static func property(_ key: String, in options: JSValue) -> JSValue? {
@@ -386,8 +393,10 @@ import JavaScriptCore
         return calendar
     }
 
-    private static func eventResult(_ event: EKEvent, alarmMinutes: [Double]) -> [String: Any] {
-        [
+    private static func eventResult(_ event: EKEvent) -> [String: Any] {
+        let persistedAlarmMinutes = (event.alarms ?? []).map { -$0.relativeOffset / 60 }
+
+        return [
             "id": event.calendarItemIdentifier,
             "title": event.title ?? "",
             "start": event.isAllDay ? formatDateOnly(event.startDate) : formatInstant(event.startDate),
@@ -396,7 +405,7 @@ import JavaScriptCore
             "location": event.location ?? NSNull(),
             "notes": event.notes ?? NSNull(),
             "url": event.url?.absoluteString ?? NSNull(),
-            "alarms": alarmMinutes,
+            "alarms": persistedAlarmMinutes,
         ]
     }
 

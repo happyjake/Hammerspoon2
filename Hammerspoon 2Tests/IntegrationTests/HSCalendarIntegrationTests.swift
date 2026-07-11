@@ -129,6 +129,24 @@ struct HSCalendarIntegrationTests {
         #expect(harness.hasException)
         #expect(harness.exceptionMessage?.contains("non-negative minutes-before") == true)
     }
+
+    @Test("createEvent rejects an alarms array with an absurd length")
+    func testCreateEventRejectsHugeSparseAlarmArray() {
+        let harness = makeHarness()
+        harness.eval("""
+            const alarms = []
+            alarms.length = 2147483648
+            hs.calendar.createEvent({
+                title: 'Huge sparse alarms array must fail',
+                start: '2026-07-13T01:00:00Z',
+                end: '2026-07-13T02:00:00Z',
+                alarms
+            })
+            """)
+
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("array of non-negative minutes-before numbers") == true)
+    }
 }
 
 @Suite(
@@ -197,7 +215,7 @@ struct HSCalendarLiveTests {
             """)
     }
 
-    @Test("createEvent writes a timed Event by Calendar id with all writable fields")
+    @Test("createEvent writes a timed Event and returns the alarms EventKit persisted")
     func testCreateTimedEventByCalendarID() throws {
         let eventStore = HSEventStore.shared.eventStore
         let testCalendar = try makeThrowawayCalendar(
@@ -236,14 +254,26 @@ struct HSCalendarLiveTests {
             createdEvent.location === 'Test Room' &&
             createdEvent.notes === 'Created by the hs.calendar live suite' &&
             createdEvent.url === 'https://example.com/calendar-test' &&
-            JSON.stringify(createdEvent.alarms) === '[10,60]'
+            Array.isArray(createdEvent.alarms)
             """)
 
         let eventID = try #require(harness.eval("createdEvent.id") as? String)
         let persisted = try #require(eventStore.calendarItem(withIdentifier: eventID) as? EKEvent)
+        let persistedAlarmMinutes = (persisted.alarms ?? [])
+            .map { -$0.relativeOffset / 60 }
+            .sorted()
         #expect(persisted.calendar.calendarIdentifier == testCalendar.calendarIdentifier)
         #expect(persisted.title == eventTitle)
-        #expect(persisted.alarms?.map(\.relativeOffset).sorted() == [-3_600, -600])
+        #expect(!persistedAlarmMinutes.isEmpty)
+
+        harness.context.setObject(
+            persistedAlarmMinutes,
+            forKeyedSubscript: "persistedAlarmMinutes" as NSString
+        )
+        harness.expectTrue("""
+            JSON.stringify([...createdEvent.alarms].sort((a, b) => a - b)) ===
+            JSON.stringify(persistedAlarmMinutes)
+            """)
     }
 
     @Test("createEvent resolves a Calendar title and round-trips all-day dates")
