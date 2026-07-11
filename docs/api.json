@@ -11491,6 +11491,156 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift",
           "lineNumber": 19
+        },
+        {
+          "name": "listReminderLists",
+          "signature": "func listReminderLists() -> [[String: Any]]",
+          "isStatic": false,
+          "rawDocumentation": "List the Reminder Lists available for Reminders.\n- Returns: Reminder List summaries containing `id`, `title`, `writable`, and `isDefault`\n- Example:\n```js\nfor (const list of hs.reminders.listReminderLists()) {\n  console.log(list.title, list.id)\n}\n```",
+          "description": "List the Reminder Lists available for Reminders.",
+          "params": [],
+          "returns": {
+            "type": "[[String: Any]]",
+            "description": "Reminder List summaries containing `id`, `title`, `writable`, and `isDefault`"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "for (const list of hs.reminders.listReminderLists()) {\n  console.log(list.title, list.id)\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift",
+          "lineNumber": 29
+        },
+        {
+          "name": "listReminders",
+          "signature": "func listReminders(_ list: String?, _ completed: number?) -> JSPromise?",
+          "isStatic": false,
+          "rawDocumentation": "List Reminders in a Reminder List, filtered by completion state.\n- Parameters:\n  - list?: {string} A Reminder List id or exact title. Omit it to use the default Reminder List.\n  - completed?: {boolean} `true` for completed Reminders or `false` for incomplete Reminders. Defaults to `false`.\n- Returns: {Promise<object[]>} A Promise resolving to Reminder summaries\n- Example:\n```js\nconst outstanding = await hs.reminders.listReminders('Work')\nconst completed = await hs.reminders.listReminders('Work', true)\n```",
+          "description": "List Reminders in a Reminder List, filtered by completion state.",
+          "params": [
+            {
+              "name": "list",
+              "type": "string",
+              "description": "A Reminder List id or exact title. Omit it to use the default Reminder List.",
+              "optional": true,
+              "tsType": "string"
+            },
+            {
+              "name": "completed",
+              "type": "number",
+              "description": "`true` for completed Reminders or `false` for incomplete Reminders. Defaults to `false`.",
+              "optional": true,
+              "tsType": "boolean"
+            }
+          ],
+          "returns": {
+            "type": "JSPromise",
+            "description": "A Promise resolving to Reminder summaries",
+            "promiseType": "object[]"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const outstanding = await hs.reminders.listReminders('Work')\nconst completed = await hs.reminders.listReminders('Work', true)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift",
+          "lineNumber": 41
+        },
+        {
+          "name": "createReminder",
+          "signature": "func createReminder(_ options: JSValue) -> [String: Any]?",
+          "isStatic": false,
+          "rawDocumentation": "Create a Reminder.\n- Parameter options: {{list?: string; title: string; due?: string; priority?: 'none' | 'low' | 'medium' | 'high'; notes?: string}} An object containing the Reminder fields\n- Returns: The created Reminder summary, or `null` after throwing a JavaScript error\n- Example:\n```js\nconst reminder = hs.reminders.createReminder({\n  list: 'Work',\n  title: 'Submit expenses',\n  due: '2026-07-14',\n  priority: 'high'\n})\n```",
+          "description": "Create a Reminder.",
+          "params": [
+            {
+              "name": "options",
+              "type": "JSValue",
+              "description": "An object containing the Reminder fields",
+              "optional": false,
+              "tsType": "{list?: string; title: string; due?: string; priority?: 'none' | 'low' | 'medium' | 'high'; notes?: string}"
+            }
+          ],
+          "returns": {
+            "type": "Object<String, Any>",
+            "description": "The created Reminder summary, or `null` after throwing a JavaScript error"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const reminder = hs.reminders.createReminder({\n  list: 'Work',\n  title: 'Submit expenses',\n  due: '2026-07-14',\n  priority: 'high'\n})"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift",
+          "lineNumber": 55
+        },
+        {
+          "name": "completeReminder",
+          "signature": "func completeReminder(_ id: String) -> [String: Any]?",
+          "isStatic": false,
+          "rawDocumentation": "Mark a Reminder complete.\n- Parameter id: The Reminder's stable identifier\n- Returns: The completed Reminder summary, or `null` after throwing a JavaScript error\n- Example:\n```js\nconst completed = hs.reminders.completeReminder(reminder.id)\n```",
+          "description": "Mark a Reminder complete.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "The Reminder's stable identifier",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "Object<String, Any>",
+            "description": "The completed Reminder summary, or `null` after throwing a JavaScript error"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const completed = hs.reminders.completeReminder(reminder.id)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift",
+          "lineNumber": 64
+        },
+        {
+          "name": "deleteReminder",
+          "signature": "func deleteReminder(_ id: String) -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Delete a Reminder.\n- Parameter id: The Reminder's stable identifier\n- Returns: `true` when the Reminder was deleted, or `false` after throwing a JavaScript error\n- Example:\n```js\nhs.reminders.deleteReminder(reminder.id)\n```",
+          "description": "Delete a Reminder.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "The Reminder's stable identifier",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "boolean",
+            "description": "`true` when the Reminder was deleted, or `false` after throwing a JavaScript error"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.reminders.deleteReminder(reminder.id)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift",
+          "lineNumber": 73
         }
       ],
       "properties": [],
@@ -21008,5 +21158,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-11T19:46:19.790Z"
+  "generatedAt": "2026-07-11T20:35:14.890Z"
 }

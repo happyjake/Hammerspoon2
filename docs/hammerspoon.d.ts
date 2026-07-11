@@ -4468,6 +4468,41 @@ declare namespace hs.reminders {
      */
     function authorizationStatus(): string;
 
+    /**
+     * List the Reminder Lists available for Reminders.
+     * @returns Reminder List summaries containing `id`, `title`, `writable`, and `isDefault`
+     */
+    function listReminderLists(): Record<string, any>[];
+
+    /**
+     * List Reminders in a Reminder List, filtered by completion state.
+     * @param list A Reminder List id or exact title. Omit it to use the default Reminder List.
+     * @param completed `true` for completed Reminders or `false` for incomplete Reminders. Defaults to `false`.
+     * @returns A Promise resolving to Reminder summaries
+     */
+    function listReminders(list?: string, completed?: boolean): Promise<object[]>;
+
+    /**
+     * Create a Reminder.
+     * @param options An object containing the Reminder fields
+     * @returns The created Reminder summary, or `null` after throwing a JavaScript error
+     */
+    function createReminder(options: {list?: string; title: string; due?: string; priority?: 'none' | 'low' | 'medium' | 'high'; notes?: string}): Record<string, any> | null;
+
+    /**
+     * Mark a Reminder complete.
+     * @param id The Reminder's stable identifier
+     * @returns The completed Reminder summary, or `null` after throwing a JavaScript error
+     */
+    function completeReminder(id: string): Record<string, any> | null;
+
+    /**
+     * Delete a Reminder.
+     * @param id The Reminder's stable identifier
+     * @returns `true` when the Reminder was deleted, or `false` after throwing a JavaScript error
+     */
+    function deleteReminder(id: string): boolean;
+
 }
 
 /**

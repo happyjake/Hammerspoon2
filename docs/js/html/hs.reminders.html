@@ -87,6 +87,192 @@ console.log(status)</code></pre>
             <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.reminders/HSRemindersModule.swift#L19" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift:19</a>
         </div>
     </div>
+    <div class="method" id="listReminderLists">
+        <h3><a href="#listReminderLists">hs.reminders.listReminderLists() -> [[String: Any]]</a></h3>
+
+        <div class="description">List the Reminder Lists available for Reminders.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.reminders.listReminderLists() -> [[String: Any]]</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">[[String: Any]]</div>
+        <div class="return-desc">Reminder List summaries containing `id`, `title`, `writable`, and `isDefault`</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">for (const list of hs.reminders.listReminderLists()) {
+  console.log(list.title, list.id)
+}</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.reminders/HSRemindersModule.swift#L29" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift:29</a>
+        </div>
+    </div>
+    <div class="method" id="listReminders">
+        <h3><a href="#listReminders">hs.reminders.listReminders(list, completed) -> Promise&lt;object[]&gt;</a></h3>
+
+        <div class="description">List Reminders in a Reminder List, filtered by completion state.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.reminders.listReminders(list, completed) -> Promise&lt;object[]&gt;</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">list</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">A Reminder List id or exact title. Omit it to use the default Reminder List.</td>
+                </tr>
+                <tr>
+                    <td class="param-name">completed</td>
+                    <td class="param-type">NSNumber</td>
+                    <td class="param-desc">`true` for completed Reminders or `false` for incomplete Reminders. Defaults to `false`.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">Promise&lt;object[]&gt;</div>
+        <div class="return-desc">A Promise resolving to Reminder summaries</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const outstanding = await hs.reminders.listReminders(&#39;Work&#39;)
+const completed = await hs.reminders.listReminders(&#39;Work&#39;, true)</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.reminders/HSRemindersModule.swift#L41" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift:41</a>
+        </div>
+    </div>
+    <div class="method" id="createReminder">
+        <h3><a href="#createReminder">hs.reminders.createReminder(options) -> [String: Any]</a></h3>
+
+        <div class="description">Create a Reminder.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.reminders.createReminder(options) -> [String: Any]</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">options</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">An object containing the Reminder fields</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">[String: Any]</div>
+        <div class="return-desc">The created Reminder summary, or `null` after throwing a JavaScript error</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const reminder = hs.reminders.createReminder({
+  list: &#39;Work&#39;,
+  title: &#39;Submit expenses&#39;,
+  due: &#39;2026-07-14&#39;,
+  priority: &#39;high&#39;
+})</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.reminders/HSRemindersModule.swift#L55" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift:55</a>
+        </div>
+    </div>
+    <div class="method" id="completeReminder">
+        <h3><a href="#completeReminder">hs.reminders.completeReminder(id) -> [String: Any]</a></h3>
+
+        <div class="description">Mark a Reminder complete.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.reminders.completeReminder(id) -> [String: Any]</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">id</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">The Reminder&#39;s stable identifier</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">[String: Any]</div>
+        <div class="return-desc">The completed Reminder summary, or `null` after throwing a JavaScript error</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const completed = hs.reminders.completeReminder(reminder.id)</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.reminders/HSRemindersModule.swift#L64" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift:64</a>
+        </div>
+    </div>
+    <div class="method" id="deleteReminder">
+        <h3><a href="#deleteReminder">hs.reminders.deleteReminder(id) -> boolean</a></h3>
+
+        <div class="description">Delete a Reminder.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.reminders.deleteReminder(id) -> boolean</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">id</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">The Reminder&#39;s stable identifier</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">boolean</div>
+        <div class="return-desc">`true` when the Reminder was deleted, or `false` after throwing a JavaScript error</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">hs.reminders.deleteReminder(reminder.id)</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.reminders/HSRemindersModule.swift#L73" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.reminders/HSRemindersModule.swift:73</a>
+        </div>
+    </div>
         </main>
 
         <!-- Right TOC sidebar -->
