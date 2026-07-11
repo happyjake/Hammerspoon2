@@ -118,6 +118,44 @@ import IOKit.hid
     /// ```
     @objc func requestLocation() -> JSPromise?
 
+    /// Check whether the app has full Calendar access.
+    /// - Returns: true if full Calendar access is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkCalendar())
+    /// ```
+    @objc func checkCalendar() -> Bool
+
+    /// Request full Calendar access (shows the system dialog if the user has not yet decided).
+    ///
+    /// It is safe to call this on every launch — macOS only shows the dialog once for this scope;
+    /// subsequent calls resolve with the durable authorization state.
+    /// - Returns: {Promise<boolean>} A Promise that resolves to true if full access is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestCalendar().then(granted => console.log(granted))
+    /// ```
+    @objc func requestCalendar() -> JSPromise?
+
+    /// Check whether the app has full Reminders access.
+    /// - Returns: true if full Reminders access is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkReminders())
+    /// ```
+    @objc func checkReminders() -> Bool
+
+    /// Request full Reminders access (shows its independent system dialog if the user has not yet decided).
+    ///
+    /// It is safe to call this on every launch — macOS only shows the dialog once for this scope;
+    /// subsequent calls resolve with the durable authorization state.
+    /// - Returns: {Promise<boolean>} A Promise that resolves to true if full access is granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestReminders().then(granted => console.log(granted))
+    /// ```
+    @objc func requestReminders() -> JSPromise?
+
     /// Check whether the user has granted Input Monitoring access to this app.
     /// Required for hs.eventtap to receive global key events.
     /// - Returns: true if granted, false if denied or unknown
@@ -232,6 +270,36 @@ import IOKit.hid
         guard let context = JSContext.current() else { return nil }
         return wrapAsyncInJSPromise(in: context) { holder in
             PermissionsManager.shared.request(.location) { result in
+                Task { @MainActor in holder.resolveWith(result) }
+            }
+        }
+    }
+
+    // MARK: - Calendar
+
+    @objc func checkCalendar() -> Bool {
+        PermissionsManager.shared.check(.calendar)
+    }
+
+    @objc func requestCalendar() -> JSPromise? {
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
+            PermissionsManager.shared.request(.calendar) { result in
+                Task { @MainActor in holder.resolveWith(result) }
+            }
+        }
+    }
+
+    // MARK: - Reminders
+
+    @objc func checkReminders() -> Bool {
+        PermissionsManager.shared.check(.reminders)
+    }
+
+    @objc func requestReminders() -> JSPromise? {
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
+            PermissionsManager.shared.request(.reminders) { result in
                 Task { @MainActor in holder.resolveWith(result) }
             }
         }
