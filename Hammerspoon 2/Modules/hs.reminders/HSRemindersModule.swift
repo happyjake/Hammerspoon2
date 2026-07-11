@@ -74,6 +74,7 @@ import JavaScriptCore
 }
 
 private enum HSRemindersModuleError: LocalizedError {
+    case accessRequired(String)
     case noDefaultList
     case listNotFound(String)
     case ambiguousList(String, candidates: [String])
@@ -83,6 +84,8 @@ private enum HSRemindersModuleError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .accessRequired(let status):
+            return "Reminders access is \(status); grant Reminders access in Hammerspoon 2 and retry"
         case .noDefaultList:
             return "No default Reminder List is available"
         case .listNotFound(let target):
@@ -156,15 +159,23 @@ private enum HSReminderPriority: String {
     }
 
     @objc func listReminderLists() -> [[String: Any]] {
-        let defaultIdentifier = eventStore.eventStore.defaultCalendarForNewReminders()?.calendarIdentifier
+        do {
+            try requireFullAccess()
+            let defaultIdentifier = eventStore.eventStore.defaultCalendarForNewReminders()?.calendarIdentifier
 
-        return eventStore.eventStore.calendars(for: .reminder).map { list in
-            [
-                "id": list.calendarIdentifier,
-                "title": list.title,
-                "writable": list.allowsContentModifications,
-                "isDefault": list.calendarIdentifier == defaultIdentifier,
-            ]
+            return eventStore.eventStore.calendars(for: .reminder).map { list in
+                [
+                    "id": list.calendarIdentifier,
+                    "title": list.title,
+                    "writable": list.allowsContentModifications,
+                    "isDefault": list.calendarIdentifier == defaultIdentifier,
+                ]
+            }
+        } catch {
+            if let context = JSContext.current() {
+                context.exception = JSValue(newErrorFromMessage: error.localizedDescription, in: context)
+            }
+            return []
         }
     }
 
@@ -173,6 +184,7 @@ private enum HSReminderPriority: String {
 
         let resolvedList: EKCalendar
         do {
+            try requireFullAccess()
             resolvedList = try resolveList(list)
         } catch {
             return context.createRejectedPromise(with: error.localizedDescription)
@@ -215,6 +227,7 @@ private enum HSReminderPriority: String {
     @objc func createReminder(_ options: JSValue) -> [String: Any]? {
         let context = options.context
         do {
+            try requireFullAccess()
             guard options.isObject && !options.isArray else {
                 throw HSRemindersModuleError.invalidInput("hs.reminders.createReminder: options object required")
             }
@@ -253,6 +266,7 @@ private enum HSReminderPriority: String {
     @objc func completeReminder(_ id: String) -> [String: Any]? {
         guard let context = JSContext.current() else { return nil }
         do {
+            try requireFullAccess()
             guard let reminder = eventStore.eventStore.calendarItem(withIdentifier: id) as? EKReminder else {
                 throw HSRemindersModuleError.reminderNotFound(id)
             }
@@ -273,6 +287,7 @@ private enum HSReminderPriority: String {
     @objc func deleteReminder(_ id: String) -> Bool {
         guard let context = JSContext.current() else { return false }
         do {
+            try requireFullAccess()
             guard let reminder = eventStore.eventStore.calendarItem(withIdentifier: id) as? EKReminder else {
                 throw HSRemindersModuleError.reminderNotFound(id)
             }
@@ -310,6 +325,12 @@ private enum HSReminderPriority: String {
             throw HSRemindersModuleError.ambiguousList(target, candidates: candidates)
         }
         throw HSRemindersModuleError.listNotFound(target)
+    }
+
+    private func requireFullAccess() throws {
+        guard eventStore.authorizationStatus(for: .reminder) == .fullAccess else {
+            throw HSRemindersModuleError.accessRequired(authorizationStatus())
+        }
     }
 
     private func reminderSummary(_ reminder: EKReminder) -> [String: Any] {
@@ -371,9 +392,15 @@ private enum HSReminderPriority: String {
         return priority.eventKitValue
     }
 
-    private func parseDue(_ due: String) throws -> DateComponents {
-        if due.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil {
+    func parseDue(_ due: String) throws -> DateComponents {
+        if !due.contains("T") {
+            guard due.range(of: #"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"#, options: .regularExpression) != nil else {
+                throw HSRemindersModuleError.invalidInput("hs.reminders.createReminder: 'due' is not a valid date")
+            }
             let parts = due.split(separator: "-").compactMap { Int($0) }
+            guard parts.count == 3 else {
+                throw HSRemindersModuleError.invalidInput("hs.reminders.createReminder: 'due' is not a valid date")
+            }
             var calendar = Calendar(identifier: .gregorian)
             calendar.timeZone = TimeZone(secondsFromGMT: 0)!
             let components = DateComponents(year: parts[0], month: parts[1], day: parts[2])
@@ -383,10 +410,64 @@ private enum HSReminderPriority: String {
             return components
         }
 
-        let instantPattern = #"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"#
+        let instantPattern = #"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$"#
         guard due.range(of: instantPattern, options: .regularExpression) != nil else {
             throw HSRemindersModuleError.invalidInput(
                 "hs.reminders.createReminder: timed 'due' must be an ISO 8601 instant with an explicit offset or Z"
+            )
+        }
+
+        if due.last != "Z" {
+            let offset = due.suffix(6)
+            guard let offsetHours = Int(offset.dropFirst().prefix(2)),
+                  let offsetMinutes = Int(offset.suffix(2)),
+                  offsetHours <= 14,
+                  offsetMinutes <= 59,
+                  offsetHours < 14 || offsetMinutes == 0 else {
+                throw HSRemindersModuleError.invalidInput(
+                    "hs.reminders.createReminder: 'due' is not a valid ISO 8601 instant"
+                )
+            }
+        }
+
+        let values = String(due.prefix(19))
+            .components(separatedBy: CharacterSet(charactersIn: "-T:"))
+            .compactMap(Int.init)
+        guard values.count == 6 else {
+            throw HSRemindersModuleError.invalidInput(
+                "hs.reminders.createReminder: 'due' is not a valid ISO 8601 instant"
+            )
+        }
+
+        var validationCalendar = Calendar(identifier: .gregorian)
+        validationCalendar.timeZone = .gmt
+        let inputComponents = DateComponents(
+            calendar: validationCalendar,
+            timeZone: .gmt,
+            year: values[0],
+            month: values[1],
+            day: values[2],
+            hour: values[3],
+            minute: values[4],
+            second: values[5]
+        )
+        guard let componentDate = validationCalendar.date(from: inputComponents) else {
+            throw HSRemindersModuleError.invalidInput(
+                "hs.reminders.createReminder: 'due' is not a valid ISO 8601 instant"
+            )
+        }
+        let parsedComponents = validationCalendar.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second],
+            from: componentDate
+        )
+        guard parsedComponents.year == values[0],
+              parsedComponents.month == values[1],
+              parsedComponents.day == values[2],
+              parsedComponents.hour == values[3],
+              parsedComponents.minute == values[4],
+              parsedComponents.second == values[5] else {
+            throw HSRemindersModuleError.invalidInput(
+                "hs.reminders.createReminder: 'due' is not a valid ISO 8601 instant"
             )
         }
 

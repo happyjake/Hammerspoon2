@@ -56,20 +56,14 @@ struct HSRemindersIntegrationTests {
         makeHarness().expectTrue("['fullAccess', 'denied', 'restricted', 'notDetermined'].includes(hs.reminders.authorizationStatus())")
     }
 
-    @Test("listReminderLists is a function that returns an array")
-    func testListReminderListsIsFunctionReturningArray() {
-        makeHarness().expectTrue("""
-            typeof hs.reminders.listReminderLists === 'function' &&
-            Array.isArray(hs.reminders.listReminderLists())
-            """)
+    @Test("listReminderLists is a function")
+    func testListReminderListsIsFunction() {
+        makeHarness().expectTrue("typeof hs.reminders.listReminderLists === 'function'")
     }
 
-    @Test("listReminders is a function that returns a Promise")
-    func testListRemindersIsFunctionReturningPromise() {
-        makeHarness().expectTrue("""
-            typeof hs.reminders.listReminders === 'function' &&
-            typeof hs.reminders.listReminders().then === 'function'
-            """)
+    @Test("listReminders is a function")
+    func testListRemindersIsFunction() {
+        makeHarness().expectTrue("typeof hs.reminders.listReminders === 'function'")
     }
 
     @Test("createReminder is a function")
@@ -87,23 +81,104 @@ struct HSRemindersIntegrationTests {
         makeHarness().expectTrue("typeof hs.reminders.deleteReminder === 'function'")
     }
 
-    @Test("createReminder rejects a timed due value without an offset")
-    func testCreateReminderRejectsNakedTimedDue() {
+    @Test("due parser rejects a timed value without an offset")
+    @MainActor
+    func testDueParserRejectsNakedTimedDue() {
+        expectInvalidDue("2026-07-14T15:30:00", containing: "explicit offset or Z")
+    }
+
+    @Test("due parser rejects full-width digits without trapping")
+    @MainActor
+    func testDueParserRejectsFullWidthDigits() {
+        expectInvalidDue("２０２６-０７-１４", containing: "not a valid date")
+    }
+
+    @Test("due parser rejects impossible ISO 8601 instants")
+    @MainActor
+    func testDueParserRejectsImpossibleInstants() {
+        for due in [
+            "2025-02-29T12:00:00Z",
+            "2026-07-14T24:00:00Z",
+            "2026-07-14T12:00:00+15:00",
+            "2026-07-14T12:00:00+14:01",
+        ] {
+            expectInvalidDue(due, containing: "not a valid ISO 8601 instant")
+        }
+    }
+
+    @MainActor
+    private func expectInvalidDue(_ due: String, containing expectedMessage: String) {
+        let module = HSRemindersModule(engineID: UUID())
+        do {
+            _ = try module.parseDue(due)
+            Issue.record("Expected Reminder due value to be rejected: \(due)")
+        } catch {
+            #expect(error.localizedDescription.contains(expectedMessage))
+        }
+    }
+}
+
+@Suite(
+    "hs.reminders access diagnostic tests",
+    .disabled(if: hasRemindersModuleFullAccess(), "Only exercises the missing-access path")
+)
+struct HSRemindersAccessDiagnosticTests {
+    private func makeHarness() -> JSTestHarness {
+        let harness = JSTestHarness()
+        harness.loadModule(HSRemindersModule.self, as: "reminders")
+        return harness
+    }
+
+    @Test("synchronous Reminder data methods require full access before lookup")
+    func testSynchronousMethodsRequireFullAccess() {
         let harness = makeHarness()
         harness.eval("""
-            var nakedDueError = null
-            try {
-                hs.reminders.createReminder({
-                    title: 'Invalid due fixture',
-                    due: '2026-07-14T15:30:00'
-                })
-            } catch (error) {
-                nakedDueError = String(error)
+            const missingAccessErrors = []
+            for (const operation of [
+                () => hs.reminders.listReminderLists(),
+                () => hs.reminders.createReminder({ title: 'Access diagnostic fixture' }),
+                () => hs.reminders.completeReminder('missing-access-fixture'),
+                () => hs.reminders.deleteReminder('missing-access-fixture')
+            ]) {
+                try {
+                    operation()
+                    missingAccessErrors.push(null)
+                } catch (error) {
+                    missingAccessErrors.push(String(error))
+                }
             }
             """)
         harness.expectTrue("""
-            nakedDueError !== null &&
-            nakedDueError.includes('explicit offset or Z')
+            missingAccessErrors.length === 4 &&
+            missingAccessErrors.every(error =>
+                error !== null &&
+                error.includes('grant Reminders access in Hammerspoon 2')
+            )
+            """)
+    }
+
+    @Test("listReminders rejects with the full-access diagnostic before list resolution")
+    @MainActor
+    func testListRemindersRequiresFullAccess() async {
+        let harness = makeHarness()
+        harness.eval("""
+            var missingListAccessError = null
+            var missingListAccessDone = false
+            hs.reminders.listReminders('missing-access-list').then(function() {
+                missingListAccessDone = true
+            }).catch(function(error) {
+                missingListAccessError = String(error)
+                missingListAccessDone = true
+            })
+            """)
+
+        let settled = await harness.waitForAsync(timeout: 5.0) {
+            harness.eval("missingListAccessDone") as? Bool ?? false
+        }
+        #expect(settled, "listReminders access rejection did not settle within 5 seconds")
+        harness.expectTrue("""
+            missingListAccessError !== null &&
+            missingListAccessError.includes('grant Reminders access in Hammerspoon 2')
             """)
     }
 }
