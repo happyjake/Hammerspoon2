@@ -17,6 +17,16 @@ import JavaScriptCore
     /// console.log(status)
     /// ```
     @objc func authorizationStatus() -> String
+
+    /// List the Calendars available for Events.
+    /// - Returns: Calendar summaries containing `id`, `title`, `writable`, and `isDefault`
+    /// - Example:
+    /// ```js
+    /// for (const calendar of hs.calendar.listCalendars()) {
+    ///   console.log(calendar.title, calendar.id)
+    /// }
+    /// ```
+    @objc func listCalendars() -> [[String: Any]]
 }
 
 @_documentation(visibility: private)
@@ -47,6 +57,19 @@ import JavaScriptCore
         case .restricted:    return "restricted"
         case .notDetermined: return "notDetermined"
         @unknown default:    return "notDetermined"
+        }
+    }
+
+    @objc func listCalendars() -> [[String: Any]] {
+        let defaultIdentifier = eventStore.eventStore.defaultCalendarForNewEvents?.calendarIdentifier
+
+        return eventStore.eventStore.calendars(for: .event).map { calendar in
+            [
+                "id": calendar.calendarIdentifier,
+                "title": calendar.title,
+                "writable": calendar.allowsContentModifications,
+                "isDefault": calendar.calendarIdentifier == defaultIdentifier,
+            ]
         }
     }
 }

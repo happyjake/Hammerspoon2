@@ -3931,6 +3931,28 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
           "lineNumber": 19
+        },
+        {
+          "name": "listCalendars",
+          "signature": "func listCalendars() -> [[String: Any]]",
+          "isStatic": false,
+          "rawDocumentation": "List the Calendars available for Events.\n- Returns: Calendar summaries containing `id`, `title`, `writable`, and `isDefault`\n- Example:\n```js\nfor (const calendar of hs.calendar.listCalendars()) {\n  console.log(calendar.title, calendar.id)\n}\n```",
+          "description": "List the Calendars available for Events.",
+          "params": [],
+          "returns": {
+            "type": "[[String: Any]]",
+            "description": "Calendar summaries containing `id`, `title`, `writable`, and `isDefault`"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "for (const calendar of hs.calendar.listCalendars()) {\n  console.log(calendar.title, calendar.id)\n}"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift",
+          "lineNumber": 29
         }
       ],
       "properties": [],
@@ -20868,5 +20890,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-11T17:13:10.538Z"
+  "generatedAt": "2026-07-11T17:56:43.655Z"
 }

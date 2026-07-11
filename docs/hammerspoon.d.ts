@@ -1720,6 +1720,12 @@ declare namespace hs.calendar {
      */
     function authorizationStatus(): string;
 
+    /**
+     * List the Calendars available for Events.
+     * @returns Calendar summaries containing `id`, `title`, `writable`, and `isDefault`
+     */
+    function listCalendars(): Record<string, any>[];
+
 }
 
 /**
