@@ -113,7 +113,7 @@ console.log(status)</code></pre>
     <div class="method" id="listEvents">
         <h3><a href="#listEvents">hs.calendar.listEvents(calendar, start, end) -> [[String: Any]]</a></h3>
 
-        <div class="description">List Events from one Calendar that overlap a time window.</div>
+        <div class="description">List Events from one Calendar that overlap a time window. The window may span at most four years.</div>
 
         <div class="card-section-label">Declaration</div>
         <pre><code class="language-javascript">hs.calendar.listEvents(calendar, start, end) -> [[String: Any]]</code></pre>
@@ -136,12 +136,12 @@ console.log(status)</code></pre>
                 <tr>
                     <td class="param-name">start</td>
                     <td class="param-type">string</td>
-                    <td class="param-desc">Window start as an ISO 8601 datetime with an explicit offset or `Z`</td>
+                    <td class="param-desc">Window start as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`</td>
                 </tr>
                 <tr>
                     <td class="param-name">end</td>
                     <td class="param-type">string</td>
-                    <td class="param-desc">Window end as an ISO 8601 datetime with an explicit offset or `Z`</td>
+                    <td class="param-desc">Window end as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`</td>
                 </tr>
             </tbody>
         </table>
@@ -165,7 +165,7 @@ console.log(status)</code></pre>
     <div class="method" id="searchEvents">
         <h3><a href="#searchEvents">hs.calendar.searchEvents(query, start, end) -> [[String: Any]]</a></h3>
 
-        <div class="description">Search Event titles across all Calendars in a time window.</div>
+        <div class="description">Search Event titles across all Calendars in a time window. The window may span at most four years.</div>
 
         <div class="card-section-label">Declaration</div>
         <pre><code class="language-javascript">hs.calendar.searchEvents(query, start, end) -> [[String: Any]]</code></pre>
@@ -188,12 +188,12 @@ console.log(status)</code></pre>
                 <tr>
                     <td class="param-name">start</td>
                     <td class="param-type">string</td>
-                    <td class="param-desc">Window start as an ISO 8601 datetime with an explicit offset or `Z`</td>
+                    <td class="param-desc">Window start as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`</td>
                 </tr>
                 <tr>
                     <td class="param-name">end</td>
                     <td class="param-type">string</td>
-                    <td class="param-desc">Window end as an ISO 8601 datetime with an explicit offset or `Z`</td>
+                    <td class="param-desc">Window end as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`</td>
                 </tr>
             </tbody>
         </table>

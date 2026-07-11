@@ -3958,8 +3958,8 @@
           "name": "listEvents",
           "signature": "func listEvents(_ calendar: String, _ start: String, _ end: String) -> [[String: Any]]",
           "isStatic": false,
-          "rawDocumentation": "List Events from one Calendar that overlap a time window.\n- Parameters:\n  - calendar: Calendar id or exact title\n  - start: Window start as an ISO 8601 datetime with an explicit offset or `Z`\n  - end: Window end as an ISO 8601 datetime with an explicit offset or `Z`\n- Returns: Event objects containing `id`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, `attendees`, `organizer`, `status`, `availability`, `recurring`, and `occurrenceStart`. Timed values use UTC `Z`; all-day values are `YYYY-MM-DD`. Each attendee and organizer contains `name`, `url`, `status`, `role`, `type`, and `currentUser`. Non-recurring Events have a `null` `occurrenceStart`.\n- Example:\n```js\nconst events = hs.calendar.listEvents(\n  'Work',\n  '2026-07-12T00:00:00Z',\n  '2026-07-13T00:00:00Z'\n)\n```",
-          "description": "List Events from one Calendar that overlap a time window.",
+          "rawDocumentation": "List Events from one Calendar that overlap a time window. The window may span at most four years.\n- Parameters:\n  - calendar: Calendar id or exact title\n  - start: Window start as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`\n  - end: Window end as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`\n- Returns: Event objects containing `id`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, `attendees`, `organizer`, `status`, `availability`, `recurring`, and `occurrenceStart`. Timed values use UTC `Z`; all-day values are `YYYY-MM-DD`. Each attendee and organizer contains `name`, `url`, `status`, `role`, `type`, and `currentUser`. Non-recurring Events have a `null` `occurrenceStart`.\n- Example:\n```js\nconst events = hs.calendar.listEvents(\n  'Work',\n  '2026-07-12T00:00:00Z',\n  '2026-07-13T00:00:00Z'\n)\n```",
+          "description": "List Events from one Calendar that overlap a time window. The window may span at most four years.",
           "params": [
             {
               "name": "calendar",
@@ -3971,14 +3971,14 @@
             {
               "name": "start",
               "type": "string",
-              "description": "Window start as an ISO 8601 datetime with an explicit offset or `Z`",
+              "description": "Window start as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`",
               "optional": false,
               "tsType": null
             },
             {
               "name": "end",
               "type": "string",
-              "description": "Window end as an ISO 8601 datetime with an explicit offset or `Z`",
+              "description": "Window end as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`",
               "optional": false,
               "tsType": null
             }
@@ -4002,8 +4002,8 @@
           "name": "searchEvents",
           "signature": "func searchEvents(_ query: String, _ start: String, _ end: String) -> [[String: Any]]",
           "isStatic": false,
-          "rawDocumentation": "Search Event titles across all Calendars in a time window.\n- Parameters:\n  - query: Case-insensitive text to find in Event titles\n  - start: Window start as an ISO 8601 datetime with an explicit offset or `Z`\n  - end: Window end as an ISO 8601 datetime with an explicit offset or `Z`\n- Returns: Matching Event objects in the same occurrence-aware shape as `listEvents`\n- Example:\n```js\nconst events = hs.calendar.searchEvents(\n  'planning',\n  '2026-07-12T00:00:00Z',\n  '2026-07-19T00:00:00Z'\n)\n```",
-          "description": "Search Event titles across all Calendars in a time window.",
+          "rawDocumentation": "Search Event titles across all Calendars in a time window. The window may span at most four years.\n- Parameters:\n  - query: Case-insensitive text to find in Event titles\n  - start: Window start as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`\n  - end: Window end as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`\n- Returns: Matching Event objects in the same occurrence-aware shape as `listEvents`\n- Example:\n```js\nconst events = hs.calendar.searchEvents(\n  'planning',\n  '2026-07-12T00:00:00Z',\n  '2026-07-19T00:00:00Z'\n)\n```",
+          "description": "Search Event titles across all Calendars in a time window. The window may span at most four years.",
           "params": [
             {
               "name": "query",
@@ -4015,14 +4015,14 @@
             {
               "name": "start",
               "type": "string",
-              "description": "Window start as an ISO 8601 datetime with an explicit offset or `Z`",
+              "description": "Window start as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`",
               "optional": false,
               "tsType": null
             },
             {
               "name": "end",
               "type": "string",
-              "description": "Window end as an ISO 8601 datetime with an explicit offset or `Z`",
+              "description": "Window end as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`",
               "optional": false,
               "tsType": null
             }
@@ -20978,5 +20978,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-11T18:46:59.478Z"
+  "generatedAt": "2026-07-11T19:17:36.098Z"
 }

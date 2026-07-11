@@ -28,11 +28,11 @@ import JavaScriptCore
     /// ```
     @objc func listCalendars() -> [[String: Any]]
 
-    /// List Events from one Calendar that overlap a time window.
+    /// List Events from one Calendar that overlap a time window. The window may span at most four years.
     /// - Parameters:
     ///   - calendar: Calendar id or exact title
-    ///   - start: Window start as an ISO 8601 datetime with an explicit offset or `Z`
-    ///   - end: Window end as an ISO 8601 datetime with an explicit offset or `Z`
+    ///   - start: Window start as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`
+    ///   - end: Window end as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`
     /// - Returns: Event objects containing `id`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, `attendees`, `organizer`, `status`, `availability`, `recurring`, and `occurrenceStart`. Timed values use UTC `Z`; all-day values are `YYYY-MM-DD`. Each attendee and organizer contains `name`, `url`, `status`, `role`, `type`, and `currentUser`. Non-recurring Events have a `null` `occurrenceStart`.
     /// - Example:
     /// ```js
@@ -45,11 +45,11 @@ import JavaScriptCore
     @objc(listEvents:::)
     func listEvents(_ calendar: String, _ start: String, _ end: String) -> [[String: Any]]
 
-    /// Search Event titles across all Calendars in a time window.
+    /// Search Event titles across all Calendars in a time window. The window may span at most four years.
     /// - Parameters:
     ///   - query: Case-insensitive text to find in Event titles
-    ///   - start: Window start as an ISO 8601 datetime with an explicit offset or `Z`
-    ///   - end: Window end as an ISO 8601 datetime with an explicit offset or `Z`
+    ///   - start: Window start as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`
+    ///   - end: Window end as a valid ISO 8601 datetime with an explicit offset from `-14:00` through `+14:00`, or `Z`
     /// - Returns: Matching Event objects in the same occurrence-aware shape as `listEvents`
     /// - Example:
     /// ```js
@@ -295,7 +295,7 @@ import JavaScriptCore
     private func queryWindow(start: String, end: String, method: String) -> (start: Date, end: Date)? {
         guard let startDate = parseInstant(start), let endDate = parseInstant(end) else {
             throwJavaScriptError(
-                "hs.calendar.\(method)(): start and end must be ISO 8601 datetimes with an explicit UTC offset or Z"
+                "hs.calendar.\(method)(): start and end must be valid ISO 8601 datetimes with an explicit UTC offset or Z"
             )
             return nil
         }
@@ -303,12 +303,61 @@ import JavaScriptCore
             throwJavaScriptError("hs.calendar.\(method)(): end must be after start")
             return nil
         }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        guard let maximumEnd = calendar.date(byAdding: .year, value: 4, to: startDate),
+              endDate <= maximumEnd else {
+            throwJavaScriptError("hs.calendar.\(method)(): query window must not exceed four years")
+            return nil
+        }
         return (startDate, endDate)
     }
 
     private func parseInstant(_ value: String) -> Date? {
-        let offsetPattern = #"^\d{4}-\d{2}-\d{2}T.+(?:Z|[+-]\d{2}:\d{2})$"#
-        guard value.range(of: offsetPattern, options: [.regularExpression, .caseInsensitive]) != nil else {
+        let instantPattern = #"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"#
+        guard value.range(of: instantPattern, options: [.regularExpression, .caseInsensitive]) != nil else {
+            return nil
+        }
+
+        if value.last != "Z" && value.last != "z" {
+            let offset = value.suffix(6)
+            guard let offsetHours = Int(offset.dropFirst().prefix(2)),
+                  let offsetMinutes = Int(offset.suffix(2)),
+                  offsetHours <= 14,
+                  offsetMinutes <= 59,
+                  offsetHours < 14 || offsetMinutes == 0 else {
+                return nil
+            }
+        }
+
+        let values = String(value.prefix(19))
+            .components(separatedBy: CharacterSet(charactersIn: "-T:"))
+            .compactMap(Int.init)
+        guard values.count == 6 else { return nil }
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        let components = DateComponents(
+            calendar: calendar,
+            timeZone: .gmt,
+            year: values[0],
+            month: values[1],
+            day: values[2],
+            hour: values[3],
+            minute: values[4],
+            second: values[5]
+        )
+        guard let componentDate = calendar.date(from: components) else { return nil }
+        let parsedComponents = calendar.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second],
+            from: componentDate
+        )
+        guard parsedComponents.year == values[0],
+              parsedComponents.month == values[1],
+              parsedComponents.day == values[2],
+              parsedComponents.hour == values[3],
+              parsedComponents.minute == values[4],
+              parsedComponents.second == values[5] else {
             return nil
         }
 

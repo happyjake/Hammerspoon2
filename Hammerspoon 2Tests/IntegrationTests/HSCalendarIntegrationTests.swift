@@ -110,6 +110,60 @@ struct HSCalendarIntegrationTests {
             })()
             """)
     }
+
+    @Test("Event query windows reject ranges longer than four years")
+    func testEventQueriesRejectWindowsLongerThanFourYears() {
+        makeHarness().expectTrue("""
+            (() => {
+                try {
+                    hs.calendar.listEvents(
+                        'Calendar is not consulted for invalid windows',
+                        '2020-01-01T00:00:00Z',
+                        '2024-01-02T00:00:00Z'
+                    )
+                    return false
+                } catch (error) {
+                    return String(error).includes('must not exceed four years')
+                }
+            })()
+            """)
+    }
+
+    @Test("Event query windows reject impossible calendar dates")
+    func testEventQueriesRejectImpossibleCalendarDates() {
+        makeHarness().expectTrue("""
+            (() => {
+                try {
+                    hs.calendar.listEvents(
+                        'Calendar is not consulted for invalid dates',
+                        '2026-02-30T09:00:00Z',
+                        '2026-03-03T10:00:00Z'
+                    )
+                    return false
+                } catch (error) {
+                    return String(error).includes('valid ISO 8601')
+                }
+            })()
+            """)
+    }
+
+    @Test("Event query windows reject UTC offsets beyond 14 hours")
+    func testEventQueriesRejectOutOfRangeUTCOffsets() {
+        makeHarness().expectTrue("""
+            (() => {
+                try {
+                    hs.calendar.searchEvents(
+                        'Calendar is not consulted for invalid dates',
+                        '2026-07-12T09:00:00+15:00',
+                        '2026-07-12T10:00:00Z'
+                    )
+                    return false
+                } catch (error) {
+                    return String(error).includes('valid ISO 8601')
+                }
+            })()
+            """)
+    }
 }
 
 @Suite(
