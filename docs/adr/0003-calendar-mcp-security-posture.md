@@ -2,8 +2,9 @@
 
 The `calendar-mcp` vibecast feature exposes calendar/reminder CRUD over loopback HTTP to
 local Agents. It is adapted from `devbridge`, but its security model deliberately
-diverges from `devbridge`'s dev-only defaults because it handles sensitive user data and
-runs enabled by default.
+diverges from `devbridge`'s dev-only defaults because it handles sensitive user data and is
+meant to run day-to-day once the user enables it (the feature itself ships disabled by
+default).
 
 - **Bind `127.0.0.1` only**, and additionally assert `req.remoteAddress` is loopback.
 - **Bearer token is the primary gate.** `Authorization: Bearer <token>` (MCP-conventional
