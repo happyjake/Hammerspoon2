@@ -30,9 +30,11 @@ import Darwin
     /// ```
     @objc func close()
 
-    /// Write a string to the port (caller includes any trailing "\n").
+    /// Queue a string for ordered delivery to the port (caller includes any trailing "\n").
+    /// Writes are nonblocking: bytes that do not fit in the device's output buffer
+    /// immediately are retained and resumed when the descriptor becomes writable.
     /// - Parameter s: the bytes to write (UTF-8).
-    /// - Returns: true if all bytes were written.
+    /// - Returns: true if all bytes were accepted; false if closed, queue-full, or a fatal write error occurred.
     /// - Example:
     /// ```js
     /// hs.serial.open('/dev/cu.usbmodem1').write('{"text":"hi"}\n')
@@ -67,11 +69,15 @@ import Darwin
     var rawFD: Int32 { fd }        // for later tasks (read/write)
 
     private var readSource: DispatchSourceRead?
+    private var writeSource: DispatchSourceWrite?
     private var buffer = [UInt8]()
+    private var writeBuffer = [UInt8]()
+    private var writeOffset = 0
     private var lineCb: JSValue?
     private var closeCb: JSValue?
     private var lastWriteWarningAt: UInt64 = 0
     private let writeWarningIntervalNs: UInt64 = 2_000_000_000
+    private let maxPendingWriteBytes = 256 * 1024
 
     init?(path: String) {
         self.path = path
@@ -146,50 +152,103 @@ import Darwin
         }
     }
 
+    private var pendingWriteBytes: Int { writeBuffer.count - writeOffset }
+
+    private func compactWriteBuffer() {
+        guard writeOffset > 0 else { return }
+        if writeOffset == writeBuffer.count {
+            writeBuffer.removeAll(keepingCapacity: true)
+        } else {
+            writeBuffer.removeFirst(writeOffset)
+        }
+        writeOffset = 0
+    }
+
+    private func armWriteSource() {
+        guard writeSource == nil, fd >= 0 else { return }
+        let portFD = fd
+        let src = DispatchSource.makeWriteSource(fileDescriptor: portFD, queue: .main)
+        src.setEventHandler { [weak self] in
+            guard let self else { return }
+            MainActor.assumeIsolated {
+                _ = self.drainWriteBuffer()
+            }
+        }
+        writeSource = src
+        src.resume()
+    }
+
+    private func stopWriteSource() {
+        guard let src = writeSource else { return }
+        writeSource = nil
+        src.cancel()
+    }
+
+    /// Drain as much of the userspace FIFO as the nonblocking descriptor accepts.
+    /// EAGAIN leaves the suffix queued and arms a writable source; fatal errors close
+    /// the port so callers do not continue appending to a dead descriptor.
+    @discardableResult private func drainWriteBuffer() -> Bool {
+        guard fd >= 0 else { return false }
+        var interruptedRetries = 0
+
+        while writeOffset < writeBuffer.count {
+            let n = writeBuffer.withUnsafeBytes { raw -> Int in
+                guard let base = raw.baseAddress else { return 0 }
+                return Darwin.write(fd, base.advanced(by: writeOffset), writeBuffer.count - writeOffset)
+            }
+            let err = n < 0 ? errno : 0
+
+            if n > 0 {
+                writeOffset += n
+                interruptedRetries = 0
+                continue
+            }
+            if n < 0 && err == EINTR {
+                interruptedRetries += 1
+                if interruptedRetries <= 3 { continue }
+                warnWrite("repeatedly interrupted with \(pendingWriteBytes) bytes pending")
+            } else if n < 0 && (err == EAGAIN || err == EWOULDBLOCK) {
+                armWriteSource()
+                return true
+            } else if n == 0 {
+                warnWrite("became unwritable with \(pendingWriteBytes) bytes pending")
+            } else {
+                warnWrite(String(cString: strerror(err)))
+            }
+
+            close()
+            return false
+        }
+
+        compactWriteBuffer()
+        stopWriteSource()
+        return true
+    }
+
     @objc func write(_ s: String) -> Bool {
         guard fd >= 0 else { return false }
         let bytes = Array(s.utf8)
         guard !bytes.isEmpty else { return true }
-        var offset = 0
-        var interruptedRetries = 0
-
-        while offset < bytes.count {
-            let n = bytes.withUnsafeBytes { raw -> Int in
-                guard let base = raw.baseAddress else { return 0 }
-                return Darwin.write(fd, base.advanced(by: offset), bytes.count - offset)
-            }
-
-            if n > 0 {
-                offset += n
-                continue
-            }
-            if n == 0 {
-                warnWrite("not writable after \(offset)/\(bytes.count) bytes")
-                return false
-            }
-            if errno == EINTR {
-                interruptedRetries += 1
-                if interruptedRetries > 3 {
-                    warnWrite("interrupted after \(offset)/\(bytes.count) bytes")
-                    return false
-                }
-                continue
-            }
-            if errno == EAGAIN || errno == EWOULDBLOCK {
-                warnWrite("not ready after \(offset)/\(bytes.count) bytes")
-                return false
-            }
-
-            warnWrite(String(cString: strerror(errno)))
+        let pending = pendingWriteBytes
+        guard bytes.count <= maxPendingWriteBytes - pending else {
+            warnWrite("queue full (\(pending) pending + \(bytes.count) new bytes)")
             return false
         }
-        return true
+
+        // Discard an already-written prefix before appending so the bounded queue
+        // measures only bytes that still need delivery.
+        compactWriteBuffer()
+        writeBuffer.append(contentsOf: bytes)
+        return drainWriteBuffer()
     }
 
     @objc func close() {
         guard fd >= 0 else { return }
         let f = fd
         fd = -1                            // mark closed for write()/isOpen
+        stopWriteSource()
+        writeBuffer.removeAll(keepingCapacity: false)
+        writeOffset = 0
         if let src = readSource {
             readSource = nil
             src.cancel()                   // cancel handler performs Darwin.close(f)
@@ -202,6 +261,7 @@ import Darwin
     deinit {
         // Release the fd even if close() was never called. Cancel (don't just release)
         // the source so its cancel handler closes the fd; no JS callbacks from deinit.
+        writeSource?.cancel()
         if let src = readSource {
             src.cancel()
         } else if fd >= 0 {

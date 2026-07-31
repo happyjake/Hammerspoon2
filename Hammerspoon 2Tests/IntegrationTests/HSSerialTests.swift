@@ -73,6 +73,83 @@ struct HSSerialTests {
         #expect(got.contains("ping\n"))
     }
 
+    @Test("write() queues through pty backpressure without truncating bytes")
+    func writeSurvivesBackpressure() async throws {
+        var master: Int32 = 0, slave: Int32 = 0
+        #expect(openpty(&master, &slave, nil, nil, nil) == 0)
+        defer { Darwin.close(master); Darwin.close(slave) }
+
+        let flags = fcntl(master, F_GETFL)
+        #expect(flags >= 0)
+        #expect(fcntl(master, F_SETFL, flags | O_NONBLOCK) == 0)
+
+        let slaveFlags = fcntl(slave, F_GETFL)
+        #expect(slaveFlags >= 0)
+        #expect(fcntl(slave, F_SETFL, slaveFlags | O_NONBLOCK) == 0)
+
+        // Deterministically fill the tty's output queue before HSSerialPort writes.
+        // The old implementation wrote a prefix, hit EAGAIN, and discarded the suffix.
+        let filler = [UInt8](repeating: 0x70, count: 4096) // "p"
+        var prefilledBytes = 0
+        while true {
+            let n = filler.withUnsafeBytes { raw -> Int in
+                Darwin.write(slave, raw.baseAddress, filler.count)
+            }
+            if n > 0 {
+                prefilledBytes += n
+            } else if n < 0 && errno == EINTR {
+                continue
+            } else if n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK) {
+                break
+            } else {
+                Issue.record("failed to prefill pty output queue: \(n < 0 ? String(cString: strerror(errno)) : "zero-byte write")")
+                return
+            }
+        }
+        #expect(prefilledBytes > 0)
+
+        let firstPayloadBytes = 8 * 1024
+        let secondPayloadBytes = 8 * 1024
+        let payloadCount = firstPayloadBytes + secondPayloadBytes + 1 // trailing newline
+        let expectedCount = prefilledBytes + payloadCount
+        let slavePath = String(cString: ttyname(slave))
+        let harness = JSTestHarness()
+        harness.loadModule(HSSerialModule.self, as: "serial")
+        harness.eval("""
+            globalThis.__serialBackpressurePort = hs.serial.open('\(slavePath)');
+            globalThis.__serialBackpressureAccepted = [
+                __serialBackpressurePort.write('x'.repeat(\(firstPayloadBytes))),
+                __serialBackpressurePort.write('y'.repeat(\(secondPayloadBytes)) + '\\n'),
+            ];
+        """)
+
+        harness.expectTrue("__serialBackpressureAccepted.every(Boolean)")
+
+        var got = [UInt8]()
+        got.reserveCapacity(expectedCount)
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline && got.count < expectedCount {
+            var buf = [UInt8](repeating: 0, count: 16 * 1024)
+            let n = read(master, &buf, buf.count)
+            if n > 0 { got.append(contentsOf: buf[0..<n]) }
+            // Yield the main actor so HSSerialPort's main-queue write source can
+            // drain the retained suffix after reading makes the pty writable.
+            try await Task.sleep(for: .milliseconds(2))
+        }
+
+        #expect(got.count == expectedCount)
+        guard got.count == expectedCount else {
+            harness.eval("__serialBackpressurePort.close()")
+            return
+        }
+        #expect(got.prefix(prefilledBytes).allSatisfy { $0 == 0x70 })
+        #expect(got.last == 0x0A)
+        #expect(got[prefilledBytes..<(prefilledBytes + firstPayloadBytes)].allSatisfy { $0 == 0x78 })
+        let secondStart = prefilledBytes + firstPayloadBytes
+        #expect(got[secondStart..<(secondStart + secondPayloadBytes)].allSatisfy { $0 == 0x79 })
+        harness.eval("__serialBackpressurePort.close()")
+    }
+
     @Test("open() on a pty slave returns a live port, close() marks it closed")
     func testOpenPtyPortThenClose() {
         var m: Int32 = -1
