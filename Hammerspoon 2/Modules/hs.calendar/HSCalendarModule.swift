@@ -919,11 +919,25 @@ import JavaScriptCore
         let span: EKSpan?
     }
 
+    // JavaScriptCore can bridge JS null/undefined into non-nil "null"/
+    // "undefined" strings on @objc String? parameters. Neither is ever a valid
+    // ISO instant or span, so both normalize to absent.
+    private static func bridgedOptional(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty || trimmed == "null" || trimmed == "undefined" {
+            return nil
+        }
+        return value
+    }
+
     private func mutationArguments(
-        occurrenceStart: String?,
-        span: String?,
+        occurrenceStart rawOccurrenceStart: String?,
+        span rawSpan: String?,
         method: String
     ) -> MutationArguments? {
+        let occurrenceStart = Self.bridgedOptional(rawOccurrenceStart)
+        let span = Self.bridgedOptional(rawSpan)
         let hasOccurrenceStart = occurrenceStart != nil
         let hasSpan = span != nil
         guard hasOccurrenceStart == hasSpan else {
