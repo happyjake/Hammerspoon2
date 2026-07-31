@@ -1761,7 +1761,7 @@ Changing `allDay` requires both `start` and `end`. Pass `null` to clear `locatio
 `calendar` resolves by id first, then exact title.
      * @param id Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
      * @param fields One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.
-     * @param occurrenceStart The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.
+     * @param occurrenceStart The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
      * @param span `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.
      * @returns The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`
      */
@@ -1770,7 +1770,7 @@ Changing `allDay` requires both `start` and `end`. Pass `null` to clear `locatio
     /**
      * Delete an Event.
      * @param id Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
-     * @param occurrenceStart The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.
+     * @param occurrenceStart The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
      * @param span `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.
      * @returns `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`
      */

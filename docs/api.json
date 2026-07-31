@@ -4076,7 +4076,7 @@
           "name": "updateEvent",
           "signature": "func updateEvent( _ id: String, _ fields: JSValue, _ occurrenceStart: String?, _ span: String? ) -> [String: Any]?",
           "isStatic": false,
-          "rawDocumentation": "Update writable fields on an Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - fields: One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.\n    Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\n    Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.\n    `calendar` resolves by id first, then exact title.\n  - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.\n  - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.\n- Returns: The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`\n- Example:\n```js\nconst event = hs.calendar.updateEvent('EVENT_ID', {\n  start: '2026-07-13T02:00:00Z',\n  end: '2026-07-13T02:30:00Z'\n})\n```",
+          "rawDocumentation": "Update writable fields on an Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - fields: One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.\n    Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\n    Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.\n    `calendar` resolves by id first, then exact title.\n  - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).\n  - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.\n- Returns: The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`\n- Example:\n```js\nconst event = hs.calendar.updateEvent('EVENT_ID', {\n  start: '2026-07-13T02:00:00Z',\n  end: '2026-07-13T02:30:00Z'\n})\n```",
           "description": "Update writable fields on an Event.\nTimed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\nChanging `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.\n`calendar` resolves by id first, then exact title.",
           "params": [
             {
@@ -4096,7 +4096,7 @@
             {
               "name": "occurrenceStart",
               "type": "string",
-              "description": "The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.",
+              "description": "The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).",
               "optional": true,
               "tsType": "string"
             },
@@ -4127,7 +4127,7 @@
           "name": "deleteEvent",
           "signature": "func deleteEvent(_ id: String, _ occurrenceStart: String?, _ span: String?) -> Bool",
           "isStatic": false,
-          "rawDocumentation": "Delete an Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.\n  - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.\n- Returns: `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`\n- Example:\n```js\nhs.calendar.deleteEvent('EVENT_ID')\n```",
+          "rawDocumentation": "Delete an Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).\n  - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.\n- Returns: `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`\n- Example:\n```js\nhs.calendar.deleteEvent('EVENT_ID')\n```",
           "description": "Delete an Event.",
           "params": [
             {
@@ -4140,7 +4140,7 @@
             {
               "name": "occurrenceStart",
               "type": "string",
-              "description": "The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.",
+              "description": "The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).",
               "optional": true,
               "tsType": "string"
             },
@@ -21253,5 +21253,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-31T04:17:05.387Z"
+  "generatedAt": "2026-07-31T05:11:02.591Z"
 }

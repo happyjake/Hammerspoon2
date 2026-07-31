@@ -87,7 +87,7 @@ import JavaScriptCore
     ///     Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
     ///     Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
     ///     `calendar` resolves by id first, then exact title.
-    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.
+    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
     ///   - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.
     /// - Returns: The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`
     /// - Example:
@@ -108,7 +108,7 @@ import JavaScriptCore
     /// Delete an Event.
     /// - Parameters:
     ///   - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
-    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.
+    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
     ///   - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.
     /// - Returns: `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`
     /// - Example:
@@ -858,17 +858,11 @@ import JavaScriptCore
     private func occurrenceForMutation(
         id: String,
         occurrenceDate: Date,
-        calendar: EKCalendar
+        calendar eventCalendar: EKCalendar
     ) -> EKEvent? {
         let store = eventStore.eventStore
         let precision: TimeInterval = 1
-        let predicate = store.predicateForEvents(
-            withStart: occurrenceDate.addingTimeInterval(-precision),
-            end: occurrenceDate.addingTimeInterval(precision),
-            calendars: [calendar]
-        )
-
-        return store.events(matching: predicate).first { event in
+        let matchesRequestedOccurrence: (EKEvent) -> Bool = { event in
             let matchesID = event.eventIdentifier == id ||
                 event.calendarItemIdentifier == id
             guard let actualOccurrenceDate = event.occurrenceDate ?? event.startDate else {
@@ -878,7 +872,42 @@ import JavaScriptCore
                 Self.isRecurring(event) &&
                 abs(actualOccurrenceDate.timeIntervalSince(occurrenceDate)) < precision
         }
+        let occurrenceInWindow: (Date, Date) -> EKEvent? = { start, end in
+            let predicate = store.predicateForEvents(
+                withStart: start,
+                end: end,
+                calendars: [eventCalendar]
+            )
+            return store.events(matching: predicate).first(where: matchesRequestedOccurrence)
+        }
+
+        if let scheduledOccurrence = occurrenceInWindow(
+            occurrenceDate.addingTimeInterval(-precision),
+            occurrenceDate.addingTimeInterval(precision)
+        ) {
+            return scheduledOccurrence
+        }
+
+        // EventKit predicates select by an Event's current interval, while occurrenceDate
+        // remains at the original scheduled instant after an Occurrence is moved. A single
+        // predicate is capped at four years, so center that full range on occurrenceDate.
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        guard let movedWindowStart = calendar.date(
+            byAdding: .year,
+            value: -Self.movedOccurrenceSearchRadiusYears,
+            to: occurrenceDate
+        ), let movedWindowEnd = calendar.date(
+            byAdding: .year,
+            value: Self.movedOccurrenceSearchRadiusYears,
+            to: occurrenceDate
+        ) else {
+            return nil
+        }
+        return occurrenceInWindow(movedWindowStart, movedWindowEnd)
     }
+
+    private static let movedOccurrenceSearchRadiusYears = 2
 
     private static func isRecurring(_ event: EKEvent) -> Bool {
         event.hasRecurrenceRules || event.isDetached
