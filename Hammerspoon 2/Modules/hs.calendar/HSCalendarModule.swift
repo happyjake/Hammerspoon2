@@ -80,14 +80,16 @@ import JavaScriptCore
     /// ```
     @objc func createEvent(_ options: JSValue) -> [String: Any]?
 
-    /// Update writable fields on one non-recurring Event.
+    /// Update writable fields on an Event.
     /// - Parameters:
     ///   - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
     ///   - fields: One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.
     ///     Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
     ///     Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
-    ///     `calendar` resolves by id first, then exact title. Recurring Event series editing is unsupported in v1.
-    /// - Returns: The updated Event as a plain object; unknown ids, recurring series, invalid fields, and save failures throw a JavaScript `Error`
+    ///     `calendar` resolves by id first, then exact title.
+    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.
+    ///   - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.
+    /// - Returns: The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`
     /// - Example:
     /// ```js
     /// const event = hs.calendar.updateEvent('EVENT_ID', {
@@ -95,17 +97,26 @@ import JavaScriptCore
     ///   end: '2026-07-13T02:30:00Z'
     /// })
     /// ```
-    @objc(updateEvent::)
-    func updateEvent(_ id: String, _ fields: JSValue) -> [String: Any]?
+    @objc(updateEvent::::)
+    func updateEvent(
+        _ id: String,
+        _ fields: JSValue,
+        _ occurrenceStart: String?,
+        _ span: String?
+    ) -> [String: Any]?
 
-    /// Delete one non-recurring Event. Recurring Event series deletion is unsupported in v1.
-    /// - Parameter id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
-    /// - Returns: `true` after the Event is removed; unknown ids, recurring series, and removal failures throw a JavaScript `Error`
+    /// Delete an Event.
+    /// - Parameters:
+    ///   - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
+    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.
+    ///   - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.
+    /// - Returns: `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`
     /// - Example:
     /// ```js
     /// hs.calendar.deleteEvent('EVENT_ID')
     /// ```
-    @objc func deleteEvent(_ id: String) -> Bool
+    @objc(deleteEvent:::)
+    func deleteEvent(_ id: String, _ occurrenceStart: String?, _ span: String?) -> Bool
 }
 
 @_documentation(visibility: private)
@@ -844,12 +855,103 @@ import JavaScriptCore
             (store.calendarItem(withIdentifier: id) as? EKEvent)
     }
 
+    private func occurrenceForMutation(
+        id: String,
+        occurrenceDate: Date,
+        calendar: EKCalendar
+    ) -> EKEvent? {
+        let store = eventStore.eventStore
+        let precision: TimeInterval = 1
+        let predicate = store.predicateForEvents(
+            withStart: occurrenceDate.addingTimeInterval(-precision),
+            end: occurrenceDate.addingTimeInterval(precision),
+            calendars: [calendar]
+        )
+
+        return store.events(matching: predicate).first { event in
+            let matchesID = event.eventIdentifier == id ||
+                event.calendarItemIdentifier == id
+            guard let actualOccurrenceDate = event.occurrenceDate ?? event.startDate else {
+                return false
+            }
+            return matchesID &&
+                Self.isRecurring(event) &&
+                abs(actualOccurrenceDate.timeIntervalSince(occurrenceDate)) < precision
+        }
+    }
+
     private static func isRecurring(_ event: EKEvent) -> Bool {
         event.hasRecurrenceRules || event.isDetached
     }
 
-    @objc(updateEvent::)
-    func updateEvent(_ id: String, _ fields: JSValue) -> [String: Any]? {
+    private struct MutationArguments {
+        let occurrenceStart: String?
+        let occurrenceDate: Date?
+        let span: EKSpan?
+    }
+
+    private func mutationArguments(
+        occurrenceStart: String?,
+        span: String?,
+        method: String
+    ) -> MutationArguments? {
+        let hasOccurrenceStart = occurrenceStart != nil
+        let hasSpan = span != nil
+        guard hasOccurrenceStart == hasSpan else {
+            setMutationException(
+                "occurrenceStart and span must be supplied together",
+                method: method
+            )
+            return nil
+        }
+        guard hasOccurrenceStart else {
+            return MutationArguments(occurrenceStart: nil, occurrenceDate: nil, span: nil)
+        }
+
+        guard let occurrenceString = occurrenceStart,
+              let occurrenceDate = Self.parseInstant(occurrenceString) else {
+            setMutationException(
+                "'occurrenceStart' must be a valid ISO 8601 instant with a UTC offset or Z",
+                method: method
+            )
+            return nil
+        }
+        guard let spanString = span else {
+            setMutationException("'span' must be 'this' or 'future'", method: method)
+            return nil
+        }
+
+        let eventKitSpan: EKSpan
+        switch spanString {
+        case "this":   eventKitSpan = .thisEvent
+        case "future": eventKitSpan = .futureEvents
+        default:
+            setMutationException("'span' must be 'this' or 'future'", method: method)
+            return nil
+        }
+
+        return MutationArguments(
+            occurrenceStart: occurrenceString,
+            occurrenceDate: occurrenceDate,
+            span: eventKitSpan
+        )
+    }
+
+    private func setMutationException(_ message: String, method: String) {
+        guard let context = JSContext.current() else { return }
+        context.exception = JSValue(
+            newErrorFromMessage: "hs.calendar.\(method): \(message)",
+            in: context
+        )
+    }
+
+    @objc(updateEvent::::)
+    func updateEvent(
+        _ id: String,
+        _ fields: JSValue,
+        _ occurrenceStart: String?,
+        _ span: String?
+    ) -> [String: Any]? {
         let method = "updateEvent"
         let requestedID = id.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !requestedID.isEmpty else {
@@ -858,6 +960,11 @@ import JavaScriptCore
         guard fields.isObject, !fields.isArray else {
             return fail("fields object required", in: fields, method: method)
         }
+        guard let mutation = mutationArguments(
+            occurrenceStart: occurrenceStart,
+            span: span,
+            method: method
+        ) else { return nil }
 
         let writableFields = [
             "calendar", "title", "start", "end", "allDay",
@@ -952,15 +1059,41 @@ import JavaScriptCore
             )
         }
 
-        guard let event = eventForMutation(id: requestedID) else {
+        guard let resolvedEvent = eventForMutation(id: requestedID) else {
             return fail("Event id '\(requestedID)' was not found", in: fields, method: method)
         }
-        guard !Self.isRecurring(event) else {
+        let recurring = Self.isRecurring(resolvedEvent)
+        guard !recurring || mutation.span != nil else {
             return fail(
-                "recurring Event series editing is not supported in v1",
+                "recurring Events require occurrenceStart and span",
                 in: fields,
                 method: method
             )
+        }
+        guard recurring || mutation.span == nil else {
+            return fail(
+                "occurrenceStart and span are refused for non-recurring Events",
+                in: fields,
+                method: method
+            )
+        }
+        let event: EKEvent
+        if let occurrenceDate = mutation.occurrenceDate,
+           let occurrenceString = mutation.occurrenceStart {
+            guard let occurrence = occurrenceForMutation(
+                id: requestedID,
+                occurrenceDate: occurrenceDate,
+                calendar: resolvedEvent.calendar
+            ) else {
+                return fail(
+                    "Occurrence for Event id '\(requestedID)' at '\(occurrenceString)' was not found",
+                    in: fields,
+                    method: method
+                )
+            }
+            event = occurrence
+        } else {
+            event = resolvedEvent
         }
         guard event.calendar.allowsContentModifications else {
             return fail(
@@ -1044,7 +1177,11 @@ import JavaScriptCore
         }
 
         do {
-            try eventStore.eventStore.save(event, span: .thisEvent, commit: true)
+            try eventStore.eventStore.save(
+                event,
+                span: mutation.span ?? .thisEvent,
+                commit: true
+            )
         } catch {
             return fail(
                 "could not save Event: \(error.localizedDescription)",
@@ -1055,12 +1192,18 @@ import JavaScriptCore
         return Self.eventResult(event)
     }
 
-    @objc func deleteEvent(_ id: String) -> Bool {
+    @objc(deleteEvent:::)
+    func deleteEvent(_ id: String, _ occurrenceStart: String?, _ span: String?) -> Bool {
         let method = "deleteEvent"
         let requestedID = id.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !requestedID.isEmpty else {
             return fail("'id' must be a non-empty Event identifier", method: method)
         }
+        guard let mutation = mutationArguments(
+            occurrenceStart: occurrenceStart,
+            span: span,
+            method: method
+        ) else { return false }
 
         let status = authorizationStatus()
         guard status == "fullAccess" else {
@@ -1069,11 +1212,38 @@ import JavaScriptCore
                 method: method
             )
         }
-        guard let event = eventForMutation(id: requestedID) else {
+        guard let resolvedEvent = eventForMutation(id: requestedID) else {
             return fail("Event id '\(requestedID)' was not found", method: method)
         }
-        guard !Self.isRecurring(event) else {
-            return fail("recurring Event series deletion is not supported in v1", method: method)
+        let recurring = Self.isRecurring(resolvedEvent)
+        guard !recurring || mutation.span != nil else {
+            return fail(
+                "recurring Events require occurrenceStart and span",
+                method: method
+            )
+        }
+        guard recurring || mutation.span == nil else {
+            return fail(
+                "occurrenceStart and span are refused for non-recurring Events",
+                method: method
+            )
+        }
+        let event: EKEvent
+        if let occurrenceDate = mutation.occurrenceDate,
+           let occurrenceString = mutation.occurrenceStart {
+            guard let occurrence = occurrenceForMutation(
+                id: requestedID,
+                occurrenceDate: occurrenceDate,
+                calendar: resolvedEvent.calendar
+            ) else {
+                return fail(
+                    "Occurrence for Event id '\(requestedID)' at '\(occurrenceString)' was not found",
+                    method: method
+                )
+            }
+            event = occurrence
+        } else {
+            event = resolvedEvent
         }
         guard event.calendar.allowsContentModifications else {
             return fail(
@@ -1083,8 +1253,11 @@ import JavaScriptCore
         }
 
         do {
-            // Recurring Events are rejected above, so .thisEvent cannot imply a guessed series span.
-            try eventStore.eventStore.remove(event, span: .thisEvent, commit: true)
+            try eventStore.eventStore.remove(
+                event,
+                span: mutation.span ?? .thisEvent,
+                commit: true
+            )
         } catch {
             return fail("could not delete Event: \(error.localizedDescription)", method: method)
         }

@@ -60,6 +60,28 @@ private func localDate(year: Int, month: Int, day: Int) throws -> Date {
     return try #require(components.date, "Could not construct the all-day test fixture date")
 }
 
+private func makeDailyRecurringEvent(
+    in eventStore: EKEventStore,
+    calendar: EKCalendar,
+    title: String,
+    start: String,
+    end: String,
+    count: Int = 3
+) throws -> EKEvent {
+    let event = EKEvent(eventStore: eventStore)
+    event.calendar = calendar
+    event.title = title
+    event.startDate = try instant(start)
+    event.endDate = try instant(end)
+    event.addRecurrenceRule(EKRecurrenceRule(
+        recurrenceWith: .daily,
+        interval: 1,
+        end: EKRecurrenceEnd(occurrenceCount: count)
+    ))
+    try eventStore.save(event, span: .thisEvent, commit: true)
+    return event
+}
+
 @Suite("hs.calendar API structure tests")
 struct HSCalendarIntegrationTests {
     private func makeHarness() -> JSTestHarness {
@@ -203,6 +225,55 @@ struct HSCalendarIntegrationTests {
 
         #expect(harness.hasException)
         #expect(harness.exceptionMessage?.contains("UTC offset or Z") == true)
+    }
+
+    @Test("recurring mutation arguments are required together")
+    func testRecurringMutationArgumentsAreRequiredTogether() {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.calendar.updateEvent(
+                'Event lookup must not run',
+                { title: 'Must not update' },
+                '2026-07-13T02:00:00Z'
+            )
+            """)
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("occurrenceStart and span must be supplied together") == true)
+
+        harness.eval("""
+            hs.calendar.deleteEvent(
+                'Event lookup must not run',
+                null,
+                'future'
+            )
+            """)
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("occurrenceStart and span must be supplied together") == true)
+    }
+
+    @Test("recurring mutation arguments require an ISO instant and an EventKit Span")
+    func testRecurringMutationArgumentsRejectInvalidValues() {
+        let harness = makeHarness()
+        harness.eval("""
+            hs.calendar.updateEvent(
+                'Event lookup must not run',
+                { title: 'Must not update' },
+                '2026-07-13T02:00:00Z',
+                'all'
+            )
+            """)
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("'span' must be 'this' or 'future'") == true)
+
+        harness.eval("""
+            hs.calendar.deleteEvent(
+                'Event lookup must not run',
+                '2026-07-13',
+                'this'
+            )
+            """)
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains("'occurrenceStart' must be a valid ISO 8601 instant") == true)
     }
 
     @Test("createEvent rejects a timed Event without an explicit UTC offset")
@@ -819,6 +890,110 @@ struct HSCalendarLiveTests {
         #expect(persisted.endDate == originalEnd)
     }
 
+    @Test("updateEvent applies the this Span to the addressed recurring Occurrence")
+    func testUpdateRecurringThisOccurrence() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "update recurring this")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let originalTitle = "Hammerspoon 2 recurring this original \(UUID().uuidString)"
+        let updatedTitle = "Hammerspoon 2 recurring this updated \(UUID().uuidString)"
+        let fixture = try makeDailyRecurringEvent(
+            in: eventStore,
+            calendar: calendar,
+            title: originalTitle,
+            start: "2043-01-10T10:00:00Z",
+            end: "2043-01-10T10:30:00Z"
+        )
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.context.setObject(calendar.calendarIdentifier, forKeyedSubscript: "fixtureCalendarID" as NSString)
+        harness.context.setObject(originalTitle, forKeyedSubscript: "originalFixtureTitle" as NSString)
+        harness.context.setObject(updatedTitle, forKeyedSubscript: "updatedFixtureTitle" as NSString)
+        harness.eval("""
+            hs.calendar.updateEvent(
+                fixtureEventID,
+                { title: updatedFixtureTitle },
+                '2043-01-11T10:00:00Z',
+                'this'
+            )
+            """)
+        #expect(!harness.hasException, "updateEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("""
+            (() => {
+                const occurrences = hs.calendar.listEvents(
+                    fixtureCalendarID,
+                    '2043-01-10T00:00:00Z',
+                    '2043-01-14T00:00:00Z'
+                ).filter(event =>
+                    event.title === originalFixtureTitle ||
+                    event.title === updatedFixtureTitle
+                )
+                const titleAt = start =>
+                    occurrences.find(event => event.occurrenceStart === start)?.title
+                return occurrences.length === 3 &&
+                    titleAt('2043-01-10T10:00:00Z') === originalFixtureTitle &&
+                    titleAt('2043-01-11T10:00:00Z') === updatedFixtureTitle &&
+                    titleAt('2043-01-12T10:00:00Z') === originalFixtureTitle
+            })()
+            """)
+    }
+
+    @Test("updateEvent applies the future Span from the addressed recurring Occurrence")
+    func testUpdateRecurringThisAndFutureOccurrences() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "update recurring future")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let originalTitle = "Hammerspoon 2 recurring future original \(UUID().uuidString)"
+        let updatedTitle = "Hammerspoon 2 recurring future updated \(UUID().uuidString)"
+        let fixture = try makeDailyRecurringEvent(
+            in: eventStore,
+            calendar: calendar,
+            title: originalTitle,
+            start: "2043-02-10T10:00:00Z",
+            end: "2043-02-10T10:30:00Z"
+        )
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.context.setObject(calendar.calendarIdentifier, forKeyedSubscript: "fixtureCalendarID" as NSString)
+        harness.context.setObject(originalTitle, forKeyedSubscript: "originalFixtureTitle" as NSString)
+        harness.context.setObject(updatedTitle, forKeyedSubscript: "updatedFixtureTitle" as NSString)
+        harness.eval("""
+            hs.calendar.updateEvent(
+                fixtureEventID,
+                { title: updatedFixtureTitle },
+                '2043-02-11T10:00:00Z',
+                'future'
+            )
+            """)
+        #expect(!harness.hasException, "updateEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("""
+            (() => {
+                const occurrences = hs.calendar.listEvents(
+                    fixtureCalendarID,
+                    '2043-02-10T00:00:00Z',
+                    '2043-02-14T00:00:00Z'
+                ).filter(event =>
+                    event.title === originalFixtureTitle ||
+                    event.title === updatedFixtureTitle
+                )
+                const titleAt = start =>
+                    occurrences.find(event => event.occurrenceStart === start)?.title
+                return occurrences.length === 3 &&
+                    titleAt('2043-02-10T10:00:00Z') === originalFixtureTitle &&
+                    titleAt('2043-02-11T10:00:00Z') === updatedFixtureTitle &&
+                    titleAt('2043-02-12T10:00:00Z') === updatedFixtureTitle
+            })()
+            """)
+    }
+
     @Test("deleteEvent removes an ordinary single Event")
     func testDeleteEventRemovesSingleFixture() throws {
         let eventStore = HSEventStore.shared.eventStore
@@ -867,8 +1042,95 @@ struct HSCalendarLiveTests {
             """)
     }
 
-    @Test("updateEvent and deleteEvent reject a recurring series without changing it")
-    func testRecurringSeriesMutationGuard() throws {
+    @Test("deleteEvent applies the this Span to the addressed recurring Occurrence")
+    func testDeleteRecurringThisOccurrence() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "delete recurring this")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let title = "Hammerspoon 2 delete recurring this \(UUID().uuidString)"
+        let fixture = try makeDailyRecurringEvent(
+            in: eventStore,
+            calendar: calendar,
+            title: title,
+            start: "2043-03-10T10:00:00Z",
+            end: "2043-03-10T10:30:00Z"
+        )
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.context.setObject(calendar.calendarIdentifier, forKeyedSubscript: "fixtureCalendarID" as NSString)
+        harness.context.setObject(title, forKeyedSubscript: "fixtureTitle" as NSString)
+        harness.eval("""
+            deletedOccurrence = hs.calendar.deleteEvent(
+                fixtureEventID,
+                '2043-03-11T10:00:00Z',
+                'this'
+            )
+            """)
+        #expect(!harness.hasException, "deleteEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("deletedOccurrence === true")
+        harness.expectTrue("""
+            (() => {
+                const starts = hs.calendar.listEvents(
+                    fixtureCalendarID,
+                    '2043-03-10T00:00:00Z',
+                    '2043-03-14T00:00:00Z'
+                )
+                    .filter(event => event.title === fixtureTitle)
+                    .map(event => event.occurrenceStart)
+                    .sort()
+                return JSON.stringify(starts) === JSON.stringify([
+                    '2043-03-10T10:00:00Z',
+                    '2043-03-12T10:00:00Z'
+                ])
+            })()
+            """)
+    }
+
+    @Test("deleteEvent applies the future Span at the first Occurrence to remove a whole series")
+    func testDeleteRecurringWholeSeries() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "delete recurring whole series")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let title = "Hammerspoon 2 delete recurring series \(UUID().uuidString)"
+        let fixture = try makeDailyRecurringEvent(
+            in: eventStore,
+            calendar: calendar,
+            title: title,
+            start: "2043-04-10T10:00:00Z",
+            end: "2043-04-10T10:30:00Z"
+        )
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.context.setObject(calendar.calendarIdentifier, forKeyedSubscript: "fixtureCalendarID" as NSString)
+        harness.context.setObject(title, forKeyedSubscript: "fixtureTitle" as NSString)
+        harness.eval("""
+            deletedSeries = hs.calendar.deleteEvent(
+                fixtureEventID,
+                '2043-04-10T10:00:00Z',
+                'future'
+            )
+            """)
+        #expect(!harness.hasException, "deleteEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("deletedSeries === true")
+        harness.expectTrue("""
+            !hs.calendar.listEvents(
+                fixtureCalendarID,
+                '2043-04-10T00:00:00Z',
+                '2043-04-14T00:00:00Z'
+            ).some(event => event.title === fixtureTitle)
+            """)
+    }
+
+    @Test("updateEvent and deleteEvent require an Occurrence and Span for recurring Events")
+    func testRecurringMutationRequiresOccurrenceAndSpan() throws {
         let eventStore = HSEventStore.shared.eventStore
         let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "recurring mutation guard")
         defer { removeThrowawayCalendar(calendar, from: eventStore) }
@@ -895,16 +1157,104 @@ struct HSCalendarLiveTests {
             hs.calendar.updateEvent(recurringFixtureID, { title: 'Must not change the series' })
             """)
         #expect(harness.hasException)
-        #expect(harness.exceptionMessage?.contains("recurring Event series editing is not supported in v1") == true)
+        #expect(harness.exceptionMessage?.contains("recurring Events require occurrenceStart and span") == true)
 
         harness.eval("hs.calendar.deleteEvent(recurringFixtureID)")
         #expect(harness.hasException)
-        #expect(harness.exceptionMessage?.contains("recurring Event series deletion is not supported in v1") == true)
+        #expect(harness.exceptionMessage?.contains("recurring Events require occurrenceStart and span") == true)
 
         let persisted = try #require(
             eventStore.calendarItem(withIdentifier: fixtureCalendarItemID) as? EKEvent
         )
         #expect(persisted.hasRecurrenceRules)
+        #expect(persisted.title == originalTitle)
+    }
+
+    @Test("updateEvent refuses an occurrenceStart that does not address the recurring Event")
+    func testRecurringMutationRefusesUnknownOccurrence() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "unknown recurring Occurrence")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let title = "Hammerspoon 2 unknown recurring Occurrence \(UUID().uuidString)"
+        let fixture = try makeDailyRecurringEvent(
+            in: eventStore,
+            calendar: calendar,
+            title: title,
+            start: "2043-05-10T10:00:00Z",
+            end: "2043-05-10T10:30:00Z"
+        )
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.eval("""
+            hs.calendar.updateEvent(
+                fixtureEventID,
+                { title: 'Must not change the series' },
+                '2043-05-11T10:05:00Z',
+                'this'
+            )
+            """)
+        #expect(harness.hasException)
+        let message = try #require(harness.exceptionMessage)
+        #expect(message.contains("Occurrence"))
+        #expect(message.contains(fixtureEventID))
+        #expect(message.contains("2043-05-11T10:05:00Z"))
+
+        let persisted = try #require(eventStore.event(withIdentifier: fixtureEventID))
+        #expect(persisted.title == title)
+        #expect(persisted.hasRecurrenceRules)
+    }
+
+    @Test("updateEvent and deleteEvent refuse an Occurrence and Span for a non-recurring Event")
+    func testNonRecurringMutationRefusesOccurrenceAndSpan() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "non-recurring mutation guard")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let fixture = EKEvent(eventStore: eventStore)
+        fixture.calendar = calendar
+        fixture.title = "Hammerspoon 2 non-recurring mutation guard \(UUID().uuidString)"
+        fixture.startDate = try instant("2041-08-09T05:00:00Z")
+        fixture.endDate = try instant("2041-08-09T06:00:00Z")
+        try eventStore.save(fixture, span: .thisEvent, commit: true)
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+        let fixtureCalendarItemID = fixture.calendarItemIdentifier
+        let originalTitle = try #require(fixture.title)
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.eval("""
+            hs.calendar.updateEvent(
+                fixtureEventID,
+                { title: 'Must not change the Event' },
+                '2041-08-09T05:00:00Z',
+                'this'
+            )
+            """)
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains(
+            "occurrenceStart and span are refused for non-recurring Events"
+        ) == true)
+
+        harness.eval("""
+            hs.calendar.deleteEvent(
+                fixtureEventID,
+                '2041-08-09T05:00:00Z',
+                'future'
+            )
+            """)
+        #expect(harness.hasException)
+        #expect(harness.exceptionMessage?.contains(
+            "occurrenceStart and span are refused for non-recurring Events"
+        ) == true)
+
+        let persisted = try #require(
+            eventStore.calendarItem(withIdentifier: fixtureCalendarItemID) as? EKEvent
+        )
         #expect(persisted.title == originalTitle)
     }
 

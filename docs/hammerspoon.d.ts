@@ -1755,22 +1755,26 @@ Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values
     function createEvent(options: any): Record<string, any> | null;
 
     /**
-     * Update writable fields on one non-recurring Event.
+     * Update writable fields on an Event.
 Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
 Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
-`calendar` resolves by id first, then exact title. Recurring Event series editing is unsupported in v1.
+`calendar` resolves by id first, then exact title.
      * @param id Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
      * @param fields One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.
-     * @returns The updated Event as a plain object; unknown ids, recurring series, invalid fields, and save failures throw a JavaScript `Error`
+     * @param occurrenceStart The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.
+     * @param span `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.
+     * @returns The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`
      */
-    function updateEvent(id: string, fields: any): Record<string, any> | null;
+    function updateEvent(id: string, fields: any, occurrenceStart?: string, span?: 'this' | 'future'): Record<string, any> | null;
 
     /**
-     * Delete one non-recurring Event. Recurring Event series deletion is unsupported in v1.
+     * Delete an Event.
      * @param id Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
-     * @returns `true` after the Event is removed; unknown ids, recurring series, and removal failures throw a JavaScript `Error`
+     * @param occurrenceStart The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event.
+     * @param span `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.
+     * @returns `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`
      */
-    function deleteEvent(id: string): boolean;
+    function deleteEvent(id: string, occurrenceStart?: string, span?: 'this' | 'future'): boolean;
 
 }
 
