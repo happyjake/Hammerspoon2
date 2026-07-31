@@ -58,6 +58,13 @@ Every module follows this structure:
 
 Use the `/HSModule` skill when creating or reviewing modules.
 
+**Optional scalar parameters**: JavaScriptCore can bridge JS `null`/`undefined`
+into non-nil `"null"`/`"undefined"` strings on bare `@objc String?` parameters
+(this shipped a live bug: every non-recurring `hs.calendar` mutation failed —
+fixed in `c61b530`). Declare optional JS-visible parameters as `JSValue` and
+normalize with `isNull`/`isUndefined` guards (see `HSCalendarModule.bridgedOptional`
+for the retrofit pattern on an existing `String?` signature).
+
 ### Reactive Types (`Engine/Types/`)
 
 `HSString`, `HSColor`, and `HSImage` are shared observable containers for use with `hs.ui`. They use `@Observable` (requires macOS 14+; project targets 15.6):
