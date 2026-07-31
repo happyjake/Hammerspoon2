@@ -262,15 +262,15 @@ console.log(event.id)</code></pre>
         </div>
     </div>
     <div class="method" id="updateEvent">
-        <h3><a href="#updateEvent">hs.calendar.updateEvent(id, fields) -> [String: Any]</a></h3>
+        <h3><a href="#updateEvent">hs.calendar.updateEvent(id, fields, occurrenceStart, span) -> [String: Any]</a></h3>
 
-        <div class="description">Update writable fields on one non-recurring Event.
+        <div class="description">Update writable fields on an Event.
 Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
 Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
-`calendar` resolves by id first, then exact title. Recurring Event series editing is unsupported in v1.</div>
+`calendar` resolves by id first, then exact title.</div>
 
         <div class="card-section-label">Declaration</div>
-        <pre><code class="language-javascript">hs.calendar.updateEvent(id, fields) -> [String: Any]</code></pre>
+        <pre><code class="language-javascript">hs.calendar.updateEvent(id, fields, occurrenceStart, span) -> [String: Any]</code></pre>
 
         <div class="card-section-label">Parameters</div>
         <table class="params-table">
@@ -292,12 +292,22 @@ Changing `allDay` requires both `start` and `end`. Pass `null` to clear `locatio
                     <td class="param-type">JSValue</td>
                     <td class="param-desc">One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.</td>
                 </tr>
+                <tr>
+                    <td class="param-name">occurrenceStart</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).</td>
+                </tr>
+                <tr>
+                    <td class="param-name">span</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">`this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.</td>
+                </tr>
             </tbody>
         </table>
 
         <div class="card-section-label">Returns</div>
         <div class="return-type">[String: Any]</div>
-        <div class="return-desc">The updated Event as a plain object; unknown ids, recurring series, invalid fields, and save failures throw a JavaScript `Error`</div>
+        <div class="return-desc">The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`</div>
 
 
         <div class="card-section-label">Example</div>
@@ -307,16 +317,16 @@ Changing `allDay` requires both `start` and `end`. Pass `null` to clear `locatio
 })</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L99" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:99</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L101" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:101</a>
         </div>
     </div>
     <div class="method" id="deleteEvent">
-        <h3><a href="#deleteEvent">hs.calendar.deleteEvent(id) -> boolean</a></h3>
+        <h3><a href="#deleteEvent">hs.calendar.deleteEvent(id, occurrenceStart, span) -> boolean</a></h3>
 
-        <div class="description">Delete one non-recurring Event. Recurring Event series deletion is unsupported in v1.</div>
+        <div class="description">Delete an Event.</div>
 
         <div class="card-section-label">Declaration</div>
-        <pre><code class="language-javascript">hs.calendar.deleteEvent(id) -> boolean</code></pre>
+        <pre><code class="language-javascript">hs.calendar.deleteEvent(id, occurrenceStart, span) -> boolean</code></pre>
 
         <div class="card-section-label">Parameters</div>
         <table class="params-table">
@@ -333,19 +343,29 @@ Changing `allDay` requires both `start` and `end`. Pass `null` to clear `locatio
                     <td class="param-type">string</td>
                     <td class="param-desc">Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`</td>
                 </tr>
+                <tr>
+                    <td class="param-name">occurrenceStart</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).</td>
+                </tr>
+                <tr>
+                    <td class="param-name">span</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">`this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.</td>
+                </tr>
             </tbody>
         </table>
 
         <div class="card-section-label">Returns</div>
         <div class="return-type">boolean</div>
-        <div class="return-desc">`true` after the Event is removed; unknown ids, recurring series, and removal failures throw a JavaScript `Error`</div>
+        <div class="return-desc">`true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`</div>
 
 
         <div class="card-section-label">Example</div>
         <pre><code class="language-js">hs.calendar.deleteEvent(&#39;EVENT_ID&#39;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L108" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:108</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.calendar/HSCalendarModule.swift#L113" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.calendar/HSCalendarModule.swift:113</a>
         </div>
     </div>
         </main>
