@@ -873,9 +873,12 @@ import JavaScriptCore
     ) -> EKEvent? {
         let store = eventStore.eventStore
         let precision: TimeInterval = 1
+        let requestedSeries = Self.seriesIdentifier(id)
         let matchesRequestedOccurrence: (EKEvent) -> Bool = { event in
             let matchesID = event.eventIdentifier == id ||
-                event.calendarItemIdentifier == id
+                event.calendarItemIdentifier == id ||
+                Self.isSameSeries(event.eventIdentifier, as: requestedSeries) ||
+                Self.isSameSeries(event.calendarItemIdentifier, as: requestedSeries)
             guard let actualOccurrenceDate = event.occurrenceDate ?? event.startDate else {
                 return false
             }
@@ -919,6 +922,36 @@ import JavaScriptCore
     }
 
     private static let movedOccurrenceSearchRadiusYears = 2
+
+    // Once an Occurrence DETACHES, EventKit gives it an identifier of its own:
+    // the series identifier plus a `/RID=<seconds>` suffix naming the instant it
+    // detached at. A read of the series still reports the bare series
+    // identifier, and a caller only ever holds what a read returned — so
+    // matching on the identifier alone made the SECOND mutation of one
+    // Occurrence fail with "was not found", which is exactly what a
+    // change-then-change-back round trip does. Observed on iCloud/CalDAV
+    // calendars; a local-source calendar keeps the bare identifier, which is why
+    // the moved-Occurrence fixture below never caught it.
+    //
+    // Compare with the suffix removed from both sides. It cannot widen the match
+    // across series — only a detached instance of THAT series carries the suffix
+    // — and the ±1s occurrenceDate check is what separates siblings within one.
+    nonisolated static func seriesIdentifier(_ identifier: String) -> String {
+        guard let suffix = identifier.range(
+            of: #"/RID=[-+.0-9]+$"#,
+            options: .regularExpression
+        ) else {
+            return identifier
+        }
+        return String(identifier[identifier.startIndex..<suffix.lowerBound])
+    }
+
+    // An empty identifier must never match: EKEvent.eventIdentifier is optional,
+    // and "" == "" would otherwise make every event a candidate.
+    nonisolated static func isSameSeries(_ identifier: String?, as series: String) -> Bool {
+        guard let identifier, !identifier.isEmpty, !series.isEmpty else { return false }
+        return seriesIdentifier(identifier) == series
+    }
 
     private static func isRecurring(_ event: EKEvent) -> Bool {
         event.hasRecurrenceRules || event.isDetached

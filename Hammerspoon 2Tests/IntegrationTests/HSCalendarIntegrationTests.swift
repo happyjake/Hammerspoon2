@@ -253,6 +253,47 @@ struct HSCalendarIntegrationTests {
         makeHarness().expectTrue("typeof hs.calendar.createEvent === 'function'")
     }
 
+    // A detached Occurrence carries a `/RID=<seconds>` suffix that a read of the
+    // series never reports, so a caller addressing it a second time holds only
+    // the bare series identifier. These are the exact identifiers observed on an
+    // iCloud calendar, before and after a `span: this` update detached it.
+    @Test("a detached Occurrence identifier still resolves to its series")
+    func testDetachedOccurrenceIdentifierMatchesSeries() {
+        let series = "2971FDC7-B766-4146-A3C2-247CD01BB2B4:DF4BC021-4DA8-4E76-876E-29606877D68B"
+        let detached = "\(series)/RID=807408000"
+
+        #expect(HSCalendarModule.seriesIdentifier(detached) == series)
+        #expect(HSCalendarModule.seriesIdentifier(series) == series)
+        #expect(HSCalendarModule.isSameSeries(detached, as: series))
+        #expect(HSCalendarModule.isSameSeries(series, as: series))
+
+        // A second detached Occurrence of the SAME series also matches — the
+        // ±1s occurrenceDate check is what tells the two apart, not the id.
+        #expect(HSCalendarModule.isSameSeries("\(series)/RID=808012800", as: series))
+
+        // A different series never matches, and an absent or empty identifier
+        // must not match anything.
+        let other = "2971FDC7-B766-4146-A3C2-247CD01BB2B4:11111111-2222-3333-4444-555555555555"
+        #expect(!HSCalendarModule.isSameSeries(other, as: series))
+        #expect(!HSCalendarModule.isSameSeries("\(other)/RID=807408000", as: series))
+        #expect(!HSCalendarModule.isSameSeries(nil, as: series))
+        #expect(!HSCalendarModule.isSameSeries("", as: series))
+        #expect(!HSCalendarModule.isSameSeries(series, as: ""))
+
+        // Only a trailing, well-formed suffix is a suffix. Anything else is part
+        // of the identifier and must survive untouched, or two distinct series
+        // could collapse onto one.
+        for identifier in [
+            "\(series)/RID=",
+            "\(series)/RID=abc",
+            "\(series)/RID=807408000/tail",
+            "\(series)-RID=807408000",
+        ] {
+            #expect(HSCalendarModule.seriesIdentifier(identifier) == identifier)
+            #expect(!HSCalendarModule.isSameSeries(identifier, as: series))
+        }
+    }
+
     @Test("updateEvent is a function")
     func testUpdateEventIsFunction() {
         makeHarness().expectTrue("typeof hs.calendar.updateEvent === 'function'")
