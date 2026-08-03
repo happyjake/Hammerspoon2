@@ -87,7 +87,7 @@ import JavaScriptCore
     ///     Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
     ///     Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
     ///     `calendar` resolves by id first, then exact title.
-    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
+    ///   - occurrenceStart?: {string} The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
     ///   - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.
     /// - Returns: The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`
     /// - Example:
@@ -108,7 +108,7 @@ import JavaScriptCore
     /// Delete an Event.
     /// - Parameters:
     ///   - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
-    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
+    ///   - occurrenceStart?: {string} The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
     ///   - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.
     /// - Returns: `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`
     /// - Example:
@@ -638,6 +638,17 @@ import JavaScriptCore
         return hours < 14 || minutes == 0
     }
 
+    // parseDateOnly splits on "-" and so also accepts un-padded days like
+    // "2026-8-3". A mutation selector is matched against a stored occurrence
+    // date to the second, so it is held to the exact shape formatEventDate
+    // emits — nothing else can have come from a read.
+    private static func parseOccurrenceDay(_ value: String) -> Date? {
+        guard value.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else {
+            return nil
+        }
+        return parseDateOnly(value)
+    }
+
     private static func parseDateOnly(_ value: String) -> Date? {
         let parts = value.split(separator: "-").compactMap { Int($0) }
         guard parts.count == 3 else { return nil }
@@ -951,10 +962,18 @@ import JavaScriptCore
             return MutationArguments(occurrenceStart: nil, occurrenceDate: nil, span: nil)
         }
 
+        // An all-day Occurrence reports its start through formatEventDate as a
+        // date-only day in the current time zone, so that day is the ONLY value
+        // a caller can hand back to address it. Accept it and resolve it to the
+        // local midnight that produced it — parseDateOnly is the exact inverse
+        // of that format — or every all-day Occurrence stays readable and
+        // unmutatable.
         guard let occurrenceString = occurrenceStart,
-              let occurrenceDate = Self.parseInstant(occurrenceString) else {
+              let occurrenceDate = Self.parseInstant(occurrenceString)
+                ?? Self.parseOccurrenceDay(occurrenceString) else {
             setMutationException(
-                "'occurrenceStart' must be a valid ISO 8601 instant with a UTC offset or Z",
+                "'occurrenceStart' must be a valid ISO 8601 instant with a UTC offset or Z, "
+                    + "or a YYYY-MM-DD day for an all-day Occurrence",
                 method: method
             )
             return nil

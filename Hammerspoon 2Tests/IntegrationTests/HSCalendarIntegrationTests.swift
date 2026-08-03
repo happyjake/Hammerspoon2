@@ -82,6 +82,30 @@ private func makeDailyRecurringEvent(
     return event
 }
 
+private func makeDailyAllDayRecurringEvent(
+    in eventStore: EKEventStore,
+    calendar: EKCalendar,
+    title: String,
+    year: Int,
+    month: Int,
+    day: Int,
+    count: Int = 3
+) throws -> EKEvent {
+    let event = EKEvent(eventStore: eventStore)
+    event.calendar = calendar
+    event.title = title
+    event.isAllDay = true
+    event.startDate = try localDate(year: year, month: month, day: day)
+    event.endDate = event.startDate
+    event.addRecurrenceRule(EKRecurrenceRule(
+        recurrenceWith: .daily,
+        interval: 1,
+        end: EKRecurrenceEnd(occurrenceCount: count)
+    ))
+    try eventStore.save(event, span: .thisEvent, commit: true)
+    return event
+}
+
 private func moveRecurringOccurrence(
     in eventStore: EKEventStore,
     calendar: EKCalendar,
@@ -292,15 +316,20 @@ struct HSCalendarIntegrationTests {
         #expect(harness.hasException)
         #expect(harness.exceptionMessage?.contains("'span' must be 'this' or 'future'") == true)
 
-        harness.eval("""
-            hs.calendar.deleteEvent(
-                'Event lookup must not run',
-                '2026-07-13',
-                'this'
-            )
-            """)
-        #expect(harness.hasException)
-        #expect(harness.exceptionMessage?.contains("'occurrenceStart' must be a valid ISO 8601 instant") == true)
+        // A date-only day IS a valid selector — an all-day Occurrence reports no
+        // other form — so the day itself still has to be real and exactly the
+        // shape a read emits.
+        for occurrenceStart in ["2026-07-00", "2026-13-01", "2026-02-30", "2026-7-13", "13-07-2026"] {
+            harness.eval("""
+                hs.calendar.deleteEvent(
+                    'Event lookup must not run',
+                    '\(occurrenceStart)',
+                    'this'
+                )
+                """)
+            #expect(harness.hasException)
+            #expect(harness.exceptionMessage?.contains("'occurrenceStart' must be a valid ISO 8601 instant") == true)
+        }
     }
 
     @Test("createEvent rejects a timed Event without an explicit UTC offset")
@@ -965,6 +994,64 @@ struct HSCalendarLiveTests {
                     titleAt('2043-01-10T10:00:00Z') === originalFixtureTitle &&
                     titleAt('2043-01-11T10:00:00Z') === updatedFixtureTitle &&
                     titleAt('2043-01-12T10:00:00Z') === originalFixtureTitle
+            })()
+            """)
+    }
+
+    // An all-day Occurrence reports `occurrenceStart` through formatEventDate as
+    // a date-only day, so that day is the only value a caller can hand back.
+    // Requiring an instant left every all-day Occurrence readable and
+    // unmutatable; this addresses one by exactly the string a read returned.
+    @Test("updateEvent addresses an all-day Occurrence by its date-only occurrenceStart")
+    func testUpdateAllDayRecurringOccurrenceByDay() throws {
+        let eventStore = HSEventStore.shared.eventStore
+        let calendar = try makeThrowawayCalendar(in: eventStore, purpose: "update recurring all-day")
+        defer { removeThrowawayCalendar(calendar, from: eventStore) }
+
+        let originalTitle = "Hammerspoon 2 all-day recurring original \(UUID().uuidString)"
+        let updatedTitle = "Hammerspoon 2 all-day recurring updated \(UUID().uuidString)"
+        let fixture = try makeDailyAllDayRecurringEvent(
+            in: eventStore,
+            calendar: calendar,
+            title: originalTitle,
+            year: 2044,
+            month: 3,
+            day: 7
+        )
+        let fixtureEventID = try #require(fixture.eventIdentifier)
+
+        let harness = JSTestHarness()
+        harness.loadModule(HSCalendarModule.self, as: "calendar")
+        harness.context.setObject(fixtureEventID, forKeyedSubscript: "fixtureEventID" as NSString)
+        harness.context.setObject(calendar.calendarIdentifier, forKeyedSubscript: "fixtureCalendarID" as NSString)
+        harness.context.setObject(originalTitle, forKeyedSubscript: "originalFixtureTitle" as NSString)
+        harness.context.setObject(updatedTitle, forKeyedSubscript: "updatedFixtureTitle" as NSString)
+        harness.eval("""
+            hs.calendar.updateEvent(
+                fixtureEventID,
+                { title: updatedFixtureTitle },
+                '2044-03-08',
+                'this'
+            )
+            """)
+        #expect(!harness.hasException, "updateEvent threw: \(harness.exceptionMessage ?? "unknown error")")
+        harness.expectTrue("""
+            (() => {
+                const occurrences = hs.calendar.listEvents(
+                    fixtureCalendarID,
+                    '2044-03-01T00:00:00Z',
+                    '2044-03-15T00:00:00Z'
+                ).filter(event =>
+                    event.title === originalFixtureTitle ||
+                    event.title === updatedFixtureTitle
+                )
+                const titleAt = start =>
+                    occurrences.find(event => event.occurrenceStart === start)?.title
+                return occurrences.length === 3 &&
+                    occurrences.every(event => event.allDay === true) &&
+                    titleAt('2044-03-07') === originalFixtureTitle &&
+                    titleAt('2044-03-08') === updatedFixtureTitle &&
+                    titleAt('2044-03-09') === originalFixtureTitle
             })()
             """)
     }
