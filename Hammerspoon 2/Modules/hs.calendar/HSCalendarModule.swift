@@ -87,7 +87,7 @@ import JavaScriptCore
     ///     Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.
     ///     Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.
     ///     `calendar` resolves by id first, then exact title.
-    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
+    ///   - occurrenceStart?: {string} The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
     ///   - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.
     /// - Returns: The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`
     /// - Example:
@@ -108,7 +108,7 @@ import JavaScriptCore
     /// Delete an Event.
     /// - Parameters:
     ///   - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
-    ///   - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
+    ///   - occurrenceStart?: {string} The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
     ///   - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.
     /// - Returns: `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`
     /// - Example:
@@ -638,6 +638,17 @@ import JavaScriptCore
         return hours < 14 || minutes == 0
     }
 
+    // parseDateOnly splits on "-" and so also accepts un-padded days like
+    // "2026-8-3". A mutation selector is matched against a stored occurrence
+    // date to the second, so it is held to the exact shape formatEventDate
+    // emits — nothing else can have come from a read.
+    private static func parseOccurrenceDay(_ value: String) -> Date? {
+        guard value.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else {
+            return nil
+        }
+        return parseDateOnly(value)
+    }
+
     private static func parseDateOnly(_ value: String) -> Date? {
         let parts = value.split(separator: "-").compactMap { Int($0) }
         guard parts.count == 3 else { return nil }
@@ -862,9 +873,12 @@ import JavaScriptCore
     ) -> EKEvent? {
         let store = eventStore.eventStore
         let precision: TimeInterval = 1
+        let requestedSeries = Self.seriesIdentifier(id)
         let matchesRequestedOccurrence: (EKEvent) -> Bool = { event in
             let matchesID = event.eventIdentifier == id ||
-                event.calendarItemIdentifier == id
+                event.calendarItemIdentifier == id ||
+                Self.isSameSeries(event.eventIdentifier, as: requestedSeries) ||
+                Self.isSameSeries(event.calendarItemIdentifier, as: requestedSeries)
             guard let actualOccurrenceDate = event.occurrenceDate ?? event.startDate else {
                 return false
             }
@@ -909,6 +923,36 @@ import JavaScriptCore
 
     private static let movedOccurrenceSearchRadiusYears = 2
 
+    // Once an Occurrence DETACHES, EventKit gives it an identifier of its own:
+    // the series identifier plus a `/RID=<seconds>` suffix naming the instant it
+    // detached at. A read of the series still reports the bare series
+    // identifier, and a caller only ever holds what a read returned — so
+    // matching on the identifier alone made the SECOND mutation of one
+    // Occurrence fail with "was not found", which is exactly what a
+    // change-then-change-back round trip does. Observed on iCloud/CalDAV
+    // calendars; a local-source calendar keeps the bare identifier, which is why
+    // the moved-Occurrence fixture below never caught it.
+    //
+    // Compare with the suffix removed from both sides. It cannot widen the match
+    // across series — only a detached instance of THAT series carries the suffix
+    // — and the ±1s occurrenceDate check is what separates siblings within one.
+    nonisolated static func seriesIdentifier(_ identifier: String) -> String {
+        guard let suffix = identifier.range(
+            of: #"/RID=[-+.0-9]+$"#,
+            options: .regularExpression
+        ) else {
+            return identifier
+        }
+        return String(identifier[identifier.startIndex..<suffix.lowerBound])
+    }
+
+    // An empty identifier must never match: EKEvent.eventIdentifier is optional,
+    // and "" == "" would otherwise make every event a candidate.
+    nonisolated static func isSameSeries(_ identifier: String?, as series: String) -> Bool {
+        guard let identifier, !identifier.isEmpty, !series.isEmpty else { return false }
+        return seriesIdentifier(identifier) == series
+    }
+
     private static func isRecurring(_ event: EKEvent) -> Bool {
         event.hasRecurrenceRules || event.isDetached
     }
@@ -951,10 +995,18 @@ import JavaScriptCore
             return MutationArguments(occurrenceStart: nil, occurrenceDate: nil, span: nil)
         }
 
+        // An all-day Occurrence reports its start through formatEventDate as a
+        // date-only day in the current time zone, so that day is the ONLY value
+        // a caller can hand back to address it. Accept it and resolve it to the
+        // local midnight that produced it — parseDateOnly is the exact inverse
+        // of that format — or every all-day Occurrence stays readable and
+        // unmutatable.
         guard let occurrenceString = occurrenceStart,
-              let occurrenceDate = Self.parseInstant(occurrenceString) else {
+              let occurrenceDate = Self.parseInstant(occurrenceString)
+                ?? Self.parseOccurrenceDay(occurrenceString) else {
             setMutationException(
-                "'occurrenceStart' must be a valid ISO 8601 instant with a UTC offset or Z",
+                "'occurrenceStart' must be a valid ISO 8601 instant with a UTC offset or Z, "
+                    + "or a YYYY-MM-DD day for an all-day Occurrence",
                 method: method
             )
             return nil
