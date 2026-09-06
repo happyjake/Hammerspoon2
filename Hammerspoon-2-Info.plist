@@ -36,5 +36,13 @@
 	<string>Hammerspoon 2 uses the local network to sync the clipboard and transfer data between your Macs for the CrossMac feature.</string>
 	<key>SUFeedURL</key>
 	<string>https://www.hammerspoon.org/appcast2.xml</string>
+	<!-- Build identity: every build carries the source commit and date it was
+	     made from, so a fleet of Macs can be compared by `defaults read` instead
+	     of by binary hash. Filled from build settings passed on the xcodebuild
+	     command line (see vibecast's scripts/hs2-fleet.sh); empty otherwise. -->
+	<key>HS2SourceCommit</key>
+	<string>$(HS2_SOURCE_COMMIT)</string>
+	<key>HS2BuildDate</key>
+	<string>$(HS2_BUILD_DATE)</string>
 </dict>
 </plist>
