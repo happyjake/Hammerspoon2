@@ -14,6 +14,7 @@ build/
 artifacts/
 DerivedData/
 build-devid/
+build-fleet/
 
 ## Various settings
 *.pbxuser
