@@ -165,6 +165,18 @@ import MultipeerConnectivity
     }
 
     @objc func stop() {
+        haltTransport()
+        // A stopped session must never call back into JS again. disconnect() is asynchronous at
+        // the GCK level; if the object is then kept alive (a JSValue cycle, a leaked GCK thread)
+        // the remote peer's session can still hold it — 2026-09-07: after a config reload the
+        // previous session stayed in mc4's mesh for hours, answering heartbeats and applying
+        // every image the live session sent onto this Mac's pasteboard (an infinite loop).
+        // reset() keeps the callbacks: it halts the transport and comes straight back.
+        peerCb = nil
+        receiveCb = nil
+    }
+
+    private func haltTransport() {
         started = false
         advertiser.stopAdvertisingPeer()
         browser.stopBrowsingForPeers()
@@ -173,7 +185,7 @@ import MultipeerConnectivity
 
     @objc func reset() {
         let wasStarted = started
-        stop()
+        haltTransport()
         let fresh = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: encPref)
         unsafe session = fresh
         unsafe session.delegate = self
@@ -197,7 +209,7 @@ import MultipeerConnectivity
 
     @objc func send(_ base64: String, _ opts: JSValue) -> Bool {
         guard let data = Data(base64Encoded: base64) else { return false }
-        let peerList = unsafe session.connectedPeers
+        let peerList = allowedConnectedPeers()
         guard !peerList.isEmpty else { return false }
         var reliable = true
         if opts.isObject, let r = opts.objectForKeyedSubscript("reliable"), r.isBoolean { reliable = r.toBool() }
@@ -210,7 +222,15 @@ import MultipeerConnectivity
         }
     }
 
-    @objc var peers: [String] { unsafe session.connectedPeers.map { $0.displayName } }
+    @objc var peers: [String] { allowedConnectedPeers().map { $0.displayName } }
+
+    // MCSession is a mesh: everyone in the counterpart's session becomes OUR connected peer too,
+    // whether or not we would have accepted them — allowPeers only guards invitations. A stale
+    // session of this same Mac (same role prefix) shows up here after a reload. It is not a
+    // counterpart: never send to it, never count it as "up".
+    private func allowedConnectedPeers() -> [MCPeerID] {
+        unsafe session.connectedPeers.filter { isAllowedPeer($0) }
+    }
 
     // MARK: - Fire JS (on the main actor)
 
@@ -281,6 +301,7 @@ import MultipeerConnectivity
     }
 
     nonisolated func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
+        guard isAllowedPeer(peerID) else { return }   // mesh-merged, not our counterpart (see allowedConnectedPeers)
         let b64 = data.base64EncodedString()
         let name = peerID.displayName
         Task { @MainActor in self.fireReceive(b64, name) }

@@ -307,8 +307,7 @@ import JavaScriptCoreExtras
         // This prevents the race where the termination callback resolves the JS
         // Promise with empty stdout because streaming Tasks haven't run yet.
         process.terminationHandler = { [weak self] process in
-            guard let self = self else { return }
-
+            // Same rule as the streaming handlers: no strong `self` off the main actor.
             let exitCode = process.terminationStatus
             let terminationReason = process.terminationReason
 
@@ -402,9 +401,11 @@ import JavaScriptCoreExtras
         stdoutEOF = false
         stderrEOF = false
 
+        // No strong `self` on this queue: it runs on NSFileHandle's fd-monitoring queue, and if
+        // it held the LAST reference the isolated deinit would run off the main actor and trap
+        // (dispatch_assert_queue — 2026-09-07 crash under a clipboard storm). Only the
+        // main-actor Task below may hold `self`, so the final release always happens there.
         stdout.fileHandleForReading.readabilityHandler = { [weak self] handle in
-            guard let self = self else { return }
-
             let data = handle.availableData
             guard !data.isEmpty else {
                 handle.readabilityHandler = nil
@@ -429,9 +430,8 @@ import JavaScriptCoreExtras
             }
         }
 
+        // Same rule as stdout: no strong `self` on the fd-monitoring queue.
         stderr.fileHandleForReading.readabilityHandler = { [weak self] handle in
-            guard let self = self else { return }
-
             let data = handle.availableData
             guard !data.isEmpty else {
                 handle.readabilityHandler = nil
