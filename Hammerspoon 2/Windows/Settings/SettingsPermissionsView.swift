@@ -3,6 +3,9 @@
 //  Hammerspoon 2
 //
 //  Created by Claude on 20/03/2026.
+//  Reworked 2026-09-14: every permission this build's features need, each with why it is
+//  needed, whether a fresh grant needs a relaunch, and a Relaunch button — the page a person
+//  lands on after "permissions incomplete".
 //
 
 import SwiftUI
@@ -16,12 +19,25 @@ struct PermissionRowView: View {
         GridRow {
             trafficLight
                 .gridColumnAlignment(.center)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(permType.displayName)
-                    .fontWeight(.medium)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
+                    Text(permType.displayName)
+                        .fontWeight(.medium)
+                    Text(stateLabel)
+                        .font(.caption)
+                        .foregroundStyle(stateColor)
+                }
                 Text(permType.permissionDescription)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Text("Used by: \(permType.usedBy)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if let note = permType.relaunchNote {
+                    Label(note, systemImage: "arrow.clockwise")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
             }
             .gridColumnAlignment(.leading)
             actionButton
@@ -29,36 +45,51 @@ struct PermissionRowView: View {
         }
     }
 
+    private var stateLabel: String {
+        switch state {
+        case .trusted:    return "granted"
+        case .notTrusted: return "not granted"
+        case .unknown:    return "not decided"
+        }
+    }
+
+    private var stateColor: Color {
+        switch state {
+        case .trusted:    return .green
+        case .notTrusted: return .red
+        case .unknown:    return .orange
+        }
+    }
+
+    // Some permissions have a system prompt ("Request"), the rest only the pane.
+    private var hasPrompt: Bool {
+        switch permType {
+        case .fullDiskAccess: return false
+        default:              return true
+        }
+    }
+
     @ViewBuilder
     private var actionButton: some View {
         switch state {
         case .trusted:
-            Button("Request") {}
+            Button("Granted") {}
                 .disabled(true)
         case .unknown:
-            Button("Request") {
-                PermissionsManager.shared.request(permType)
+            if hasPrompt {
+                Button("Request") { PermissionsManager.shared.request(permType) }
+            } else {
+                Button("Open Settings") { NSWorkspace.shared.open(permType.settingsURL) }
             }
         case .notTrusted:
-            Button("Open Settings") {
-                NSWorkspace.shared.open(permType.settingsURL)
-            }
+            Button("Open Settings") { NSWorkspace.shared.open(permType.settingsURL) }
         }
     }
 
     @ViewBuilder
     private var trafficLight: some View {
-        switch state {
-        case .trusted:
-            Image(systemName: "circle.fill")
-                .foregroundStyle(.green)
-        case .notTrusted:
-            Image(systemName: "circle.fill")
-                .foregroundStyle(.red)
-        case .unknown:
-            Image(systemName: "circle.fill")
-                .foregroundStyle(.orange)
-        }
+        Image(systemName: "circle.fill")
+            .foregroundStyle(stateColor)
     }
 }
 
@@ -69,6 +100,10 @@ struct SettingsPermissionsView: View {
     @State private var isRefreshing = true
     @State private var remainingAllowedAutoRefreshes = 100
 
+    private var missingCount: Int {
+        PermissionsType.panel.filter { (permissionStates[$0] ?? .unknown) != .trusted }.count
+    }
+
     var body: some View {
         ProgressView()
             .progressViewStyle(.circular)
@@ -78,7 +113,13 @@ struct SettingsPermissionsView: View {
 
         HStack {
             Spacer()
-            VStack {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(missingCount == 0
+                     ? "Every permission this build needs is granted."
+                     : "\(missingCount) permission\(missingCount == 1 ? "" : "s") still to grant. Rows are live: a grant that System Settings shows as on but tccd rejects reads as not granted here.")
+                    .font(.callout)
+                    .foregroundStyle(missingCount == 0 ? .secondary : .primary)
+
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 12) {
                     ForEach(PermissionsType.panel, id: \.self) { permType in
                         PermissionRowView(
@@ -87,9 +128,24 @@ struct SettingsPermissionsView: View {
                         )
                     }
                 }
+
+                Divider()
+
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Grants are bound to this build’s signing certificate. After a reinstall under a different certificate they read as not granted even though System Settings shows them on: remove the stale entry (or `tccutil reset`) and grant again.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("Accessibility and Input Monitoring only take effect for event taps opened after the grant — relaunch once you have granted them.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Relaunch Hammerspoon 2") { PermissionsManager.relaunchApp() }
+                }
                 Spacer()
             }
-            .frame(width: 700)
+            .frame(width: 760)
             .padding(.vertical)
             Spacer()
         }

@@ -173,6 +173,69 @@ import IOKit.hid
     /// hs.permissions.requestInputMonitoring()
     /// ```
     @objc func requestInputMonitoring()
+
+    /// Check whether the app may use Bluetooth (needed by hs.ble).
+    /// - Returns: true if granted, false if denied or not yet decided
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkBluetooth())
+    /// ```
+    @objc func checkBluetooth() -> Bool
+
+    /// Request Bluetooth access (shows the system dialog if the user has not yet decided).
+    /// - Returns: {Promise<boolean>} A Promise that resolves to true if granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestBluetooth().then(granted => console.log(granted))
+    /// ```
+    @objc func requestBluetooth() -> JSPromise?
+
+    /// Check whether the app has Full Disk Access.
+    ///
+    /// macOS offers no API for this, so the check opens the user's TCC database for reading —
+    /// exactly the processes that hold Full Disk Access can. There is no prompt to request it:
+    /// grant it in System Settings → Privacy & Security → Full Disk Access, then relaunch.
+    /// - Returns: true if granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkFullDiskAccess())
+    /// ```
+    @objc func checkFullDiskAccess() -> Bool
+
+    /// Check whether the app may send Apple Events to one target app (Automation).
+    ///
+    /// Automation is granted per target. A target that is not running cannot be checked.
+    /// - Parameter bundleID: the target's bundle identifier, e.g. "com.apple.Safari"
+    /// - Returns: "granted", "denied", "notDetermined", "notRunning", or "error(<code>)"
+    /// - Example:
+    /// ```js
+    /// console.log(hs.permissions.checkAutomation("com.google.Chrome"))
+    /// ```
+    @objc func checkAutomation(_ bundleID: String) -> String
+
+    /// Ask for permission to automate one target app (shows the consent dialog if undecided).
+    /// The target must be running.
+    /// - Parameter bundleID: the target's bundle identifier
+    /// - Returns: {Promise<boolean>} A Promise that resolves to true if granted, false otherwise
+    /// - Example:
+    /// ```js
+    /// hs.permissions.requestAutomation("com.apple.Safari").then(granted => console.log(granted))
+    /// ```
+    @objc func requestAutomation(_ bundleID: String) -> JSPromise?
+
+    /// Everything this build's features need, in one object — the same rows the
+    /// Settings → Permissions panel shows: live state, whether it is granted, which features
+    /// use it, whether a fresh grant needs a relaunch, and the System Settings URL.
+    /// - Returns: an object keyed by permission id (`accessibility`, `inputMonitoring`,
+    ///   `notifications`, `calendar`, `reminders`, `bluetooth`, `fullDiskAccess`, `automation`),
+    ///   each `{ name, state, granted, usedBy, relaunch, settings }` where `state` is
+    ///   "trusted", "notTrusted" or "unknown" and `relaunch` is a note or an empty string
+    /// - Example:
+    /// ```js
+    /// const p = hs.permissions.summary()
+    /// Object.values(p).filter(x => !x.granted).forEach(x => console.log(x.name, '—', x.usedBy))
+    /// ```
+    @objc func summary() -> [String: Any]
 }
 
 // MARK: - Implementation
@@ -314,5 +377,68 @@ import IOKit.hid
 
     @objc func requestInputMonitoring() {
         _ = IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
+    }
+
+    // MARK: - Bluetooth
+
+    @objc func checkBluetooth() -> Bool {
+        PermissionsManager.shared.check(.bluetooth)
+    }
+
+    @objc func requestBluetooth() -> JSPromise? {
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
+            PermissionsManager.shared.request(.bluetooth) { result in
+                Task { @MainActor in holder.resolveWith(result) }
+            }
+        }
+    }
+
+    // MARK: - Full Disk Access
+
+    @objc func checkFullDiskAccess() -> Bool {
+        PermissionsManager.shared.check(.fullDiskAccess)
+    }
+
+    // MARK: - Automation
+
+    @objc func checkAutomation(_ bundleID: String) -> String {
+        PermissionsManager.automationStatus(bundleID: bundleID, ask: false).name
+    }
+
+    @objc func requestAutomation(_ bundleID: String) -> JSPromise? {
+        guard let context = JSContext.current() else { return nil }
+        return wrapAsyncInJSPromise(in: context) { holder in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let status = PermissionsManager.automationStatus(bundleID: bundleID, ask: true)
+                let granted: Bool
+                if case .granted = status { granted = true } else { granted = false }
+                Task { @MainActor in holder.resolveWith(granted) }
+            }
+        }
+    }
+
+    // MARK: - Summary
+
+    @objc func summary() -> [String: Any] {
+        var out: [String: Any] = [:]
+        for type in PermissionsType.panel {
+            let state = PermissionsManager.shared.state(type)
+            let stateName: String
+            switch state {
+            case .trusted:    stateName = "trusted"
+            case .notTrusted: stateName = "notTrusted"
+            case .unknown:    stateName = "unknown"
+            }
+            out[type.id] = [
+                "name": type.displayName,
+                "state": stateName,
+                "granted": PermissionsManager.shared.check(type),
+                "usedBy": type.usedBy,
+                "relaunch": type.relaunchNote ?? "",
+                "settings": type.settingsURL.absoluteString,
+            ] as [String: Any]
+        }
+        return out
     }
 }

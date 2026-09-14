@@ -4076,7 +4076,7 @@
           "name": "updateEvent",
           "signature": "func updateEvent( _ id: String, _ fields: JSValue, _ occurrenceStart: String?, _ span: String? ) -> [String: Any]?",
           "isStatic": false,
-          "rawDocumentation": "Update writable fields on an Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - fields: One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.\n    Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\n    Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.\n    `calendar` resolves by id first, then exact title.\n  - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).\n  - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.\n- Returns: The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`\n- Example:\n```js\nconst event = hs.calendar.updateEvent('EVENT_ID', {\n  start: '2026-07-13T02:00:00Z',\n  end: '2026-07-13T02:30:00Z'\n})\n```",
+          "rawDocumentation": "Update writable fields on an Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - fields: One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.\n    Timed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\n    Changing `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.\n    `calendar` resolves by id first, then exact title.\n  - occurrenceStart?: {string} The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).\n  - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.\n- Returns: The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`\n- Example:\n```js\nconst event = hs.calendar.updateEvent('EVENT_ID', {\n  start: '2026-07-13T02:00:00Z',\n  end: '2026-07-13T02:30:00Z'\n})\n```",
           "description": "Update writable fields on an Event.\nTimed `start`/`end` values require an explicit UTC offset or `Z`; all-day values must be `YYYY-MM-DD`.\nChanging `allDay` requires both `start` and `end`. Pass `null` to clear `location`, `notes`, or `url`.\n`calendar` resolves by id first, then exact title.",
           "params": [
             {
@@ -4096,7 +4096,7 @@
             {
               "name": "occurrenceStart",
               "type": "string",
-              "description": "The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).",
+              "description": "The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).",
               "optional": true,
               "tsType": "string"
             },
@@ -4127,7 +4127,7 @@
           "name": "deleteEvent",
           "signature": "func deleteEvent(_ id: String, _ occurrenceStart: String?, _ span: String?) -> Bool",
           "isStatic": false,
-          "rawDocumentation": "Delete an Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - occurrenceStart?: {string} The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).\n  - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.\n- Returns: `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`\n- Example:\n```js\nhs.calendar.deleteEvent('EVENT_ID')\n```",
+          "rawDocumentation": "Delete an Event.\n- Parameters:\n  - id: Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`\n  - occurrenceStart?: {string} The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).\n  - span?: {'this' | 'future'} `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.\n- Returns: `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`\n- Example:\n```js\nhs.calendar.deleteEvent('EVENT_ID')\n```",
           "description": "Delete an Event.",
           "params": [
             {
@@ -4140,7 +4140,7 @@
             {
               "name": "occurrenceStart",
               "type": "string",
-              "description": "The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).",
+              "description": "The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).",
               "optional": true,
               "tsType": "string"
             },
@@ -11142,6 +11142,156 @@
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
           "lineNumber": 175
+        },
+        {
+          "name": "checkBluetooth",
+          "signature": "func checkBluetooth() -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Check whether the app may use Bluetooth (needed by hs.ble).\n- Returns: true if granted, false if denied or not yet decided\n- Example:\n```js\nconsole.log(hs.permissions.checkBluetooth())\n```",
+          "description": "Check whether the app may use Bluetooth (needed by hs.ble).",
+          "params": [],
+          "returns": {
+            "type": "boolean",
+            "description": "true if granted, false if denied or not yet decided"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "console.log(hs.permissions.checkBluetooth())"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 183
+        },
+        {
+          "name": "requestBluetooth",
+          "signature": "func requestBluetooth() -> JSPromise?",
+          "isStatic": false,
+          "rawDocumentation": "Request Bluetooth access (shows the system dialog if the user has not yet decided).\n- Returns: {Promise<boolean>} A Promise that resolves to true if granted, false otherwise\n- Example:\n```js\nhs.permissions.requestBluetooth().then(granted => console.log(granted))\n```",
+          "description": "Request Bluetooth access (shows the system dialog if the user has not yet decided).",
+          "params": [],
+          "returns": {
+            "type": "JSPromise",
+            "description": "A Promise that resolves to true if granted, false otherwise",
+            "promiseType": "boolean"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.permissions.requestBluetooth().then(granted => console.log(granted))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 191
+        },
+        {
+          "name": "checkFullDiskAccess",
+          "signature": "func checkFullDiskAccess() -> Bool",
+          "isStatic": false,
+          "rawDocumentation": "Check whether the app has Full Disk Access.\n\nmacOS offers no API for this, so the check opens the user's TCC database for reading —\nexactly the processes that hold Full Disk Access can. There is no prompt to request it:\ngrant it in System Settings → Privacy & Security → Full Disk Access, then relaunch.\n- Returns: true if granted, false otherwise\n- Example:\n```js\nconsole.log(hs.permissions.checkFullDiskAccess())\n```",
+          "description": "Check whether the app has Full Disk Access.\nmacOS offers no API for this, so the check opens the user's TCC database for reading —\ngrant it in System Settings → Privacy & Security → Full Disk Access, then relaunch.",
+          "params": [],
+          "returns": {
+            "type": "boolean",
+            "description": "true if granted, false otherwise"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "console.log(hs.permissions.checkFullDiskAccess())"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 203
+        },
+        {
+          "name": "checkAutomation",
+          "signature": "func checkAutomation(_ bundleID: String) -> String",
+          "isStatic": false,
+          "rawDocumentation": "Check whether the app may send Apple Events to one target app (Automation).\n\nAutomation is granted per target. A target that is not running cannot be checked.\n- Parameter bundleID: the target's bundle identifier, e.g. \"com.apple.Safari\"\n- Returns: \"granted\", \"denied\", \"notDetermined\", \"notRunning\", or \"error(<code>)\"\n- Example:\n```js\nconsole.log(hs.permissions.checkAutomation(\"com.google.Chrome\"))\n```",
+          "description": "Check whether the app may send Apple Events to one target app (Automation).\nAutomation is granted per target. A target that is not running cannot be checked.",
+          "params": [
+            {
+              "name": "bundleID",
+              "type": "string",
+              "description": "the target's bundle identifier, e.g. \"com.apple.Safari\"",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "string",
+            "description": "\"granted\", \"denied\", \"notDetermined\", \"notRunning\", or \"error(<code>)\""
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "console.log(hs.permissions.checkAutomation(\"com.google.Chrome\"))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 214
+        },
+        {
+          "name": "requestAutomation",
+          "signature": "func requestAutomation(_ bundleID: String) -> JSPromise?",
+          "isStatic": false,
+          "rawDocumentation": "Ask for permission to automate one target app (shows the consent dialog if undecided).\nThe target must be running.\n- Parameter bundleID: the target's bundle identifier\n- Returns: {Promise<boolean>} A Promise that resolves to true if granted, false otherwise\n- Example:\n```js\nhs.permissions.requestAutomation(\"com.apple.Safari\").then(granted => console.log(granted))\n```",
+          "description": "Ask for permission to automate one target app (shows the consent dialog if undecided).\nThe target must be running.",
+          "params": [
+            {
+              "name": "bundleID",
+              "type": "string",
+              "description": "the target's bundle identifier",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "JSPromise",
+            "description": "A Promise that resolves to true if granted, false otherwise",
+            "promiseType": "boolean"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "hs.permissions.requestAutomation(\"com.apple.Safari\").then(granted => console.log(granted))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 224
+        },
+        {
+          "name": "summary",
+          "signature": "func summary() -> [String: Any]",
+          "isStatic": false,
+          "rawDocumentation": "Everything this build's features need, in one object — the same rows the\nSettings → Permissions panel shows: live state, whether it is granted, which features\nuse it, whether a fresh grant needs a relaunch, and the System Settings URL.\n- Returns: an object keyed by permission id (`accessibility`, `inputMonitoring`,\n  `notifications`, `calendar`, `reminders`, `bluetooth`, `fullDiskAccess`, `automation`),\n  each `{ name, state, granted, usedBy, relaunch, settings }` where `state` is\n  \"trusted\", \"notTrusted\" or \"unknown\" and `relaunch` is a note or an empty string\n- Example:\n```js\nconst p = hs.permissions.summary()\nObject.values(p).filter(x => !x.granted).forEach(x => console.log(x.name, '—', x.usedBy))\n```",
+          "description": "Everything this build's features need, in one object — the same rows the\nSettings → Permissions panel shows: live state, whether it is granted, which features\nuse it, whether a fresh grant needs a relaunch, and the System Settings URL.",
+          "params": [],
+          "returns": {
+            "type": "Object<String, Any>",
+            "description": "an object keyed by permission id (`accessibility`, `inputMonitoring`,"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const p = hs.permissions.summary()\nObject.values(p).filter(x => !x.granted).forEach(x => console.log(x.name, '—', x.usedBy))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift",
+          "lineNumber": 238
         }
       ],
       "properties": [],
@@ -12549,8 +12699,8 @@
               "name": "write",
               "signature": "func write(_ s: String) -> Bool",
               "isStatic": false,
-              "rawDocumentation": "Write a string to the port (caller includes any trailing \"\\n\").\n- Parameter s: the bytes to write (UTF-8).\n- Returns: true if all bytes were written.\n- Example:\n```js\nhs.serial.open('/dev/cu.usbmodem1').write('{\"text\":\"hi\"}\\n')\n```",
-              "description": "Write a string to the port (caller includes any trailing \"\\n\").",
+              "rawDocumentation": "Queue a string for ordered delivery to the port (caller includes any trailing \"\\n\").\nWrites are nonblocking: bytes that do not fit in the device's output buffer\nimmediately are retained and resumed when the descriptor becomes writable.\n- Parameter s: the bytes to write (UTF-8).\n- Returns: true if all bytes were accepted; false if closed, queue-full, or a fatal write error occurred.\n- Example:\n```js\nhs.serial.open('/dev/cu.usbmodem1').write('{\"text\":\"hi\"}\\n')\n```",
+              "description": "Queue a string for ordered delivery to the port (caller includes any trailing \"\\n\").\nWrites are nonblocking: bytes that do not fit in the device's output buffer\nimmediately are retained and resumed when the descriptor becomes writable.",
               "params": [
                 {
                   "name": "s",
@@ -12562,7 +12712,7 @@
               ],
               "returns": {
                 "type": "boolean",
-                "description": "true if all bytes were written."
+                "description": "true if all bytes were accepted; false if closed, queue-full, or a fatal write error occurred."
               },
               "notes": [],
               "examples": [
@@ -12573,7 +12723,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
-              "lineNumber": 40
+              "lineNumber": 42
             },
             {
               "name": "onLine",
@@ -12603,7 +12753,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
-              "lineNumber": 49
+              "lineNumber": 51
             },
             {
               "name": "onClose",
@@ -12633,7 +12783,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift",
-              "lineNumber": 58
+              "lineNumber": 60
             }
           ],
           "properties": [
@@ -21253,5 +21403,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-07-31T05:11:02.591Z"
+  "generatedAt": "2026-09-14T05:22:37.554Z"
 }

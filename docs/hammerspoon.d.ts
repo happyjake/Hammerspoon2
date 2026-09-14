@@ -1761,7 +1761,7 @@ Changing `allDay` requires both `start` and `end`. Pass `null` to clear `locatio
 `calendar` resolves by id first, then exact title.
      * @param id Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
      * @param fields One or more of `calendar`, `title`, `start`, `end`, `allDay`, `location`, `notes`, `url`, and `alarms`.
-     * @param occurrenceStart The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
+     * @param occurrenceStart The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
      * @param span `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event.
      * @returns The updated Event as a plain object; invalid arguments, unavailable targets, and save failures throw a JavaScript `Error`
      */
@@ -1770,7 +1770,7 @@ Changing `allDay` requires both `start` and `end`. Pass `null` to clear `locatio
     /**
      * Delete an Event.
      * @param id Event identifier returned by `createEvent`, `listEvents`, or `searchEvents`
-     * @param occurrenceStart The recurring Occurrence start as an ISO 8601 instant. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
+     * @param occurrenceStart The recurring Occurrence start exactly as a read returned it: an ISO 8601 instant for a timed Occurrence, or a `YYYY-MM-DD` day for an all-day one. Required with `span` for a recurring Event and refused for a non-recurring Event. A previously moved Occurrence remains addressable when its current interval overlaps the four-year search window centered on this original start (two years on either side).
      * @param span `this` for one Occurrence or `future` for it and all future Events. Required with `occurrenceStart` for a recurring Event and refused for a non-recurring Event. Use `future` at the first Occurrence to delete the whole series.
      * @returns `true` after the Event is removed; invalid arguments, unavailable targets, and removal failures throw a JavaScript `Error`
      */
@@ -4329,6 +4329,50 @@ Required for hs.eventtap to receive global key events.
      */
     function requestInputMonitoring(): void;
 
+    /**
+     * Check whether the app may use Bluetooth (needed by hs.ble).
+     * @returns true if granted, false if denied or not yet decided
+     */
+    function checkBluetooth(): boolean;
+
+    /**
+     * Request Bluetooth access (shows the system dialog if the user has not yet decided).
+     * @returns A Promise that resolves to true if granted, false otherwise
+     */
+    function requestBluetooth(): Promise<boolean>;
+
+    /**
+     * Check whether the app has Full Disk Access.
+macOS offers no API for this, so the check opens the user's TCC database for reading —
+grant it in System Settings → Privacy & Security → Full Disk Access, then relaunch.
+     * @returns true if granted, false otherwise
+     */
+    function checkFullDiskAccess(): boolean;
+
+    /**
+     * Check whether the app may send Apple Events to one target app (Automation).
+Automation is granted per target. A target that is not running cannot be checked.
+     * @param bundleID the target's bundle identifier, e.g. "com.apple.Safari"
+     * @returns "granted", "denied", "notDetermined", "notRunning", or "error(<code>)"
+     */
+    function checkAutomation(bundleID: string): string;
+
+    /**
+     * Ask for permission to automate one target app (shows the consent dialog if undecided).
+The target must be running.
+     * @param bundleID the target's bundle identifier
+     * @returns A Promise that resolves to true if granted, false otherwise
+     */
+    function requestAutomation(bundleID: string): Promise<boolean>;
+
+    /**
+     * Everything this build's features need, in one object — the same rows the
+Settings → Permissions panel shows: live state, whether it is granted, which features
+use it, whether a fresh grant needs a relaunch, and the System Settings URL.
+     * @returns an object keyed by permission id (`accessibility`, `inputMonitoring`,
+     */
+    function summary(): Record<string, any>;
+
 }
 
 /**
@@ -4800,9 +4844,11 @@ declare class HSSerialPort {
     close(): void;
 
     /**
-     * Write a string to the port (caller includes any trailing "\n").
+     * Queue a string for ordered delivery to the port (caller includes any trailing "\n").
+Writes are nonblocking: bytes that do not fit in the device's output buffer
+immediately are retained and resumed when the descriptor becomes writable.
      * @param s the bytes to write (UTF-8).
-     * @returns true if all bytes were written.
+     * @returns true if all bytes were accepted; false if closed, queue-full, or a fatal write error occurred.
      */
     write(s: string): boolean;
 

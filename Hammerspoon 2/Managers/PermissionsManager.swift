@@ -12,6 +12,9 @@ import CoreLocation
 import EventKit
 import UserNotifications
 import IOKit.hid
+import CoreBluetooth
+import CoreServices
+import AppKit
 
 @_documentation(visibility: private)
 enum PermissionsState: Int {
@@ -32,6 +35,9 @@ enum PermissionsType: Int, CaseIterable {
     // New cases remain append-only so existing raw values don't shift.
     case calendar
     case reminders
+    case bluetooth
+    case fullDiskAccess
+    case automation
 
     /// The subset shown in Settings → Permissions, in display order. The enum still carries
     /// every permission the hs.permissions JS module can query (camera/microphone/screen/
@@ -42,6 +48,15 @@ enum PermissionsType: Int, CaseIterable {
         .notifications,
         .calendar,
         .reminders,
+        .bluetooth,
+        .fullDiskAccess,
+        .automation,
+    ]
+
+    /// The apps VibeCast sends Apple Events to (launcher browser tabs, herdr's Chrome tab,
+    /// Finder reveal). Automation is granted per target, so the check walks this list.
+    static let automationTargets: [String] = [
+        "com.apple.finder", "com.apple.Safari", "com.google.Chrome", "org.mozilla.firefox",
     ]
 
     var displayName: String {
@@ -55,6 +70,56 @@ enum PermissionsType: Int, CaseIterable {
         case .inputMonitoring: return "Input Monitoring"
         case .calendar:       return "Calendars"
         case .reminders:      return "Reminders"
+        case .bluetooth:      return "Bluetooth"
+        case .fullDiskAccess: return "Full Disk Access"
+        case .automation:     return "Automation"
+        }
+    }
+
+    /// Stable identifier for JS (`hs.permissions.summary()`) and logs.
+    var id: String {
+        switch self {
+        case .accessibility:  return "accessibility"
+        case .camera:         return "camera"
+        case .microphone:     return "microphone"
+        case .notifications:  return "notifications"
+        case .screencapture:  return "screenRecording"
+        case .location:       return "location"
+        case .inputMonitoring: return "inputMonitoring"
+        case .calendar:       return "calendar"
+        case .reminders:      return "reminders"
+        case .bluetooth:      return "bluetooth"
+        case .fullDiskAccess: return "fullDiskAccess"
+        case .automation:     return "automation"
+        }
+    }
+
+    /// Why this build needs the permission — the VibeCast features behind it. The panel shows
+    /// it under the description so a person can decide whether a red row matters to them.
+    var usedBy: String {
+        switch self {
+        case .accessibility:  return "Windows, launcher, snippets, CrossMac — window control and the event taps behind every hotkey"
+        case .inputMonitoring: return "Snippets expander, CrossMac capture, the launcher’s double-tap Ctrl — global key event taps"
+        case .notifications:  return "Alerts from every feature (hs.notify)"
+        case .calendar:       return "calendar-mcp"
+        case .reminders:      return "calendar-mcp"
+        case .bluetooth:      return "CrossMac’s ESP32 relay (hs.ble)"
+        case .fullDiskAccess: return "The launcher’s Safari favorites and history index"
+        case .automation:     return "Launcher browser tabs (Safari, Chrome, Firefox), herdr’s Chrome tab, Finder reveal — checked against the targets that are running"
+        case .camera, .microphone, .screencapture, .location:
+            return "Not used by any VibeCast feature"
+        }
+    }
+
+    /// When a fresh grant only takes effect after Hammerspoon 2 is relaunched, say so.
+    var relaunchNote: String? {
+        switch self {
+        case .accessibility:  return "Relaunch after granting — event taps opened before the grant stay dead"
+        case .inputMonitoring: return "Relaunch after granting — takes effect at the next launch"
+        case .screencapture:  return "Relaunch after granting"
+        case .fullDiskAccess: return "Relaunch recommended — the indexer remembers a refusal until its next run"
+        case .camera, .microphone, .notifications, .location, .calendar, .reminders, .bluetooth, .automation:
+            return nil
         }
     }
 
@@ -69,6 +134,9 @@ enum PermissionsType: Int, CaseIterable {
         case .inputMonitoring: return "Allows monitoring keyboard and other input devices (required for global hotkeys/eventtaps that consume keys)"
         case .calendar:       return "Allows reading and modifying Events in your Calendars"
         case .reminders:      return "Allows reading and modifying Reminders in your Reminder Lists"
+        case .bluetooth:      return "Allows connecting to Bluetooth devices"
+        case .fullDiskAccess: return "Allows reading protected files (Safari data, Mail, Messages, the TCC database)"
+        case .automation:     return "Allows sending Apple Events to other apps (scripting them)"
         }
     }
 
@@ -84,6 +152,9 @@ enum PermissionsType: Int, CaseIterable {
         case .inputMonitoring: path = "Privacy_ListenEvent"
         case .calendar:       path = "Privacy_Calendars"
         case .reminders:      path = "Privacy_Reminders"
+        case .bluetooth:      path = "Privacy_Bluetooth"
+        case .fullDiskAccess: path = "Privacy_AllFiles"
+        case .automation:     path = "Privacy_Automation"
         }
         // swiftlint:disable:next force_unwrapping
         return URL(string: "x-apple.systempreferences:com.apple.preference.security?\(path)")!
@@ -97,6 +168,9 @@ class PermissionsManager: NSObject {
 
     private var locationManager: CLLocationManager?
     private var locationCallback: (@Sendable (Bool) -> Void)?
+    /// Instantiating a central manager is what makes macOS ask for Bluetooth; it is kept
+    /// alive until the answer lands.
+    private var bluetoothManager: CBCentralManager?
 
     // Notification authorization has no synchronous status API, so we cache the last known state.
     // The cache is populated on first check and after every request.
@@ -154,6 +228,16 @@ class PermissionsManager: NSObject {
             return eventKitState(for: .event)
         case .reminders:
             return eventKitState(for: .reminder)
+        case .bluetooth:
+            switch CBManager.authorization {
+            case .allowedAlways: return .trusted
+            case .notDetermined: return .unknown
+            default:             return .notTrusted
+            }
+        case .fullDiskAccess:
+            return Self.hasFullDiskAccess() ? .trusted : .notTrusted
+        case .automation:
+            return automationAggregateState()
         }
     }
 
@@ -179,6 +263,12 @@ class PermissionsManager: NSObject {
             return HSEventStore.shared.authorizationStatus(for: .event) == .fullAccess
         case .reminders:
             return HSEventStore.shared.authorizationStatus(for: .reminder) == .fullAccess
+        case .bluetooth:
+            return CBManager.authorization == .allowedAlways
+        case .fullDiskAccess:
+            return Self.hasFullDiskAccess()
+        case .automation:
+            return automationAggregateState() == .trusted
         }
     }
 
@@ -246,7 +336,108 @@ class PermissionsManager: NSObject {
             requestCalendarAccess(callback: callback)
         case .reminders:
             requestRemindersAccess(callback: callback)
+        case .bluetooth:
+            if CBManager.authorization == .notDetermined {
+                bluetoothManager = CBCentralManager(delegate: nil, queue: nil)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                    _ = self
+                    callback?(CBManager.authorization == .allowedAlways)
+                }
+            } else {
+                callback?(CBManager.authorization == .allowedAlways)
+            }
+        case .fullDiskAccess:
+            // macOS has no prompt for Full Disk Access: the pane is the only door.
+            NSWorkspace.shared.open(permType.settingsURL)
+            callback?(Self.hasFullDiskAccess())
+        case .automation:
+            // Asking blocks while the consent dialog is up, so ask off the main thread,
+            // one running target at a time; targets that are not running cannot be asked.
+            let targets = PermissionsType.automationTargets
+            DispatchQueue.global(qos: .userInitiated).async {
+                var allGranted = true
+                for id in targets {
+                    switch Self.automationStatus(bundleID: id, ask: true) {
+                    case .granted, .notRunning: break
+                    default: allGranted = false
+                    }
+                }
+                DispatchQueue.main.async { callback?(allGranted) }
+            }
         }
+    }
+
+    // MARK: - Bluetooth / Full Disk Access / Automation helpers
+
+    /// Full Disk Access has no API. The user TCC database is readable by exactly the
+    /// processes that hold it, so opening it for reading is the honest probe.
+    nonisolated static func hasFullDiskAccess() -> Bool {
+        let path = NSHomeDirectory() + "/Library/Application Support/com.apple.TCC/TCC.db"
+        guard let handle = FileHandle(forReadingAtPath: path) else { return false }
+        try? handle.close()
+        return true
+    }
+
+    enum AutomationStatus {
+        case granted, denied, consentNeeded, notRunning
+        case failed(OSStatus)
+
+        var name: String {
+            switch self {
+            case .granted:       return "granted"
+            case .denied:        return "denied"
+            case .consentNeeded: return "notDetermined"
+            case .notRunning:    return "notRunning"
+            case .failed(let code): return "error(\(code))"
+            }
+        }
+    }
+
+    /// Automation is granted per target app. With `ask` false this never shows a dialog;
+    /// with `ask` true macOS asks for consent when it has not been decided yet (blocking).
+    /// A target that is not running cannot be asked and reports `notRunning`.
+    nonisolated static func automationStatus(bundleID: String, ask: Bool) -> AutomationStatus {
+        let target = NSAppleEventDescriptor(bundleIdentifier: bundleID)
+        let status = AEDeterminePermissionToAutomateTarget(
+            target.aeDesc, AEEventClass(typeWildCard), AEEventID(typeWildCard), ask)
+        switch status {
+        case noErr:  return .granted
+        case -600:   return .notRunning      // procNotFound
+        case -1743:  return .denied          // errAEEventNotPermitted
+        case -1744:  return .consentNeeded   // errAEEventWouldRequireUserConsent
+        default:     return .failed(status)
+        }
+    }
+
+    /// One traffic light for all automation targets: red if any running target denied us,
+    /// orange if any still needs consent (or none is running to ask), green when every
+    /// running target has said yes.
+    private func automationAggregateState() -> PermissionsState {
+        var sawGranted = false
+        var sawConsent = false
+        for id in PermissionsType.automationTargets {
+            switch Self.automationStatus(bundleID: id, ask: false) {
+            case .granted:       sawGranted = true
+            case .denied:        return .notTrusted
+            case .consentNeeded: sawConsent = true
+            case .notRunning, .failed: break
+            }
+        }
+        if sawConsent { return .unknown }
+        return sawGranted ? .trusted : .unknown
+    }
+
+    /// Relaunch this app: a shell waits for our pid to exit, then opens the bundle again by
+    /// its explicit path (never `open -a`, which can resolve to a stale copy).
+    static func relaunchApp() {
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let path = Bundle.main.bundlePath
+        let escaped = path.replacingOccurrences(of: "'", with: "'\\''")
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        task.arguments = ["-c", "while kill -0 \(pid) 2>/dev/null; do sleep 0.05; done; open '\(escaped)'"]
+        try? task.run()
+        NSApplication.shared.terminate(nil)
     }
 
     private func eventKitState(for entityType: EKEntityType) -> PermissionsState {
