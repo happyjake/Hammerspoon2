@@ -5,7 +5,8 @@
 //  Created by Claude on 20/03/2026.
 //  Reworked 2026-09-14: every permission this build's features need, each with why it is
 //  needed, whether a fresh grant needs a relaunch, and a Relaunch button — the page a person
-//  lands on after "permissions incomplete".
+//  lands on after "permissions incomplete". The Settings window is a fixed 750×400, so the
+//  list scrolls and never assumes a width of its own.
 //
 
 import SwiftUI
@@ -16,10 +17,12 @@ struct PermissionRowView: View {
     let state: PermissionsState
 
     var body: some View {
-        GridRow {
-            trafficLight
-                .gridColumnAlignment(.center)
-            VStack(alignment: .leading, spacing: 3) {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "circle.fill")
+                .foregroundStyle(stateColor)
+                .font(.system(size: 10))
+                .padding(.top, 5)
+            VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
                     Text(permType.displayName)
                         .fontWeight(.medium)
@@ -39,10 +42,12 @@ struct PermissionRowView: View {
                         .foregroundStyle(.orange)
                 }
             }
-            .gridColumnAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
             actionButton
-                .gridColumnAlignment(.trailing)
+                .frame(width: 118, alignment: .trailing)
+                .padding(.top, 1)
         }
+        .padding(.vertical, 4)
     }
 
     private var stateLabel: String {
@@ -85,19 +90,12 @@ struct PermissionRowView: View {
             Button("Open Settings") { NSWorkspace.shared.open(permType.settingsURL) }
         }
     }
-
-    @ViewBuilder
-    private var trafficLight: some View {
-        Image(systemName: "circle.fill")
-            .foregroundStyle(stateColor)
-    }
 }
 
 @_documentation(visibility: private)
 struct SettingsPermissionsView: View {
     @State private var permissionStates: [PermissionsType: PermissionsState] = [:]
     @State private var refreshTimer: Timer?
-    @State private var isRefreshing = true
     @State private var remainingAllowedAutoRefreshes = 100
 
     private var missingCount: Int {
@@ -105,49 +103,42 @@ struct SettingsPermissionsView: View {
     }
 
     var body: some View {
-        ProgressView()
-            .progressViewStyle(.circular)
-            .frame(height: 12.0)
-            .opacity(isRefreshing ? 1.0 : 0.0)
-            .padding([.top])
-
-        HStack {
-            Spacer()
-            VStack(alignment: .leading, spacing: 14) {
+        VStack(spacing: 0) {
+            // Verdict line + relaunch, pinned above the scrolling list.
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(missingCount == 0
                      ? "Every permission this build needs is granted."
-                     : "\(missingCount) permission\(missingCount == 1 ? "" : "s") still to grant. Rows are live: a grant that System Settings shows as on but tccd rejects reads as not granted here.")
+                     : "\(missingCount) to grant. Rows are live: a grant that System Settings shows as on but tccd rejects reads as not granted here.")
                     .font(.callout)
                     .foregroundStyle(missingCount == 0 ? .secondary : .primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button("Relaunch Hammerspoon 2") { PermissionsManager.relaunchApp() }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
 
-                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 12) {
+            Divider()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 2) {
                     ForEach(PermissionsType.panel, id: \.self) { permType in
                         PermissionRowView(
                             permType: permType,
                             state: permissionStates[permType] ?? .unknown
                         )
+                        if permType != PermissionsType.panel.last {
+                            Divider()
+                        }
                     }
+                    Text("Grants are bound to this build’s signing certificate. After a reinstall under a different certificate they read as not granted even though System Settings shows them on: remove the stale entry (or `tccutil reset`), grant again, relaunch.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 8)
                 }
-
-                Divider()
-
-                HStack(alignment: .top, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Grants are bound to this build’s signing certificate. After a reinstall under a different certificate they read as not granted even though System Settings shows them on: remove the stale entry (or `tccutil reset`) and grant again.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text("Accessibility and Input Monitoring only take effect for event taps opened after the grant — relaunch once you have granted them.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Button("Relaunch Hammerspoon 2") { PermissionsManager.relaunchApp() }
-                }
-                Spacer()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
             }
-            .frame(width: 760)
-            .padding(.vertical)
-            Spacer()
         }
         .onAppear {
             remainingAllowedAutoRefreshes = 100
@@ -172,7 +163,6 @@ struct SettingsPermissionsView: View {
         let timer = Timer(timeInterval: 5.0, repeats: true) { [self] _ in
             Task { @MainActor in
                 refreshPermissions()
-                isRefreshing = false
                 remainingAllowedAutoRefreshes -= 1
             }
         }

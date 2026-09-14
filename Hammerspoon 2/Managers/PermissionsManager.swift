@@ -53,10 +53,13 @@ enum PermissionsType: Int, CaseIterable {
         .automation,
     ]
 
-    /// The apps VibeCast sends Apple Events to (launcher browser tabs, herdr's Chrome tab,
-    /// Finder reveal). Automation is granted per target, so the check walks this list.
+    /// The apps VibeCast sends Apple Events to: Finder (reveal), Safari and the Chromium
+    /// family (launcher tabs, herdr's Chrome tab). Firefox is NOT here — its tabs are read from
+    /// its session store, no Apple Events. Automation is granted per target and only a running
+    /// target can be asked, so the check walks this list and skips what is not running.
     static let automationTargets: [String] = [
-        "com.apple.finder", "com.apple.Safari", "com.google.Chrome", "org.mozilla.firefox",
+        "com.apple.finder", "com.apple.Safari", "com.google.Chrome", "com.microsoft.edgemac",
+        "com.brave.Browser", "com.vivaldi.Vivaldi", "com.operasoftware.Opera", "company.thebrowser.Browser",
     ]
 
     var displayName: String {
@@ -103,9 +106,9 @@ enum PermissionsType: Int, CaseIterable {
         case .notifications:  return "Alerts from every feature (hs.notify)"
         case .calendar:       return "calendar-mcp"
         case .reminders:      return "calendar-mcp"
-        case .bluetooth:      return "CrossMac’s ESP32 relay (hs.ble)"
+        case .bluetooth:      return "CrossMac’s ESP32 relay (hs.ble) — target Macs only; a controller talks to the relay over USB, so ‘not decided’ is fine there"
         case .fullDiskAccess: return "The launcher’s Safari favorites and history index"
-        case .automation:     return "Launcher browser tabs (Safari, Chrome, Firefox), herdr’s Chrome tab, Finder reveal — checked against the targets that are running"
+        case .automation:     return "Launcher browser tabs (Safari, Chrome and other Chromium browsers), herdr’s Chrome tab, Finder reveal — per app, checked against the ones running now; each asks once on first use"
         case .camera, .microphone, .screencapture, .location:
             return "Not used by any VibeCast feature"
         }
