@@ -16,7 +16,7 @@ struct HSImageDimensionsIntegrationTests {
     }
 
     // A pixel-sized bitmap avoids display scale and window-server dependencies.
-    private func makeFixture(_ ext: String, dpi: Double = 72, orientation: Int = 1) throws -> URL {
+    private func makeFixture(_ ext: String, dpi: Double = 72, dpiY: Double? = nil, orientation: Int = 1) throws -> URL {
         let context = try #require(CGContext(
             data: nil, width: 120, height: 80, bitsPerComponent: 8, bytesPerRow: 480,
             space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
@@ -30,7 +30,7 @@ struct HSImageDimensionsIntegrationTests {
         ))
         CGImageDestinationAddImage(destination, image, [
             kCGImagePropertyDPIWidth: dpi,
-            kCGImagePropertyDPIHeight: dpi,
+            kCGImagePropertyDPIHeight: dpiY ?? dpi,
             kCGImagePropertyOrientation: orientation,
         ] as CFDictionary)
         let finalized = CGImageDestinationFinalize(destination)
@@ -39,20 +39,19 @@ struct HSImageDimensionsIntegrationTests {
         return url
     }
 
-    private func expectDimensions(_ harness: JSTestHarness, width: Double, height: Double) {
+    private func expectDimensions(_ harness: JSTestHarness, width: Int, height: Int) {
         harness.eval("var dimensions = HSImage.dimensionsOfFile(imagePath)")
         harness.expectTrue("dimensions !== null && typeof dimensions === 'object'")
         harness.expectTrue("Object.keys(dimensions).sort().join(',') === 'h,w'")
-        harness.expectTrue("Math.abs(dimensions.w - \(width)) < 1e-9")
-        harness.expectTrue("Math.abs(dimensions.h - \(height)) < 1e-9")
-        harness.eval("var legacySize = HSImage.fromPath(imagePath).size")
-        harness.expectTrue("Math.abs(dimensions.w - legacySize.w) < 1e-9")
-        harness.expectTrue("Math.abs(dimensions.h - legacySize.h) < 1e-9")
+        harness.expectTrue("dimensions.w === \(width)")
+        harness.expectTrue("dimensions.h === \(height)")
+        harness.expectTrue("Number.isInteger(dimensions.w) && dimensions.w > 0")
+        harness.expectTrue("Number.isInteger(dimensions.h) && dimensions.h > 0")
         #expect(!harness.hasException)
     }
 
     @Test("reads dimensions of supported raster formats through JavaScript",
-          arguments: ["png", "jpeg", "heic", "tiff"])
+          arguments: ["png", "jpeg", "heic", "tiff", "bmp"])
     func supportedFormats(_ ext: String) throws {
         let url = try makeFixture(ext)
         defer { try? FileManager.default.removeItem(at: url) }
@@ -60,27 +59,34 @@ struct HSImageDimensionsIntegrationTests {
     }
 
     @Test("matches the oriented size of JPEG images", arguments: [
-        (1, 120.0, 80.0), (2, 120.0, 80.0), (3, 120.0, 80.0), (4, 120.0, 80.0),
-        (5, 80.0, 120.0), (6, 80.0, 120.0), (7, 80.0, 120.0), (8, 80.0, 120.0),
+        (1, 120, 80), (2, 120, 80), (3, 120, 80), (4, 120, 80),
+        (5, 80, 120), (6, 80, 120), (7, 80, 120), (8, 80, 120),
     ])
-    func jpegOrientation(orientation: Int, width: Double, height: Double) throws {
+    func jpegOrientation(orientation: Int, width: Int, height: Int) throws {
         let url = try makeFixture("jpeg", orientation: orientation)
         defer { try? FileManager.default.removeItem(at: url) }
         expectDimensions(makeHarness(path: url.path), width: width, height: height)
     }
 
-    @Test("matches resolution-adjusted PNG sizes", arguments: [(144.0, 60.0, 40.0), (300.0, 28.8, 19.2)])
-    func pngResolution(dpi: Double, width: Double, height: Double) throws {
+    @Test("reports PNG pixels regardless of DPI", arguments: [(144.0, 120, 80), (300.0, 120, 80)])
+    func pngResolution(dpi: Double, width: Int, height: Int) throws {
         let url = try makeFixture("png", dpi: dpi)
         defer { try? FileManager.default.removeItem(at: url) }
         expectDimensions(makeHarness(path: url.path), width: width, height: height)
     }
 
-    @Test("applies both resolution and orientation")
+    @Test("applies orientation without scaling by DPI")
     func rotatedHighResolutionJPEG() throws {
         let url = try makeFixture("jpeg", dpi: 144, orientation: 6)
         defer { try? FileManager.default.removeItem(at: url) }
-        expectDimensions(makeHarness(path: url.path), width: 40, height: 60)
+        expectDimensions(makeHarness(path: url.path), width: 80, height: 120)
+    }
+
+    @Test("ignores unequal horizontal and vertical DPI", arguments: ["png", "jpeg", "tiff"])
+    func unequalResolution(_ ext: String) throws {
+        let url = try makeFixture(ext, dpi: 144, dpiY: 300, orientation: 6)
+        defer { try? FileManager.default.removeItem(at: url) }
+        expectDimensions(makeHarness(path: url.path), width: 80, height: 120)
     }
 
     @Test("expands a home-relative path")

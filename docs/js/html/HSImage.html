@@ -101,7 +101,7 @@ img.saveToFile(&quot;/path/to/output.png&quot;)
         <div class="prop-type">HSSize</div>
         <div class="description">The size of the image. Setting this resizes the image in place to the exact dimensions.</div>
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L227" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:227</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L226" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:226</a>
         </div>
     </div>
     <div class="property" id="name">
@@ -109,7 +109,7 @@ img.saveToFile(&quot;/path/to/output.png&quot;)
         <div class="prop-type">string</div>
         <div class="description">The name of the image, or null if not set.</div>
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L236" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:236</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L235" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:235</a>
         </div>
     </div>
     <div class="property" id="template">
@@ -118,7 +118,7 @@ img.saveToFile(&quot;/path/to/output.png&quot;)
         <div class="description">Whether the image is a template image.
 Template images are tinted by the system to match the appearance context (e.g. menu bar icons).</div>
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L246" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:246</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L245" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:245</a>
         </div>
     </div>
 
@@ -168,10 +168,9 @@ Template images are tinted by the system to match the appearance context (e.g. m
 <span class="static-badge">static</span><a href="#dimensionsOfFile">HSImage.dimensionsOfFile(path) -> any</a>
         </h3>
 
-        <div class="description">Read the first image&#39;s logical dimensions from file metadata without decoding pixels.
-Dimensions follow `fromPath(path).size`: resolution metadata scales pixels
-to points (72 points per inch), and orientations 5–8 exchange the axes.
-At 72 DPI, or without resolution metadata, these are pixel dimensions.
+        <div class="description">Read the first image&#39;s oriented pixel dimensions from file metadata without decoding pixels.
+EXIF/TIFF orientations 5–8 exchange the pixel width and height. DPI metadata
+is ignored: unlike `fromPath(path).size`, these are pixels, not logical points.
 No image object is constructed and decoded-image caching is disabled.</div>
 
         <div class="card-section-label">Declaration</div>
@@ -197,7 +196,7 @@ No image object is constructed and decoded-image caching is disabled.</div>
 
         <div class="card-section-label">Returns</div>
         <div class="return-type">any</div>
-        <div class="return-desc">An object `{ w, h }`, or null if the file is unreadable, is not a supported image, or has no valid dimensions</div>
+        <div class="return-desc">An object `{ w, h }` with positive integer pixel dimensions, or null if the file is unreadable, is not a supported image, or has no valid dimensions</div>
 
 
         <div class="card-section-label">Example</div>
@@ -205,7 +204,7 @@ No image object is constructed and decoded-image caching is disabled.</div>
 if (dimensions) console.log(dimensions.w, dimensions.h)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L84" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:84</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L83" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:83</a>
         </div>
     </div>
     <div class="method" id="fromName">
@@ -245,7 +244,7 @@ if (dimensions) console.log(dimensions.w, dimensions.h)</code></pre>
         <pre><code class="language-js">const icon = HSImage.fromName(&quot;NSComputer&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L93" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:93</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L92" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:92</a>
         </div>
     </div>
     <div class="method" id="fromSymbol">
@@ -285,7 +284,7 @@ if (dimensions) console.log(dimensions.w, dimensions.h)</code></pre>
         <pre><code class="language-js">const sym = HSImage.fromSymbol(&quot;star.fill&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L102" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:102</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L101" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:101</a>
         </div>
     </div>
     <div class="method" id="fromAppBundle">
@@ -330,7 +329,7 @@ if (dimensions) console.log(dimensions.w, dimensions.h)</code></pre>
         <pre><code class="language-js">const appIcon = HSImage.fromAppBundle(&quot;com.apple.Safari&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L113" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:113</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L112" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:112</a>
         </div>
     </div>
     <div class="method" id="iconForFile">
@@ -370,7 +369,7 @@ if (dimensions) console.log(dimensions.w, dimensions.h)</code></pre>
         <pre><code class="language-js">const icon = HSImage.iconForFile(&quot;/Applications/Safari.app&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L122" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:122</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L121" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:121</a>
         </div>
     </div>
     <div class="method" id="iconForFileType">
@@ -410,7 +409,7 @@ if (dimensions) console.log(dimensions.w, dimensions.h)</code></pre>
         <pre><code class="language-js">const icon = HSImage.iconForFileType(&quot;pdf&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L131" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:131</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L130" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:130</a>
         </div>
     </div>
     <div class="method" id="empty">
@@ -435,7 +434,7 @@ content is bound.</div>
         <pre><code class="language-js">const blank = HSImage.empty()</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L141" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:141</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L140" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:140</a>
         </div>
     </div>
     <div class="method" id="fromURL">
@@ -475,7 +474,7 @@ content is bound.</div>
         <pre><code class="language-js">const img = await HSImage.fromURL(&quot;https://example.com/image.png&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L150" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:150</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L149" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:149</a>
         </div>
     </div>
     <div class="method" id="fromBase64">
@@ -518,7 +517,7 @@ Whitespace/newlines in the base64 input are ignored.</div>
 if (img) hs.pasteboard.writeImage(img)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L162" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:162</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L161" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:161</a>
         </div>
     </div>
     <div class="method" id="transcodeToFileAsync">
@@ -570,7 +569,7 @@ const info = await HSImage.transcodeToFileAsync({
 console.log(info.width, info.height, info.bytes)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L190" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:190</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L189" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:189</a>
         </div>
     </div>
     <div class="method" id="transcodeToBase64Async">
@@ -623,7 +622,7 @@ const info = await HSImage.transcodeToBase64Async({
 img.src = &#39;data:image/jpeg;base64,&#39; + info.b64</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L218" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:218</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L217" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:217</a>
         </div>
     </div>
     <div class="method" id="copyImage">
@@ -647,7 +646,7 @@ img.src = &#39;data:image/jpeg;base64,&#39; + info.b64</code></pre>
 copy.size = HSSize(64, 64)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L255" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:255</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L254" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:254</a>
         </div>
     </div>
     <div class="method" id="croppedCopy">
@@ -687,7 +686,7 @@ copy.size = HSSize(64, 64)</code></pre>
         <pre><code class="language-js">const cropped = img.croppedCopy(HSRect(10, 10, 80, 60))</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L264" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:264</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L263" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:263</a>
         </div>
     </div>
     <div class="method" id="saveToFile">
@@ -727,7 +726,7 @@ copy.size = HSSize(64, 64)</code></pre>
         <pre><code class="language-js">img.saveToFile(&quot;/tmp/output.png&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L273" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:273</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L272" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:272</a>
         </div>
     </div>
     <div class="method" id="set">
@@ -769,7 +768,7 @@ reactive.set(&quot;/path/to/image.png&quot;)
 reactive.set(HSImage.fromName(&quot;NSStatusUnavailable&quot;))</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L285" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:285</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L284" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:284</a>
         </div>
     </div>
     <div class="method" id="encode">
@@ -815,7 +814,7 @@ reactive.set(HSImage.fromName(&quot;NSStatusUnavailable&quot;))</code></pre>
         <pre><code class="language-js">const b64 = img.encode(&#39;jpeg&#39;, 0.8)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L297" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:297</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Engine/Types/HSImage.swift#L296" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Engine/Types/HSImage.swift:296</a>
         </div>
     </div>
         </main>

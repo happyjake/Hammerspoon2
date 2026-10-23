@@ -187,13 +187,12 @@ declare class HSImage {
     static fromPath(path: string): HSImage | null;
 
     /**
-     * Read the first image's logical dimensions from file metadata without decoding pixels.
-Dimensions follow `fromPath(path).size`: resolution metadata scales pixels
-to points (72 points per inch), and orientations 5–8 exchange the axes.
-At 72 DPI, or without resolution metadata, these are pixel dimensions.
+     * Read the first image's oriented pixel dimensions from file metadata without decoding pixels.
+EXIF/TIFF orientations 5–8 exchange the pixel width and height. DPI metadata
+is ignored: unlike `fromPath(path).size`, these are pixels, not logical points.
 No image object is constructed and decoded-image caching is disabled.
      * @param path Path to the image file (`~` is expanded)
-     * @returns An object `{ w, h }`, or null if the file is unreadable, is not a supported image, or has no valid dimensions
+     * @returns An object `{ w, h }` with positive integer pixel dimensions, or null if the file is unreadable, is not a supported image, or has no valid dimensions
      */
     static dimensionsOfFile(path: string): any;
 
