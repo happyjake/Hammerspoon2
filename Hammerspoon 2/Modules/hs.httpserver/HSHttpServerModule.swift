@@ -10,13 +10,14 @@ import Foundation
 import JavaScriptCore
 
 @objc protocol HSHttpServerModuleAPI: JSExport {
-    /// Start an HTTP server.
-    /// - Parameter opts: `{ port, hostname?, maxBodyBytes?, fetch }`
+    /// Start an HTTP server. Keep-alive connections expire after 60 idle seconds by default.
+    /// - Parameter opts: `{ port, hostname?, maxBodyBytes?, idleTimeout?, fetch }`
     ///   - `port`: TCP port to bind (required, 1..65535)
     ///   - `hostname`: bind address (default `'127.0.0.1'`; use `'0.0.0.0'` for LAN)
     ///   - `maxBodyBytes`: request body cap, over → 413 (default 32 MiB)
+    ///   - `idleTimeout`: seconds idle between completed exchanges before graceful close (default 60; finite and greater than zero). Active requests and responses never expire.
     ///   - `fetch`: handler `(request) => Response | Promise<Response>` (required)
-    /// - Returns: a server handle with `.hostname`, `.port`, `.url`, `.stop()`
+    /// - Returns: a server handle with `.hostname`, `.port`, `.url`, mutable `.idleTimeout`, `.stop()`
     /// - Example:
     /// ```js
     /// const server = hs.httpserver.serve({
@@ -90,6 +91,16 @@ import JavaScriptCore
             return 32 * 1024 * 1024
         }()
 
+        var idleTimeout: TimeInterval = 60
+        if let value = opts.objectForKeyedSubscript("idleTimeout"), !value.isUndefined, !value.isNull {
+            guard value.isNumber, value.toDouble().isFinite, value.toDouble() > 0 else {
+                JSContext.current()?.exception = JSValue(newErrorFromMessage:
+                    "hs.httpserver.serve: 'idleTimeout' must be a finite number greater than zero", in: opts.context)
+                return nil
+            }
+            idleTimeout = value.toDouble()
+        }
+
         // fetch (required, callable)
         let fetchVal = opts.objectForKeyedSubscript("fetch")
         guard let fetchVal, fetchVal.isObject else {
@@ -99,7 +110,8 @@ import JavaScriptCore
         }
 
         do {
-            let server = try HSHttpServer(hostname: hostname, port: port, maxBodyBytes: maxBodyBytes, fetch: fetchVal)
+            let server = try HSHttpServer(hostname: hostname, port: port, maxBodyBytes: maxBodyBytes,
+                                          idleTimeout: idleTimeout, fetch: fetchVal)
             server.module = self
             servers.insert(server)
             AKTrace("hs.httpserver: serving on \(hostname):\(port)")

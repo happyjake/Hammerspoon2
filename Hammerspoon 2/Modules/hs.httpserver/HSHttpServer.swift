@@ -10,8 +10,8 @@
 //  because Network.framework callbacks fire on `listenerQueue` (a private
 //  serial queue), not @MainActor. All mutable connection state is touched
 //  only from `listenerQueue`, so the @unchecked Sendable claim holds. The
-//  JS-side @objc properties are `let` Sendable types; the JS-side methods
-//  hop to main internally where needed.
+//  Mutable JS configuration is synchronized through listenerQueue; the JS-side
+//  methods hop to main internally where needed.
 //
 
 import Foundation
@@ -31,6 +31,18 @@ import JavaScriptCore
 
     /// Base URL of the server (e.g. `"http://127.0.0.1:9876/"`).
     @objc var url: String { get }
+
+    /// Keep-alive idle timeout in seconds (default 60). Must be finite and greater
+    /// than zero; invalid assignments throw and leave the previous value unchanged.
+    /// Only time between completed exchanges counts: reading a request, awaiting
+    /// the handler, and writing a response never expire. New connections have no
+    /// idle deadline until their first response completes. Changes apply to existing
+    /// connections, measured from their last completed response, and future connections.
+    /// - Example:
+    /// ```js
+    /// server.idleTimeout = 2
+    /// ```
+    @objc var idleTimeout: Double { get set }
 
     /// Stop the server. Idempotent.
     /// - Example:
@@ -52,13 +64,15 @@ nonisolated final class HSHttpServer: NSObject, HSHttpServerAPI, @unchecked Send
     private var connectionsByID: [ObjectIdentifier: HSHttpConnection] = [:]    // touched only on listenerQueue
     private let fetchCallback: JSValue
     private let maxBodyBytes: Int
+    private var configuredIdleTimeout: TimeInterval                      // listenerQueue only
     weak var module: HSHttpServerModule?
     private var stopped = false                                                 // touched only on listenerQueue
 
-    init(hostname: String, port: Int, maxBodyBytes: Int, fetch: JSValue) throws {
+    init(hostname: String, port: Int, maxBodyBytes: Int, idleTimeout: TimeInterval = 60, fetch: JSValue) throws {
         self.hostname = hostname
         self.port = port
         self.maxBodyBytes = maxBodyBytes
+        self.configuredIdleTimeout = idleTimeout
         self.fetchCallback = fetch
         self.listenerQueue = DispatchQueue(label: "net.tenshu.Hammerspoon-2.httpserver", qos: .userInitiated)
 
@@ -97,6 +111,31 @@ nonisolated final class HSHttpServer: NSObject, HSHttpServerAPI, @unchecked Send
         listener.start(queue: listenerQueue)
     }
 
+    // JS calls these accessors off listenerQueue. Never synchronously hop from
+    // listenerQueue to main, so JS can safely synchronize configuration here.
+    @objc var idleTimeout: Double {
+        get { listenerQueue.sync { configuredIdleTimeout } }
+        set {
+            guard newValue.isFinite, newValue > 0 else {
+                if let context = JSContext.current() {
+                    context.exception = JSValue(newErrorFromMessage:
+                        "hs.httpserver: idleTimeout must be a finite number greater than zero", in: context)
+                }
+                return
+            }
+            listenerQueue.sync {
+                configuredIdleTimeout = newValue
+                for connection in connectionsByID.values { connection.updateIdleTimeout(newValue) }
+            }
+        }
+    }
+
+    #if DEBUG
+    // Swift-only observations for loopback lifecycle tests; not JS API.
+    var connectionCountForTesting: Int { listenerQueue.sync { connectionsByID.count } }
+    var listeningPortForTesting: UInt16? { listenerQueue.sync { listener.port?.rawValue } }
+    #endif
+
     @objc func stop() {
         listenerQueue.async { [weak self] in
             guard let self else { return }
@@ -117,7 +156,9 @@ nonisolated final class HSHttpServer: NSObject, HSHttpServerAPI, @unchecked Send
     // MARK: - Connection management (called on listenerQueue)
 
     private func acceptConnection(_ conn: NWConnection) {
-        let connection = HSHttpConnection(connection: conn, server: self, queue: listenerQueue, maxBodyBytes: maxBodyBytes)
+        guard !stopped else { conn.cancel(); return }
+        let connection = HSHttpConnection(connection: conn, server: self, queue: listenerQueue,
+                                          maxBodyBytes: maxBodyBytes, idleTimeout: configuredIdleTimeout)
         let id = ObjectIdentifier(connection)
         connectionsByID[id] = connection
         connection.start()

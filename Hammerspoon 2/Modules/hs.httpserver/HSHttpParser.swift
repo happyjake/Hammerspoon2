@@ -10,7 +10,7 @@
 import Foundation
 
 @_documentation(visibility: private)
-enum HSHttpParserState {
+nonisolated enum HSHttpParserState: Sendable {
     case awaitingRequestLine
     case awaitingHeaders
     case awaitingBody(remaining: Int)        // Content-Length path: bytes left
@@ -23,7 +23,7 @@ enum HSHttpParserState {
 }
 
 @_documentation(visibility: private)
-struct HSHttpParsedRequest {
+nonisolated struct HSHttpParsedRequest: Sendable {
     let method: String
     let target: String            // request-target (raw, may include ?query)
     let httpVersion: String       // "HTTP/1.1"
@@ -53,11 +53,17 @@ nonisolated final class HSHttpParser {
     }
 
     func reset() {
-        buffer.removeAll(keepingCapacity: true)
+        buffer = Data()
+        resetRequest()
+    }
+
+    var hasBufferedBytes: Bool { !buffer.isEmpty }
+
+    private func resetRequest() {
         state = .awaitingRequestLine
         method = ""; target = ""; httpVersion = ""
-        headers.removeAll(keepingCapacity: true)
-        bodyBuf.removeAll(keepingCapacity: true)
+        headers = []
+        bodyBuf = Data()
     }
 
     /// Feed bytes. Drives the state machine forward as far as possible.
@@ -68,7 +74,8 @@ nonisolated final class HSHttpParser {
         run()
     }
 
-    /// If state is `.complete`, return the parsed request and reset.
+    /// If state is `.complete`, return the parsed request and release its storage.
+    /// Unread pipelined bytes survive; append (even empty data) to parse them.
     /// Returns nil otherwise (incl. .error).
     func takeIfComplete() -> HSHttpParsedRequest? {
         if case .complete = state {
@@ -76,7 +83,13 @@ nonisolated final class HSHttpParser {
                 method: method, target: target, httpVersion: httpVersion,
                 headers: headers, body: bodyBuf
             )
-            reset()
+            // Data slices (and Data(slice)) can share the large receive allocation.
+            // Copy only unread bytes into independent storage before releasing it.
+            buffer = buffer.withUnsafeBytes { bytes in
+                guard let base = bytes.baseAddress, !bytes.isEmpty else { return Data() }
+                return unsafe Data(bytes: base, count: bytes.count)
+            }
+            resetRequest()
             return req
         }
         return nil

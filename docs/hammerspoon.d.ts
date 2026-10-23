@@ -2876,9 +2876,9 @@ API: `get`, `set`, `append`, `delete`, `has`, iteration.
  */
 declare namespace hs.httpserver {
     /**
-     * Start an HTTP server.
-     * @param opts `{ port, hostname?, maxBodyBytes?, fetch }`
-     * @returns a server handle with `.hostname`, `.port`, `.url`, `.stop()`
+     * Start an HTTP server. Keep-alive connections expire after 60 idle seconds by default.
+     * @param opts `{ port, hostname?, maxBodyBytes?, idleTimeout?, fetch }`
+     * @returns a server handle with `.hostname`, `.port`, `.url`, mutable `.idleTimeout`, `.stop()`
      */
     function serve(opts: any): HSHttpServer | null;
 
@@ -3086,6 +3086,16 @@ declare class HSHttpServer {
      * Base URL of the server (e.g. `"http://127.0.0.1:9876/"`).
      */
     readonly url: string;
+
+    /**
+     * Keep-alive idle timeout in seconds (default 60). Must be finite and greater
+than zero; invalid assignments throw and leave the previous value unchanged.
+Only time between completed exchanges counts: reading a request, awaiting
+the handler, and writing a response never expire. New connections have no
+idle deadline until their first response completes. Changes apply to existing
+connections, measured from their last completed response, and future connections.
+     */
+    idleTimeout: number;
 
 }
 

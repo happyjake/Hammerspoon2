@@ -20,13 +20,21 @@ nonisolated final class HSHttpConnection: @unchecked Sendable {
     private weak var server: HSHttpServer?
     let remoteAddress: String
 
-    private var closing = false
+    private enum Phase { case reading, responding, idle, closing }
+    private var phase: Phase = .reading
+    private var inputEnded = false
+    private var idleTimeout: TimeInterval
+    private var idleSince: DispatchTime?
+    private var idleTimer: DispatchSourceTimer?
+    private var timerGeneration: UInt64 = 0
 
-    init(connection: NWConnection, server: HSHttpServer, queue: DispatchQueue, maxBodyBytes: Int) {
+    init(connection: NWConnection, server: HSHttpServer, queue: DispatchQueue,
+         maxBodyBytes: Int, idleTimeout: TimeInterval) {
         self.connection = connection
         self.server = server
         self.queue = queue
         self.parser = HSHttpParser(maxBodyBytes: maxBodyBytes)
+        self.idleTimeout = idleTimeout
         self.remoteAddress = HSHttpConnection.formatRemote(connection.endpoint)
     }
 
@@ -43,37 +51,79 @@ nonisolated final class HSHttpConnection: @unchecked Sendable {
     }
 
     func close() {
-        if closing { return }
-        closing = true
+        guard phase != .closing else { return }
+        phase = .closing
+        cancelIdleTimer()
+        parser.reset()
         connection.cancel()
     }
 
     private func cleanup() {
+        phase = .closing
+        cancelIdleTimer()
+        parser.reset()
         server?.connectionDidClose(self)
+    }
+
+    // All timer operations and state transitions run on the listener queue.
+    func updateIdleTimeout(_ timeout: TimeInterval) {
+        idleTimeout = timeout
+        if phase == .idle { armIdleTimer() }
+    }
+
+    private func cancelIdleTimer() {
+        timerGeneration &+= 1
+        idleTimer?.cancel()
+        idleTimer = nil
+    }
+
+    private func armIdleTimer() {
+        cancelIdleTimer()
+        guard phase == .idle, let idleSince else { return }
+        let elapsed = Double(DispatchTime.now().uptimeNanoseconds - idleSince.uptimeNanoseconds) / 1_000_000_000
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        let generation = timerGeneration
+        // Bound each scheduling interval to avoid overflowing DispatchTime for
+        // very large finite timeouts. Recheck elapsed time when the timer fires.
+        timer.schedule(deadline: .now() + min(max(0, idleTimeout - elapsed), 86_400))
+        timer.setEventHandler { [weak self] in
+            guard let self, self.phase == .idle, self.timerGeneration == generation else { return }
+            let elapsed = Double(DispatchTime.now().uptimeNanoseconds - idleSince.uptimeNanoseconds) / 1_000_000_000
+            if elapsed < self.idleTimeout {
+                self.armIdleTimer()
+                return
+            }
+            self.phase = .closing
+            self.cancelIdleTimer()
+            self.parser.reset()
+            // A final message sends TCP FIN after all response bytes. Cancel
+            // only after Network.framework has processed the graceful close.
+            self.connection.send(content: nil, contentContext: .finalMessage, isComplete: true,
+                                 completion: .contentProcessed { [weak self] _ in
+                self?.connection.cancel()
+            })
+        }
+        idleTimer = timer
+        timer.resume()
     }
 
     // MARK: - Receive
 
     private func receiveLoop() {
+        guard phase == .reading || phase == .idle else { return }
         connection.receive(minimumIncompleteLength: 1, maximumLength: 64 * 1024) { [weak self] data, _, isComplete, error in
-            guard let self else { return }
+            guard let self, self.phase != .closing else { return }
+            if error != nil { self.close(); return }
+            self.inputEnded = isComplete
             if let data, !data.isEmpty {
+                self.cancelIdleTimer()
+                self.idleSince = nil
+                self.phase = .reading
                 self.parser.append(data)
                 self.drainParser()
             }
-            switch self.parser.state {
-            case .error, .complete:
-                return
-            default: break
-            }
-            if let _ = error {
-                self.close()
-                return
-            }
-            if isComplete {
-                self.close()
-                return
-            }
+            guard self.phase == .reading || self.phase == .idle else { return }
+            if isComplete { self.close(); return }
             self.receiveLoop()
         }
     }
@@ -84,6 +134,7 @@ nonisolated final class HSHttpConnection: @unchecked Sendable {
             return
         }
         guard let parsed = parser.takeIfComplete() else { return }
+        phase = .responding
 
         let keepAlive = HSHttpConnection.shouldKeepAlive(
             version: parsed.httpVersion,
@@ -106,13 +157,30 @@ nonisolated final class HSHttpConnection: @unchecked Sendable {
     // MARK: - Send
 
     func send(_ bytes: Data, keepAlive: Bool) {
-        connection.send(content: bytes, completion: .contentProcessed { [weak self] _ in
-            guard let self else { return }
-            if !keepAlive { self.close() }
+        guard phase == .responding else { return }
+        connection.send(content: bytes, completion: .contentProcessed { [weak self] error in
+            guard let self, self.phase == .responding else { return }
+            if error != nil || !keepAlive { self.close(); return }
+
+            if self.parser.hasBufferedBytes {
+                // Pipelined bytes already belong to an active exchange. Do not
+                // read or dispatch another request until this write completes.
+                self.phase = .reading
+                self.parser.append(Data())
+                self.drainParser()
+                guard self.phase == .reading else { return }
+            } else {
+                self.phase = .idle
+                self.idleSince = .now()
+                self.armIdleTimer()
+            }
+            if self.inputEnded { self.close(); return }
+            self.receiveLoop()
         })
     }
 
     private func sendErrorAndClose(status: Int, message: String) {
+        phase = .responding
         let bodyData = "\(status) \(message)".data(using: .utf8) ?? Data()
         var bytes = Data()
         let statusText = HSHttpConnection.statusTextFor(status)

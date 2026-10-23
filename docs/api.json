@@ -7378,20 +7378,20 @@
           "name": "serve",
           "signature": "func serve(_ opts: JSValue) -> HSHttpServer?",
           "isStatic": false,
-          "rawDocumentation": "Start an HTTP server.\n- Parameter opts: `{ port, hostname?, maxBodyBytes?, fetch }`\n  - `port`: TCP port to bind (required, 1..65535)\n  - `hostname`: bind address (default `'127.0.0.1'`; use `'0.0.0.0'` for LAN)\n  - `maxBodyBytes`: request body cap, over → 413 (default 32 MiB)\n  - `fetch`: handler `(request) => Response | Promise<Response>` (required)\n- Returns: a server handle with `.hostname`, `.port`, `.url`, `.stop()`\n- Example:\n```js\nconst server = hs.httpserver.serve({\n  port: 9876,\n  fetch: async (req) => new Response('hi', { status: 200 })\n})\n```",
-          "description": "Start an HTTP server.",
+          "rawDocumentation": "Start an HTTP server. Keep-alive connections expire after 60 idle seconds by default.\n- Parameter opts: `{ port, hostname?, maxBodyBytes?, idleTimeout?, fetch }`\n  - `port`: TCP port to bind (required, 1..65535)\n  - `hostname`: bind address (default `'127.0.0.1'`; use `'0.0.0.0'` for LAN)\n  - `maxBodyBytes`: request body cap, over → 413 (default 32 MiB)\n  - `idleTimeout`: seconds idle between completed exchanges before graceful close (default 60; finite and greater than zero). Active requests and responses never expire.\n  - `fetch`: handler `(request) => Response | Promise<Response>` (required)\n- Returns: a server handle with `.hostname`, `.port`, `.url`, mutable `.idleTimeout`, `.stop()`\n- Example:\n```js\nconst server = hs.httpserver.serve({\n  port: 9876,\n  fetch: async (req) => new Response('hi', { status: 200 })\n})\n```",
+          "description": "Start an HTTP server. Keep-alive connections expire after 60 idle seconds by default.",
           "params": [
             {
               "name": "opts",
               "type": "JSValue",
-              "description": "`{ port, hostname?, maxBodyBytes?, fetch }`",
+              "description": "`{ port, hostname?, maxBodyBytes?, idleTimeout?, fetch }`",
               "optional": false,
               "tsType": null
             }
           ],
           "returns": {
             "type": "HSHttpServer",
-            "description": "a server handle with `.hostname`, `.port`, `.url`, `.stop()`"
+            "description": "a server handle with `.hostname`, `.port`, `.url`, mutable `.idleTimeout`, `.stop()`"
           },
           "notes": [],
           "examples": [
@@ -7402,7 +7402,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServerModule.swift",
-          "lineNumber": 27
+          "lineNumber": 28
         }
       ],
       "properties": [],
@@ -7917,7 +7917,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
-              "lineNumber": 40
+              "lineNumber": 52
             }
           ],
           "properties": [
@@ -7956,6 +7956,23 @@
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
               "lineNumber": 33
+            },
+            {
+              "name": "idleTimeout",
+              "signature": "var idleTimeout: Double { get set }",
+              "rawDocumentation": "Keep-alive idle timeout in seconds (default 60). Must be finite and greater\nthan zero; invalid assignments throw and leave the previous value unchanged.\nOnly time between completed exchanges counts: reading a request, awaiting\nthe handler, and writing a response never expire. New connections have no\nidle deadline until their first response completes. Changes apply to existing\nconnections, measured from their last completed response, and future connections.\n- Example:\n```js\nserver.idleTimeout = 2\n```",
+              "description": "Keep-alive idle timeout in seconds (default 60). Must be finite and greater\nthan zero; invalid assignments throw and leave the previous value unchanged.\nOnly time between completed exchanges counts: reading a request, awaiting\nthe handler, and writing a response never expire. New connections have no\nidle deadline until their first response completes. Changes apply to existing\nconnections, measured from their last completed response, and future connections.",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "server.idleTimeout = 2"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.httpserver/HSHttpServer.swift",
+              "lineNumber": 45
             }
           ]
         }
@@ -21494,5 +21511,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-10-23T07:46:11.172Z"
+  "generatedAt": "2026-10-23T09:02:42.319Z"
 }
