@@ -20656,6 +20656,36 @@
           "lineNumber": 70
         },
         {
+          "name": "dimensionsOfFile",
+          "signature": "static func dimensionsOfFile(_ path: String) -> Any",
+          "isStatic": true,
+          "rawDocumentation": "Read the first image's logical dimensions from file metadata without decoding pixels.\nDimensions follow `fromPath(path).size`: resolution metadata scales pixels\nto points (72 points per inch), and orientations 5–8 exchange the axes.\nAt 72 DPI, or without resolution metadata, these are pixel dimensions.\nNo image object is constructed and decoded-image caching is disabled.\n- Parameter path: Path to the image file (`~` is expanded)\n- Returns: {Object | null} An object `{ w, h }`, or null if the file is unreadable, is not a supported image, or has no valid dimensions\n- Example:\n```js\nconst dimensions = HSImage.dimensionsOfFile(\"/path/to/image.png\")\nif (dimensions) console.log(dimensions.w, dimensions.h)\n```",
+          "description": "Read the first image's logical dimensions from file metadata without decoding pixels.\nDimensions follow `fromPath(path).size`: resolution metadata scales pixels\nto points (72 points per inch), and orientations 5–8 exchange the axes.\nAt 72 DPI, or without resolution metadata, these are pixel dimensions.\nNo image object is constructed and decoded-image caching is disabled.",
+          "params": [
+            {
+              "name": "path",
+              "type": "string",
+              "description": "Path to the image file (`~` is expanded)",
+              "optional": false,
+              "tsType": null
+            }
+          ],
+          "returns": {
+            "type": "*",
+            "description": "An object `{ w, h }`, or null if the file is unreadable, is not a supported image, or has no valid dimensions"
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "const dimensions = HSImage.dimensionsOfFile(\"/path/to/image.png\")\nif (dimensions) console.log(dimensions.w, dimensions.h)"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
+          "lineNumber": 84
+        },
+        {
           "name": "fromName",
           "signature": "static func fromName(_ name: String) -> HSImage?",
           "isStatic": true,
@@ -20683,7 +20713,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 79
+          "lineNumber": 93
         },
         {
           "name": "fromSymbol",
@@ -20713,7 +20743,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 88
+          "lineNumber": 102
         },
         {
           "name": "fromAppBundle",
@@ -20750,7 +20780,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 99
+          "lineNumber": 113
         },
         {
           "name": "iconForFile",
@@ -20780,7 +20810,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 108
+          "lineNumber": 122
         },
         {
           "name": "iconForFileType",
@@ -20810,7 +20840,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 117
+          "lineNumber": 131
         },
         {
           "name": "empty",
@@ -20832,7 +20862,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 127
+          "lineNumber": 141
         },
         {
           "name": "fromURL",
@@ -20863,7 +20893,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 136
+          "lineNumber": 150
         },
         {
           "name": "fromBase64",
@@ -20893,7 +20923,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 148
+          "lineNumber": 162
         },
         {
           "name": "transcodeToFileAsync",
@@ -20924,7 +20954,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 176
+          "lineNumber": 190
         },
         {
           "name": "transcodeToBase64Async",
@@ -20955,7 +20985,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 204
+          "lineNumber": 218
         },
         {
           "name": "copyImage",
@@ -20977,7 +21007,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 241
+          "lineNumber": 255
         },
         {
           "name": "croppedCopy",
@@ -21007,7 +21037,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 250
+          "lineNumber": 264
         },
         {
           "name": "saveToFile",
@@ -21037,7 +21067,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 259
+          "lineNumber": 273
         },
         {
           "name": "set",
@@ -21064,7 +21094,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 271
+          "lineNumber": 285
         },
         {
           "name": "encode",
@@ -21101,7 +21131,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 283
+          "lineNumber": 297
         }
       ],
       "properties": [
@@ -21120,7 +21150,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 213
+          "lineNumber": 227
         },
         {
           "name": "name",
@@ -21137,7 +21167,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 222
+          "lineNumber": 236
         },
         {
           "name": "template",
@@ -21154,7 +21184,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Engine/Types/HSImage.swift",
-          "lineNumber": 232
+          "lineNumber": 246
         }
       ],
       "category": "type",
@@ -21464,5 +21494,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-10-23T06:08:43.098Z"
+  "generatedAt": "2026-10-23T07:17:38.010Z"
 }

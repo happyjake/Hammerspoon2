@@ -69,6 +69,20 @@ import Observation
     /// ```
     @objc static func fromPath(_ path: String) -> HSImage?
 
+    /// Read the first image's logical dimensions from file metadata without decoding pixels.
+    /// Dimensions follow `fromPath(path).size`: resolution metadata scales pixels
+    /// to points (72 points per inch), and orientations 5–8 exchange the axes.
+    /// At 72 DPI, or without resolution metadata, these are pixel dimensions.
+    /// No image object is constructed and decoded-image caching is disabled.
+    /// - Parameter path: Path to the image file (`~` is expanded)
+    /// - Returns: {Object | null} An object `{ w, h }`, or null if the file is unreadable, is not a supported image, or has no valid dimensions
+    /// - Example:
+    /// ```js
+    /// const dimensions = HSImage.dimensionsOfFile("/path/to/image.png")
+    /// if (dimensions) console.log(dimensions.w, dimensions.h)
+    /// ```
+    @objc static func dimensionsOfFile(_ path: String) -> Any
+
     /// Load a system image by name
     /// - Parameter name: Name of the system image (e.g., "NSComputer", "NSFolder")
     /// - Returns: An HSImage object, or null if the image couldn't be found
@@ -303,6 +317,32 @@ import Observation
             return nil
         }
         return image.toBridge()
+    }
+
+    @objc static func dimensionsOfFile(_ path: String) -> Any {
+        let expandedPath = NSString(string: path).expandingTildeInPath
+        let url = URL(fileURLWithPath: expandedPath)
+        let options = [kCGImageSourceShouldCache: false] as CFDictionary
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, options),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, options) as? [CFString: Any],
+              let pixelWidth = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue,
+              let pixelHeight = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue,
+              pixelWidth.isFinite, pixelWidth > 0,
+              pixelHeight.isFinite, pixelHeight > 0 else { return NSNull() }
+
+        // NSImage.size uses resolution-adjusted points, then applies orientation.
+        func points(_ pixels: Double, _ key: CFString) -> Double {
+            guard let dpi = (properties[key] as? NSNumber)?.doubleValue,
+                  dpi.isFinite, dpi > 0 else { return pixels }
+            return pixels * (72 / dpi)
+        }
+        let width = points(pixelWidth, kCGImagePropertyDPIWidth)
+        let height = points(pixelHeight, kCGImagePropertyDPIHeight)
+        guard width.isFinite, width > 0, height.isFinite, height > 0 else { return NSNull() }
+        let orientation = (properties[kCGImagePropertyOrientation] as? NSNumber)?.intValue ?? 1
+        return (5...8).contains(orientation)
+            ? ["w": height, "h": width]
+            : ["w": width, "h": height]
     }
 
     @objc static func fromName(_ name: String) -> HSImage? {

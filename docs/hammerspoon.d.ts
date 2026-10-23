@@ -187,6 +187,17 @@ declare class HSImage {
     static fromPath(path: string): HSImage | null;
 
     /**
+     * Read the first image's logical dimensions from file metadata without decoding pixels.
+Dimensions follow `fromPath(path).size`: resolution metadata scales pixels
+to points (72 points per inch), and orientations 5–8 exchange the axes.
+At 72 DPI, or without resolution metadata, these are pixel dimensions.
+No image object is constructed and decoded-image caching is disabled.
+     * @param path Path to the image file (`~` is expanded)
+     * @returns An object `{ w, h }`, or null if the file is unreadable, is not a supported image, or has no valid dimensions
+     */
+    static dimensionsOfFile(path: string): any;
+
+    /**
      * Load a system image by name
      * @param name Name of the system image (e.g., "NSComputer", "NSFolder")
      * @returns An HSImage object, or null if the image couldn't be found
