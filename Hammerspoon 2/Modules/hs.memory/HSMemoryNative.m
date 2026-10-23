@@ -51,7 +51,7 @@ static NSDictionary *mallocSnapshot(JSContext *context) {
         const char *zoneName = malloc_get_zone_name(zone);
         NSString *name = zoneName ? [NSString stringWithUTF8String:zoneName] : nil;
         [zones addObject:@{
-            @"name": name ?: @"unnamed",
+            @"name": name ? name : @"unnamed",
             @"sizeInUse": @(statistics.size_in_use),
             @"sizeAllocated": @(statistics.size_allocated),
             @"blocksInUse": @(statistics.blocks_in_use)
@@ -84,7 +84,7 @@ NSDictionary<NSString *, id> *HSMemorySnapshot(JSContext *context) {
         }
     }
     NSMutableDictionary *result = [@{@"footprint": @(footprint), @"malloc": mallocStats,
-                                     @"js": jsStats ?: (id)NSNull.null} mutableCopy];
+                                     @"js": jsStats ? jsStats : (id)NSNull.null} mutableCopy];
     if (peak) result[@"footprintPeak"] = peak;
     return result;
 }

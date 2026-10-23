@@ -56,6 +56,7 @@ nonisolated final class HSMemoryIntegrationTests: XCTestCase {
         try XCTSkipUnless(available, "Private JSC statistics are unavailable")
         check(harness, """
             (() => {
+                hs.memory.relieve({malloc: false});
                 const s = hs.memory.stats().js;
                 const counters = ['heapSize', 'heapCapacity', 'extraMemorySize', 'objectCount',
                     'protectedObjectCount', 'globalObjectCount', 'protectedGlobalObjectCount'];
@@ -120,6 +121,8 @@ nonisolated final class HSMemoryIntegrationTests: XCTestCase {
         XCTAssertFalse(harness.hasException)
         harness.eval("""
             var retained = Array.from({length: 20000}, (_, i) => ({index: i}));
+            // JSC counts marked cells; collect while the objects remain rooted.
+            hs.memory.relieve({malloc: false});
             var allocated = hs.memory.stats().js.objectCount;
             """)
         XCTAssertFalse(harness.hasException)
