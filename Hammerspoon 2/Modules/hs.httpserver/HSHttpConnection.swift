@@ -28,6 +28,10 @@ nonisolated final class HSHttpConnection: @unchecked Sendable {
     private var idleTimer: DispatchSourceTimer?
     private var timerGeneration: UInt64 = 0
 
+    #if DEBUG
+    var willSendFinalMessageForTesting: (@Sendable (NWConnection) -> Void)?
+    #endif
+
     init(connection: NWConnection, server: HSHttpServer, queue: DispatchQueue,
          maxBodyBytes: Int, idleTimeout: TimeInterval) {
         self.connection = connection
@@ -51,10 +55,13 @@ nonisolated final class HSHttpConnection: @unchecked Sendable {
     }
 
     func close() {
-        guard phase != .closing else { return }
-        phase = .closing
-        cancelIdleTimer()
-        parser.reset()
+        if phase != .closing {
+            phase = .closing
+            cancelIdleTimer()
+            parser.reset()
+        }
+        // Shutdown must cancel even while a graceful final send is pending:
+        // the owner may release us before its weak completion can cancel.
         connection.cancel()
     }
 
@@ -96,6 +103,9 @@ nonisolated final class HSHttpConnection: @unchecked Sendable {
             self.phase = .closing
             self.cancelIdleTimer()
             self.parser.reset()
+            #if DEBUG
+            self.willSendFinalMessageForTesting?(self.connection)
+            #endif
             // A final message sends TCP FIN after all response bytes. Cancel
             // only after Network.framework has processed the graceful close.
             self.connection.send(content: nil, contentContext: .finalMessage, isComplete: true,

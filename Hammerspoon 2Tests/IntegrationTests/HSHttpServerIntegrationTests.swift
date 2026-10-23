@@ -3,6 +3,7 @@ import Foundation
 import Network
 import JavaScriptCore
 import Darwin
+import Synchronization
 @testable import Hammerspoon_2
 
 // Raw TCP keeps connection reuse, pipelining and EOF visible to the tests.
@@ -147,6 +148,41 @@ nonisolated final class HSHttpServerIntegrationTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(start.duration(to: .now), .milliseconds(300))
         }
         try await assertRemoved(server)
+    }
+
+    @MainActor
+    func testStopDuringPendingGracefulCloseCancelsTransport() async throws {
+        let (harness, server, port) = try await makeServer(timeout: 0.1)
+        let cancelled = XCTestExpectation(description: "Transport cancelled after server shutdown")
+        let observedTransport = Mutex<NWConnection?>(nil)
+        defer {
+            observedTransport.withLock { $0?.cancel(); $0 = nil }
+            server.stop()
+            withExtendedLifetime(harness) {}
+        }
+        server.observeGracefulCloseForTesting { [weak server] transport in
+            // Retain the transport, not its wrapper, so cancellation is observed
+            // independently of the server releasing its connection collection.
+            observedTransport.withLock { $0 = transport }
+            let previousHandler = transport.stateUpdateHandler
+            transport.stateUpdateHandler = { state in
+                previousHandler?(state)
+                if case .cancelled = state { cancelled.fulfill() }
+            }
+            // The idle timer has entered closing on the listener queue. Enqueue
+            // stop before submitting FIN, so it precedes the send completion.
+            server?.stop()
+        }
+        try await withClient(port: port) { client in
+            try await client.send("GET / HTTP/1.1\r\n\r\n")
+            let body = try await client.response()
+            XCTAssertEqual(body, "/")
+            // Keep the peer's sending direction open; EOF alone would only
+            // prove that FIN was sent, not that the transport was cancelled.
+            let result = await XCTWaiter.fulfillment(of: [cancelled], timeout: 3)
+            XCTAssertEqual(result, .completed)
+            XCTAssertEqual(server.connectionCountForTesting, 0)
+        }
     }
 
     @MainActor

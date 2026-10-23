@@ -134,9 +134,14 @@ nonisolated final class HSHttpServer: NSObject, HSHttpServerAPI, @unchecked Send
     // Swift-only observations for loopback lifecycle tests; not JS API.
     var connectionCountForTesting: Int { listenerQueue.sync { connectionsByID.count } }
     var listeningPortForTesting: UInt16? { listenerQueue.sync { listener.port?.rawValue } }
+    private var gracefulCloseObserverForTesting: (@Sendable (NWConnection) -> Void)?
+
+    func observeGracefulCloseForTesting(_ observer: @escaping @Sendable (NWConnection) -> Void) {
+        listenerQueue.sync { gracefulCloseObserverForTesting = observer }
+    }
     #endif
 
-    @objc func stop() {
+    @objc nonisolated func stop() {
         listenerQueue.async { [weak self] in
             guard let self else { return }
             if self.stopped { return }
@@ -159,6 +164,9 @@ nonisolated final class HSHttpServer: NSObject, HSHttpServerAPI, @unchecked Send
         guard !stopped else { conn.cancel(); return }
         let connection = HSHttpConnection(connection: conn, server: self, queue: listenerQueue,
                                           maxBodyBytes: maxBodyBytes, idleTimeout: configuredIdleTimeout)
+        #if DEBUG
+        connection.willSendFinalMessageForTesting = gracefulCloseObserverForTesting
+        #endif
         let id = ObjectIdentifier(connection)
         connectionsByID[id] = connection
         connection.start()
