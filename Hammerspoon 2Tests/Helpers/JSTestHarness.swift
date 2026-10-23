@@ -435,6 +435,8 @@ extension JSTestHarness {
                 loadModule(HSSpotlightModule.self, as: name)
             case "menubar":
                 loadModule(HSMenubarModule.self, as: name)
+            case "memory":
+                loadModule(HSMemoryModule.self, as: name)
             case "http":
                 loadModule(HSHttpModule.self, as: name)
             case "httpserver":

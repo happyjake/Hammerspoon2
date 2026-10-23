@@ -3381,6 +3381,45 @@ is delivered. Defaults to `kCLDistanceFilterNone` (all movements reported).
 }
 
 /**
+ * Inspect the current process's memory and explicitly request garbage collection
+and allocator relief. Loading this module does not collect or release memory.
+ */
+declare namespace hs.memory {
+    /**
+     * Returns a snapshot of process, malloc, and JavaScript heap memory.
+All sizes are bytes. `footprint` is task_vm_info's phys_footprint;
+`footprintPeak` is included when the kernel supplies its peak ledger.
+`malloc` contains `sizeInUse`, `sizeAllocated`, `blocksInUse`, and `zones`.
+The zones array has objects with `name` and those same three counters. Totals sum
+every registered malloc zone, including zones with duplicate names.
+`js` contains `heapSize`, `heapCapacity`, `extraMemorySize`, `objectCount`,
+`protectedObjectCount`, `globalObjectCount`, `protectedGlobalObjectCount`,
+and the name-to-count maps `objectTypeCounts` and `protectedObjectTypeCounts`.
+The protected type map is empty when JSC does not provide it. `js` is null
+if its private statistics symbol is unavailable. JSC figures cover the
+calling context's VM; process and malloc figures cover the entire process.
+Sampling itself allocates memory; the counters are not an atomic snapshot.
+     * @returns A plain object containing `footprint`, optional `footprintPeak`, `malloc`, and `js`. Throws if task or malloc statistics cannot be read.
+     */
+    function stats(): Record<string, any>;
+
+    /**
+     * Runs synchronous full JavaScript GC, then requests maximal malloc relief.
+Both treatments default to true. GC runs on the calling JS thread. If its
+private symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping
+malloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in
+milliseconds; footprints and released memory are bytes. Footprints are
+measured immediately before, after GC, and after malloc relief, even when
+a treatment is skipped. JSC releases pages asynchronously, so footprints
+need not decrease. This call does not wait for those pages to be returned.
+     * @param opts Optional treatment flags; omitted, undefined, or null uses both defaults.
+     * @returns A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Throws if a footprint cannot be read.
+     */
+    function relieve(opts?: {gc?: boolean, malloc?: boolean} | null): Record<string, any>;
+
+}
+
+/**
  * A single status item in the macOS menu bar, created via `hs.menubar.create()`.
 Provides a builder-style API for setting an icon, title, click callback, and
 querying the on-screen frame so callers can anchor a popover beneath it.

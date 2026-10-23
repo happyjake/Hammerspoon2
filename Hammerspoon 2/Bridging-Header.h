@@ -13,3 +13,5 @@
 // the VM is torn down; see JSEngine.deleteContext() for details.
 #import <JavaScriptCore/JavaScriptCore.h>
 JS_EXPORT void JSSynchronousGarbageCollectForDebugging(JSContextRef ctx);
+
+#import "Modules/hs.memory/HSMemoryNative.h"

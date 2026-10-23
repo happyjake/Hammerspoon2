@@ -8853,6 +8853,67 @@
       "rawDocumentation": "Determine the Mac's location via macOS Location Services.\n\nLocation data is obtained through WiFi network scanning and, where available, GPS\nhardware. User permission is required — call `hs.permissions.requestLocation()`\nbefore using any tracking features.\n\nThe module exposes a `geocoder` sub-object for forward/reverse geocoding without\nrequiring Location Services.\n\n## locationTable\n\nA `locationTable` is a plain JS object with the following keys:\n\n| Key | Type | Description |\n|-----|------|-------------|\n| `latitude` | number | Degrees north (positive) or south (negative) |\n| `longitude` | number | Degrees east (positive) or west (negative) |\n| `altitude` | number | Metres above sea level (`0` if unknown) |\n| `horizontalAccuracy` | number | Uncertainty radius in metres (`-1` if invalid) |\n| `verticalAccuracy` | number | Altitude accuracy in metres (`-1` if invalid) |\n| `course` | number | Direction of travel in degrees (`-1` if invalid) |\n| `speed` | number | Metres per second (`-1` if invalid) |\n| `timestamp` | number | Seconds since the Unix epoch |"
     },
     {
+      "name": "hs.memory",
+      "methods": [
+        {
+          "name": "stats",
+          "signature": "func stats() -> [String: Any]",
+          "isStatic": false,
+          "rawDocumentation": "Returns a snapshot of process, malloc, and JavaScript heap memory.\n\nAll sizes are bytes. `footprint` is task_vm_info's phys_footprint;\n`footprintPeak` is included when the kernel supplies its peak ledger.\n`malloc` contains `sizeInUse`, `sizeAllocated`, `blocksInUse`, and `zones`.\nThe zones array has objects with `name` and those same three counters. Totals sum\nevery registered malloc zone, including zones with duplicate names.\n`js` contains `heapSize`, `heapCapacity`, `extraMemorySize`, `objectCount`,\n`protectedObjectCount`, `globalObjectCount`, `protectedGlobalObjectCount`,\nand the name-to-count maps `objectTypeCounts` and `protectedObjectTypeCounts`.\nThe protected type map is empty when JSC does not provide it. `js` is null\nif its private statistics symbol is unavailable. JSC figures cover the\ncalling context's VM; process and malloc figures cover the entire process.\nSampling itself allocates memory; the counters are not an atomic snapshot.\n- Returns: A plain object containing `footprint`, optional `footprintPeak`, `malloc`, and `js`. Throws if task or malloc statistics cannot be read.\n- Example:\n```js\nconsole.log(JSON.stringify(hs.memory.stats()))\n```",
+          "description": "Returns a snapshot of process, malloc, and JavaScript heap memory.\nAll sizes are bytes. `footprint` is task_vm_info's phys_footprint;\n`footprintPeak` is included when the kernel supplies its peak ledger.\n`malloc` contains `sizeInUse`, `sizeAllocated`, `blocksInUse`, and `zones`.\nThe zones array has objects with `name` and those same three counters. Totals sum\nevery registered malloc zone, including zones with duplicate names.\n`js` contains `heapSize`, `heapCapacity`, `extraMemorySize`, `objectCount`,\n`protectedObjectCount`, `globalObjectCount`, `protectedGlobalObjectCount`,\nand the name-to-count maps `objectTypeCounts` and `protectedObjectTypeCounts`.\nThe protected type map is empty when JSC does not provide it. `js` is null\nif its private statistics symbol is unavailable. JSC figures cover the\ncalling context's VM; process and malloc figures cover the entire process.\nSampling itself allocates memory; the counters are not an atomic snapshot.",
+          "params": [],
+          "returns": {
+            "type": "Object<String, Any>",
+            "description": "A plain object containing `footprint`, optional `footprintPeak`, `malloc`, and `js`. Throws if task or malloc statistics cannot be read."
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "console.log(JSON.stringify(hs.memory.stats()))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.memory/HSMemoryModule.swift",
+          "lineNumber": 26
+        },
+        {
+          "name": "relieve",
+          "signature": "func relieve(_ opts: [String: Any]?) -> [String: Any]",
+          "isStatic": false,
+          "rawDocumentation": "Runs synchronous full JavaScript GC, then requests maximal malloc relief.\n\nBoth treatments default to true. GC runs on the calling JS thread. If its\nprivate symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping\nmalloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in\nmilliseconds; footprints and released memory are bytes. Footprints are\nmeasured immediately before, after GC, and after malloc relief, even when\na treatment is skipped. JSC releases pages asynchronously, so footprints\nneed not decrease. This call does not wait for those pages to be returned.\n- Parameter opts?: {{gc?: boolean, malloc?: boolean} | null} Optional treatment flags; omitted, undefined, or null uses both defaults.\n- Returns: A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Throws if a footprint cannot be read.\n- Example:\n```js\nconsole.log(JSON.stringify(hs.memory.relieve({gc: false})))\n```",
+          "description": "Runs synchronous full JavaScript GC, then requests maximal malloc relief.\nBoth treatments default to true. GC runs on the calling JS thread. If its\nprivate symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping\nmalloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in\nmilliseconds; footprints and released memory are bytes. Footprints are\nmeasured immediately before, after GC, and after malloc relief, even when\na treatment is skipped. JSC releases pages asynchronously, so footprints\nneed not decrease. This call does not wait for those pages to be returned.",
+          "params": [
+            {
+              "name": "opts",
+              "type": "Object<String, Any>",
+              "description": "Optional treatment flags; omitted, undefined, or null uses both defaults.",
+              "optional": true,
+              "tsType": "{gc?: boolean, malloc?: boolean} | null"
+            }
+          ],
+          "returns": {
+            "type": "Object<String, Any>",
+            "description": "A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Throws if a footprint cannot be read."
+          },
+          "notes": [],
+          "examples": [
+            {
+              "lang": "js",
+              "code": "console.log(JSON.stringify(hs.memory.relieve({gc: false})))"
+            }
+          ],
+          "source": "swift",
+          "filePath": "Hammerspoon 2/Modules/hs.memory/HSMemoryModule.swift",
+          "lineNumber": 43
+        }
+      ],
+      "properties": [],
+      "types": [],
+      "description": "Inspect the current process's memory and explicitly request garbage collection\nand allocator relief. Loading this module does not collect or release memory.",
+      "rawDocumentation": "Inspect the current process's memory and explicitly request garbage collection\nand allocator relief. Loading this module does not collect or release memory."
+    },
+    {
       "name": "hs.menubar",
       "methods": [
         {
@@ -21403,5 +21464,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-09-14T05:22:37.554Z"
+  "generatedAt": "2026-10-23T06:08:43.098Z"
 }

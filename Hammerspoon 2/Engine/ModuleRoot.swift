@@ -55,6 +55,7 @@ import JavaScriptCoreExtras
     @objc var keycodes: HSKeycodesModule { get }
     @objc var location: HSLocationModule { get }
     @objc var menubar: HSMenubarModule { get }
+    @objc var memory: HSMemoryModule { get }
     @objc var mouse: HSMouseModule { get }
     @objc var multipeer: HSMultipeerModule { get }
     @objc var notify: HSNotifyModule { get }
@@ -181,6 +182,7 @@ import JavaScriptCoreExtras
     @objc var keycodes: HSKeycodesModule { get { getOrCreate(name: "keycodes", type: HSKeycodesModule.self)}}
     @objc var location: HSLocationModule { get { getOrCreate(name: "location", type: HSLocationModule.self)}}
     @objc var menubar: HSMenubarModule { get { getOrCreate(name: "menubar", type: HSMenubarModule.self)}}
+    @objc var memory: HSMemoryModule { get { getOrCreate(name: "memory", type: HSMemoryModule.self)}}
     @objc var mouse: HSMouseModule { get { getOrCreate(name: "mouse", type: HSMouseModule.self)}}
     @objc var multipeer: HSMultipeerModule { get { getOrCreate(name: "multipeer", type: HSMultipeerModule.self)}}
     @objc var notify: HSNotifyModule { get { getOrCreate(name: "notify", type: HSNotifyModule.self)}}
