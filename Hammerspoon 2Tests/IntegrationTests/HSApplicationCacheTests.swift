@@ -216,7 +216,9 @@ nonisolated final class HSApplicationCacheTests: XCTestCase {
         let image = try XCTUnwrap(NSBitmapImageRep(data: bytes))
         XCTAssertEqual(image.pixelsWide, 88)
         XCTAssertEqual(image.pixelsHigh, 88)
-        XCTAssertEqual(h.eval("hs.application.iconForBundleID('invalid.application.cache') === null") as? Bool, true)
+        let missing = try XCTUnwrap(h.evalValue("hs.application.iconForBundleID('invalid.application.cache')"))
+        XCTAssertTrue(missing.isNull || missing.isUndefined)
+        XCTAssertEqual(HSApplicationModule.iconRenderCount, renders + 2)
         XCTAssertFalse(h.hasException)
         XCTAssertFalse(other.hasException)
     }
