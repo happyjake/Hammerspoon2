@@ -95,11 +95,33 @@ private let SQLITE_TRANSIENT = unsafeBitCast(
     @objc var isOpen: Bool { db != nil }
 
     private var db: OpaquePointer?
-    private var stmtCache: [String: OpaquePointer] = [:]
+    private final class PreparedStatement {
+        let handle: OpaquePointer
+        private(set) var columnNames: [String]
+        private var generation: Int32 = 0
+
+        init(_ handle: OpaquePointer) {
+            self.handle = handle
+            columnNames = (0..<sqlite3_column_count(handle)).map { String(cString: sqlite3_column_name(handle, $0)) }
+        }
+
+        func reset() {
+            // Reprepare changes SQLite's metadata during step(). Keep the names
+            // from before this execution for its rows, then refresh for the next.
+            let current = sqlite3_stmt_status(handle, SQLITE_STMTSTATUS_REPREPARE, 0)
+            if current != generation {
+                columnNames = (0..<sqlite3_column_count(handle)).map { String(cString: sqlite3_column_name(handle, $0)) }
+                generation = current
+            }
+            sqlite3_reset(handle)
+            sqlite3_clear_bindings(handle)
+        }
+    }
+
+    private var stmtCache: [String: PreparedStatement] = [:]
     private var stmtOrder: [String] = []  // insertion order = LRU order
     private let stmtCacheCap = 64
     private var inTransaction = false
-    private var resultPrototypeCheck: JSValue?
 
     init?(path: String) {
         self.path = path
@@ -124,7 +146,7 @@ private let SQLITE_TRANSIENT = unsafeBitCast(
     isolated deinit {
         if db != nil {
             // Best-effort cleanup; on deinit we're past the point of throwing.
-            for stmt in stmtCache.values { sqlite3_finalize(stmt) }
+            for stmt in stmtCache.values { sqlite3_finalize(stmt.handle) }
             sqlite3_close_v2(db)
         }
         AKTrace("Deinit of HSSqliteDB")
@@ -153,8 +175,9 @@ private let SQLITE_TRANSIENT = unsafeBitCast(
             AKError("hs.sqlite.run: database is closed")
             return nil
         }
-        guard let stmt = cachedPrepare(sql) else { return nil }
-        defer { sqlite3_reset(stmt); sqlite3_clear_bindings(stmt) }
+        guard let statement = cachedPrepare(sql) else { return nil }
+        let stmt = statement.handle
+        defer { statement.reset() }
 
         if !bindParams(stmt: stmt, params: params, sql: sql) { return nil }
 
@@ -175,69 +198,96 @@ private let SQLITE_TRANSIENT = unsafeBitCast(
 
     @objc(query::) func query(_ sql: String, _ params: JSValue) -> JSValue {
         let context = params.context!
-        let ctx = context.jsGlobalContextRef!
-        let rows = JSObjectMakeArray(ctx, 0, nil, nil)!
-        JSValueProtect(ctx, rows)
-        defer { JSValueUnprotect(ctx, rows) }
-
         guard let db else {
             AKError("hs.sqlite.query: database is closed")
-            return JSValue(jsValueRef: rows, in: context)
+            return JSValue(newArrayIn: context)
         }
-        guard let stmt = cachedPrepare(sql) else { return JSValue(jsValueRef: rows, in: context) }
+        guard let statement = cachedPrepare(sql) else { return JSValue(newArrayIn: context) }
+        let stmt = statement.handle
         var needsReset = true
         defer {
-            if needsReset { sqlite3_reset(stmt); sqlite3_clear_bindings(stmt) }
+            if needsReset { statement.reset() }
         }
 
         if !bindParams(stmt: stmt, params: params, sql: sql) {
-            return JSValue(jsValueRef: rows, in: context)
+            return JSValue(newArrayIn: context)
         }
 
-        let columnCount = Int(sqlite3_column_count(stmt))
-        var columns: [(name: JSStringRef, index: Int32)] = []
+        var rc = sqlite3_step(stmt)
+        if rc != SQLITE_ROW {
+            if rc != SQLITE_DONE {
+                AKError("hs.sqlite.query: step failed (\(rc)): \(String(cString: sqlite3_errmsg(db))) — SQL: \(sql.prefix(200))")
+            }
+            return JSValue(newArrayIn: context)
+        }
+
+        let ctx = context.jsGlobalContextRef!
+        let names = statement.columnNames
+        var columns: [(name: String, key: JSStringRef, index: Int32)] = []
         var columnPositions: [String: Int] = [:]
-        for i in 0..<columnCount {
-            let name = String(cString: sqlite3_column_name(stmt, Int32(i)))
+        for (i, name) in names.enumerated() {
             if let position = columnPositions[name] {
                 // Swift Dictionary keeps the first key's spelling and the last
                 // value, including canonically equivalent Unicode column names.
                 columns[position].index = Int32(i)
             } else {
                 columnPositions[name] = columns.count
-                columns.append((name.withCString { JSStringCreateWithUTF8CString($0)! }, Int32(i)))
+                columns.append((name, name.withCString { JSStringCreateWithUTF8CString($0)! }, Int32(i)))
             }
         }
-        defer { columns.forEach { JSStringRelease($0.name) } }
+        defer { columns.forEach { JSStringRelease($0.key) } }
 
-        if !canAssignResultsDirectly(columns: columns.map(\.name), rows: rows, context: context) {
-            // The collection bridge can invoke inherited setters. Finish and
-            // reset SQLite before entering JS, including on a later step error.
-            let values = collectionRows(stmt: stmt, db: db, sql: sql)
-            sqlite3_reset(stmt)
-            sqlite3_clear_bindings(stmt)
-            needsReset = false
-            return JSValue(object: values, in: context)
-        }
-
-        var rowIndex: UInt32 = 0
-        while true {
-            let rc = sqlite3_step(stmt)
-            if rc == SQLITE_DONE { break }
-            if rc != SQLITE_ROW {
-                AKError("hs.sqlite.query: step failed (\(rc)): \(String(cString: sqlite3_errmsg(db))) — SQL: \(sql.prefix(200))")
-                return JSValue(newArrayIn: context)
-            }
-            let row = JSObjectMake(ctx, nil, nil)!
-            JSValueProtect(ctx, row)
+        // Native buffers are invisible to JSC's collector. Root the cells until
+        // the result owns them, and finish SQLite before any JS property writes.
+        var values: [JSValueRef] = []
+        values.reserveCapacity(columns.count)
+        defer { values.forEach { JSValueUnprotect(ctx, $0) } }
+        var rowCount = 0
+        while rc == SQLITE_ROW {
             for column in columns {
                 let value = columnValue(stmt: stmt, index: column.index, context: context)
-                // Match the NSDictionary bridge's ordinary property assignment.
-                JSObjectSetProperty(ctx, row, column.name, value, 0, nil)
+                JSValueProtect(ctx, value)
+                values.append(value)
             }
-            JSObjectSetPropertyAtIndex(ctx, rows, rowIndex, row, nil)
+            rowCount += 1
+            rc = sqlite3_step(stmt)
+        }
+        let stepError = rc == SQLITE_DONE ? nil : String(cString: sqlite3_errmsg(db))
+        statement.reset()
+        needsReset = false
+        if let stepError {
+            AKError("hs.sqlite.query: step failed (\(rc)): \(stepError) — SQL: \(sql.prefix(200))")
+            return JSValue(newArrayIn: context)
+        }
+
+        let rows = JSObjectMakeArray(ctx, 0, nil, nil)!
+        JSValueProtect(ctx, rows)
+        defer { JSValueUnprotect(ctx, rows) }
+        if !canAssignResultsDirectly(columns: columns.map(\.key), rowCount: rowCount, rows: rows, context: context) {
+            // Preserve the collection bridge's ordering and setter behavior for
+            // intercepted assignments. Wrapping a cell keeps its existing value,
+            // including Data's Objective-C wrapper, without converting it again.
+            var collection: [[String: Any]] = []
+            for rowIndex in 0..<rowCount {
+                var row: [String: Any] = [:]
+                for (index, column) in columns.enumerated() {
+                    row[column.name] = JSValue(jsValueRef: values[rowIndex * columns.count + index], in: context)!
+                }
+                collection.append(row)
+            }
+            return JSValue(object: collection, in: context)
+        }
+
+        for rowIndex in 0..<rowCount {
+            let row = JSObjectMake(ctx, nil, nil)!
+            JSValueProtect(ctx, row)
+            for (index, column) in columns.enumerated() {
+                let value = values[rowIndex * columns.count + index]
+                // Match the NSDictionary bridge's ordinary property assignment.
+                JSObjectSetProperty(ctx, row, column.key, value, 0, nil)
+            }
+            JSObjectSetPropertyAtIndex(ctx, rows, UInt32(rowIndex), row, nil)
             JSValueUnprotect(ctx, row)
-            rowIndex += 1
         }
         return JSValue(jsValueRef: rows, in: context)
     }
@@ -297,18 +347,17 @@ private let SQLITE_TRANSIENT = unsafeBitCast(
             throwJSError("hs.sqlite.close: cannot close inside an open transaction", on: ctx)
             return
         }
-        for stmt in stmtCache.values { sqlite3_finalize(stmt) }
+        for stmt in stmtCache.values { sqlite3_finalize(stmt.handle) }
         stmtCache.removeAll()
         stmtOrder.removeAll()
         sqlite3_close_v2(db)
         db = nil
-        resultPrototypeCheck = nil
         AKTrace("hs.sqlite: closed \(path)")
     }
 
     // MARK: - Internal helpers
 
-    private func canAssignResultsDirectly(columns: [JSStringRef], rows: JSObjectRef, context: JSContext) -> Bool {
+    private func canAssignResultsDirectly(columns: [JSStringRef], rowCount: Int, rows: JSObjectRef, context: JSContext) -> Bool {
         let ctx = context.jsGlobalContextRef!
         let object = JSObjectMake(ctx, nil, nil)!
         let objectPrototype = JSObjectGetPrototype(ctx, object)!
@@ -322,55 +371,17 @@ private let SQLITE_TRANSIENT = unsafeBitCast(
               JSValueIsStrictEqual(ctx, JSObjectGetPrototype(ctx, arrayProto), objectPrototype) else { return false }
         for column in columns where JSObjectHasProperty(ctx, objectProto, column) { return false }
 
-        if resultPrototypeCheck?.context.virtualMachine !== context.virtualMachine {
-            // Use pristine reflection builtins even if the user config replaced
-            // Object.getOwnPropertyNames. The helper shares the VM, not globals.
-            let helper = JSContext(virtualMachine: context.virtualMachine)!
-            resultPrototypeCheck = helper.evaluateScript("""
-                ((ownNames) => (objectPrototype, arrayPrototype) => {
-                    const indexed = name => /^(0|[1-9][0-9]*)$/.test(name);
-                    return !ownNames(objectPrototype).some(indexed) &&
-                           !ownNames(arrayPrototype).some(indexed);
-                })(Object.getOwnPropertyNames)
-                """)
+        // Check only indices that will be assigned. HasProperty includes
+        // non-enumerable keys without invoking getters or enumerating prototypes.
+        for index in 0..<rowCount {
+            if JSObjectHasPropertyForKey(ctx, arrayProto, JSValueMakeNumber(ctx, Double(index)), nil) {
+                return false
+            }
         }
-        return resultPrototypeCheck?.call(withArguments: [
-            JSValue(jsValueRef: objectPrototype, in: context)!,
-            JSValue(jsValueRef: arrayPrototype, in: context)!
-        ])?.toBool() == true
+        return true
     }
 
-    private func collectionRows(stmt: OpaquePointer, db: OpaquePointer, sql: String) -> [[String: Any]] {
-        let names = (0..<sqlite3_column_count(stmt)).map { String(cString: sqlite3_column_name(stmt, $0)) }
-        var rows: [[String: Any]] = []
-        while true {
-            let rc = sqlite3_step(stmt)
-            if rc == SQLITE_DONE { return rows }
-            if rc != SQLITE_ROW {
-                AKError("hs.sqlite.query: step failed (\(rc)): \(String(cString: sqlite3_errmsg(db))) — SQL: \(sql.prefix(200))")
-                return []
-            }
-            var row: [String: Any] = [:]
-            for (index, name) in names.enumerated() {
-                let column = Int32(index)
-                switch sqlite3_column_type(stmt, column) {
-                case SQLITE_INTEGER:
-                    row[name] = NSNumber(value: sqlite3_column_int64(stmt, column))
-                case SQLITE_FLOAT:
-                    row[name] = NSNumber(value: sqlite3_column_double(stmt, column))
-                case SQLITE_TEXT:
-                    row[name] = sqlite3_column_text(stmt, column).map { String(cString: $0) } ?? ""
-                case SQLITE_BLOB:
-                    row[name] = columnData(stmt: stmt, index: column)
-                default:
-                    row[name] = NSNull()
-                }
-            }
-            rows.append(row)
-        }
-    }
-
-    private func cachedPrepare(_ sql: String) -> OpaquePointer? {
+    private func cachedPrepare(_ sql: String) -> PreparedStatement? {
         if let stmt = stmtCache[sql] {
             // Promote to most-recently-used.
             stmtOrder.removeAll { $0 == sql }
@@ -387,12 +398,13 @@ private let SQLITE_TRANSIENT = unsafeBitCast(
         if stmtCache.count >= stmtCacheCap {
             let evict = stmtOrder.removeFirst()
             if let old = stmtCache.removeValue(forKey: evict) {
-                sqlite3_finalize(old)
+                sqlite3_finalize(old.handle)
             }
         }
-        stmtCache[sql] = stmt
+        let statement = PreparedStatement(stmt)
+        stmtCache[sql] = statement
         stmtOrder.append(sql)
-        return stmt
+        return statement
     }
 
     private func bindParams(stmt: OpaquePointer, params: JSValue, sql: String) -> Bool {
