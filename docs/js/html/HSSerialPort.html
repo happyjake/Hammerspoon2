@@ -106,7 +106,9 @@
 <a href="#write">write(s) -> boolean</a>
         </h3>
 
-        <div class="description">Write a string to the port (caller includes any trailing &quot;&#92;n&quot;).</div>
+        <div class="description">Queue a string for ordered delivery to the port (caller includes any trailing &quot;&#92;n&quot;).
+Writes are nonblocking: bytes that do not fit in the device&#39;s output buffer
+immediately are retained and resumed when the descriptor becomes writable.</div>
 
         <div class="card-section-label">Declaration</div>
         <pre><code class="language-javascript">write(s) -> boolean</code></pre>
@@ -131,14 +133,14 @@
 
         <div class="card-section-label">Returns</div>
         <div class="return-type">boolean</div>
-        <div class="return-desc">true if all bytes were written.</div>
+        <div class="return-desc">true if all bytes were accepted; false if closed, queue-full, or a fatal write error occurred.</div>
 
 
         <div class="card-section-label">Example</div>
         <pre><code class="language-js">hs.serial.open(&#39;/dev/cu.usbmodem1&#39;).write(&#39;{&quot;text&quot;:&quot;hi&quot;}&#92;n&#39;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.serial/HSSerialPort.swift#L40" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift:40</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.serial/HSSerialPort.swift#L42" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift:42</a>
         </div>
     </div>
     <div class="method" id="onLine">
@@ -178,7 +180,7 @@
         <pre><code class="language-js">hs.serial.open(&#39;/dev/cu.usbmodem1&#39;).onLine(line =&gt; console.log(line))</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.serial/HSSerialPort.swift#L49" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift:49</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.serial/HSSerialPort.swift#L51" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift:51</a>
         </div>
     </div>
     <div class="method" id="onClose">
@@ -218,7 +220,7 @@
         <pre><code class="language-js">hs.serial.open(&#39;/dev/cu.usbmodem1&#39;).onClose(() =&gt; console.log(&#39;closed&#39;))</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.serial/HSSerialPort.swift#L58" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift:58</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.serial/HSSerialPort.swift#L60" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.serial/HSSerialPort.swift:60</a>
         </div>
     </div>
         </main>

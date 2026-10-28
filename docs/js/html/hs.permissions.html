@@ -456,6 +456,173 @@ Required for hs.eventtap to receive global key events.</div>
             <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.permissions/HSPermissionsModule.swift#L175" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift:175</a>
         </div>
     </div>
+    <div class="method" id="checkBluetooth">
+        <h3><a href="#checkBluetooth">hs.permissions.checkBluetooth() -> boolean</a></h3>
+
+        <div class="description">Check whether the app may use Bluetooth (needed by hs.ble).</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.permissions.checkBluetooth() -> boolean</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">boolean</div>
+        <div class="return-desc">true if granted, false if denied or not yet decided</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">console.log(hs.permissions.checkBluetooth())</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.permissions/HSPermissionsModule.swift#L183" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift:183</a>
+        </div>
+    </div>
+    <div class="method" id="requestBluetooth">
+        <h3><a href="#requestBluetooth">hs.permissions.requestBluetooth() -> Promise&lt;boolean&gt;</a></h3>
+
+        <div class="description">Request Bluetooth access (shows the system dialog if the user has not yet decided).</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.permissions.requestBluetooth() -> Promise&lt;boolean&gt;</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">Promise&lt;boolean&gt;</div>
+        <div class="return-desc">A Promise that resolves to true if granted, false otherwise</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">hs.permissions.requestBluetooth().then(granted =&gt; console.log(granted))</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.permissions/HSPermissionsModule.swift#L191" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift:191</a>
+        </div>
+    </div>
+    <div class="method" id="checkFullDiskAccess">
+        <h3><a href="#checkFullDiskAccess">hs.permissions.checkFullDiskAccess() -> boolean</a></h3>
+
+        <div class="description">Check whether the app has Full Disk Access.
+macOS offers no API for this, so the check opens the user&#39;s TCC database for reading —
+grant it in System Settings → Privacy &amp; Security → Full Disk Access, then relaunch.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.permissions.checkFullDiskAccess() -> boolean</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">boolean</div>
+        <div class="return-desc">true if granted, false otherwise</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">console.log(hs.permissions.checkFullDiskAccess())</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.permissions/HSPermissionsModule.swift#L203" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift:203</a>
+        </div>
+    </div>
+    <div class="method" id="checkAutomation">
+        <h3><a href="#checkAutomation">hs.permissions.checkAutomation(bundleID) -> string</a></h3>
+
+        <div class="description">Check whether the app may send Apple Events to one target app (Automation).
+Automation is granted per target. A target that is not running cannot be checked.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.permissions.checkAutomation(bundleID) -> string</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">bundleID</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the target&#39;s bundle identifier, e.g. &quot;com.apple.Safari&quot;</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">string</div>
+        <div class="return-desc">&quot;granted&quot;, &quot;denied&quot;, &quot;notDetermined&quot;, &quot;notRunning&quot;, or &quot;error(&lt;code&gt;)&quot;</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">console.log(hs.permissions.checkAutomation(&quot;com.google.Chrome&quot;))</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.permissions/HSPermissionsModule.swift#L214" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift:214</a>
+        </div>
+    </div>
+    <div class="method" id="requestAutomation">
+        <h3><a href="#requestAutomation">hs.permissions.requestAutomation(bundleID) -> Promise&lt;boolean&gt;</a></h3>
+
+        <div class="description">Ask for permission to automate one target app (shows the consent dialog if undecided).
+The target must be running.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.permissions.requestAutomation(bundleID) -> Promise&lt;boolean&gt;</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">bundleID</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">the target&#39;s bundle identifier</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">Promise&lt;boolean&gt;</div>
+        <div class="return-desc">A Promise that resolves to true if granted, false otherwise</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">hs.permissions.requestAutomation(&quot;com.apple.Safari&quot;).then(granted =&gt; console.log(granted))</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.permissions/HSPermissionsModule.swift#L224" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift:224</a>
+        </div>
+    </div>
+    <div class="method" id="summary">
+        <h3><a href="#summary">hs.permissions.summary() -> {[key: string]: any}</a></h3>
+
+        <div class="description">Everything this build&#39;s features need, in one object — the same rows the
+Settings → Permissions panel shows: live state, whether it is granted, which features
+use it, whether a fresh grant needs a relaunch, and the System Settings URL.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.permissions.summary() -> {[key: string]: any}</code></pre>
+
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-type">{[key: string]: any}</div>
+        <div class="return-desc">an object keyed by permission id (`accessibility`, `inputMonitoring`,</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">const p = hs.permissions.summary()
+Object.values(p).filter(x =&gt; !x.granted).forEach(x =&gt; console.log(x.name, &#39;—&#39;, x.usedBy))</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.permissions/HSPermissionsModule.swift#L238" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.permissions/HSPermissionsModule.swift:238</a>
+        </div>
+    </div>
         </main>
 
         <!-- Right TOC sidebar -->

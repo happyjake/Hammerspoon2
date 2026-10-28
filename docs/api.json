@@ -719,9 +719,8 @@
             }
           ],
           "returns": {
-            "type": "JSValue",
-            "description": "Array of `{name, displayName, bundleID, path, iconPath, version}`",
-            "tsType": "ReadonlyArray<Readonly<Record<string, any>>>"
+            "type": "ReadonlyArray<Readonly<Record<string, any>>>",
+            "description": "Array of `{name, displayName, bundleID, path, iconPath, version}`"
           },
           "notes": [],
           "examples": [
@@ -21512,5 +21511,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-10-28T07:17:15.839Z"
+  "generatedAt": "2026-10-28T09:28:27.257Z"
 }
