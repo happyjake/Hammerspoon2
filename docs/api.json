@@ -13679,9 +13679,9 @@
             },
             {
               "name": "query",
-              "signature": "func query(_ sql: String, _ params: JSValue) -> [[String: Any]]",
+              "signature": "func query(_ sql: String, _ params: JSValue) -> JSValue",
               "isStatic": false,
-              "rawDocumentation": "Run a parameterized read. Returns an array of plain JS objects keyed by\ncolumn name. Empty array if no rows.\n- Parameter sql: Parameterized SELECT\n- Parameter params: Array of values to bind\n- Returns: An array of objects\n- Example:\n```js\nconst rows = db.query('SELECT * FROM t WHERE name LIKE ?', ['a%'])\n```",
+              "rawDocumentation": "Run a parameterized read. Returns an array of plain JS objects keyed by\ncolumn name. Empty array if no rows.\n- Parameter sql: Parameterized SELECT\n- Parameter params: Array of values to bind\n- Returns: {Record<string, any>[]} An array of objects\n- Example:\n```js\nconst rows = db.query('SELECT * FROM t WHERE name LIKE ?', ['a%'])\n```",
               "description": "Run a parameterized read. Returns an array of plain JS objects keyed by\ncolumn name. Empty array if no rows.",
               "params": [
                 {
@@ -13700,7 +13700,7 @@
                 }
               ],
               "returns": {
-                "type": "[[String: Any]]",
+                "type": "Record<string, any>[]",
                 "description": "An array of objects"
               },
               "notes": [],

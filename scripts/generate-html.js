@@ -169,7 +169,7 @@ function formatType(swiftType, promiseType = null) {
 
     // Handle optionals
     const cleanType = swiftType.replace(/\?$/, '');
-    return typeMap[cleanType] || cleanType;
+    return typeMap[cleanType] || cleanType.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /**

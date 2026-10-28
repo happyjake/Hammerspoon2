@@ -171,14 +171,14 @@ on success, or null on error.</div>
     </div>
     <div class="method" id="query">
         <h3>
-<a href="#query">query(sql, params) -> [[String: Any]]</a>
+<a href="#query">query(sql, params) -> Record&lt;string, any&gt;[]</a>
         </h3>
 
         <div class="description">Run a parameterized read. Returns an array of plain JS objects keyed by
 column name. Empty array if no rows.</div>
 
         <div class="card-section-label">Declaration</div>
-        <pre><code class="language-javascript">query(sql, params) -> [[String: Any]]</code></pre>
+        <pre><code class="language-javascript">query(sql, params) -> Record&lt;string, any&gt;[]</code></pre>
 
         <div class="card-section-label">Parameters</div>
         <table class="params-table">
@@ -204,7 +204,7 @@ column name. Empty array if no rows.</div>
         </table>
 
         <div class="card-section-label">Returns</div>
-        <div class="return-type">[[String: Any]]</div>
+        <div class="return-type">Record&lt;string, any&gt;[]</div>
         <div class="return-desc">An array of objects</div>
 
 

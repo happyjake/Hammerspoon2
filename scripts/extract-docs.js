@@ -530,6 +530,7 @@ function extractReturns(signature, docLines) {
         // Look for return description in documentation
         let returnDesc = '';
         let promiseType = null;
+        let jsValueType = null;
 
         for (const line of docLines) {
             const trimmed = line.trim();
@@ -545,6 +546,9 @@ function extractReturns(signature, docLines) {
                     const promiseMatch = typeAnnotation.match(/^Promise<(.+)>$/);
                     if (promiseMatch) {
                         promiseType = promiseMatch[1];
+                    } else if (returnMatch[1].trim() === 'JSValue') {
+                        // A direct JSValue return can retain its public JS shape.
+                        jsValueType = typeAnnotation;
                     }
                 }
                 break;
@@ -552,7 +556,7 @@ function extractReturns(signature, docLines) {
         }
 
         const result = {
-            type: returnMatch[1].trim(),
+            type: jsValueType || returnMatch[1].trim(),
             description: returnDesc
         };
 

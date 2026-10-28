@@ -1,0 +1,306 @@
+import XCTest
+import JavaScriptCore
+import SQLite3
+@testable import Hammerspoon_2
+
+nonisolated final class HSSqliteQueryTests: XCTestCase {
+    @MainActor
+    private func makeHarness() -> JSTestHarness {
+        let harness = JSTestHarness()
+        harness.loadModule(HSSqliteModule.self, as: "sqlite")
+        harness.eval("var db = hs.sqlite.open(':memory:')")
+        XCTAssertFalse(harness.hasException)
+        return harness
+    }
+
+    // The original Swift collection conversion, retained as an independent
+    // reference for the Objective-C bridge's numeric, string and Data behavior.
+    @MainActor
+    private func referenceRows(_ sql: String) throws -> [[String: Any]] {
+        var db: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(":memory:", &db), SQLITE_OK)
+        defer { sqlite3_close(db) }
+        var stmt: OpaquePointer?
+        XCTAssertEqual(sqlite3_prepare_v2(db, sql, -1, &stmt, nil), SQLITE_OK)
+        let statement = try XCTUnwrap(stmt)
+        defer { sqlite3_finalize(statement) }
+        let names = (0..<sqlite3_column_count(statement)).map {
+            String(cString: sqlite3_column_name(statement, $0))
+        }
+        var rows: [[String: Any]] = []
+        var rc = sqlite3_step(statement)
+        while rc == SQLITE_ROW {
+            var row: [String: Any] = [:]
+            for (index, name) in names.enumerated() {
+                let column = Int32(index)
+                switch sqlite3_column_type(statement, column) {
+                case SQLITE_INTEGER:
+                    row[name] = NSNumber(value: sqlite3_column_int64(statement, column))
+                case SQLITE_FLOAT:
+                    row[name] = NSNumber(value: sqlite3_column_double(statement, column))
+                case SQLITE_TEXT:
+                    row[name] = sqlite3_column_text(statement, column).map { String(cString: $0) } ?? ""
+                case SQLITE_BLOB:
+                    let count = Int(sqlite3_column_bytes(statement, column))
+                    if count > 0, let bytes = sqlite3_column_blob(statement, column) {
+                        row[name] = Data(bytes: bytes, count: count)
+                    } else {
+                        row[name] = Data()
+                    }
+                default:
+                    row[name] = NSNull()
+                }
+            }
+            rows.append(row)
+            rc = sqlite3_step(statement)
+        }
+        XCTAssertEqual(rc, SQLITE_DONE)
+        return rows
+    }
+
+    @MainActor
+    private func compareWithReference(_ sql: String, in harness: JSTestHarness) throws {
+        harness.context.setObject(try referenceRows(sql), forKeyedSubscript: "expected" as NSString)
+        harness.context.setObject(sql, forKeyedSubscript: "sql" as NSString)
+        harness.eval("var actual = db.query(sql)")
+        XCTAssertFalse(harness.hasException)
+        // Dictionary enumeration order was unspecified. Compare names and values,
+        // while preserving result row order and distinguishing -0 from +0.
+        let equal = harness.evalValue("""
+            Array.isArray(actual) && actual.length === expected.length &&
+            actual.every((row, i) => {
+                const keys = Object.keys(row).sort();
+                const other = expected[i];
+                return Object.getPrototypeOf(row) === Object.getPrototypeOf(other) &&
+                    JSON.stringify(keys) === JSON.stringify(Object.keys(other).sort()) &&
+                    keys.every(key => {
+                        const a = row[key], b = other[key];
+                        if (a !== null && typeof a === 'object') {
+                            return typeof b === 'object' && b !== null &&
+                                Object.getPrototypeOf(a) === Object.getPrototypeOf(b) &&
+                                Object.prototype.toString.call(a) === Object.prototype.toString.call(b) &&
+                                JSON.stringify(Object.keys(a)) === JSON.stringify(Object.keys(b));
+                        }
+                        return Object.is(a, b);
+                    });
+            })
+            """)
+        XCTAssertFalse(harness.hasException)
+        XCTAssertEqual(equal?.toBool(), true)
+    }
+
+    @MainActor
+    func testStorageClassParity() throws {
+        let harness = makeHarness()
+        defer { harness.eval("db.close()") }
+        try compareWithReference("""
+            SELECT 0 AS zero, 1 AS one, -42 AS negative,
+                9007199254740991 AS safe, 9007199254740993 AS rounded,
+                9223372036854775807 AS maximum, -9223372036854775808 AS minimum,
+                -9007199254740993 AS negativeRounded, 3.125 AS real,
+                -0.0 AS negativeZero, 1e999 AS infinity, -1e999 AS negativeInfinity,
+                5e-324 AS subnormal, NULL AS missing, '' AS empty,
+                'ASCII café 日本語 😀 é' AS unicode,
+                CAST(X'610062' AS TEXT) AS embeddedNul,
+                CAST(X'00FF' AS TEXT) AS leadingNul,
+                CAST(X'61FF62' AS TEXT) AS invalidByte,
+                CAST(X'E282' AS TEXT) AS truncated,
+                CAST(X'EDA080' AS TEXT) AS surrogate,
+                CAST(X'F0808080' AS TEXT) AS overlong
+            """, in: harness)
+        XCTAssertEqual(harness.evalValue("typeof actual[0].one")?.toString(), "number")
+        XCTAssertEqual(harness.evalValue("actual[0].rounded === 9007199254740992")?.toBool(), true)
+        XCTAssertEqual(harness.evalValue("actual[0].embeddedNul")?.toString(), "a")
+        XCTAssertEqual(harness.evalValue("actual[0].invalidByte")?.toString(), "a\u{fffd}b")
+    }
+
+    @MainActor
+    func testBlobNullAndDuplicateNames() throws {
+        let harness = makeHarness()
+        defer { harness.eval("db.close()") }
+        try compareWithReference("""
+            SELECT X'00017FFF80' AS bytes, X'' AS emptyBlob, NULL AS missing,
+                1 AS repeated, 'last' AS repeated, 2 AS "é", 3 AS "é",
+                'two' AS "2", 'one' AS "1", 4 AS ""
+            """, in: harness)
+        for key in ["bytes", "emptyBlob"] {
+            let actual = harness.evalValue("actual[0].\(key)")?.toObject() as? Data
+            let expected = harness.evalValue("expected[0].\(key)")?.toObject() as? Data
+            XCTAssertNotNil(actual)
+            XCTAssertEqual(actual, expected)
+        }
+        XCTAssertEqual(harness.evalValue("actual[0].bytes")?.toObject() as? Data, Data([0, 1, 127, 255, 128]))
+        XCTAssertEqual(harness.evalValue("actual[0].repeated")?.toString(), "last")
+        XCTAssertEqual(harness.evalValue("actual[0]['é']")?.toInt32(), 3)
+        XCTAssertEqual(harness.evalValue("Object.hasOwn(actual[0], 'é')")?.toBool(), false)
+        XCTAssertEqual(harness.evalValue("actual[0].missing === null")?.toBool(), true)
+        try compareWithReference("SELECT 5 AS constructor, 6 AS toString, 7 AS __proto__", in: harness)
+        try compareWithReference("SELECT 1 AS __proto__, NULL AS __proto__", in: harness)
+    }
+
+    private var largeQuery: String {
+        """
+        WITH RECURSIVE source(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM source WHERE n<10000)
+        SELECT n AS c0, n*2 AS c1, n/4.0 AS c2, NULL AS c3, 'row-'||n AS c4,
+            'café 😀' AS c5, printf('%02048d', n) AS c6, -n AS c7,
+            9007199254740993 AS c8, '' AS c9, n%2 AS c10, n*0.5 AS c11,
+            'tail' AS c12, CAST(X'610062' AS TEXT) AS c13, n+1 AS c14, n+2 AS c15
+        FROM source
+        """
+    }
+
+    @MainActor
+    func testLargeResultShapeAndValues() throws {
+        let harness = makeHarness()
+        defer { harness.eval("db.close()") }
+        try compareWithReference(largeQuery, in: harness)
+        XCTAssertEqual(harness.evalValue("actual.length")?.toInt32(), 10_000)
+        XCTAssertEqual(harness.evalValue("actual.every(row => Object.keys(row).length === 16)")?.toBool(), true)
+        XCTAssertEqual(harness.evalValue("actual[9999].c0")?.toInt32(), 10_000)
+        harness.forceSynchronousGC()
+        XCTAssertEqual(harness.evalValue("actual[9999].c6.length")?.toInt32(), 2048)
+    }
+
+    @MainActor
+    func testBoundParametersAndStatementReuse() {
+        let harness = makeHarness()
+        defer { harness.eval("db.close()") }
+        let result = harness.evalValue("""
+            (() => {
+                const sql = 'SELECT ? AS a, ? AS b, ? AS c, ? AS d, ? AS e, ? AS f';
+                const first = db.query(sql, [null, true, 42, 1.25, 'text', new Uint8Array([0, 128, 255])])[0];
+                const second = db.query(sql, [false, undefined, -7, 0.5, 'next', null])[0];
+                const unbound = db.query(sql)[0];
+                return first.a === null && first.b === 1 && first.c === 42 && first.d === 1.25 &&
+                    first.e === 'text' && typeof first.f === 'object' && first.f !== null &&
+                    second.a === 0 && second.b === null && second.c === -7 && second.d === 0.5 &&
+                    second.e === 'next' && second.f === null && Object.values(unbound).every(v => v === null);
+            })()
+            """)
+        XCTAssertFalse(harness.hasException)
+        XCTAssertEqual(result?.toBool(), true)
+        XCTAssertEqual(harness.evalValue("db.query('SELECT ? AS bytes', [new Uint8Array([0, 128, 255])])[0].bytes")?.toObject() as? Data,
+                       Data([0, 128, 255]))
+    }
+
+    @MainActor
+    func testEmptyResultsAndErrors() {
+        let harness = makeHarness()
+        defer { harness.eval("db.close()") }
+        let result = harness.evalValue("""
+            (() => {
+                const empty = value => Array.isArray(value) && value.length === 0;
+                const message = params => {
+                    try { db.query('SELECT ? AS value', params); return 'did not throw'; }
+                    catch (error) { return error.message; }
+                };
+                const ok = empty(db.query('SELECT 1 WHERE 0')) && empty(db.query('INVALID SQL')) &&
+                    empty(db.query('')) && empty(db.query('CREATE TABLE t (n)')) &&
+                    empty(db.query('SELECT 1 AS n UNION ALL SELECT abs(-9223372036854775808)')) &&
+                    message({}) === 'hs.sqlite: params must be an array' &&
+                    message([{}]) === 'hs.sqlite: cannot bind value at index 0: unsupported object type' &&
+                    message([Symbol('x')]) === 'hs.sqlite: cannot bind value at index 0: unsupported type' &&
+                    db.query('SELECT ? AS value', [9])[0].value === 9;
+                db.close();
+                return ok && empty(db.query('SELECT 1'));
+            })()
+            """)
+        XCTAssertFalse(harness.hasException)
+        XCTAssertEqual(result?.toBool(), true)
+    }
+
+    @MainActor
+    func testConnectionCanQueryFromAnotherVirtualMachine() throws {
+        let first = makeHarness()
+        defer { first.eval("db.close()") }
+        XCTAssertEqual(first.evalValue("db.query('SELECT 1 AS value')[0].value")?.toInt32(), 1)
+        let connection = try XCTUnwrap(first.evalValue("db")?.toObject())
+        let second = JSTestHarness()
+        second.context.setObject(connection, forKeyedSubscript: "db" as NSString)
+        XCTAssertEqual(second.evalValue("db.query('SELECT 2 AS value')[0].value")?.toInt32(), 2)
+        XCTAssertFalse(second.hasException)
+        XCTAssertEqual(first.evalValue("db.query('SELECT 3 AS value')[0].value")?.toInt32(), 3)
+        XCTAssertFalse(first.hasException)
+    }
+
+    @MainActor
+    func testInheritedSettersRunAfterSQLiteFinishes() {
+        for (prototype, property) in [("Object.prototype", "value"), ("Array.prototype", "0"), ("Object.prototype", "0")] {
+            let harness = makeHarness()
+            defer { harness.eval("db.close()") }
+            let result = harness.evalValue("""
+                (() => {
+                    let calls = 0;
+                    const prototype = \(prototype), property = '\(property)';
+                    Object.defineProperty(prototype, property, {
+                        configurable: true,
+                        set(value) {
+                            calls++;
+                            db.close();
+                            Object.defineProperty(this, property, {value, configurable: true, writable: true, enumerable: true});
+                        }
+                    });
+                    try {
+                        const rows = db.query('SELECT 1 AS value UNION ALL SELECT 2');
+                        return rows.length === 2 && rows[0].value === 1 && rows[1].value === 2 &&
+                            calls > 0 && !db.isOpen;
+                    } finally { delete prototype[property]; }
+                })()
+                """)
+            XCTAssertFalse(harness.hasException)
+            XCTAssertEqual(result?.toBool(), true)
+        }
+    }
+
+    @MainActor
+    func testInheritedSetterCanReenterQueryAndDoesNotRunOnStepFailure() {
+        let harness = makeHarness()
+        defer { harness.eval("db.close()") }
+        let result = harness.evalValue("""
+            (() => {
+                let calls = 0, nested = null;
+                const sql = 'SELECT 1 AS value UNION ALL SELECT 2';
+                const descriptor = {configurable: true, set(value) {
+                    calls++;
+                    delete Object.prototype.value;
+                    try { nested = db.query(sql); }
+                    finally { Object.defineProperty(Object.prototype, 'value', descriptor); }
+                    Object.defineProperty(this, 'value', {value, configurable: true, writable: true, enumerable: true});
+                }};
+                Object.defineProperty(Object.prototype, 'value', descriptor);
+                try {
+                    const failed = db.query('SELECT 1 AS value UNION ALL SELECT abs(-9223372036854775808)');
+                    if (failed.length !== 0 || calls !== 0) return false;
+                    const rows = db.query(sql);
+                    return calls === 2 && rows.length === 2 && rows[1].value === 2 &&
+                        nested.length === 2 && nested[1].value === 2;
+                } finally { delete Object.prototype.value; }
+            })()
+            """)
+        XCTAssertFalse(harness.hasException)
+        XCTAssertEqual(result?.toBool(), true)
+    }
+
+    @MainActor
+    func testQueryThroughput() {
+        let harness = makeHarness()
+        defer { harness.eval("db.close()") }
+        harness.context.setObject(largeQuery, forKeyedSubscript: "sql" as NSString)
+        harness.eval("db.query(sql); db.query(sql)")
+        XCTAssertFalse(harness.hasException)
+        let calls = 6
+        let start = ContinuousClock.now
+        let rows = harness.evalValue("""
+            (() => {
+                let count = 0;
+                for (let i = 0; i < \(calls); ++i) count += db.query(sql).length;
+                return count;
+            })()
+            """)
+        let elapsed = start.duration(to: .now).components
+        let seconds = Double(elapsed.seconds) + Double(elapsed.attoseconds) / 1e18
+        XCTAssertFalse(harness.hasException)
+        XCTAssertEqual(rows?.toInt32(), Int32(calls * 10_000))
+        print("SQLite query: \(Double(calls * 10_000) / seconds) rows/s, \(seconds * 1000 / Double(calls)) ms/call (10000 rows x 16 columns, \(calls) calls)")
+    }
+}
