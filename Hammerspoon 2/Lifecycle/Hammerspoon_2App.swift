@@ -13,6 +13,13 @@ import Darwin
 class AppDelegate: NSObject, NSApplicationDelegate {
     static private(set) var instance: AppDelegate! = nil
 
+    static var isXCTestHost: Bool {
+        let environment = ProcessInfo.processInfo.environment
+        return environment["XCTestConfigurationFilePath"] != nil
+            || environment["XCTestSessionIdentifier"] != nil
+            || NSClassFromString("XCTestCase") != nil
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         AKDebug("applicationDidFinishLaunching: Creating/booting shared manager")
 
@@ -21,6 +28,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         AppDelegate.raiseOpenFileLimit()
 
         AppDelegate.instance = self
+        guard !AppDelegate.isXCTestHost else {
+            AKWarning("XCTest host: skipping user config boot")
+            return
+        }
+
         ConsoleCompletionEngine.shared.prewarm()
         let managerManager = ManagerManager.shared
         do {
@@ -92,7 +104,7 @@ struct Hammerspoon_2App: App {
     private let updaterController: SPUStandardUpdaterController
 
     init() {
-        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        updaterController = SPUStandardUpdaterController(startingUpdater: !AppDelegate.isXCTestHost, updaterDelegate: nil, userDriverDelegate: nil)
     }
 
     var body: some Scene {

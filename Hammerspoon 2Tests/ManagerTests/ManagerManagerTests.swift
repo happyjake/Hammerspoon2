@@ -11,6 +11,18 @@ import Foundation
 
 struct ManagerManagerTests {
 
+    @Test("App launch recognizes an XCTest host")
+    func testRecognizesTestHost() {
+        #expect(AppDelegate.isXCTestHost)
+    }
+
+    @Test("Test scheme config location overrides user defaults")
+    func testConfigLocationFromTestArguments() {
+        let arguments = UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)
+        #expect(arguments["configLocation"] as? String == "/dev/null/init.js")
+        #expect(SettingsManager.shared.configLocation.path == "/dev/null/init.js")
+    }
+
     // MARK: - Boot Tests
 
     @Test("Boot successfully with valid config file")
