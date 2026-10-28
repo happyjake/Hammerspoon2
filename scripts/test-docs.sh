@@ -55,6 +55,15 @@ if [ ! -f "docs/js/html/index.html" ]; then
 fi
 echo "✓ HTML documentation generated"
 
+# Explicit JavaScript return shapes must survive HTML rendering and escaping.
+node <<'NODE'
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const html = fs.readFileSync('docs/js/html/hs.application.html', 'utf8');
+assert.ok(html.includes('<div class="return-type">ReadonlyArray&lt;Readonly&lt;Record&lt;string, any&gt;&gt;&gt;</div>'));
+console.log('✓ Annotated array return type rendered in HTML');
+NODE
+
 HTML_FILE_COUNT=$(find docs/js/html -name "*.html" | wc -l)
 echo "  Generated $HTML_FILE_COUNT HTML files"
 

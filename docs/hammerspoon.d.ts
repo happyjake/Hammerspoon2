@@ -621,8 +621,12 @@ declare namespace hs.application {
 returned string as the body of a `data:image/png;base64,…` URL to render
 the icon in HTML/SwiftUI without exposing the underlying .icns path.
 Encoded icons are cached across configuration reloads. Root changes,
-bundle path or modification-date changes, and
+bundle path, metadata or icon-resource changes, and
 `invalidateInstalledAppsCache()` invalidate cached icons.
+Resource modification times and sizes are checked on cache hits.
+Changes cause a new native render; NSWorkspace/Icon Services may still
+retain older artwork in their own drawing caches. This API clears only
+its encoded PNG cache and preserves the native renderer's output.
      * @param bundleID The application bundle identifier (e.g. "com.apple.Safari")
      * @returns The base64-encoded PNG bytes, or null if the bundle could not be located
      */

@@ -50,6 +50,7 @@ env.addFilter('formatType', function(swiftType, promiseType) {
 
 env.addFilter('formatReturnType', function(returns) {
     if (!returns) return 'void';
+    if (returns.tsType) return nunjucks.lib.escape(returns.tsType);
     return formatType(returns.type, returns.promiseType);
 });
 

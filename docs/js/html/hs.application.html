@@ -91,7 +91,7 @@
 apps.forEach(a =&gt; console.log(a.title))</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L25" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:25</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L26" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:26</a>
         </div>
     </div>
     <div class="method" id="matchingName">
@@ -129,7 +129,7 @@ apps.forEach(a =&gt; console.log(a.title))</code></pre>
         <pre><code class="language-js">const safari = hs.application.matchingName(&quot;Safari&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L34" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:34</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L35" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:35</a>
         </div>
     </div>
     <div class="method" id="matchingBundleID">
@@ -167,7 +167,7 @@ apps.forEach(a =&gt; console.log(a.title))</code></pre>
         <pre><code class="language-js">const safari = hs.application.matchingBundleID(&quot;com.apple.Safari&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L43" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:43</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L44" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:44</a>
         </div>
     </div>
     <div class="method" id="fromPID">
@@ -205,7 +205,7 @@ apps.forEach(a =&gt; console.log(a.title))</code></pre>
         <pre><code class="language-js">const app = hs.application.fromPID(1234)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L52" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:52</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L53" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:53</a>
         </div>
     </div>
     <div class="method" id="frontmost">
@@ -227,7 +227,7 @@ apps.forEach(a =&gt; console.log(a.title))</code></pre>
 console.log(app.title)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L61" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:61</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L62" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:62</a>
         </div>
     </div>
     <div class="method" id="menuBarOwner">
@@ -248,7 +248,7 @@ console.log(app.title)</code></pre>
         <pre><code class="language-js">const owner = hs.application.menuBarOwner()</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L69" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:69</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L70" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:70</a>
         </div>
     </div>
     <div class="method" id="pathForBundleID">
@@ -286,7 +286,7 @@ console.log(app.title)</code></pre>
         <pre><code class="language-js">const path = hs.application.pathForBundleID(&quot;com.apple.Safari&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L78" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:78</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L79" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:79</a>
         </div>
     </div>
     <div class="method" id="iconForBundleID">
@@ -296,8 +296,12 @@ console.log(app.title)</code></pre>
 returned string as the body of a `data:image/png;base64,…` URL to render
 the icon in HTML/SwiftUI without exposing the underlying .icns path.
 Encoded icons are cached across configuration reloads. Root changes,
-bundle path or modification-date changes, and
-`invalidateInstalledAppsCache()` invalidate cached icons.</div>
+bundle path, metadata or icon-resource changes, and
+`invalidateInstalledAppsCache()` invalidate cached icons.
+Resource modification times and sizes are checked on cache hits.
+Changes cause a new native render; NSWorkspace/Icon Services may still
+retain older artwork in their own drawing caches. This API clears only
+its encoded PNG cache and preserves the native renderer&#39;s output.</div>
 
         <div class="card-section-label">Declaration</div>
         <pre><code class="language-javascript">hs.application.iconForBundleID(bundleID) -> string</code></pre>
@@ -330,7 +334,7 @@ bundle path or modification-date changes, and
 element.src = &quot;data:image/png;base64,&quot; + b64</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L93" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:93</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L98" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:98</a>
         </div>
     </div>
     <div class="method" id="pathsForBundleID">
@@ -368,7 +372,7 @@ element.src = &quot;data:image/png;base64,&quot; + b64</code></pre>
         <pre><code class="language-js">const paths = hs.application.pathsForBundleID(&quot;com.apple.Safari&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L102" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:102</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L107" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:107</a>
         </div>
     </div>
     <div class="method" id="pathForFileType">
@@ -406,7 +410,7 @@ element.src = &quot;data:image/png;base64,&quot; + b64</code></pre>
         <pre><code class="language-js">const path = hs.application.pathForFileType(&quot;public.html&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L117" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:117</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L122" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:122</a>
         </div>
     </div>
     <div class="method" id="pathsForFileType">
@@ -444,7 +448,7 @@ element.src = &quot;data:image/png;base64,&quot; + b64</code></pre>
         <pre><code class="language-js">const paths = hs.application.pathsForFileType(&quot;png&quot;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L126" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:126</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L131" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:131</a>
         </div>
     </div>
     <div class="method" id="launchOrFocus">
@@ -482,11 +486,11 @@ element.src = &quot;data:image/png;base64,&quot; + b64</code></pre>
         <pre><code class="language-js">hs.application.launchOrFocus(&quot;com.apple.Safari&quot;).then(ok =&gt; console.log(ok))</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L135" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:135</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L140" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:140</a>
         </div>
     </div>
     <div class="method" id="installedApps">
-        <h3><a href="#installedApps">hs.application.installedApps(extraRoots) -> JSValue</a></h3>
+        <h3><a href="#installedApps">hs.application.installedApps(extraRoots) -> ReadonlyArray&lt;Readonly&lt;Record&lt;string, any&gt;&gt;&gt;</a></h3>
 
         <div class="description">Enumerate every `.app` bundle under the standard application roots,
 plus any caller-supplied extra roots. Results are cached for 30 seconds
@@ -525,7 +529,7 @@ Use `apps.map(app =&gt; ({...app}))` when mutable records are needed, or
 `apps.slice()` to sort a copy of the array.</div>
 
         <div class="card-section-label">Declaration</div>
-        <pre><code class="language-javascript">hs.application.installedApps(extraRoots) -> JSValue</code></pre>
+        <pre><code class="language-javascript">hs.application.installedApps(extraRoots) -> ReadonlyArray&lt;Readonly&lt;Record&lt;string, any&gt;&gt;&gt;</code></pre>
 
         <div class="card-section-label">Parameters</div>
         <table class="params-table">
@@ -546,7 +550,7 @@ Use `apps.map(app =&gt; ({...app}))` when mutable records are needed, or
         </table>
 
         <div class="card-section-label">Returns</div>
-        <div class="return-type">JSValue</div>
+        <div class="return-type">ReadonlyArray&lt;Readonly&lt;Record&lt;string, any&gt;&gt;&gt;</div>
         <div class="return-desc">Array of `{name, displayName, bundleID, path, iconPath, version}`</div>
 
 
@@ -558,7 +562,7 @@ console.log(apps[0].displayName, apps[0].bundleID)
 const more = hs.application.installedApps([&#39;~/Tools&#39;, &#39;~/Dev/Apps&#39;])</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L189" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:189</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L194" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:194</a>
         </div>
     </div>
     <div class="method" id="invalidateInstalledAppsCache">
@@ -579,7 +583,7 @@ cached application icons. Applies to all JavaScript contexts.</div>
         <pre><code class="language-js">hs.application.invalidateInstalledAppsCache()</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L197" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:197</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L202" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:202</a>
         </div>
     </div>
     <div class="method" id="killPid">
@@ -625,7 +629,7 @@ was delivered, false on error (logged via AKError).</div>
 hs.application.killPid(12345, true)    // force</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L210" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:210</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L215" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:215</a>
         </div>
     </div>
     <div class="method" id="addWatcher">
@@ -664,7 +668,7 @@ hs.application.killPid(12345, true)    // force</code></pre>
 })</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L221" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:221</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L226" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:226</a>
         </div>
     </div>
     <div class="method" id="removeWatcher">
@@ -701,7 +705,7 @@ hs.application.killPid(12345, true)    // force</code></pre>
         <pre><code class="language-js">hs.application.removeWatcher(myHandler)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L230" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:230</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.application/HSApplicationModule.swift#L235" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift:235</a>
         </div>
     </div>
         </main>

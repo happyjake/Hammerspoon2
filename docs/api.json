@@ -386,7 +386,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 25
+          "lineNumber": 26
         },
         {
           "name": "matchingName",
@@ -416,7 +416,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 34
+          "lineNumber": 35
         },
         {
           "name": "matchingBundleID",
@@ -446,7 +446,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 43
+          "lineNumber": 44
         },
         {
           "name": "fromPID",
@@ -476,7 +476,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 52
+          "lineNumber": 53
         },
         {
           "name": "frontmost",
@@ -498,7 +498,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 61
+          "lineNumber": 62
         },
         {
           "name": "menuBarOwner",
@@ -520,7 +520,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 69
+          "lineNumber": 70
         },
         {
           "name": "pathForBundleID",
@@ -550,14 +550,14 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 78
+          "lineNumber": 79
         },
         {
           "name": "iconForBundleID",
           "signature": "func iconForBundleID(_ bundleID: String) -> String?",
           "isStatic": false,
-          "rawDocumentation": "Render the application's icon as a base64-encoded PNG string. Use the\nreturned string as the body of a `data:image/png;base64,…` URL to render\nthe icon in HTML/SwiftUI without exposing the underlying .icns path.\nEncoded icons are cached across configuration reloads. Root changes,\nbundle path or modification-date changes, and\n`invalidateInstalledAppsCache()` invalidate cached icons.\n- Parameter bundleID: The application bundle identifier (e.g. \"com.apple.Safari\")\n- Returns: The base64-encoded PNG bytes, or null if the bundle could not be located\n- Example:\n```js\nconst b64 = hs.application.iconForBundleID(\"com.apple.Safari\")\nelement.src = \"data:image/png;base64,\" + b64\n```",
-          "description": "Render the application's icon as a base64-encoded PNG string. Use the\nreturned string as the body of a `data:image/png;base64,…` URL to render\nthe icon in HTML/SwiftUI without exposing the underlying .icns path.\nEncoded icons are cached across configuration reloads. Root changes,\nbundle path or modification-date changes, and\n`invalidateInstalledAppsCache()` invalidate cached icons.",
+          "rawDocumentation": "Render the application's icon as a base64-encoded PNG string. Use the\nreturned string as the body of a `data:image/png;base64,…` URL to render\nthe icon in HTML/SwiftUI without exposing the underlying .icns path.\nEncoded icons are cached across configuration reloads. Root changes,\nbundle path, metadata or icon-resource changes, and\n`invalidateInstalledAppsCache()` invalidate cached icons.\nResource modification times and sizes are checked on cache hits.\nChanges cause a new native render; NSWorkspace/Icon Services may still\nretain older artwork in their own drawing caches. This API clears only\nits encoded PNG cache and preserves the native renderer's output.\n- Parameter bundleID: The application bundle identifier (e.g. \"com.apple.Safari\")\n- Returns: The base64-encoded PNG bytes, or null if the bundle could not be located\n- Example:\n```js\nconst b64 = hs.application.iconForBundleID(\"com.apple.Safari\")\nelement.src = \"data:image/png;base64,\" + b64\n```",
+          "description": "Render the application's icon as a base64-encoded PNG string. Use the\nreturned string as the body of a `data:image/png;base64,…` URL to render\nthe icon in HTML/SwiftUI without exposing the underlying .icns path.\nEncoded icons are cached across configuration reloads. Root changes,\nbundle path, metadata or icon-resource changes, and\n`invalidateInstalledAppsCache()` invalidate cached icons.\nResource modification times and sizes are checked on cache hits.\nChanges cause a new native render; NSWorkspace/Icon Services may still\nretain older artwork in their own drawing caches. This API clears only\nits encoded PNG cache and preserves the native renderer's output.",
           "params": [
             {
               "name": "bundleID",
@@ -580,7 +580,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 93
+          "lineNumber": 98
         },
         {
           "name": "pathsForBundleID",
@@ -610,7 +610,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 102
+          "lineNumber": 107
         },
         {
           "name": "pathForFileType",
@@ -640,7 +640,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 117
+          "lineNumber": 122
         },
         {
           "name": "pathsForFileType",
@@ -670,7 +670,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 126
+          "lineNumber": 131
         },
         {
           "name": "launchOrFocus",
@@ -701,7 +701,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 135
+          "lineNumber": 140
         },
         {
           "name": "installedApps",
@@ -732,7 +732,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 189
+          "lineNumber": 194
         },
         {
           "name": "invalidateInstalledAppsCache",
@@ -751,7 +751,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 197
+          "lineNumber": 202
         },
         {
           "name": "killPid",
@@ -788,7 +788,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 210
+          "lineNumber": 215
         },
         {
           "name": "addWatcher",
@@ -815,7 +815,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 221
+          "lineNumber": 226
         },
         {
           "name": "removeWatcher",
@@ -842,7 +842,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 230
+          "lineNumber": 235
         }
       ],
       "properties": [],

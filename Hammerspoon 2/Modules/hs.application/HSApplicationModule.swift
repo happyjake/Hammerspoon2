@@ -10,6 +10,7 @@ import JavaScriptCore
 import AppKit
 import AXSwift
 import UniformTypeIdentifiers
+import Darwin
 
 // MARK: - Declare our JavaScript API
 
@@ -81,8 +82,12 @@ import UniformTypeIdentifiers
     /// returned string as the body of a `data:image/png;base64,…` URL to render
     /// the icon in HTML/SwiftUI without exposing the underlying .icns path.
     /// Encoded icons are cached across configuration reloads. Root changes,
-    /// bundle path or modification-date changes, and
+    /// bundle path, metadata or icon-resource changes, and
     /// `invalidateInstalledAppsCache()` invalidate cached icons.
+    /// Resource modification times and sizes are checked on cache hits.
+    /// Changes cause a new native render; NSWorkspace/Icon Services may still
+    /// retain older artwork in their own drawing caches. This API clears only
+    /// its encoded PNG cache and preserves the native renderer's output.
     /// - Parameter bundleID: The application bundle identifier (e.g. "com.apple.Safari")
     /// - Returns: The base64-encoded PNG bytes, or null if the bundle could not be located
     /// - Example:
@@ -295,8 +300,36 @@ private final class ApplicationInfoCache {
 
     struct IconEntry {
         let path: String
-        let modificationDate: Date
+        let files: [IconFile]
         let base64: String
+    }
+
+    struct IconFile {
+        struct Stamp: Equatable {
+            let seconds: Int
+            let nanoseconds: Int
+            let size: Int64
+            let inode: UInt64
+
+            init?(_ path: String) {
+                var info = Darwin.stat()
+                guard unsafe Darwin.fstatat(AT_FDCWD, path, &info, 0) == 0 else { return nil }
+                seconds = info.st_mtimespec.tv_sec
+                nanoseconds = info.st_mtimespec.tv_nsec
+                size = info.st_size
+                inode = info.st_ino
+            }
+        }
+
+        let path: String
+        let stamp: Stamp?
+
+        init(_ path: String) {
+            self.path = path
+            stamp = Stamp(path)
+        }
+
+        var isCurrent: Bool { stamp == Stamp(path) }
     }
 
     var icons: [IconKey: IconEntry] = [:]
@@ -773,11 +806,13 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
         if cache.icons[key] == nil, cache.icons.count >= 256 { cache.invalidate() }
         cache.rootWatcher.watch(url.deletingLastPathComponent().path)
         cache.rootWatcher.watch(url.path)
-        let modificationDate = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
         if let cached = cache.icons[key], cached.path == url.path,
-           cached.modificationDate == modificationDate {
+           cached.files.allSatisfy(\.isCurrent) {
             return cached.base64
         }
+        // Resolve dependencies only on a miss. Hits stat these paths without
+        // re-reading the plist or relying on cached URL resource values.
+        let files = iconFiles(at: url)
         // NSWorkspace returns an NSImage that includes multiple representations
         // (multi-size .icns). Pick a 44px target so the rendered PNG is sharp
         // on @2x without being huge.
@@ -802,11 +837,47 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
         NSGraphicsContext.restoreGraphicsState()
         guard let png = bitmap.representation(using: .png, properties: [:]) else { return nil }
         let base64 = png.base64EncodedString()
-        if let modificationDate {
+        if files.first?.stamp != nil {
             cache.icons[key] = ApplicationInfoCache.IconEntry(
-                path: url.path, modificationDate: modificationDate, base64: base64)
+                path: url.path, files: files, base64: base64)
         }
         return base64
+    }
+
+    private func iconFiles(at appURL: URL) -> [ApplicationInfoCache.IconFile] {
+        var paths = [appURL.path, appURL.appendingPathComponent("Contents/Info.plist").path]
+        if let (info, innerBundle) = readAppInfo(at: appURL) {
+            let resources = innerBundle ?? appURL.appendingPathComponent("Contents/Resources")
+            if let innerBundle {
+                paths.append(innerBundle.appendingPathComponent("Info.plist").path)
+            }
+            // Track the resource directory too, including when absent, so a
+            // newly supplied icon replaces a previously cached generic icon.
+            paths.append(resources.path)
+            paths.append(resources.appendingPathComponent("Assets.car").path)
+            let primary = (info["CFBundleIcons"] as? [String: Any])?["CFBundlePrimaryIcon"] as? [String: Any]
+            for declaration in [info, primary ?? [:]] {
+                var names = declaration["CFBundleIconFiles"] as? [String] ?? []
+                if let file = declaration["CFBundleIconFile"] as? String { names.append(file) }
+                if let name = declaration["CFBundleIconName"] as? String { names.append(name) }
+                for name in names {
+                    if innerBundle != nil {
+                        // Icon Services can choose any representation, not
+                        // just the preferred path exposed by installedApps().
+                        paths.append(resources.appendingPathComponent(name).path)
+                        let base = (name as NSString).deletingPathExtension
+                        for suffix in ["@3x.png", "@2x.png", ".png", "@2x~ipad.png", "~ipad.png"] {
+                            paths.append(resources.appendingPathComponent(base + suffix).path)
+                        }
+                    } else {
+                        let filename = (name as NSString).pathExtension.isEmpty ? name + ".icns" : name
+                        paths.append(resources.appendingPathComponent(filename).path)
+                    }
+                }
+            }
+        }
+        var seen = Set<String>()
+        return paths.filter { seen.insert($0).inserted }.map(ApplicationInfoCache.IconFile.init)
     }
 
     /// Resolves the path of the bundle's primary icon without any image
