@@ -41,8 +41,8 @@ class JSTestHarness {
     /// Track loaded task module for cleanup
     private var taskModule: HSTaskModule?
 
-    init() {
-        vm = JSVirtualMachine()
+    init(vm: JSVirtualMachine = JSVirtualMachine()) {
+        self.vm = vm
         context = JSContext(virtualMachine: vm)!
         context.name = "Test Context"
 

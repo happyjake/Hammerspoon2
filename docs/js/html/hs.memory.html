@@ -103,13 +103,23 @@ Sampling itself allocates memory; the counters are not an atomic snapshot.</div>
         <h3><a href="#relieve">hs.memory.relieve(opts) -> {[key: string]: any}</a></h3>
 
         <div class="description">Runs synchronous full JavaScript GC, then requests maximal malloc relief.
-Both treatments default to true. GC runs on the calling JS thread. If its
+GC and malloc relief default to true. GC runs on the calling JS thread. If its
 private symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping
 malloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in
 milliseconds; footprints and released memory are bytes. Footprints are
-measured immediately before, after GC, and after malloc relief, even when
+measured immediately before, after GC, and after all requests, even when
 a treatment is skipped. JSC releases pages asynchronously, so footprints
-need not decrease. This call does not wait for those pages to be returned.</div>
+need not decrease. This call does not wait for those pages to be returned.
+Set `shrink: true` to also request JavaScriptCore&#39;s private
+`shrinkFootprintWhenIdle` SPI on the calling context&#39;s VM and JS thread.
+Shrink defaults to false. Only request it at idle: it drops cached JIT code
+and bytecode, performs a full GC, and asks the WebKit allocator to release
+free pages. The next hot path must re-tier its JIT code. Shrink performs its
+own GC even when `gc: false`; that flag controls only the separate initial GC.
+JSC defers shrinking until the current JS stack unwinds, so `shrinkMs`
+measures only the request call, not deferred work. Sample `stats()` later
+to observe reclamation. If the SPI is missing, shrink is a no-op with
+`shrinkAvailable: false` and `shrinkMs: 0`.</div>
 
         <div class="card-section-label">Declaration</div>
         <pre><code class="language-javascript">hs.memory.relieve(opts) -> {[key: string]: any}</code></pre>
@@ -127,21 +137,23 @@ need not decrease. This call does not wait for those pages to be returned.</div>
                 <tr>
                     <td class="param-name">opts</td>
                     <td class="param-type">[String: Any]</td>
-                    <td class="param-desc">Optional treatment flags; omitted, undefined, or null uses both defaults.</td>
+                    <td class="param-desc">Optional treatment flags; omitted, undefined, or null uses GC and malloc relief, without shrinking.</td>
                 </tr>
             </tbody>
         </table>
 
         <div class="card-section-label">Returns</div>
         <div class="return-type">{[key: string]: any}</div>
-        <div class="return-desc">A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Throws if a footprint cannot be read.</div>
+        <div class="return-desc">A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Only `shrink: true` adds `shrinkAvailable` (whether the VM supports the SPI) and `shrinkMs`. Throws if a footprint cannot be read.</div>
 
 
         <div class="card-section-label">Example</div>
-        <pre><code class="language-js">console.log(JSON.stringify(hs.memory.relieve({gc: false})))</code></pre>
+        <pre><code class="language-js">console.log(JSON.stringify(hs.memory.relieve({gc: false})))
+// During an idle period; inspect stats again after this JS stack returns.
+console.log(JSON.stringify(hs.memory.relieve({gc: true, malloc: false, shrink: true})))</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.memory/HSMemoryModule.swift#L43" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.memory/HSMemoryModule.swift:43</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.memory/HSMemoryModule.swift#L56" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.memory/HSMemoryModule.swift:56</a>
         </div>
     </div>
         </main>

@@ -7,6 +7,6 @@ NS_ASSUME_NONNULL_BEGIN
 JS_EXPORT JSObjectRef JSGetMemoryUsageStatistics(JSContextRef ctx);
 
 NSDictionary<NSString *, id> * _Nullable HSMemorySnapshot(JSContext *context);
-NSDictionary<NSString *, id> * _Nullable HSMemoryRelieve(JSContext *context, BOOL gc, BOOL mallocRelief);
+NSDictionary<NSString *, id> * _Nullable HSMemoryRelieve(JSContext *context, BOOL gc, BOOL mallocRelief, BOOL shrink);
 
 NS_ASSUME_NONNULL_END

@@ -8898,31 +8898,31 @@
           "name": "relieve",
           "signature": "func relieve(_ opts: [String: Any]?) -> [String: Any]",
           "isStatic": false,
-          "rawDocumentation": "Runs synchronous full JavaScript GC, then requests maximal malloc relief.\n\nBoth treatments default to true. GC runs on the calling JS thread. If its\nprivate symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping\nmalloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in\nmilliseconds; footprints and released memory are bytes. Footprints are\nmeasured immediately before, after GC, and after malloc relief, even when\na treatment is skipped. JSC releases pages asynchronously, so footprints\nneed not decrease. This call does not wait for those pages to be returned.\n- Parameter opts?: {{gc?: boolean, malloc?: boolean} | null} Optional treatment flags; omitted, undefined, or null uses both defaults.\n- Returns: A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Throws if a footprint cannot be read.\n- Example:\n```js\nconsole.log(JSON.stringify(hs.memory.relieve({gc: false})))\n```",
-          "description": "Runs synchronous full JavaScript GC, then requests maximal malloc relief.\nBoth treatments default to true. GC runs on the calling JS thread. If its\nprivate symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping\nmalloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in\nmilliseconds; footprints and released memory are bytes. Footprints are\nmeasured immediately before, after GC, and after malloc relief, even when\na treatment is skipped. JSC releases pages asynchronously, so footprints\nneed not decrease. This call does not wait for those pages to be returned.",
+          "rawDocumentation": "Runs synchronous full JavaScript GC, then requests maximal malloc relief.\n\nGC and malloc relief default to true. GC runs on the calling JS thread. If its\nprivate symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping\nmalloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in\nmilliseconds; footprints and released memory are bytes. Footprints are\nmeasured immediately before, after GC, and after all requests, even when\na treatment is skipped. JSC releases pages asynchronously, so footprints\nneed not decrease. This call does not wait for those pages to be returned.\n\nSet `shrink: true` to also request JavaScriptCore's private\n`shrinkFootprintWhenIdle` SPI on the calling context's VM and JS thread.\nShrink defaults to false. Only request it at idle: it drops cached JIT code\nand bytecode, performs a full GC, and asks the WebKit allocator to release\nfree pages. The next hot path must re-tier its JIT code. Shrink performs its\nown GC even when `gc: false`; that flag controls only the separate initial GC.\nJSC defers shrinking until the current JS stack unwinds, so `shrinkMs`\nmeasures only the request call, not deferred work. Sample `stats()` later\nto observe reclamation. If the SPI is missing, shrink is a no-op with\n`shrinkAvailable: false` and `shrinkMs: 0`.\n- Parameter opts?: {{gc?: boolean, malloc?: boolean, shrink?: boolean} | null} Optional treatment flags; omitted, undefined, or null uses GC and malloc relief, without shrinking.\n- Returns: A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Only `shrink: true` adds `shrinkAvailable` (whether the VM supports the SPI) and `shrinkMs`. Throws if a footprint cannot be read.\n- Example:\n```js\nconsole.log(JSON.stringify(hs.memory.relieve({gc: false})))\n// During an idle period; inspect stats again after this JS stack returns.\nconsole.log(JSON.stringify(hs.memory.relieve({gc: true, malloc: false, shrink: true})))\n```",
+          "description": "Runs synchronous full JavaScript GC, then requests maximal malloc relief.\nGC and malloc relief default to true. GC runs on the calling JS thread. If its\nprivate symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping\nmalloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in\nmilliseconds; footprints and released memory are bytes. Footprints are\nmeasured immediately before, after GC, and after all requests, even when\na treatment is skipped. JSC releases pages asynchronously, so footprints\nneed not decrease. This call does not wait for those pages to be returned.\nSet `shrink: true` to also request JavaScriptCore's private\n`shrinkFootprintWhenIdle` SPI on the calling context's VM and JS thread.\nShrink defaults to false. Only request it at idle: it drops cached JIT code\nand bytecode, performs a full GC, and asks the WebKit allocator to release\nfree pages. The next hot path must re-tier its JIT code. Shrink performs its\nown GC even when `gc: false`; that flag controls only the separate initial GC.\nJSC defers shrinking until the current JS stack unwinds, so `shrinkMs`\nmeasures only the request call, not deferred work. Sample `stats()` later\nto observe reclamation. If the SPI is missing, shrink is a no-op with\n`shrinkAvailable: false` and `shrinkMs: 0`.",
           "params": [
             {
               "name": "opts",
               "type": "Object<String, Any>",
-              "description": "Optional treatment flags; omitted, undefined, or null uses both defaults.",
+              "description": "Optional treatment flags; omitted, undefined, or null uses GC and malloc relief, without shrinking.",
               "optional": true,
-              "tsType": "{gc?: boolean, malloc?: boolean} | null"
+              "tsType": "{gc?: boolean, malloc?: boolean, shrink?: boolean} | null"
             }
           ],
           "returns": {
             "type": "Object<String, Any>",
-            "description": "A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Throws if a footprint cannot be read."
+            "description": "A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Only `shrink: true` adds `shrinkAvailable` (whether the VM supports the SPI) and `shrinkMs`. Throws if a footprint cannot be read."
           },
           "notes": [],
           "examples": [
             {
               "lang": "js",
-              "code": "console.log(JSON.stringify(hs.memory.relieve({gc: false})))"
+              "code": "console.log(JSON.stringify(hs.memory.relieve({gc: false})))\n// During an idle period; inspect stats again after this JS stack returns.\nconsole.log(JSON.stringify(hs.memory.relieve({gc: true, malloc: false, shrink: true})))"
             }
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.memory/HSMemoryModule.swift",
-          "lineNumber": 43
+          "lineNumber": 56
         }
       ],
       "properties": [],
@@ -21511,5 +21511,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-10-23T09:02:42.319Z"
+  "generatedAt": "2026-10-28T07:17:15.839Z"
 }

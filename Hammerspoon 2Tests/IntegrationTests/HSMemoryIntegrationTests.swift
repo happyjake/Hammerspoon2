@@ -3,10 +3,21 @@ import JavaScriptCore
 import Darwin
 @testable import Hammerspoon_2
 
+private nonisolated final class HSMemoryUnavailableShrinkVM: JSVirtualMachine {
+    override func responds(to selector: Selector!) -> Bool {
+        if selector == NSSelectorFromString("shrinkFootprintWhenIdle") { return false }
+        return super.responds(to: selector)
+    }
+
+    @objc func shrinkFootprintWhenIdle() {
+        XCTFail("An unavailable shrink selector must not be called")
+    }
+}
+
 nonisolated final class HSMemoryIntegrationTests: XCTestCase {
     @MainActor
-    private func makeHarness() -> JSTestHarness {
-        let harness = JSTestHarness()
+    private func makeHarness(vm: JSVirtualMachine = JSVirtualMachine()) -> JSTestHarness {
+        let harness = JSTestHarness(vm: vm)
         harness.loadModule(HSMemoryModule.self, as: "memory")
         return harness
     }
@@ -90,10 +101,13 @@ nonisolated final class HSMemoryIntegrationTests: XCTestCase {
         check(harness, """
             (() => {
                 const options = [undefined, null, {}, {gc: false}, {malloc: false},
-                    {gc: false, malloc: false}, {gc: true, malloc: true}];
+                    {gc: false, malloc: false}, {gc: true, malloc: true}, {shrink: false}];
+                const keys = ['footprintBefore', 'footprintAfterGC', 'footprintAfter',
+                    'mallocReleased', 'gcMs', 'reliefMs'].sort().join(',');
                 for (let repeat = 0; repeat < 3; repeat++) {
                     for (const opts of options) {
                         const r = hs.memory.relieve(opts);
+                        if (Object.keys(r).sort().join(',') !== keys) return false;
                         if (!['footprintBefore', 'footprintAfterGC', 'footprintAfter'].every(k =>
                             Number.isFinite(r[k]) && r[k] > 0)) return false;
                         if (!['mallocReleased', 'gcMs', 'reliefMs'].every(k =>
@@ -105,9 +119,60 @@ nonisolated final class HSMemoryIntegrationTests: XCTestCase {
                         if (opts?.malloc !== false && r.reliefMs <= 0) return false;
                     }
                 }
-                return hs.memory.relieve().footprintAfter > 0;
+                const r = hs.memory.relieve();
+                return r.footprintAfter > 0 && Object.keys(r).sort().join(',') === keys;
             })()
             """)
+    }
+
+    @MainActor
+    func testShrinkReportsAvailabilityAndPreservesJavaScript() {
+        let harness = makeHarness()
+        let available = harness.vm.responds(to: NSSelectorFromString("shrinkFootprintWhenIdle"))
+        harness.eval("var shrinkReport = hs.memory.relieve({shrink: true});")
+        XCTAssertFalse(harness.hasException, harness.exceptionMessage ?? "")
+        XCTAssertEqual(harness.evalValue("shrinkReport.shrinkAvailable")?.toBool(), available)
+        check(harness, """
+            Number.isFinite(shrinkReport.shrinkMs) && shrinkReport.shrinkMs >= 0 &&
+                (shrinkReport.shrinkAvailable || shrinkReport.shrinkMs === 0) &&
+                shrinkReport.mallocReleased >= 0 && shrinkReport.reliefMs > 0 &&
+                shrinkReport.footprintBefore > 0 && shrinkReport.footprintAfterGC > 0 &&
+                shrinkReport.footprintAfter > 0
+            """)
+        // A separate evaluation runs after the shrink request's JS stack unwinds.
+        check(harness, """
+            (() => {
+                let sum = 0;
+                for (let i = 0; i < 100000; i++) sum += i;
+                return sum === 4999950000;
+            })()
+            """)
+    }
+
+    @MainActor
+    func testShrinkWithoutSeparateGCOrMallocRelief() {
+        check(makeHarness(), """
+            (() => {
+                const r = hs.memory.relieve({gc: false, malloc: false, shrink: true});
+                return typeof r.shrinkAvailable === 'boolean' &&
+                    Number.isFinite(r.shrinkMs) && r.shrinkMs >= 0 &&
+                    r.gcMs === 0 && r.reliefMs === 0 && r.mallocReleased === 0;
+            })()
+            """)
+    }
+
+    @MainActor
+    func testUnavailableShrinkIsANoOp() {
+        let harness = makeHarness(vm: HSMemoryUnavailableShrinkVM())
+        check(harness, """
+            (() => {
+                const r = hs.memory.relieve({gc: false, malloc: false, shrink: true});
+                return r.shrinkAvailable === false && r.shrinkMs === 0 &&
+                    r.gcMs === 0 && r.reliefMs === 0 && r.mallocReleased === 0 &&
+                    r.footprintBefore > 0 && r.footprintAfterGC > 0 && r.footprintAfter > 0;
+            })()
+            """)
+        check(harness, "[1, 2, 3].map(n => n * n).join(',') === '1,4,9'")
     }
 
     @MainActor

@@ -3425,17 +3425,27 @@ Sampling itself allocates memory; the counters are not an atomic snapshot.
 
     /**
      * Runs synchronous full JavaScript GC, then requests maximal malloc relief.
-Both treatments default to true. GC runs on the calling JS thread. If its
+GC and malloc relief default to true. GC runs on the calling JS thread. If its
 private symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping
 malloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in
 milliseconds; footprints and released memory are bytes. Footprints are
-measured immediately before, after GC, and after malloc relief, even when
+measured immediately before, after GC, and after all requests, even when
 a treatment is skipped. JSC releases pages asynchronously, so footprints
 need not decrease. This call does not wait for those pages to be returned.
-     * @param opts Optional treatment flags; omitted, undefined, or null uses both defaults.
-     * @returns A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Throws if a footprint cannot be read.
+Set `shrink: true` to also request JavaScriptCore's private
+`shrinkFootprintWhenIdle` SPI on the calling context's VM and JS thread.
+Shrink defaults to false. Only request it at idle: it drops cached JIT code
+and bytecode, performs a full GC, and asks the WebKit allocator to release
+free pages. The next hot path must re-tier its JIT code. Shrink performs its
+own GC even when `gc: false`; that flag controls only the separate initial GC.
+JSC defers shrinking until the current JS stack unwinds, so `shrinkMs`
+measures only the request call, not deferred work. Sample `stats()` later
+to observe reclamation. If the SPI is missing, shrink is a no-op with
+`shrinkAvailable: false` and `shrinkMs: 0`.
+     * @param opts Optional treatment flags; omitted, undefined, or null uses GC and malloc relief, without shrinking.
+     * @returns A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Only `shrink: true` adds `shrinkAvailable` (whether the VM supports the SPI) and `shrinkMs`. Throws if a footprint cannot be read.
      */
-    function relieve(opts?: {gc?: boolean, malloc?: boolean} | null): Record<string, any>;
+    function relieve(opts?: {gc?: boolean, malloc?: boolean, shrink?: boolean} | null): Record<string, any>;
 
 }
 

@@ -5,6 +5,11 @@
 #import <malloc/malloc.h>
 #import <time.h>
 
+// Private SPI declaration only; availability is checked on the calling VM.
+@interface JSVirtualMachine (HSMemoryFootprint)
+- (void)shrinkFootprintWhenIdle;
+@end
+
 // Derive function pointer types from the declarations, including the existing GC
 // declaration. Neither private function is directly referenced by this module.
 static __typeof__(&JSGetMemoryUsageStatistics) memoryStatistics;
@@ -89,11 +94,12 @@ NSDictionary<NSString *, id> *HSMemorySnapshot(JSContext *context) {
     return result;
 }
 
-NSDictionary<NSString *, id> *HSMemoryRelieve(JSContext *context, BOOL gc, BOOL mallocRelief) {
+NSDictionary<NSString *, id> *HSMemoryRelieve(JSContext *context, BOOL gc, BOOL mallocRelief, BOOL shrink) {
     resolveJavaScriptSymbols();
     uint64_t before, afterGC, after;
     if (!readFootprint(context, &before, NULL)) return nil;
-    double gcMs = 0, reliefMs = 0;
+    double gcMs = 0, reliefMs = 0, shrinkMs = 0;
+    BOOL shrinkAvailable = NO;
     size_t released = 0;
     if (gc && synchronousGC) {
         uint64_t start = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
@@ -106,9 +112,25 @@ NSDictionary<NSString *, id> *HSMemoryRelieve(JSContext *context, BOOL gc, BOOL 
         released = malloc_zone_pressure_relief(NULL, 0);
         reliefMs = (clock_gettime_nsec_np(CLOCK_UPTIME_RAW) - start) / 1e6;
     }
+    if (shrink) {
+        JSVirtualMachine *vm = context.virtualMachine;
+        shrinkAvailable = [vm respondsToSelector:@selector(shrinkFootprintWhenIdle)];
+        if (shrinkAvailable) {
+            // Like GC, request on the calling JS thread. JSC defers the work
+            // until the JS stack unwinds; this timing measures only the request.
+            uint64_t start = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+            [vm shrinkFootprintWhenIdle];
+            shrinkMs = (clock_gettime_nsec_np(CLOCK_UPTIME_RAW) - start) / 1e6;
+        }
+    }
     // JSC returns allocator pages asynchronously. Do not wait or infer a decrease.
     if (!readFootprint(context, &after, NULL)) return nil;
-    return @{@"footprintBefore": @(before), @"footprintAfterGC": @(afterGC),
-             @"footprintAfter": @(after), @"mallocReleased": @(released),
-             @"gcMs": @(gcMs), @"reliefMs": @(reliefMs)};
+    NSMutableDictionary *result = [@{@"footprintBefore": @(before), @"footprintAfterGC": @(afterGC),
+                                     @"footprintAfter": @(after), @"mallocReleased": @(released),
+                                     @"gcMs": @(gcMs), @"reliefMs": @(reliefMs)} mutableCopy];
+    if (shrink) {
+        result[@"shrinkAvailable"] = @(shrinkAvailable);
+        result[@"shrinkMs"] = @(shrinkMs);
+    }
+    return result;
 }
