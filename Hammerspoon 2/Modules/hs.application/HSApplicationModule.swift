@@ -80,7 +80,9 @@ import UniformTypeIdentifiers
     /// Render the application's icon as a base64-encoded PNG string. Use the
     /// returned string as the body of a `data:image/png;base64,…` URL to render
     /// the icon in HTML/SwiftUI without exposing the underlying .icns path.
-    /// Falls back to NSWorkspace's generic icon if no application is found.
+    /// Encoded icons are cached across configuration reloads. Root changes,
+    /// bundle path or modification-date changes, and
+    /// `invalidateInstalledAppsCache()` invalidate cached icons.
     /// - Parameter bundleID: The application bundle identifier (e.g. "com.apple.Safari")
     /// - Returns: The base64-encoded PNG bytes, or null if the bundle could not be located
     /// - Example:
@@ -169,8 +171,13 @@ import UniformTypeIdentifiers
     /// `iconPath`, when non-null, points at the bundle's primary icon on disk
     /// (`.icns` for macOS bundles, the app-icon `.png` for iOS wrapper apps).
     ///
-    /// - Parameter extraRoots: Optional array of additional directories to scan.
-    /// - Returns: Array of `{name, displayName, bundleID, path, iconPath, version}`
+    /// The native cache survives configuration reloads. Within each JavaScript
+    /// context, cache hits return the same frozen array of frozen records.
+    /// Use `apps.map(app => ({...app}))` when mutable records are needed, or
+    /// `apps.slice()` to sort a copy of the array.
+    ///
+    /// - Parameter extraRoots?: Optional array of additional directories to scan.
+    /// - Returns: {ReadonlyArray<Readonly<Record<string, any>>>} Array of `{name, displayName, bundleID, path, iconPath, version}`
     /// - Example:
     /// ```js
     /// const apps = hs.application.installedApps()
@@ -179,9 +186,10 @@ import UniformTypeIdentifiers
     /// // With extra roots:
     /// const more = hs.application.installedApps(['~/Tools', '~/Dev/Apps'])
     /// ```
-    @objc(installedApps:) func installedApps(_ extraRoots: JSValue) -> [[String: Any]]
+    @objc(installedApps:) func installedApps(_ extraRoots: JSValue) -> JSValue
 
-    /// Force the next call to `installedApps()` to rescan from disk.
+    /// Force the next call to `installedApps()` to rescan from disk, and clear
+    /// cached application icons. Applies to all JavaScript contexts.
     /// - Example:
     /// ```js
     /// hs.application.invalidateInstalledAppsCache()
@@ -261,9 +269,51 @@ class HSApplicationWatcherObject {
     }
 }
 
-private struct InstalledAppsCacheEntry {
+private final class InstalledAppsCacheEntry {
     let apps: [[String: Any]]
     let timestamp: TimeInterval
+
+    init(apps: [[String: Any]], timestamp: TimeInterval) {
+        self.apps = apps
+        self.timestamp = timestamp
+    }
+}
+
+/// Native data only: retaining a JSValue here would keep an old context alive.
+@MainActor
+private final class ApplicationInfoCache {
+    static let shared = ApplicationInfoCache()
+    var apps: [[String]: InstalledAppsCacheEntry] = [:]
+    let ttl: TimeInterval = 30
+    let rootWatcher = InstalledAppsRootWatcher()
+    private(set) var generation: UInt64 = 0
+
+    struct IconKey: Hashable {
+        let bundleID: String
+        let pixels: Int
+    }
+
+    struct IconEntry {
+        let path: String
+        let modificationDate: Date
+        let base64: String
+    }
+
+    var icons: [IconKey: IconEntry] = [:]
+    var iconRenderCount: UInt64 = 0
+
+    func refreshIfNeeded() {
+        if rootWatcher.consumeDirty() { invalidate() }
+    }
+
+    func invalidate() {
+        apps.removeAll()
+        icons.removeAll()
+        // Reopen watches on the next fill: an updated root may have a new
+        // inode, and roots no longer used must not retain descriptors forever.
+        rootWatcher.cancelAll()
+        generation &+= 1
+    }
 }
 
 /// Watches application root directories (e.g. /Applications) and flips a
@@ -283,6 +333,7 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
     private var watchedRoots = Set<String>()
     private var sources: [DispatchSourceFileSystemObject] = []
     private var dirty = false
+    private var generation: UInt64 = 0
     private let queue = DispatchQueue(label: "hs.application.installedApps.rootwatch")
 
     /// Start watching a directory if it exists and isn't watched yet.
@@ -290,6 +341,7 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
     func watch(_ root: String) {
         lock.lock()
         let alreadyWatched = watchedRoots.contains(root)
+        let watchGeneration = generation
         lock.unlock()
         if alreadyWatched { return }
 
@@ -302,7 +354,7 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
         source.setEventHandler { [weak self] in
             guard let self else { return }
             self.lock.lock()
-            self.dirty = true
+            if self.generation == watchGeneration { self.dirty = true }
             self.lock.unlock()
         }
         source.setCancelHandler { close(fd) }
@@ -327,6 +379,8 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
         let toCancel = sources
         sources = []
         watchedRoots = []
+        dirty = false
+        generation &+= 1
         lock.unlock()
         toCancel.forEach { $0.cancel() }
     }
@@ -339,10 +393,12 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
     let engineID: UUID
     private var watcher: HSApplicationWatcherObject? = nil
 
-    // installedApps() cache: keyed by the joined extraRoots string.
-    private var installedAppsCache: [String: InstalledAppsCacheEntry] = [:]
-    private let installedAppsCacheTTL: TimeInterval = 30
-    private let installedAppsRootWatcher = InstalledAppsRootWatcher()
+    // Strong JS references belong to this module's context, never the singleton.
+    private var installedAppsValues: [[String]: (entry: InstalledAppsCacheEntry, value: JSValue)] = [:]
+    private var installedAppsGeneration: UInt64 = 0
+
+    /// Native diagnostic only; counts actual rasterizations across contexts.
+    static var iconRenderCount: UInt64 { ApplicationInfoCache.shared.iconRenderCount }
 
     // Swift-retained storage for the JS-defined ApplicationModuleWatcherEmitter instance
     @objc var _watcherEmitter: JSFunction? = nil
@@ -356,7 +412,7 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
 
     func shutdown() {
         _removeWatcher()
-        installedAppsRootWatcher.cancelAll()
+        installedAppsValues.removeAll()
         _watcherEmitter = nil
     }
 
@@ -501,20 +557,44 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
 
     // MARK: - Installed apps + process signaling
 
-    @objc(installedApps:) func installedApps(_ extraRoots: JSValue) -> [[String: Any]] {
+    @objc(installedApps:) func installedApps(_ extraRoots: JSValue) -> JSValue {
         let extras = extractExtraRoots(extraRoots)
-        let cacheKey = extras.joined(separator: "\n")
-        // An install/delete in any watched root drops the whole cache so the
-        // change is visible on the very next call, not after the TTL.
-        if installedAppsRootWatcher.consumeDirty() {
-            installedAppsCache.removeAll()
+        let cache = ApplicationInfoCache.shared
+        cache.refreshIfNeeded()
+        // Bound process-lifetime storage when callers use many distinct roots.
+        if cache.apps[extras] == nil, cache.apps.count >= 32 { cache.invalidate() }
+        if installedAppsGeneration != cache.generation {
+            installedAppsValues.removeAll()
+            installedAppsGeneration = cache.generation
         }
         let now = Date().timeIntervalSince1970
-        if let entry = installedAppsCache[cacheKey],
-           now - entry.timestamp < installedAppsCacheTTL {
-            return entry.apps
+        let entry: InstalledAppsCacheEntry
+        if let cached = cache.apps[extras], now - cached.timestamp < cache.ttl {
+            entry = cached
+        } else {
+            entry = InstalledAppsCacheEntry(apps: scanInstalledApps(extras), timestamp: now)
+            cache.apps[extras] = entry
+        }
+        if let cached = installedAppsValues[extras], cached.entry === entry,
+           cached.value.context === extraRoots.context {
+            return cached.value
         }
 
+        let context = extraRoots.context!
+        let value = JSValue(object: entry.apps, in: context)!
+        // Every field is a scalar. Freezing the records as well as the array
+        // prevents one caller from changing a later caller's cached result.
+        _ = context.evaluateScript("""
+            (function(apps) {
+                for (let i = 0; i < apps.length; i++) Object.freeze(apps[i]);
+                return Object.freeze(apps);
+            })
+            """)?.call(withArguments: [value])
+        installedAppsValues[extras] = (entry, value)
+        return value
+    }
+
+    private func scanInstalledApps(_ extras: [String]) -> [[String: Any]] {
         let standardRoots = [
             "/Applications",
             NSString(string: "~/Applications").expandingTildeInPath,
@@ -539,7 +619,7 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
         for root in allRoots {
             // Watch before scanning so a change racing the scan still marks
             // the cache dirty for the next call.
-            installedAppsRootWatcher.watch(root)
+            ApplicationInfoCache.shared.rootWatcher.watch(root)
             for url in scanForApps(in: root) {
                 guard let (info, innerBundle) = readAppInfo(at: url),
                       let bundleID = info["CFBundleIdentifier"] as? String else { continue }
@@ -566,12 +646,12 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
                 ])
             }
         }
-        installedAppsCache[cacheKey] = InstalledAppsCacheEntry(apps: result, timestamp: now)
         return result
     }
 
     @objc func invalidateInstalledAppsCache() {
-        installedAppsCache.removeAll()
+        ApplicationInfoCache.shared.invalidate()
+        installedAppsValues.removeAll()
     }
 
     @objc func killPid(_ pid: Int, _ force: Bool) -> Bool {
@@ -682,14 +762,26 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
     }
 
     @objc func iconForBundleID(_ bundleID: String) -> String? {
+        let cache = ApplicationInfoCache.shared
+        cache.refreshIfNeeded()
         let workspace = NSWorkspace.shared
         // urlForApplication looks up the app by bundle identifier; if the
         // bundleID isn't a known installed app (e.g. a CLI tool or service),
         // fall through to nil — caller will use a fallback letter tile.
         guard let url = workspace.urlForApplication(withBundleIdentifier: bundleID) else { return nil }
+        let key = ApplicationInfoCache.IconKey(bundleID: bundleID, pixels: 88)
+        if cache.icons[key] == nil, cache.icons.count >= 256 { cache.invalidate() }
+        cache.rootWatcher.watch(url.deletingLastPathComponent().path)
+        cache.rootWatcher.watch(url.path)
+        let modificationDate = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        if let cached = cache.icons[key], cached.path == url.path,
+           cached.modificationDate == modificationDate {
+            return cached.base64
+        }
         // NSWorkspace returns an NSImage that includes multiple representations
         // (multi-size .icns). Pick a 44px target so the rendered PNG is sharp
         // on @2x without being huge.
+        cache.iconRenderCount &+= 1
         let icon = workspace.icon(forFile: url.path)
         let target = NSSize(width: 44, height: 44)
         // Render at @2x for retina sharpness, but keep the *bitmap*'s declared
@@ -709,7 +801,12 @@ private nonisolated final class InstalledAppsRootWatcher: @unchecked Sendable {
         icon.draw(in: NSRect(origin: .zero, size: target))
         NSGraphicsContext.restoreGraphicsState()
         guard let png = bitmap.representation(using: .png, properties: [:]) else { return nil }
-        return png.base64EncodedString()
+        let base64 = png.base64EncodedString()
+        if let modificationDate {
+            cache.icons[key] = ApplicationInfoCache.IconEntry(
+                path: url.path, modificationDate: modificationDate, base64: base64)
+        }
+        return base64
     }
 
     /// Resolves the path of the bundle's primary icon without any image

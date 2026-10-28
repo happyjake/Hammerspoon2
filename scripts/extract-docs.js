@@ -531,6 +531,7 @@ function extractReturns(signature, docLines) {
         let returnDesc = '';
         let promiseType = null;
         let jsValueType = null;
+        let tsType = null;
 
         for (const line of docLines) {
             const trimmed = line.trim();
@@ -549,6 +550,7 @@ function extractReturns(signature, docLines) {
                     } else if (returnMatch[1].trim() === 'JSValue') {
                         // A direct JSValue return can retain its public JS shape.
                         jsValueType = typeAnnotation;
+                        tsType = typeAnnotation;
                     }
                 }
                 break;
@@ -564,6 +566,9 @@ function extractReturns(signature, docLines) {
         if (promiseType) {
             result.promiseType = promiseType;
         }
+        // Raw JSValue returns need an explicit shape; typed Swift returns
+        // already carry their contract and may have descriptive JSDoc tags.
+        if (tsType && /^JSValue\??$/.test(result.type)) result.tsType = tsType;
 
         return result;
     }

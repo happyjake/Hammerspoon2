@@ -620,7 +620,9 @@ declare namespace hs.application {
      * Render the application's icon as a base64-encoded PNG string. Use the
 returned string as the body of a `data:image/png;base64,…` URL to render
 the icon in HTML/SwiftUI without exposing the underlying .icns path.
-Falls back to NSWorkspace's generic icon if no application is found.
+Encoded icons are cached across configuration reloads. Root changes,
+bundle path or modification-date changes, and
+`invalidateInstalledAppsCache()` invalidate cached icons.
      * @param bundleID The application bundle identifier (e.g. "com.apple.Safari")
      * @returns The base64-encoded PNG bytes, or null if the bundle could not be located
      */
@@ -686,13 +688,18 @@ skipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,
 Bartender, ClipMenu) are included because users still launch them.
 `iconPath`, when non-null, points at the bundle's primary icon on disk
 (`.icns` for macOS bundles, the app-icon `.png` for iOS wrapper apps).
+The native cache survives configuration reloads. Within each JavaScript
+context, cache hits return the same frozen array of frozen records.
+Use `apps.map(app => ({...app}))` when mutable records are needed, or
+`apps.slice()` to sort a copy of the array.
      * @param extraRoots Optional array of additional directories to scan.
      * @returns Array of `{name, displayName, bundleID, path, iconPath, version}`
      */
-    function installedApps(extraRoots: any): Record<string, any>[];
+    function installedApps(extraRoots?: any): ReadonlyArray<Readonly<Record<string, any>>>;
 
     /**
-     * Force the next call to `installedApps()` to rescan from disk.
+     * Force the next call to `installedApps()` to rescan from disk, and clear
+cached application icons. Applies to all JavaScript contexts.
      */
     function invalidateInstalledAppsCache(): void;
 

@@ -168,7 +168,7 @@ function generateModuleDefinitions(moduleData) {
         }).join(', ');
 
         const returnType = method.returns
-            ? (method.source === 'swift' ? swiftTypeToTS(method.returns.type, method.returns.promiseType) : method.returns.type)
+            ? (method.returns.tsType || (method.source === 'swift' ? swiftTypeToTS(method.returns.type, method.returns.promiseType) : method.returns.type))
             : 'void';
 
         output += `    function ${method.name}(${params}): ${returnType};\n\n`;
@@ -261,7 +261,7 @@ function generateTypeDefinition(protocol) {
                 return `${p.name}${p.optional ? '?' : ''}: ${resolveParamType(p)}`;
             }).join(', ');
 
-            const returnType = method.returns ? swiftTypeToTS(method.returns.type, method.returns.promiseType) : 'void';
+            const returnType = method.returns ? (method.returns.tsType || swiftTypeToTS(method.returns.type, method.returns.promiseType)) : 'void';
             const staticPrefix = method.isStatic ? 'static ' : '';
 
             output += `    ${staticPrefix}${method.name}(${params}): ${returnType};\n\n`;
@@ -346,7 +346,7 @@ function generateTypeDefinition(protocol) {
                 return `${p.name}${p.optional ? '?' : ''}: ${resolveParamType(p)}`;
             }).join(', ');
 
-            const returnType = method.returns ? swiftTypeToTS(method.returns.type, method.returns.promiseType) : 'void';
+            const returnType = method.returns ? (method.returns.tsType || swiftTypeToTS(method.returns.type, method.returns.promiseType)) : 'void';
 
             output += `    ${method.name}(${params}): ${returnType};\n\n`;
         }

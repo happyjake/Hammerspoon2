@@ -556,8 +556,8 @@
           "name": "iconForBundleID",
           "signature": "func iconForBundleID(_ bundleID: String) -> String?",
           "isStatic": false,
-          "rawDocumentation": "Render the application's icon as a base64-encoded PNG string. Use the\nreturned string as the body of a `data:image/png;base64,…` URL to render\nthe icon in HTML/SwiftUI without exposing the underlying .icns path.\nFalls back to NSWorkspace's generic icon if no application is found.\n- Parameter bundleID: The application bundle identifier (e.g. \"com.apple.Safari\")\n- Returns: The base64-encoded PNG bytes, or null if the bundle could not be located\n- Example:\n```js\nconst b64 = hs.application.iconForBundleID(\"com.apple.Safari\")\nelement.src = \"data:image/png;base64,\" + b64\n```",
-          "description": "Render the application's icon as a base64-encoded PNG string. Use the\nreturned string as the body of a `data:image/png;base64,…` URL to render\nthe icon in HTML/SwiftUI without exposing the underlying .icns path.\nFalls back to NSWorkspace's generic icon if no application is found.",
+          "rawDocumentation": "Render the application's icon as a base64-encoded PNG string. Use the\nreturned string as the body of a `data:image/png;base64,…` URL to render\nthe icon in HTML/SwiftUI without exposing the underlying .icns path.\nEncoded icons are cached across configuration reloads. Root changes,\nbundle path or modification-date changes, and\n`invalidateInstalledAppsCache()` invalidate cached icons.\n- Parameter bundleID: The application bundle identifier (e.g. \"com.apple.Safari\")\n- Returns: The base64-encoded PNG bytes, or null if the bundle could not be located\n- Example:\n```js\nconst b64 = hs.application.iconForBundleID(\"com.apple.Safari\")\nelement.src = \"data:image/png;base64,\" + b64\n```",
+          "description": "Render the application's icon as a base64-encoded PNG string. Use the\nreturned string as the body of a `data:image/png;base64,…` URL to render\nthe icon in HTML/SwiftUI without exposing the underlying .icns path.\nEncoded icons are cached across configuration reloads. Root changes,\nbundle path or modification-date changes, and\n`invalidateInstalledAppsCache()` invalidate cached icons.",
           "params": [
             {
               "name": "bundleID",
@@ -580,7 +580,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 91
+          "lineNumber": 93
         },
         {
           "name": "pathsForBundleID",
@@ -610,7 +610,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 100
+          "lineNumber": 102
         },
         {
           "name": "pathForFileType",
@@ -640,7 +640,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 115
+          "lineNumber": 117
         },
         {
           "name": "pathsForFileType",
@@ -670,7 +670,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 124
+          "lineNumber": 126
         },
         {
           "name": "launchOrFocus",
@@ -701,26 +701,27 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 133
+          "lineNumber": 135
         },
         {
           "name": "installedApps",
-          "signature": "func installedApps(_ extraRoots: JSValue) -> [[String: Any]]",
+          "signature": "func installedApps(_ extraRoots: JSValue) -> JSValue",
           "isStatic": false,
-          "rawDocumentation": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; the cache is dropped automatically\nwhen the contents of any scanned root change (an app is installed or\ndeleted), so changes are visible on the next call. Call\n`invalidateInstalledAppsCache()` to force a rescan by hand.\n\nRoots scanned in order (dedup by bundleID — first wins):\n  1. /Applications\n  2. ~/Applications\n  3. /System/Applications\n  4. /System/Applications/Utilities\n  5. /System/Cryptexes/App/System/Applications (Safari — its\n     /Applications symlink is flagged hidden, so it must be scanned\n     at its real cryptex location)\n  6. /System/Library/CoreServices/Applications (Keychain Access,\n     Archive Utility, Directory Utility, …)\n  7. /System/Library/CoreServices/Finder.app (Finder)\n  8. Any caller-supplied extra roots\n\nA root may be a single `.app` bundle (like the Finder entry above), in\nwhich case that bundle itself is the result — extra roots may use this\nform too.\n\nBoth bundle layouts are understood: regular macOS bundles\n(`Contents/Info.plist`) and the wrapper layout the App Store uses for\niPhone/iPad apps on Apple silicon (`Foo.app/Wrapper/<Inner>.app/`).\nWrapper apps report the inner bundle's metadata (that's where the\nlocalized `displayName` lives) with `path` pointing at the outer\n`.app` — the thing you launch or reveal in Finder.\n\nBundles with `LSBackgroundOnly = true` (true daemons with no UI) are\nskipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,\nBartender, ClipMenu) are included because users still launch them.\n`iconPath`, when non-null, points at the bundle's primary icon on disk\n(`.icns` for macOS bundles, the app-icon `.png` for iOS wrapper apps).\n\n- Parameter extraRoots: Optional array of additional directories to scan.\n- Returns: Array of `{name, displayName, bundleID, path, iconPath, version}`\n- Example:\n```js\nconst apps = hs.application.installedApps()\nconsole.log(apps[0].displayName, apps[0].bundleID)\n\n// With extra roots:\nconst more = hs.application.installedApps(['~/Tools', '~/Dev/Apps'])\n```",
-          "description": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; the cache is dropped automatically\nwhen the contents of any scanned root change (an app is installed or\ndeleted), so changes are visible on the next call. Call\n`invalidateInstalledAppsCache()` to force a rescan by hand.\n1. /Applications\n2. ~/Applications\n3. /System/Applications\n4. /System/Applications/Utilities\n5. /System/Cryptexes/App/System/Applications (Safari — its\n/Applications symlink is flagged hidden, so it must be scanned\nat its real cryptex location)\n6. /System/Library/CoreServices/Applications (Keychain Access,\nArchive Utility, Directory Utility, …)\n7. /System/Library/CoreServices/Finder.app (Finder)\n8. Any caller-supplied extra roots\nA root may be a single `.app` bundle (like the Finder entry above), in\nwhich case that bundle itself is the result — extra roots may use this\nform too.\nBoth bundle layouts are understood: regular macOS bundles\n(`Contents/Info.plist`) and the wrapper layout the App Store uses for\niPhone/iPad apps on Apple silicon (`Foo.app/Wrapper/<Inner>.app/`).\nWrapper apps report the inner bundle's metadata (that's where the\nlocalized `displayName` lives) with `path` pointing at the outer\n`.app` — the thing you launch or reveal in Finder.\nBundles with `LSBackgroundOnly = true` (true daemons with no UI) are\nskipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,\nBartender, ClipMenu) are included because users still launch them.\n`iconPath`, when non-null, points at the bundle's primary icon on disk\n(`.icns` for macOS bundles, the app-icon `.png` for iOS wrapper apps).",
+          "rawDocumentation": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; the cache is dropped automatically\nwhen the contents of any scanned root change (an app is installed or\ndeleted), so changes are visible on the next call. Call\n`invalidateInstalledAppsCache()` to force a rescan by hand.\n\nRoots scanned in order (dedup by bundleID — first wins):\n  1. /Applications\n  2. ~/Applications\n  3. /System/Applications\n  4. /System/Applications/Utilities\n  5. /System/Cryptexes/App/System/Applications (Safari — its\n     /Applications symlink is flagged hidden, so it must be scanned\n     at its real cryptex location)\n  6. /System/Library/CoreServices/Applications (Keychain Access,\n     Archive Utility, Directory Utility, …)\n  7. /System/Library/CoreServices/Finder.app (Finder)\n  8. Any caller-supplied extra roots\n\nA root may be a single `.app` bundle (like the Finder entry above), in\nwhich case that bundle itself is the result — extra roots may use this\nform too.\n\nBoth bundle layouts are understood: regular macOS bundles\n(`Contents/Info.plist`) and the wrapper layout the App Store uses for\niPhone/iPad apps on Apple silicon (`Foo.app/Wrapper/<Inner>.app/`).\nWrapper apps report the inner bundle's metadata (that's where the\nlocalized `displayName` lives) with `path` pointing at the outer\n`.app` — the thing you launch or reveal in Finder.\n\nBundles with `LSBackgroundOnly = true` (true daemons with no UI) are\nskipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,\nBartender, ClipMenu) are included because users still launch them.\n`iconPath`, when non-null, points at the bundle's primary icon on disk\n(`.icns` for macOS bundles, the app-icon `.png` for iOS wrapper apps).\n\nThe native cache survives configuration reloads. Within each JavaScript\ncontext, cache hits return the same frozen array of frozen records.\nUse `apps.map(app => ({...app}))` when mutable records are needed, or\n`apps.slice()` to sort a copy of the array.\n\n- Parameter extraRoots?: Optional array of additional directories to scan.\n- Returns: {ReadonlyArray<Readonly<Record<string, any>>>} Array of `{name, displayName, bundleID, path, iconPath, version}`\n- Example:\n```js\nconst apps = hs.application.installedApps()\nconsole.log(apps[0].displayName, apps[0].bundleID)\n\n// With extra roots:\nconst more = hs.application.installedApps(['~/Tools', '~/Dev/Apps'])\n```",
+          "description": "Enumerate every `.app` bundle under the standard application roots,\nplus any caller-supplied extra roots. Results are cached for 30 seconds\nper unique `extraRoots` argument; the cache is dropped automatically\nwhen the contents of any scanned root change (an app is installed or\ndeleted), so changes are visible on the next call. Call\n`invalidateInstalledAppsCache()` to force a rescan by hand.\n1. /Applications\n2. ~/Applications\n3. /System/Applications\n4. /System/Applications/Utilities\n5. /System/Cryptexes/App/System/Applications (Safari — its\n/Applications symlink is flagged hidden, so it must be scanned\nat its real cryptex location)\n6. /System/Library/CoreServices/Applications (Keychain Access,\nArchive Utility, Directory Utility, …)\n7. /System/Library/CoreServices/Finder.app (Finder)\n8. Any caller-supplied extra roots\nA root may be a single `.app` bundle (like the Finder entry above), in\nwhich case that bundle itself is the result — extra roots may use this\nform too.\nBoth bundle layouts are understood: regular macOS bundles\n(`Contents/Info.plist`) and the wrapper layout the App Store uses for\niPhone/iPad apps on Apple silicon (`Foo.app/Wrapper/<Inner>.app/`).\nWrapper apps report the inner bundle's metadata (that's where the\nlocalized `displayName` lives) with `path` pointing at the outer\n`.app` — the thing you launch or reveal in Finder.\nBundles with `LSBackgroundOnly = true` (true daemons with no UI) are\nskipped. Menu-bar-only apps (`LSUIElement = true`, e.g. Hammerspoon 1,\nBartender, ClipMenu) are included because users still launch them.\n`iconPath`, when non-null, points at the bundle's primary icon on disk\n(`.icns` for macOS bundles, the app-icon `.png` for iOS wrapper apps).\nThe native cache survives configuration reloads. Within each JavaScript\ncontext, cache hits return the same frozen array of frozen records.\nUse `apps.map(app => ({...app}))` when mutable records are needed, or\n`apps.slice()` to sort a copy of the array.",
           "params": [
             {
               "name": "extraRoots",
               "type": "JSValue",
               "description": "Optional array of additional directories to scan.",
-              "optional": false,
+              "optional": true,
               "tsType": null
             }
           ],
           "returns": {
-            "type": "[[String: Any]]",
-            "description": "Array of `{name, displayName, bundleID, path, iconPath, version}`"
+            "type": "JSValue",
+            "description": "Array of `{name, displayName, bundleID, path, iconPath, version}`",
+            "tsType": "ReadonlyArray<Readonly<Record<string, any>>>"
           },
           "notes": [],
           "examples": [
@@ -731,14 +732,14 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 182
+          "lineNumber": 189
         },
         {
           "name": "invalidateInstalledAppsCache",
           "signature": "func invalidateInstalledAppsCache()",
           "isStatic": false,
-          "rawDocumentation": "Force the next call to `installedApps()` to rescan from disk.\n- Example:\n```js\nhs.application.invalidateInstalledAppsCache()\n```",
-          "description": "Force the next call to `installedApps()` to rescan from disk.",
+          "rawDocumentation": "Force the next call to `installedApps()` to rescan from disk, and clear\ncached application icons. Applies to all JavaScript contexts.\n- Example:\n```js\nhs.application.invalidateInstalledAppsCache()\n```",
+          "description": "Force the next call to `installedApps()` to rescan from disk, and clear\ncached application icons. Applies to all JavaScript contexts.",
           "params": [],
           "returns": null,
           "notes": [],
@@ -750,7 +751,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 189
+          "lineNumber": 197
         },
         {
           "name": "killPid",
@@ -787,7 +788,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 202
+          "lineNumber": 210
         },
         {
           "name": "addWatcher",
@@ -814,7 +815,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 213
+          "lineNumber": 221
         },
         {
           "name": "removeWatcher",
@@ -841,7 +842,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.application/HSApplicationModule.swift",
-          "lineNumber": 222
+          "lineNumber": 230
         }
       ],
       "properties": [],
