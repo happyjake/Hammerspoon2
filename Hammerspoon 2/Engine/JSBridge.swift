@@ -249,32 +249,20 @@ extension JSValue {
     /// Converts this `JSValue` to `[String: Any]`, or sets a JS `TypeError` and returns `nil`.
     nonisolated func toObjectDictionary(method: String, parameter: String) -> [String: Any]? {
         let ctx = self.context ?? JSContext.current()
-        guard isPlainJSObject,
-              let keys = enumerableKeys()
-        else {
+        guard isPlainJSObject else {
             ctx?.throwTypeError("\(method): parameter '\(parameter)' must be a plain object")
             return nil
         }
 
-        var result: [String: Any] = [:]
-        result.reserveCapacity(keys.count)
-
-        for key in keys {
-            let propValue = objectForKeyedSubscript(key)
-            if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
-                return nil
-            }
-            guard let propValue, !propValue.isUndefined else {
-                continue
-            }
-            if propValue.isNull {
-                result[key] = NSNull()
-            } else if let converted = propValue.toObject() {
-                result[key] = converted
-            }
+        let converted = toObject()
+        if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
+            return nil
         }
-
-        return result
+        guard let dict = converted as? [String: Any] else {
+            ctx?.throwTypeError("\(method): parameter '\(parameter)' must be a plain object")
+            return nil
+        }
+        return dict
     }
 
     /// Converts an optional `JSValue` to `[String: Any]?`.
@@ -307,25 +295,31 @@ extension JSValue {
             return nil
         }
 
-        var result: [[String: Any]] = []
-        result.reserveCapacity(length)
-
         for index in 0..<length {
             let element = atIndex(index)
             if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
                 return nil
             }
-            guard let element,
-                  let dict = element.toObjectDictionary(
-                      method: method,
-                      parameter: "\(parameter)[\(index)]"
-                  )
-            else {
+            guard let element, element.isPlainJSObject else {
+                ctx?.throwTypeError(
+                    "\(method): parameter '\(parameter)[\(index)]' must be a plain object"
+                )
                 return nil
             }
-            result.append(dict)
         }
 
+        if length == 0 {
+            return []
+        }
+
+        let converted = toObject()
+        if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
+            return nil
+        }
+        guard let result = converted as? [[String: Any]] else {
+            ctx?.throwTypeError("\(method): parameter '\(parameter)' must be an array of plain objects")
+            return nil
+        }
         return result
     }
 

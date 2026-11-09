@@ -374,4 +374,28 @@ struct JSBridgeIntegrationTests {
         #expect(!harness.hasException)
         harness.expectTrue("strThrew === true && objArrThrew === true")
     }
+
+    @Test("toObjectDictionary and toObjectDictionaryArray convert shared nested objects once across the object graph")
+    func testSharedNestedObjectConvertedOnce() {
+        let harness = makeHarness()
+
+        harness.eval("""
+        let n = 0;
+        const shared = { get x() { return ++n; } };
+        const r = probe.objectDictionary({ a: shared, b: shared, c: shared });
+        const dictSnap = [r.a.x, r.b.x, r.c.x, n];
+
+        let m = 0;
+        const sharedInArray = { get x() { return ++m; } };
+        const arr = probe.objectDictionaryArray([
+            { a: sharedInArray, b: sharedInArray },
+            { c: sharedInArray }
+        ]);
+        const arrSnap = [arr[0].a.x, arr[0].b.x, arr[1].c.x, m];
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectEqual("dictSnap.join(',')", "1,1,1,1")
+        harness.expectEqual("arrSnap.join(',')", "1,1,1,1")
+    }
 }
