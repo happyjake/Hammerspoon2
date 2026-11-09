@@ -378,6 +378,29 @@ struct HSApplicationTests {
             harness.expectTrue("appNames.length > 0")
             harness.expectTrue("appNames.indexOf('Finder') !== -1")
         }
+
+        @Test("findMenuItemByPath and selectMenuItemByPath validate path array and keep valid calls working")
+        func testMenuPathCollectionValidation() async {
+            let harness = JSTestHarness()
+            harness.loadModule(HSApplicationModule.self, as: "application")
+            let result = harness.eval("""
+            (function() {
+                var app = hs.application.matchingName('Finder') || hs.application.frontmost();
+                if (!app) return false;
+                var findThrew = false;
+                var selectThrew = false;
+                try { app.findMenuItemByPath('File'); }
+                catch (e) { findThrew = (e instanceof TypeError) && /hs\\.application\\.findMenuItemByPath.*path/.test(e.message); }
+                try { app.selectMenuItemByPath([123]); }
+                catch (e) { selectThrew = (e instanceof TypeError) && /hs\\.application\\.selectMenuItemByPath.*path/.test(e.message); }
+                var validFind = app.findMenuItemByPath(['__NonExistentMenu__']);
+                var validSelect = app.selectMenuItemByPath(['__NonExistentMenu__']);
+                return findThrew && selectThrew && (validFind === null || validFind === undefined) && validSelect === false;
+            })()
+            """)
+            #expect(harness.hasException == false)
+            #expect(result as? Bool == true)
+        }
     }
 
     // MARK: - Watcher Structure Tests

@@ -27,13 +27,13 @@ import AppKit
     ///
     /// Coordinates use the same convention as `hs.screen`: `(0,0)` is the top-left of
     /// the primary display.
-    /// - Parameter point: An object `{ x, y }`.
+    /// - Parameter point: {Object<string, number>} An object `{ x, y }`.
     /// - Returns: true.
     /// - Example:
     /// ```js
     /// hs.mouse.setPosition({ x: 200, y: 200 })
     /// ```
-    @objc func setPosition(_ point: [String: Double]) -> Bool
+    @objc func setPosition(_ point: JSValue) -> Bool
 
     /// Hide the system mouse cursor.
     /// - Returns: true on success.
@@ -92,9 +92,12 @@ import AppKit
         return ["x": Double(loc.x), "y": Double(loc.y)]
     }
 
-    @objc func setPosition(_ point: [String: Double]) -> Bool {
+    @objc func setPosition(_ point: JSValue) -> Bool {
+        guard let bridgedPoint = point.toDoubleDictionary(method: "hs.mouse.setPosition", parameter: "point") else {
+            return false
+        }
         // CGWarpMouseCursorPosition also takes top-left global coordinates — no flip.
-        CGWarpMouseCursorPosition(CGPoint(x: point["x"] ?? 0, y: point["y"] ?? 0))
+        CGWarpMouseCursorPosition(CGPoint(x: bridgedPoint["x"] ?? 0, y: bridgedPoint["y"] ?? 0))
         return true
     }
 

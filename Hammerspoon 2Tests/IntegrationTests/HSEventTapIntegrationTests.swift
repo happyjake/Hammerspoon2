@@ -138,4 +138,28 @@ struct HSEventTapIntegrationTests {
         """)
         #expect(h.hasException == false)
     }
+
+    @Test("make, keyStroke, and leftClick throw TypeError on wrong-typed collection arguments and keep context usable")
+    func testCollectionArgumentValidation() {
+        let h = JSTestHarness()
+        h.loadModule(HSEventTapModule.self, as: "eventtap")
+        let result = h.eval("""
+        (function() {
+            var makeThrew = false;
+            var keyStrokeThrew = false;
+            var leftClickThrew = false;
+            try { hs.eventtap.make('keyDown', function() { return false; }); }
+            catch (e) { makeThrew = (e instanceof TypeError) && /hs\\.eventtap\\.make.*eventTypes/.test(e.message); }
+            try { hs.eventtap.keyStroke('cmd', 'a', 0); }
+            catch (e) { keyStrokeThrew = (e instanceof TypeError) && /hs\\.eventtap\\.keyStroke.*mods/.test(e.message); }
+            try { hs.eventtap.leftClick({ x: 'bad', y: 10 }, 0); }
+            catch (e) { leftClickThrew = (e instanceof TypeError) && /hs\\.eventtap\\.leftClick.*point/.test(e.message); }
+            // Valid calls after caught TypeErrors:
+            var validTap = hs.eventtap.make(['keyDown'], function() { return false; });
+            return makeThrew && keyStrokeThrew && leftClickThrew && typeof validTap === 'object';
+        })()
+        """)
+        #expect(h.hasException == false)
+        #expect(result as? Bool == true)
+    }
 }

@@ -300,11 +300,22 @@ struct HSPasteboardTests {
             }
         }
 
-        @Test("writeObjects returns false when passed a non-object")
+        @Test("writeObjects throws TypeError when passed a non-object without modifying pasteboard")
         func testWriteObjectsNonObject() {
             withSavedPasteboard {
                 let harness = makeHarness()
-                harness.expectFalse("hs.pasteboard.writeObjects('a string') === true")
+                let result = harness.eval("""
+                (function() {
+                    hs.pasteboard.writeString('preserved');
+                    var before = hs.pasteboard.changeCount;
+                    var threw = false;
+                    try { hs.pasteboard.writeObjects('a string'); }
+                    catch (e) { threw = (e instanceof TypeError) && /hs\\.pasteboard\\.writeObjects.*representations/.test(e.message); }
+                    return threw && hs.pasteboard.changeCount === before && hs.pasteboard.readString() === 'preserved';
+                })()
+                """)
+                #expect(harness.hasException == false)
+                #expect(result as? Bool == true)
             }
         }
 

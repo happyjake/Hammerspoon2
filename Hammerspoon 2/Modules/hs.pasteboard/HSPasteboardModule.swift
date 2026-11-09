@@ -235,7 +235,7 @@ import AppKit
     /// Keys must be UTI type strings; values must be strings. This is how you provide both a plain-text
     /// fallback and a richer representation (such as HTML) in a single clipboard operation.
     ///
-    /// - Parameter representations: A JavaScript object whose keys are UTI strings and values are strings
+    /// - Parameter representations: {Object<string, string>} A JavaScript object whose keys are UTI strings and values are strings
     /// - Returns: true if the write succeeded
     /// - Example:
     /// ```js
@@ -244,7 +244,7 @@ import AppKit
     ///     "public.html":            "<b>Hello</b>"
     /// })
     /// ```
-    @objc func writeObjects(_ representations: [String: Any]) -> Bool
+    @objc func writeObjects(_ representations: JSValue) -> Bool
 
     // MARK: Introspection
 
@@ -424,8 +424,10 @@ import AppKit
         return NSPasteboard.general.setData(data, forType: NSPasteboard.PasteboardType(uti))
     }
 
-    @objc func writeObjects(_ representations: [String: Any]) -> Bool {
-        let rawDict = representations
+    @objc func writeObjects(_ representations: JSValue) -> Bool {
+        guard let rawDict = representations.toObjectDictionary(method: "hs.pasteboard.writeObjects", parameter: "representations") else {
+            return false
+        }
 
         let item = NSPasteboardItem()
         var wroteAtLeastOne = false

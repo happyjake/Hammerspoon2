@@ -14,7 +14,7 @@ import CoreGraphics
     /// Create a new event tap for the specified event types.
     /// Call .start() on the returned object to begin receiving events.
     /// Requires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).
-    /// - Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture', 'magnify'.
+    /// - Parameter eventTypes: {string[]} Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture', 'magnify'.
     ///   'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.
     ///   'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).
     ///   'magnify' delivers trackpad pinch-zoom gestures: `{type, modifiers, magnification, phase}` where `magnification` is the incremental scale delta for the frame (positive = zoom in) and `phase` is 'began' | 'changed' | 'ended' | 'cancelled'.
@@ -35,10 +35,10 @@ import CoreGraphics
     /// })
     /// media.start()
     /// ```
-    @objc(make::) func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap
+    @objc(make::) func makeTap(_ eventTypes: JSValue, _ callback: JSValue) -> HSEventTap?
 
     /// Synthesise a key stroke: press the modifiers + key, hold, then release.
-    /// - Parameter mods: Array of modifier strings, e.g. ['cmd']
+    /// - Parameter mods: {string[]} Array of modifier strings, e.g. ['cmd']
     /// - Parameter key: Key name, e.g. 'v'
     /// - Parameter delay: Optional number of microseconds the key is held between keyDown
     ///   and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's
@@ -49,7 +49,7 @@ import CoreGraphics
     /// hs.eventtap.keyStroke(['cmd'], 'v')          // 200 ms default hold
     /// hs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold
     /// ```
-    @objc(keyStroke:::) func keyStroke(_ mods: [String], _ key: String, _ delay: JSValue)
+    @objc(keyStroke:::) func keyStroke(_ mods: JSValue, _ key: String, _ delay: JSValue)
 
     /// Synthesise a scroll-wheel event at the current mouse position.
     /// The window server routes scroll events to the window under the cursor —
@@ -67,7 +67,7 @@ import CoreGraphics
     /// Synthesise a left mouse click (press + release) at a point in global
     /// top-left screen coordinates (the same space as `hs.mouse.position()` and
     /// window frames). Does not move the visible cursor.
-    /// - Parameter point: A point object `{x, y}` to click at
+    /// - Parameter point: {Object<string, number>} A point object `{x, y}` to click at
     /// - Parameter delay: Optional number of microseconds between mouseDown and mouseUp.
     ///   Defaults to 200000 (200 ms), matching upstream Hammerspoon's `hs.eventtap.leftClick`.
     /// - Example:
@@ -75,7 +75,7 @@ import CoreGraphics
     /// hs.eventtap.leftClick({ x: 800, y: 450 })         // 200 ms default hold
     /// hs.eventtap.leftClick({ x: 800, y: 450 }, 10000)  // 10 ms hold
     /// ```
-    @objc(leftClick::) func leftClick(_ point: [String: Double], _ delay: JSValue)
+    @objc(leftClick::) func leftClick(_ point: JSValue, _ delay: JSValue)
 
     /// Type a string by synthesising key events (M1 stub — lands in M4).
     /// - Parameter text: Text to type
@@ -116,20 +116,26 @@ import CoreGraphics
 
     // MARK: - API
 
-    @objc(make::) func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap {
-        let t = HSEventTap(eventTypes: eventTypes, callback: callback)
+    @objc(make::) func makeTap(_ eventTypes: JSValue, _ callback: JSValue) -> HSEventTap? {
+        guard let bridgedEventTypes = eventTypes.toStringArray(method: "hs.eventtap.make", parameter: "eventTypes") else {
+            return nil
+        }
+        let t = HSEventTap(eventTypes: bridgedEventTypes, callback: callback)
         createdTaps.append(t)
         return t
     }
 
-    @objc(keyStroke:::) func keyStroke(_ mods: [String], _ key: String, _ delay: JSValue) {
+    @objc(keyStroke:::) func keyStroke(_ mods: JSValue, _ key: String, _ delay: JSValue) {
+        guard let bridgedMods = mods.toStringArray(method: "hs.eventtap.keyStroke", parameter: "mods") else {
+            return
+        }
         guard let keyCode = HSEventTapModule.keyCode(for: key) else {
             AKError("hs.eventtap.keyStroke: unknown key '\(key)'")
             return
         }
 
         var flags: CGEventFlags = []
-        for m in mods {
+        for m in bridgedMods {
             switch m.lowercased() {
             case "cmd", "command":    flags.insert(.maskCommand)
             case "ctrl", "control":   flags.insert(.maskControl)
@@ -200,8 +206,11 @@ import CoreGraphics
         ev.post(tap: .cghidEventTap)
     }
 
-    @objc(leftClick::) func leftClick(_ point: [String: Double], _ delay: JSValue) {
-        guard let x = point["x"], let y = point["y"], x.isFinite, y.isFinite else {
+    @objc(leftClick::) func leftClick(_ point: JSValue, _ delay: JSValue) {
+        guard let bridgedPoint = point.toDoubleDictionary(method: "hs.eventtap.leftClick", parameter: "point") else {
+            return
+        }
+        guard let x = bridgedPoint["x"], let y = bridgedPoint["y"], x.isFinite, y.isFinite else {
             AKError("hs.eventtap.leftClick: point must be {x, y} with finite numbers")
             return
         }

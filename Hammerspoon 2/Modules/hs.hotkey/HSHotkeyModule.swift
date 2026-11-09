@@ -16,7 +16,7 @@ import AppKit
 @objc protocol HSHotkeyModuleAPI: JSExport {
     /// Bind a hotkey
     /// - Parameters:
-    ///   - mods: An array of modifier key strings (e.g., ["cmd", "shift"])
+    ///   - mods: {string[]} An array of modifier key strings (e.g., ["cmd", "shift"])
     ///   - key: The key name or character (e.g., "a", "space", "return")
     ///   - callbackPressed: {(() => void) | null} A JavaScript function to call when the hotkey is pressed, or null for no callback
     ///   - callbackReleased: {(() => void) | null} A JavaScript function to call when the hotkey is released, or null for no callback
@@ -27,11 +27,11 @@ import AppKit
     ///     console.log("Hello!")
     /// })
     /// ```
-    @objc func bind(_ mods: [String], _ key: String, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?
+    @objc func bind(_ mods: JSValue, _ key: String, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?
 
     /// Bind a hotkey with a message description
     /// - Parameters:
-    ///   - mods: An array of modifier key strings
+    ///   - mods: {string[]} An array of modifier key strings
     ///   - key: The key name or character
     ///   - message: A description of what this hotkey does (currently unused, for future features)
     ///   - callbackPressed: {(() => void) | null} A JavaScript function to call when the hotkey is pressed, or null for no callback
@@ -44,7 +44,7 @@ import AppKit
     /// }, null)
     /// ```
     @objc(bindSpec:::::)
-    func bindSpec(_ mods: [String], _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?
+    func bindSpec(_ mods: JSValue, _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?
 
     /// Get the system-wide mapping of key names to key codes
     /// - Returns: A dictionary mapping key names to numeric key codes
@@ -250,11 +250,21 @@ internal final class DoubleTapDetector {
 
     // MARK: - Hotkey binding
 
-    @objc func bind(_ mods: [String], _ key: String, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey? {
-        return bindSpec(mods, key, nil, callbackPressed, callbackReleased)
+    @objc func bind(_ mods: JSValue, _ key: String, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey? {
+        guard let bridgedMods = mods.toStringArray(method: "hs.hotkey.bind", parameter: "mods") else {
+            return nil
+        }
+        return bindSpecImpl(bridgedMods, key, nil, callbackPressed, callbackReleased)
     }
 
-    @objc func bindSpec(_ mods: [String], _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey? {
+    @objc func bindSpec(_ mods: JSValue, _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey? {
+        guard let bridgedMods = mods.toStringArray(method: "hs.hotkey.bindSpec", parameter: "mods") else {
+            return nil
+        }
+        return bindSpecImpl(bridgedMods, key, message, callbackPressed, callbackReleased)
+    }
+
+    private func bindSpecImpl(_ mods: [String], _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey? {
         // Parse modifiers
         guard let modifierFlags = parseModifiers(mods) else {
             AKError("hs.hotkey.bind: Invalid modifiers")

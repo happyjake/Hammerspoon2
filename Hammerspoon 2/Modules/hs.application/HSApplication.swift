@@ -185,7 +185,7 @@ import AXSwift
     @objc func findMenuItemByName(_ name: String) -> [String: Any]?
 
     /// Find a menu item by following a hierarchical path of titles
-    /// - Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. ["Edit", "Select All"]
+    /// - Parameter path: {string[]} An array of menu titles forming a path from the top-level menu to the item, e.g. ["Edit", "Select All"]
     /// - Returns: An object with title and enabled keys, or null if not found
     /// - Example:
     /// ```js
@@ -193,7 +193,7 @@ import AXSwift
     /// const item = app.findMenuItemByPath(["Edit", "Select All"])
     /// console.log(item.enabled)
     /// ```
-    @objc func findMenuItemByPath(_ path: [String]) -> [String: Any]?
+    @objc func findMenuItemByPath(_ path: JSValue) -> [String: Any]?
 
     /// Click a menu item found by searching all menus for a matching title (case-insensitive)
     /// - Parameter name: The menu item title to search for
@@ -206,14 +206,14 @@ import AXSwift
     @objc func selectMenuItemByName(_ name: String) -> Bool
 
     /// Click a menu item found by following a hierarchical path of titles
-    /// - Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. ["File", "New Window"]
+    /// - Parameter path: {string[]} An array of menu titles forming a path from the top-level menu to the item, e.g. ["File", "New Window"]
     /// - Returns: true if the menu item was found and clicked, false otherwise
     /// - Example:
     /// ```js
     /// const safari = hs.application.matchingName("Safari")
     /// safari.selectMenuItemByPath(["File", "New Window"])
     /// ```
-    @objc func selectMenuItemByPath(_ path: [String]) -> Bool
+    @objc func selectMenuItemByPath(_ path: JSValue) -> Bool
 
     /// Find windows whose title contains the given string (case-insensitive)
     /// - Parameter pattern: A string to search for in window titles
@@ -363,8 +363,11 @@ import AXSwift
         return menuElementToDict(element)
     }
 
-    @objc func findMenuItemByPath(_ path: [String]) -> [String: Any]? {
-        guard let element = findMenuElement(byPath: path) else { return nil }
+    @objc func findMenuItemByPath(_ path: JSValue) -> [String: Any]? {
+        guard let bridgedPath = path.toStringArray(method: "hs.application.findMenuItemByPath", parameter: "path") else {
+            return nil
+        }
+        guard let element = findMenuElement(byPath: bridgedPath) else { return nil }
         return menuElementToDict(element)
     }
 
@@ -373,8 +376,11 @@ import AXSwift
         return pressMenuElement(element, context: "selectMenuItemByName")
     }
 
-    @objc func selectMenuItemByPath(_ path: [String]) -> Bool {
-        guard let element = findMenuElement(byPath: path) else { return false }
+    @objc func selectMenuItemByPath(_ path: JSValue) -> Bool {
+        guard let bridgedPath = path.toStringArray(method: "hs.application.selectMenuItemByPath", parameter: "path") else {
+            return false
+        }
+        guard let element = findMenuElement(byPath: bridgedPath) else { return false }
         return pressMenuElement(element, context: "selectMenuItemByPath")
     }
 
