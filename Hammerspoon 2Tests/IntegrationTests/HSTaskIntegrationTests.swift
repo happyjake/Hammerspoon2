@@ -1215,7 +1215,6 @@ import JavaScriptCore
             true,
             { FOO: 123 },
             { FOO: null },
-            { FOO: undefined },
             { FOO: true },
             { FOO: ['bar'] },
             { FOO: { nested: 'bar' } }
@@ -1239,10 +1238,15 @@ import JavaScriptCore
         harness.eval("""
         var validWithNullEnv = hs.task.create('/bin/echo', ['hi'], null, null);
         var validWithOmittedEnv = hs.task.create('/bin/echo', ['hi']);
+        var validWithUndefinedEntry = hs.task.create('/bin/echo', ['hi'], null, { FOO: 'bar', OMIT: undefined });
+        var validWithUndefinedOnly = hs.task.create('/bin/echo', ['hi'], null, { FOO: undefined });
         """)
         #expect(!harness.hasException)
         harness.expectTrue("typeof validWithNullEnv === 'object' && typeof validWithOmittedEnv === 'object'")
-        #expect(module?.createdTaskCount == 2)
+        harness.expectEqual("validWithUndefinedEntry.environment.FOO", "bar")
+        harness.expectTrue("!('OMIT' in validWithUndefinedEntry.environment)")
+        harness.expectTrue("!('FOO' in validWithUndefinedOnly.environment)")
+        #expect(module?.createdTaskCount == 4)
     }
 
     @Test("hs.task.runSync() throws TypeError on invalid arguments and stays usable")
@@ -1395,7 +1399,6 @@ import JavaScriptCore
             true,
             { FOO: 1 },
             { FOO: null },
-            { FOO: undefined },
             { FOO: true },
             { FOO: ['bar'] },
             { FOO: { nested: 'bar' } },
@@ -1414,6 +1417,13 @@ import JavaScriptCore
         });
         const preservedAfterInvalid = t.environment.FOO;
 
+        t.environment = { FOO: 'bar', OMIT: undefined };
+        const fooWithOmit = t.environment.FOO;
+        const omitPresent = 'OMIT' in t.environment;
+
+        t.environment = { FOO: undefined };
+        const fooOnlyUndefinedPresent = 'FOO' in t.environment;
+
         let getterReads = 0;
         const inherited = Object.create({ INHERITED: 'yes' });
         Object.defineProperty(inherited, 'FOO', {
@@ -1429,6 +1439,9 @@ import JavaScriptCore
         #expect(!harness.hasException)
         harness.expectTrue("allTypeErrors === true")
         harness.expectEqual("preservedAfterInvalid", "initial")
+        harness.expectEqual("fooWithOmit", "bar")
+        harness.expectTrue("omitPresent === false")
+        harness.expectTrue("fooOnlyUndefinedPresent === false")
         harness.expectEqual("getterReads", 1)
         harness.expectEqual("updatedFoo", "val1")
         harness.expectEqual("updatedInherited", "yes")

@@ -118,11 +118,19 @@ struct JSBridgeIntegrationTests {
         harness.expectTrue("threw === true")
     }
 
-    @Test("toStringDictionary and toOptionalStringDictionary validate plain objects with string values")
+    @Test("toStringDictionary and toOptionalStringDictionary validate plain objects with string values and omit undefined entries")
     func testToStringDictionary() {
         let harness = makeHarness()
 
-        harness.expectEqual("probe.stringDictionary({ A: '1', B: 'two' }).B", "two")
+        harness.eval("""
+        var validWithOmit = probe.stringDictionary({ A: '1', B: 'two', OMIT: undefined });
+        var validOnlyUndefined = probe.stringDictionary({ A: undefined });
+        """)
+        #expect(!harness.hasException)
+        harness.expectEqual("validWithOmit.A", "1")
+        harness.expectEqual("validWithOmit.B", "two")
+        harness.expectTrue("!('OMIT' in validWithOmit)")
+        harness.expectEqual("Object.keys(validOnlyUndefined).length", 0)
         harness.expectEqual("Object.keys(probe.optionalStringDictionary(null)).length", 0)
         harness.expectEqual("Object.keys(probe.optionalStringDictionary(undefined)).length", 0)
         #expect(!harness.hasException)
@@ -143,7 +151,6 @@ struct JSBridgeIntegrationTests {
             false,
             { A: 1 },
             { A: null },
-            { A: undefined },
             { A: true },
             { A: [] },
             { A: {} },
@@ -451,11 +458,12 @@ struct JSBridgeIntegrationTests {
             return obj;
         }
 
-        const strTagged = probe.stringDictionary({
+        let strTagged = probe.stringDictionary({
             FOO: 'bar',
             [Symbol.toStringTag]: 'Env'
         });
         const strGetterTagged = probe.stringDictionary(withThrowingTag({ FOO: 'baz' }));
+        const strClassTagged = probe.stringDictionary(withThrowingTag(new (class EnvCls { constructor() { this.FOO = 'cls'; } })()));
 
         const numTagged = probe.doubleDictionary({
             x: 1,
@@ -469,6 +477,7 @@ struct JSBridgeIntegrationTests {
             [Symbol.toStringTag]: 'Options'
         });
         const objGetterTagged = probe.objectDictionary(withThrowingTag({ title: 'ok2' }));
+        const objClassTagged = probe.objectDictionary(withThrowingTag(new (class OptCls { constructor() { this.title = 'clsOk'; } })()));
 
         const arrTagged = probe.objectDictionaryArray([
             { attribute: 'kMDItemFSName', [Symbol.toStringTag]: 'Sort' },
@@ -479,13 +488,135 @@ struct JSBridgeIntegrationTests {
         #expect(!harness.hasException)
         harness.expectEqual("strTagged.FOO", "bar")
         harness.expectEqual("strGetterTagged.FOO", "baz")
+        harness.expectEqual("strClassTagged.FOO", "cls")
         harness.expectEqual("numTagged.x", 1)
         harness.expectEqual("numGetterTagged.y", 4)
         harness.expectEqual("objTagged.title", "ok")
         harness.expectEqual("objGetterTagged.title", "ok2")
+        harness.expectEqual("objClassTagged.title", "clsOk")
         harness.expectEqual("arrTagged[0].attribute", "kMDItemFSName")
         harness.expectEqual("arrTagged[1].attribute", "kMDItemFSSize")
         harness.expectEqual("tagReads", 0)
+    }
+
+    @Test("dictionary helpers accept class instances, Object.create(null), and literals while refusing JS built-ins and native wrappers")
+    func testDictionaryHelpersAcceptClassInstancesAndNullProtoAndRefuseBuiltIns() {
+        let harness = makeHarness()
+
+        harness.eval("""
+        class EnvOptions {
+            constructor() {
+                this.FOO = 'fromClass';
+                this.OMIT = undefined;
+            }
+            helperMethod() { return 'ignored'; }
+        }
+        class BasePoint {
+            constructor() { this.x = 12.5; }
+        }
+        class SubPoint extends BasePoint {
+            constructor() {
+                super();
+                this.y = -4.0;
+            }
+        }
+        function LegacyOptions() {
+            this.title = 'legacy';
+        }
+
+        const nullProtoStr = Object.create(null);
+        nullProtoStr.FOO = 'fromNullProto';
+        nullProtoStr.OMIT = undefined;
+
+        const nullProtoNum = Object.create(null);
+        nullProtoNum.x = 7.5;
+        nullProtoNum.y = 8.5;
+
+        const nullProtoObj = Object.create(null);
+        nullProtoObj.title = 'nullProtoTitle';
+
+        const strFromLiteral = probe.stringDictionary({ FOO: 'fromLiteral' });
+        const strFromClass = probe.stringDictionary(new EnvOptions());
+        const strFromNullProto = probe.stringDictionary(nullProtoStr);
+
+        const numFromLiteral = probe.doubleDictionary({ x: 1.0, y: 2.0 });
+        const numFromSubClass = probe.doubleDictionary(new SubPoint());
+        const numFromNullProto = probe.doubleDictionary(nullProtoNum);
+
+        const objFromLiteral = probe.objectDictionary({ title: 'literal' });
+        const objFromClass = probe.objectDictionary(new (class Options { constructor() { this.title = 'ok'; } })());
+        const objFromFnCtor = probe.objectDictionary(new LegacyOptions());
+        const objFromNullProto = probe.objectDictionary(nullProtoObj);
+
+        const arrFromMixed = probe.objectDictionaryArray([
+            { title: 'literal' },
+            new (class Options { constructor() { this.title = 'classItem'; } })(),
+            nullProtoObj
+        ]);
+
+        const builtIns = [
+            [],
+            ['a'],
+            function() {},
+            new Date(),
+            /regex/,
+            new Map(),
+            new Set(),
+            new WeakMap(),
+            new WeakSet(),
+            Promise.resolve(1),
+            new Error('err'),
+            new TypeError('typeErr'),
+            new ArrayBuffer(8),
+            new DataView(new ArrayBuffer(8)),
+            new Int8Array(2),
+            new Uint8Array(2),
+            new Int32Array(2),
+            new Float64Array(2),
+            new Number(42),
+            new String('boxed'),
+            new Boolean(false),
+            Object(Symbol('sym')),
+            Object(1n),
+            new WeakRef({}),
+            new FinalizationRegistry(function() {}),
+            new Intl.DateTimeFormat(),
+            (function*(){})(),
+            [][Symbol.iterator](),
+            probe
+        ];
+
+        const refusedByAll = builtIns.every(function(b) {
+            let strThrew = false;
+            let numThrew = false;
+            let objThrew = false;
+            let arrThrew = false;
+            try { probe.stringDictionary(b); } catch (e) { strThrew = e instanceof TypeError; }
+            try { probe.doubleDictionary(b); } catch (e) { numThrew = e instanceof TypeError; }
+            try { probe.objectDictionary(b); } catch (e) { objThrew = e instanceof TypeError; }
+            try { probe.objectDictionaryArray([b]); } catch (e) { arrThrew = e instanceof TypeError; }
+            return strThrew && numThrew && objThrew && arrThrew;
+        });
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectEqual("strFromLiteral.FOO", "fromLiteral")
+        harness.expectEqual("strFromClass.FOO", "fromClass")
+        harness.expectTrue("!('OMIT' in strFromClass)")
+        harness.expectEqual("strFromNullProto.FOO", "fromNullProto")
+        harness.expectTrue("!('OMIT' in strFromNullProto)")
+        harness.expectEqual("numFromLiteral.x", 1.0)
+        harness.expectEqual("numFromSubClass.x", 12.5)
+        harness.expectEqual("numFromSubClass.y", -4.0)
+        harness.expectEqual("numFromNullProto.x", 7.5)
+        harness.expectEqual("objFromLiteral.title", "literal")
+        harness.expectEqual("objFromClass.title", "ok")
+        harness.expectEqual("objFromFnCtor.title", "legacy")
+        harness.expectEqual("objFromNullProto.title", "nullProtoTitle")
+        harness.expectEqual("arrFromMixed.length", 3)
+        harness.expectEqual("arrFromMixed[1].title", "classItem")
+        harness.expectEqual("arrFromMixed[2].title", "nullProtoTitle")
+        harness.expectTrue("refusedByAll === true")
     }
 
     @Test("no JSExport protocol method or writable property declares a Swift collection input")

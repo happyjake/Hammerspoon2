@@ -62,11 +62,13 @@ extension JSValue {
     /// `Int32` or stalling the main thread during element validation.
     nonisolated private static let maxBridgeArrayLength = 100_000
 
-    /// Returns true if this value is a plain JavaScript object suitable for bridging
-    /// to a Swift dictionary, without eagerly converting its properties or invoking
+    /// Returns true if this value is an ordinary JavaScript object suitable for bridging
+    /// to a Swift dictionary (including plain literals, `Object.create(null)`, and JS
+    /// class/constructor instances), without eagerly converting its properties or invoking
     /// property getters. Rejects primitives, null, undefined, arrays, functions,
     /// dates, boxed primitives, built-in non-plain objects (RegExp, Map, Set,
-    /// Promise, Error, TypedArrays), and exported native Objective-C objects.
+    /// Promise, Error, TypedArrays, ArrayBuffer, DataView, WeakMap, WeakSet,
+    /// WeakRef, FinalizationRegistry), and exported native Objective-C objects.
     nonisolated var isPlainJSObject: Bool {
         guard isObject,
               !isNull,
@@ -87,15 +89,31 @@ extension JSValue {
                       if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return false;
                       if (typeof ArrayBuffer !== 'undefined' && (ArrayBuffer.isView(obj) || obj instanceof ArrayBuffer)) return false;
                       if (typeof SharedArrayBuffer !== 'undefined' && obj instanceof SharedArrayBuffer) return false;
-                      var builtIns = [Date, RegExp, Map, Set, WeakMap, WeakSet, Promise, Error, Number, String, Boolean];
+                      var builtIns = [
+                          Date, RegExp, Map, Set, WeakMap, WeakSet, Promise, Error,
+                          Number, String, Boolean,
+                          typeof Symbol === 'function' ? Symbol : undefined,
+                          typeof BigInt === 'function' ? BigInt : undefined,
+                          typeof WeakRef === 'function' ? WeakRef : undefined,
+                          typeof FinalizationRegistry === 'function' ? FinalizationRegistry : undefined,
+                          typeof DataView === 'function' ? DataView : undefined,
+                          typeof Iterator === 'function' ? Iterator : undefined
+                      ];
                       for (var i = 0; i < builtIns.length; i++) {
                           var Ctor = builtIns[i];
                           if (typeof Ctor === 'function' && (obj instanceof Ctor)) return false;
                       }
+                      if (typeof Intl === 'object' && Intl !== null) {
+                          var intlNames = ['Collator', 'DateTimeFormat', 'DisplayNames', 'DurationFormat', 'ListFormat', 'Locale', 'NumberFormat', 'PluralRules', 'RelativeTimeFormat', 'Segmenter'];
+                          for (var j = 0; j < intlNames.length; j++) {
+                              var ICtor = Intl[intlNames[j]];
+                              if (typeof ICtor === 'function' && (obj instanceof ICtor)) return false;
+                          }
+                      }
                       var proto = Object.getPrototypeOf(obj);
                       while (proto !== null && proto !== Object.prototype) {
                           var desc = Object.getOwnPropertyDescriptor(proto, 'constructor');
-                          if (desc && desc.value !== Object) return false;
+                          if (desc && ('value' in desc) && typeof desc.value !== 'function') return false;
                           proto = Object.getPrototypeOf(proto);
                       }
                       return true;
@@ -185,9 +203,16 @@ extension JSValue {
             if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
                 return nil
             }
-            guard let propValue,
-                  !propValue.isUndefined,
-                  !propValue.isNull,
+            guard let propValue else {
+                ctx?.throwTypeError(
+                    "\(method): parameter '\(parameter)' must have string values (key '\(key)' is not a string)"
+                )
+                return nil
+            }
+            if propValue.isUndefined {
+                continue
+            }
+            guard !propValue.isNull,
                   propValue.isString,
                   let str = propValue.toString()
             else {
