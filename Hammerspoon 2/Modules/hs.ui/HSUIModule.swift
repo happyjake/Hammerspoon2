@@ -276,7 +276,7 @@ import AppKit
     ///         .frame({w: "100%", h: "100%"})
     ///     .show()
     /// ```
-    @objc func window(_ dict: [String: Any]) -> HSUIWindow
+    @objc func window(_ dict: JSValue?) -> HSUIWindow?
 
     /// Create a temporary on-screen alert
     ///
@@ -461,10 +461,19 @@ import AppKit
 
     // MARK: - Factory Methods
 
-    @objc func window(_ dict: [String: Any]) -> HSUIWindow {
+    @objc func window(_ dict: JSValue?) -> HSUIWindow? {
+        let bridgedDict: [String: Any]
+        if let dict, !dict.isUndefined {
+            guard let validated = dict.toObjectDictionary(method: "hs.ui.window", parameter: "dict") else {
+                return nil
+            }
+            bridgedDict = validated
+        } else {
+            bridgedDict = [:]
+        }
         // Use assumeIsolated since JSContext evaluates on main thread
         return MainActor.assumeIsolated {
-            let window = HSUIWindow(dict: dict, module: self)
+            let window = HSUIWindow(dict: bridgedDict, module: self)
             return window
         }
     }

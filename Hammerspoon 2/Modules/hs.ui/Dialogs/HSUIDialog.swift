@@ -49,7 +49,7 @@ import SwiftUI
     /// ```js
     /// hs.ui.dialog("Save?").buttons(["Save", "Discard", "Cancel"]).show()
     /// ```
-    @objc func buttons(_ labels: [String]) -> HSUIDialog
+    @objc func buttons(_ labels: JSValue) -> HSUIDialog
 
     /// Set the dialog style
     /// - Parameter style: Style name (e.g., "informational", "warning", "critical")
@@ -120,7 +120,10 @@ import SwiftUI
         return self
     }
 
-    @objc func buttons(_ labels: [String]) -> HSUIDialog {
+    @objc func buttons(_ labels: JSValue) -> HSUIDialog {
+        guard let labels = labels.toStringArray(method: "hs.ui.dialog.buttons", parameter: "labels") else {
+            return self
+        }
         if !labels.isEmpty {
             self.buttons = labels
         }

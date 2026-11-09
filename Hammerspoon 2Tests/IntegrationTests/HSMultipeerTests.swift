@@ -99,4 +99,27 @@ struct HSMultipeerModuleAPITests {
         h.eval("var s = hs.multipeer.session({ displayName: 'TestMac' }); s.reset();")
         #expect(!h.hasException)
     }
+
+    @Test("session() rejects wrong-typed config with TypeError and keeps context usable")
+    func sessionRejectsWrongType() {
+        let h = makeHarness()
+        for bad in ["'not-an-object'", "123", "[1, 2]", "null", "undefined"] {
+            let caught = h.eval("""
+                (function() {
+                    try {
+                        hs.multipeer.session(\(bad));
+                        return 'no-throw';
+                    } catch (e) {
+                        return e.name + ': ' + e.message;
+                    }
+                })()
+                """) as? String
+            #expect(caught?.hasPrefix("TypeError: hs.multipeer.session:") == true, "Expected TypeError for \(bad), got \(String(describing: caught))")
+            #expect(!h.hasException)
+        }
+        // Valid call after TypeError still works
+        h.eval("var s = hs.multipeer.session({ displayName: 'TestMac' })")
+        h.expectEqual("s.typeName", "HSMPCSession")
+        #expect(!h.hasException)
+    }
 }

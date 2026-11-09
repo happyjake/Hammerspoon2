@@ -265,4 +265,38 @@ struct HSWebviewLifecycleTests {
         h.eval("wv.close()")
         #expect(!h.hasException)
     }
+
+    @Test("_simulateFileDrop rejects wrong-typed paths with TypeError without firing callback")
+    @MainActor
+    func testSimulateFileDropRejectsWrongType() {
+        let h = makeHarness()
+        h.eval("""
+            globalThis.__dropCount = 0
+            const wv = hs.webview.create({x:200, y:200, w:400, h:300})
+                .windowStyle({titled:false, closable:false})
+                .onFileDrop((paths) => { globalThis.__dropCount += 1 })
+                .html('<!doctype html><html><body>drop</body></html>', null)
+                .show()
+        """)
+        for bad in ["'/tmp/a.txt'", "123", "{a: '/tmp/a.txt'}", "[1, 2]", "null", "undefined"] {
+            let caught = h.eval("""
+                (function() {
+                    try {
+                        wv._simulateFileDrop(\(bad));
+                        return 'no-throw';
+                    } catch (e) {
+                        return e.name + ': ' + e.message;
+                    }
+                })()
+                """) as? String
+            #expect(caught?.hasPrefix("TypeError: hs.webview._simulateFileDrop:") == true, "Expected TypeError for _simulateFileDrop(\(bad)), got \(String(describing: caught))")
+            #expect(!h.hasException)
+        }
+        h.expectTrue("globalThis.__dropCount === 0")
+        h.eval("wv._simulateFileDrop(['/tmp/valid.txt'])")
+        #expect(!h.hasException)
+        h.expectTrue("globalThis.__dropCount === 1")
+        h.eval("wv.close()")
+        #expect(!h.hasException)
+    }
 }

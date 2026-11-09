@@ -317,7 +317,7 @@ import WebKit
     /// `paths`, bypassing the AppKit drag session (which a unit test can't
     /// stage). No-op if the webview isn't shown or no handler is registered.
     /// - Parameter paths: absolute file paths to deliver to the handler
-    @objc(_simulateFileDrop:) func _simulateFileDrop(_ paths: [String])
+    @objc(_simulateFileDrop:) func _simulateFileDrop(_ paths: JSValue)
 
     /// Enable Safari "Inspect Element" right-click for this webview. Off by default.
     /// - Parameter enabled: whether to enable
@@ -997,7 +997,10 @@ import WebKit
         }
     }
 
-    @objc(_simulateFileDrop:) func _simulateFileDrop(_ paths: [String]) {
+    @objc(_simulateFileDrop:) func _simulateFileDrop(_ paths: JSValue) {
+        guard let paths = paths.toStringArray(method: "hs.webview._simulateFileDrop", parameter: "paths") else {
+            return
+        }
         (webView as? HSWebviewDropView)?.onFileDrop?(paths)
     }
 

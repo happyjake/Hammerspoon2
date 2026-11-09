@@ -357,7 +357,7 @@ import SwiftUI
     /// Set the frame (size) of an element
     /// - Parameter dict: Dictionary with `w` and/or `h` (can be numbers or percentage strings like "50%")
     /// - Returns: Self for chaining
-    @objc func frame(_ dict: [String: Any]) -> HSUIWindow
+    @objc func frame(_ dict: JSValue) -> HSUIWindow
 
     /// Set the opacity of an element
     /// - Parameter value: Opacity from 0.0 (transparent) to 1.0 (opaque)
@@ -975,7 +975,10 @@ import SwiftUI
         return self
     }
 
-    @objc func frame(_ dict: [String: Any]) -> HSUIWindow {
+    @objc func frame(_ dict: JSValue) -> HSUIWindow {
+        guard let dict = dict.toObjectDictionary(method: "hs.ui.window.frame", parameter: "dict") else {
+            return self
+        }
         if let frameable = currentElement as? any FrameModifiable,
            let uiFrame = UIFrame.from(dict: dict) {
             frameable.elementFrame = uiFrame

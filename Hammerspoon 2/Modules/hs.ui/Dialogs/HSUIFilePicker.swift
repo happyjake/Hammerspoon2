@@ -101,7 +101,7 @@ import UniformTypeIdentifiers
     /// ```js
     /// hs.ui.filePicker().allowedFileTypes(["txt", "md"]).show()
     /// ```
-    @objc func allowedFileTypes(_ types: [String]) -> HSUIFilePicker
+    @objc func allowedFileTypes(_ types: JSValue) -> HSUIFilePicker
 
     /// Set whether to resolve symbolic links
     /// - Parameter value: true to resolve aliases (default: true)
@@ -178,7 +178,10 @@ import UniformTypeIdentifiers
         return self
     }
 
-    @objc func allowedFileTypes(_ types: [String]) -> HSUIFilePicker {
+    @objc func allowedFileTypes(_ types: JSValue) -> HSUIFilePicker {
+        guard let types = types.toStringArray(method: "hs.ui.filePicker.allowedFileTypes", parameter: "types") else {
+            return self
+        }
         self.allowedFileTypes = types.isEmpty ? nil : types
         return self
     }

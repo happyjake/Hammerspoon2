@@ -110,4 +110,28 @@ struct HSBLEPeripheralAPITests {
         h.expectTrue("p.uuid === ''")
         #expect(!h.hasException)
     }
+
+    @Test("connect() rejects wrong-typed config with TypeError and keeps context usable")
+    func connectRejectsWrongType() {
+        let h = makeHarness()
+        h.eval("var c = hs.ble.central()")
+        for bad in ["'not-an-object'", "123", "[1, 2]", "null", "undefined"] {
+            let caught = h.eval("""
+                (function() {
+                    try {
+                        c.connect(\(bad));
+                        return 'no-throw';
+                    } catch (e) {
+                        return e.name + ': ' + e.message;
+                    }
+                })()
+                """) as? String
+            #expect(caught?.hasPrefix("TypeError: hs.ble.central.connect:") == true, "Expected TypeError for \(bad), got \(String(describing: caught))")
+            #expect(!h.hasException)
+        }
+        // Valid call after TypeError still works
+        h.eval("var p = c.connect({ name: 'VoiceKB' })")
+        h.expectEqual("p.typeName", "HSBLEPeripheral")
+        #expect(!h.hasException)
+    }
 }

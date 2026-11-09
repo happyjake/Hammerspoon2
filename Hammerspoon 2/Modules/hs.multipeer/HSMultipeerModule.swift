@@ -34,7 +34,7 @@ import MultipeerConnectivity
     /// const s = hs.multipeer.session({ displayName: 'MacA-' + hs.appinfo.pid })
     /// s.onPeer((peer, state) => console.log(peer, state)).start()
     /// ```
-    @objc func session(_ config: [String: Any]) -> HSMPCSession
+    @objc func session(_ config: JSValue) -> HSMPCSession?
 }
 
 // MARK: - Implementation
@@ -62,7 +62,10 @@ import MultipeerConnectivity
         AKTrace("Deinit of \(name): \(engineID)")
     }
 
-    @objc func session(_ config: [String: Any]) -> HSMPCSession {
+    @objc func session(_ config: JSValue) -> HSMPCSession? {
+        guard let config = config.toObjectDictionary(method: "hs.multipeer.session", parameter: "config") else {
+            return nil
+        }
         let s = HSMPCSession(
             serviceType: (config["serviceType"] as? String) ?? "voicekb-cs",
             displayName: (config["displayName"] as? String) ?? (Host.current().localizedName ?? "Mac"),

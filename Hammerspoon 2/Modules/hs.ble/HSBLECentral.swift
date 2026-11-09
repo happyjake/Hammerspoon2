@@ -60,7 +60,7 @@ private let HID_UUID = CBUUID(string: "1812")
     /// const p = c.connect({ name: 'VoiceKB', peerUUID: saved, autoReconnect: true })
     /// p.onNotify(line => relay.ingest(line))
     /// ```
-    @objc func connect(_ config: [String: Any]) -> HSBLEPeripheral
+    @objc func connect(_ config: JSValue) -> HSBLEPeripheral?
 }
 
 // MARK: - Implementation
@@ -107,7 +107,10 @@ private let HID_UUID = CBUUID(string: "1812")
         return self
     }
 
-    @objc func connect(_ config: [String: Any]) -> HSBLEPeripheral {
+    @objc func connect(_ config: JSValue) -> HSBLEPeripheral? {
+        guard let config = config.toObjectDictionary(method: "hs.ble.central.connect", parameter: "config") else {
+            return nil
+        }
         deviceName = (config["name"] as? String) ?? "VoiceKB"
         svcUUID = cbUUID(config["service"],    field: "service",    fallback: DEFAULT_SVC_UUID)
         txUUID  = cbUUID(config["writeChar"],  field: "writeChar",  fallback: DEFAULT_WRITE_UUID)

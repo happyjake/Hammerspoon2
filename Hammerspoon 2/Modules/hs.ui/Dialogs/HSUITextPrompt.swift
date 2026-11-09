@@ -56,7 +56,7 @@ import AppKit
     /// ```js
     /// hs.ui.textPrompt("Confirm?").buttons(["Yes", "No"]).show()
     /// ```
-    @objc func buttons(_ labels: [String]) -> HSUITextPrompt
+    @objc func buttons(_ labels: JSValue) -> HSUITextPrompt
 
     /// Set the callback for button presses
     /// - Parameter callback: {(buttonIndex: number, inputText: string) => void} Function receiving the 0-based button index and the text the user entered
@@ -107,7 +107,10 @@ import AppKit
         return self
     }
 
-    @objc func buttons(_ labels: [String]) -> HSUITextPrompt {
+    @objc func buttons(_ labels: JSValue) -> HSUITextPrompt {
+        guard let labels = labels.toStringArray(method: "hs.ui.textPrompt.buttons", parameter: "labels") else {
+            return self
+        }
         if !labels.isEmpty {
             self.buttons = labels
         }

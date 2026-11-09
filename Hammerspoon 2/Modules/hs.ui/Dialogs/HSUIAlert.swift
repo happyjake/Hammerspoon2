@@ -61,7 +61,7 @@ import SwiftUI
     /// ```js
     /// hs.ui.alert("Hello").position({x: 100, y: 100}).show()
     /// ```
-    @objc func position(_ dict: [String: Any]) -> HSUIAlert
+    @objc func position(_ dict: JSValue) -> HSUIAlert
 
     /// Show the alert
     /// - Returns: Self for chaining (can store reference to close manually)
@@ -122,7 +122,10 @@ import SwiftUI
         return self
     }
 
-    @objc func position(_ dict: [String: Any]) -> HSUIAlert {
+    @objc func position(_ dict: JSValue) -> HSUIAlert {
+        guard let dict = dict.toObjectDictionary(method: "hs.ui.alert.position", parameter: "dict") else {
+            return self
+        }
         let x = (dict["x"] as? NSNumber)?.doubleValue ?? 0
         let y = (dict["y"] as? NSNumber)?.doubleValue ?? 0
         self.position = CGPoint(x: x, y: y)
