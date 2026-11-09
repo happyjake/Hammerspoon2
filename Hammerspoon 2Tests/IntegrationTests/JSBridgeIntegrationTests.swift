@@ -261,4 +261,117 @@ struct JSBridgeIntegrationTests {
         #expect(!harness.hasException)
         harness.expectTrue("allTypeErrors === true")
     }
+
+    @Test("dictionary helpers evaluate getters once and reject cyclic invalid objects without eager conversion")
+    func testDictionarySingleGetterEvalAndCyclicRejection() {
+        let harness = makeHarness()
+
+        harness.eval("""
+        let strCalls = 0;
+        let numCalls = 0;
+        let objCalls = 0;
+        const strRes = probe.stringDictionary({ get FOO() { return String(++strCalls); } });
+        const numRes = probe.doubleDictionary({ get x() { return ++numCalls; } });
+        const objRes = probe.objectDictionary({ get k() { return ++objCalls; } });
+
+        const cycStr = {};
+        cycStr.SELF = cycStr;
+        const cycNum = {};
+        cycNum.SELF = cycNum;
+
+        let strCycThrew = false;
+        let numCycThrew = false;
+        try {
+            probe.stringDictionary(cycStr);
+        } catch (e) {
+            strCycThrew = (e instanceof TypeError) && e.message.includes('probe.stringDictionary');
+        }
+        try {
+            probe.doubleDictionary(cycNum);
+        } catch (e) {
+            numCycThrew = (e instanceof TypeError) && e.message.includes('probe.doubleDictionary');
+        }
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectEqual("strRes.FOO", "1")
+        harness.expectEqual("strCalls", 1)
+        harness.expectEqual("numRes.x", 1)
+        harness.expectEqual("numCalls", 1)
+        harness.expectEqual("objRes.k", 1)
+        harness.expectEqual("objCalls", 1)
+        harness.expectTrue("strCycThrew === true && numCycThrew === true")
+    }
+
+    @Test("dictionary helpers include inherited enumerable keys and reject invalid inherited values")
+    func testDictionaryInheritedEnumerableProperties() {
+        let harness = makeHarness()
+
+        harness.eval("""
+        const strInherited = Object.create({ FOO: 'bar' });
+        strInherited.OWN = 'ok';
+        const numInherited = Object.create({ x: 2.5 });
+        numInherited.y = 4.0;
+        const objInherited = Object.create({ inherited: 'yes' });
+        objInherited.own = 42;
+
+        const strOut = probe.stringDictionary(strInherited);
+        const numOut = probe.doubleDictionary(numInherited);
+        const objOut = probe.objectDictionary(objInherited);
+
+        let strBadInherited = false;
+        let numBadInherited = false;
+        try {
+            probe.stringDictionary(Object.create({ FOO: 99 }));
+        } catch (e) {
+            strBadInherited = (e instanceof TypeError) && e.message.includes('probe.stringDictionary');
+        }
+        try {
+            probe.doubleDictionary(Object.create({ x: 'not-a-number' }));
+        } catch (e) {
+            numBadInherited = (e instanceof TypeError) && e.message.includes('probe.doubleDictionary');
+        }
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectEqual("strOut.FOO", "bar")
+        harness.expectEqual("strOut.OWN", "ok")
+        harness.expectEqual("numOut.x", 2.5)
+        harness.expectEqual("numOut.y", 4.0)
+        harness.expectEqual("objOut.inherited", "yes")
+        harness.expectEqual("objOut.own", 42)
+        harness.expectTrue("strBadInherited === true && numBadInherited === true")
+    }
+
+    @Test("array helpers reject oversized sparse array lengths without wrapping Int32")
+    func testOversizedSparseArrayLengthsRejected() {
+        let harness = makeHarness()
+
+        harness.eval("""
+        const sparseStrings = [123];
+        sparseStrings.length = Math.pow(2, 31);
+        const sparseObjects = [123];
+        sparseObjects.length = Math.pow(2, 31);
+
+        let strThrew = false;
+        let objArrThrew = false;
+        try {
+            probe.stringArray(sparseStrings);
+        } catch (e) {
+            strThrew = (e instanceof TypeError) &&
+                       e.message.includes('probe.stringArray') &&
+                       e.message.includes('items');
+        }
+        try {
+            probe.objectDictionaryArray(sparseObjects);
+        } catch (e) {
+            objArrThrew = (e instanceof TypeError) &&
+                          e.message.includes('probe.objectDictionaryArray') &&
+                          e.message.includes('descriptors');
+        }
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectTrue("strThrew === true && objArrThrew === true")
+    }
 }

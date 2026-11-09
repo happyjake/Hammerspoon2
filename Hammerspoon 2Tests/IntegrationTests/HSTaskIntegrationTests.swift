@@ -1279,4 +1279,99 @@ import JavaScriptCore
         harness.expectTrue("caughtAll === true")
         harness.expectEqual("syncOutput.trim()", "recovered")
     }
+
+    @Test("hs.task.create() evaluates environment getters once and rejects cyclic invalid objects")
+    func testCreateEnvironmentSingleGetterEvalAndCyclicRejection() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTaskModule.self, as: "task")
+        let module = harness.context.objectForKeyedSubscript("hs")?.objectForKeyedSubscript("task")?.toObjectOf(HSTaskModule.self) as? HSTaskModule
+
+        harness.eval("""
+        let n = 0;
+        const env = { get FOO() { return String(++n); } };
+        const task = hs.task.create('/bin/echo', [], null, env);
+        const fooValue = task.environment.FOO;
+
+        const cyclic = {};
+        cyclic.SELF = cyclic;
+        let cyclicRejected = false;
+        try {
+            hs.task.create('/bin/echo', [], null, cyclic);
+        } catch (e) {
+            cyclicRejected = (e instanceof TypeError) &&
+                             e.message.includes('hs.task.create') &&
+                             e.message.includes('environment');
+        }
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectEqual("fooValue", "1")
+        harness.expectEqual("n", 1)
+        harness.expectTrue("cyclicRejected === true")
+        #expect(module?.createdTaskCount == 1)
+    }
+
+    @Test("hs.task.create() preserves inherited enumerable environment entries and rejects inherited non-strings")
+    func testCreateEnvironmentInheritedEnumerableProperties() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTaskModule.self, as: "task")
+        let module = harness.context.objectForKeyedSubscript("hs")?.objectForKeyedSubscript("task")?.toObjectOf(HSTaskModule.self) as? HSTaskModule
+
+        harness.eval("""
+        const inheritedValid = Object.create({ FOO: 'bar' });
+        inheritedValid.OWN = 'baz';
+        const task = hs.task.create('/bin/echo', [], null, inheritedValid);
+        const fooVal = task.environment.FOO;
+        const ownVal = task.environment.OWN;
+
+        const inheritedBad = Object.create({ FOO: 123 });
+        let rejectedInheritedBad = false;
+        try {
+            hs.task.create('/bin/echo', [], null, inheritedBad);
+        } catch (e) {
+            rejectedInheritedBad = (e instanceof TypeError) &&
+                                   e.message.includes('hs.task.create') &&
+                                   e.message.includes('environment');
+        }
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectEqual("fooVal", "bar")
+        harness.expectEqual("ownVal", "baz")
+        harness.expectTrue("rejectedInheritedBad === true")
+        #expect(module?.createdTaskCount == 1)
+    }
+
+    @Test("hs.task.runSync() and hs.task.create() reject sparse arrays with oversized length")
+    func testRejectsOversizedSparseArrayLength() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTaskModule.self, as: "task")
+        let module = harness.context.objectForKeyedSubscript("hs")?.objectForKeyedSubscript("task")?.toObjectOf(HSTaskModule.self) as? HSTaskModule
+
+        harness.eval("""
+        const a = [123];
+        a.length = Math.pow(2, 31);
+        let runSyncRejected = false;
+        let createRejected = false;
+        try {
+            hs.task.runSync('/bin/echo', a);
+        } catch (e) {
+            runSyncRejected = (e instanceof TypeError) &&
+                              e.message.includes('hs.task.runSync') &&
+                              e.message.includes('arguments');
+        }
+        try {
+            hs.task.create('/bin/echo', a);
+        } catch (e) {
+            createRejected = (e instanceof TypeError) &&
+                             e.message.includes('hs.task.create') &&
+                             e.message.includes('arguments');
+        }
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectTrue("runSyncRejected === true")
+        harness.expectTrue("createRejected === true")
+        #expect(module?.createdTaskCount == 0)
+    }
 }

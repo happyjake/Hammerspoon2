@@ -57,10 +57,16 @@ extension JSContext {
 }
 
 extension JSValue {
+    /// Maximum number of elements a bridged JavaScript array may contain.
+    /// Prevents oversized or sparse arrays (e.g. `a.length = 2**31`) from wrapping
+    /// `Int32` or stalling the main thread during element validation.
+    nonisolated private static let maxBridgeArrayLength = 100_000
+
     /// Returns true if this value is a plain JavaScript object suitable for bridging
-    /// to a Swift dictionary (rejecting primitives, null, undefined, arrays, functions,
-    /// dates, boxed primitives, built-in non-plain objects such as RegExp/Map/Set/Promise/Error,
-    /// and exported native Objective-C objects).
+    /// to a Swift dictionary, without eagerly converting its properties or invoking
+    /// property getters. Rejects primitives, null, undefined, arrays, functions,
+    /// dates, boxed primitives, built-in non-plain objects (RegExp, Map, Set,
+    /// Promise, Error, TypedArrays), and exported native Objective-C objects.
     nonisolated var isPlainJSObject: Bool {
         guard isObject,
               !isNull,
@@ -70,20 +76,23 @@ extension JSValue {
               !isDate,
               !isString,
               !isNumber,
-              !isBoolean,
-              toObject() is [String: Any]
+              !isBoolean
         else {
             return false
         }
-        if let context,
-           let tag = context.objectForKeyedSubscript("Object")?
-               .forProperty("prototype")?
-               .forProperty("toString")?
-               .invokeMethod("call", withArguments: [self])?
-               .toString() {
-            return tag == "[object Object]"
+        guard let context,
+              let tag = context.objectForKeyedSubscript("Object")?
+                  .forProperty("prototype")?
+                  .forProperty("toString")?
+                  .invokeMethod("call", withArguments: [self])?
+                  .toString()
+        else {
+            return false
         }
-        return true
+        if let exc = context.exception, !exc.isUndefined, !exc.isNull {
+            return false
+        }
+        return tag == "[object Object]"
     }
 
     /// Converts this `JSValue` to `[String]`, or sets a JS `TypeError` and returns `nil`.
@@ -94,12 +103,24 @@ extension JSValue {
             return nil
         }
 
-        let length = max(0, Int(forProperty("length")?.toInt32() ?? 0))
+        guard let length = validatedArrayLength(
+            method: method,
+            parameter: parameter,
+            expectedDescription: "array of strings",
+            in: ctx
+        ) else {
+            return nil
+        }
+
         var result: [String] = []
         result.reserveCapacity(length)
 
         for index in 0..<length {
-            guard let element = atIndex(index),
+            let element = atIndex(index)
+            if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
+                return nil
+            }
+            guard let element,
                   !element.isUndefined,
                   !element.isNull,
                   element.isString,
@@ -133,7 +154,7 @@ extension JSValue {
     nonisolated func toStringDictionary(method: String, parameter: String) -> [String: String]? {
         let ctx = self.context ?? JSContext.current()
         guard isPlainJSObject,
-              let keys = ownEnumerableKeys()
+              let keys = enumerableKeys()
         else {
             ctx?.throwTypeError("\(method): parameter '\(parameter)' must be an object mapping strings to strings")
             return nil
@@ -143,7 +164,11 @@ extension JSValue {
         result.reserveCapacity(keys.count)
 
         for key in keys {
-            guard let propValue = objectForKeyedSubscript(key),
+            let propValue = objectForKeyedSubscript(key)
+            if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
+                return nil
+            }
+            guard let propValue,
                   !propValue.isUndefined,
                   !propValue.isNull,
                   propValue.isString,
@@ -177,7 +202,7 @@ extension JSValue {
     nonisolated func toDoubleDictionary(method: String, parameter: String) -> [String: Double]? {
         let ctx = self.context ?? JSContext.current()
         guard isPlainJSObject,
-              let keys = ownEnumerableKeys()
+              let keys = enumerableKeys()
         else {
             ctx?.throwTypeError("\(method): parameter '\(parameter)' must be an object mapping strings to numbers")
             return nil
@@ -187,7 +212,11 @@ extension JSValue {
         result.reserveCapacity(keys.count)
 
         for key in keys {
-            guard let propValue = objectForKeyedSubscript(key),
+            let propValue = objectForKeyedSubscript(key)
+            if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
+                return nil
+            }
+            guard let propValue,
                   !propValue.isUndefined,
                   !propValue.isNull,
                   propValue.isNumber,
@@ -221,12 +250,31 @@ extension JSValue {
     nonisolated func toObjectDictionary(method: String, parameter: String) -> [String: Any]? {
         let ctx = self.context ?? JSContext.current()
         guard isPlainJSObject,
-              let dict = toObject() as? [String: Any]
+              let keys = enumerableKeys()
         else {
             ctx?.throwTypeError("\(method): parameter '\(parameter)' must be a plain object")
             return nil
         }
-        return dict
+
+        var result: [String: Any] = [:]
+        result.reserveCapacity(keys.count)
+
+        for key in keys {
+            let propValue = objectForKeyedSubscript(key)
+            if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
+                return nil
+            }
+            guard let propValue, !propValue.isUndefined else {
+                continue
+            }
+            if propValue.isNull {
+                result[key] = NSNull()
+            } else if let converted = propValue.toObject() {
+                result[key] = converted
+            }
+        }
+
+        return result
     }
 
     /// Converts an optional `JSValue` to `[String: Any]?`.
@@ -250,18 +298,29 @@ extension JSValue {
             return nil
         }
 
-        let length = max(0, Int(forProperty("length")?.toInt32() ?? 0))
+        guard let length = validatedArrayLength(
+            method: method,
+            parameter: parameter,
+            expectedDescription: "array of plain objects",
+            in: ctx
+        ) else {
+            return nil
+        }
+
         var result: [[String: Any]] = []
         result.reserveCapacity(length)
 
         for index in 0..<length {
-            guard let element = atIndex(index),
-                  element.isPlainJSObject,
-                  let dict = element.toObject() as? [String: Any]
+            let element = atIndex(index)
+            if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
+                return nil
+            }
+            guard let element,
+                  let dict = element.toObjectDictionary(
+                      method: method,
+                      parameter: "\(parameter)[\(index)]"
+                  )
             else {
-                ctx?.throwTypeError(
-                    "\(method): parameter '\(parameter)' must be an array of plain objects (element at index \(index) is not a plain object)"
-                )
                 return nil
             }
             result.append(dict)
@@ -285,13 +344,48 @@ extension JSValue {
 
     // MARK: - Private
 
-    nonisolated private func ownEnumerableKeys() -> [String]? {
+    nonisolated private func validatedArrayLength(
+        method: String,
+        parameter: String,
+        expectedDescription: String,
+        in ctx: JSContext?
+    ) -> Int? {
+        guard let lengthValue = forProperty("length"),
+              lengthValue.isNumber,
+              !lengthValue.isBoolean
+        else {
+            ctx?.throwTypeError("\(method): parameter '\(parameter)' must be an \(expectedDescription)")
+            return nil
+        }
+        let rawLength = lengthValue.toDouble()
+        guard rawLength.isFinite,
+              rawLength >= 0,
+              rawLength.rounded(.towardZero) == rawLength,
+              rawLength <= Double(Self.maxBridgeArrayLength)
+        else {
+            ctx?.throwTypeError(
+                "\(method): parameter '\(parameter)' must be an \(expectedDescription) (array length exceeds maximum supported limit of \(Self.maxBridgeArrayLength))"
+            )
+            return nil
+        }
+        return Int(rawLength)
+    }
+
+    /// Returns all own and inherited enumerable string property keys (`for...in`
+    /// semantics, matching JavaScriptCore's native dictionary bridging) without
+    /// invoking property getters.
+    nonisolated private func enumerableKeys() -> [String]? {
         guard let context,
-              let objectCtor = context.objectForKeyedSubscript("Object"),
-              let keysVal = objectCtor.invokeMethod("keys", withArguments: [self]),
+              let enumFn = context.evaluateScript(
+                  "(function(obj) { var keys = []; for (var k in obj) { keys.push(k); } return keys; })"
+              ),
+              let keysVal = enumFn.call(withArguments: [self]),
               keysVal.isArray,
               let keys = keysVal.toArray() as? [String]
         else {
+            return nil
+        }
+        if let exc = context.exception, !exc.isUndefined, !exc.isNull {
             return nil
         }
         return keys
