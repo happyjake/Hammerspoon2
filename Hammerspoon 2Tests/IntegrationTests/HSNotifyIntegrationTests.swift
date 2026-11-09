@@ -63,7 +63,8 @@ struct HSNotifyTests {
                 try { hs.notify.create('oops'); }
                 catch (e) { threw = (e instanceof TypeError) && /hs\\.notify\\.create.*options/.test(e.message); }
                 var valid = hs.notify.create({ title: 'After error' });
-                return threw && valid !== null && typeof valid.identifier === 'string';
+                var tagged = hs.notify.create({ title: 'ok', [Symbol.toStringTag]: 'Options' });
+                return threw && valid !== null && typeof valid.identifier === 'string' && tagged !== null && typeof tagged.identifier === 'string';
             })()
             """)
             #expect(!harness.hasException)

@@ -81,18 +81,35 @@ extension JSValue {
             return false
         }
         guard let context,
-              let tag = context.objectForKeyedSubscript("Object")?
-                  .forProperty("prototype")?
-                  .forProperty("toString")?
-                  .invokeMethod("call", withArguments: [self])?
-                  .toString()
+              let checkFn = context.evaluateScript(
+                  """
+                  (function(obj) {
+                      if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return false;
+                      if (typeof ArrayBuffer !== 'undefined' && (ArrayBuffer.isView(obj) || obj instanceof ArrayBuffer)) return false;
+                      if (typeof SharedArrayBuffer !== 'undefined' && obj instanceof SharedArrayBuffer) return false;
+                      var builtIns = [Date, RegExp, Map, Set, WeakMap, WeakSet, Promise, Error, Number, String, Boolean];
+                      for (var i = 0; i < builtIns.length; i++) {
+                          var Ctor = builtIns[i];
+                          if (typeof Ctor === 'function' && (obj instanceof Ctor)) return false;
+                      }
+                      var proto = Object.getPrototypeOf(obj);
+                      while (proto !== null && proto !== Object.prototype) {
+                          var desc = Object.getOwnPropertyDescriptor(proto, 'constructor');
+                          if (desc && desc.value !== Object) return false;
+                          proto = Object.getPrototypeOf(proto);
+                      }
+                      return true;
+                  })
+                  """
+              ),
+              let result = checkFn.call(withArguments: [self])
         else {
             return false
         }
         if let exc = context.exception, !exc.isUndefined, !exc.isNull {
             return false
         }
-        return tag == "[object Object]"
+        return result.toBool()
     }
 
     /// Converts this `JSValue` to `[String]`, or sets a JS `TypeError` and returns `nil`.
@@ -216,18 +233,24 @@ extension JSValue {
             if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
                 return nil
             }
-            guard let propValue,
-                  !propValue.isUndefined,
-                  !propValue.isNull,
-                  propValue.isNumber,
-                  !propValue.isBoolean
+            guard let propValue else {
+                ctx?.throwTypeError(
+                    "\(method): parameter '\(parameter)' must have numeric values (key '\(key)' is not a number)"
+                )
+                return nil
+            }
+            if propValue.isUndefined {
+                continue
+            }
+            guard !propValue.isNull,
+                  propValue.isNumber || propValue.isBoolean
             else {
                 ctx?.throwTypeError(
                     "\(method): parameter '\(parameter)' must have numeric values (key '\(key)' is not a number)"
                 )
                 return nil
             }
-            result[key] = propValue.toDouble()
+            result[key] = propValue.isBoolean ? (propValue.toBool() ? 1.0 : 0.0) : propValue.toDouble()
         }
 
         return result
@@ -295,6 +318,9 @@ extension JSValue {
             return nil
         }
 
+        var elements: [JSValue] = []
+        elements.reserveCapacity(length)
+
         for index in 0..<length {
             let element = atIndex(index)
             if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
@@ -306,18 +332,26 @@ extension JSValue {
                 )
                 return nil
             }
+            elements.append(element)
         }
 
         if length == 0 {
             return []
         }
 
-        let converted = toObject()
-        if let exc = ctx?.exception, !exc.isUndefined, !exc.isNull {
+        guard let ctx,
+              let snapshot = JSValue(object: elements, in: ctx)
+        else {
+            ctx?.throwTypeError("\(method): parameter '\(parameter)' must be an array of plain objects")
+            return nil
+        }
+
+        let converted = snapshot.toObject()
+        if let exc = ctx.exception, !exc.isUndefined, !exc.isNull {
             return nil
         }
         guard let result = converted as? [[String: Any]] else {
-            ctx?.throwTypeError("\(method): parameter '\(parameter)' must be an array of plain objects")
+            ctx.throwTypeError("\(method): parameter '\(parameter)' must be an array of plain objects")
             return nil
         }
         return result

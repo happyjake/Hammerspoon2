@@ -90,6 +90,8 @@ struct HSEventTapIntegrationTests {
             hs.eventtap.leftClick({})                  // missing x/y
             hs.eventtap.leftClick({ x: 10 })           // missing y
             hs.eventtap.leftClick({ x: NaN, y: 5 })    // non-finite
+            hs.eventtap.leftClick({ x: NaN, y: 5, extra: undefined }) // undefined key omitted
+            hs.eventtap.leftClick({ x: true })         // boolean x bridged, missing y
         """)
         #expect(h.hasException == false)
     }

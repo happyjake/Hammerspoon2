@@ -166,7 +166,10 @@ struct HSLocationTests {
                 try { hs.location.distance({ latitude: 40.0, longitude: -74.0 }, { latitude: 'bad', longitude: -74.0 }); }
                 catch (e) { toThrew = (e instanceof TypeError) && /hs\\.location\\.distance.*to/.test(e.message); }
                 var validDist = hs.location.distance({ latitude: 40.0, longitude: -74.0 }, { latitude: 40.0, longitude: -74.0 });
-                return fromThrew && toThrew && validDist === 0;
+                var p = { latitude: 1, longitude: 2, altitude: undefined };
+                var undefinedPropDist = hs.location.distance(p, p);
+                var boolPropDist = hs.location.distance({ latitude: true, longitude: false }, { latitude: 1, longitude: 0 });
+                return fromThrew && toThrew && validDist === 0 && undefinedPropDist === 0 && boolPropDist === 0;
             })()
             """)
             #expect(!harness.hasException)
@@ -330,7 +333,8 @@ struct HSLocationTests {
                 try { hs.location.geocoder.lookupLocation({ latitude: 'bad', longitude: -122.0 }); }
                 catch (e) { threwBadProp = (e instanceof TypeError) && /hs\\.location\\.geocoder\\.lookupLocation.*locationTable/.test(e.message); }
                 var validEmpty = hs.location.geocoder.lookupLocation({});
-                return threwNonObj && threwBadProp && (validEmpty === null || validEmpty === undefined);
+                var validWithUndefined = hs.location.geocoder.lookupLocation({ latitude: 37.3349, longitude: -122.0090, altitude: undefined });
+                return threwNonObj && threwBadProp && (validEmpty === null || validEmpty === undefined) && validWithUndefined !== null && typeof validWithUndefined.then === 'function';
             })()
             """)
             #expect(!harness.hasException)

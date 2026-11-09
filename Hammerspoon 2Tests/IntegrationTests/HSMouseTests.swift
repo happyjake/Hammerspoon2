@@ -40,7 +40,8 @@ struct HSMouseTests {
             try { hs.mouse.setPosition({ x: 'bad', y: 10 }); }
             catch (e) { threwBadVal = (e instanceof TypeError) && /hs\\.mouse\\.setPosition.*point/.test(e.message); }
             var validOk = hs.mouse.setPosition(pos) === true;
-            return threwNonObj && threwBadVal && validOk;
+            var validWithUndefined = hs.mouse.setPosition({ x: pos.x, y: pos.y, extra: undefined }) === true;
+            return threwNonObj && threwBadVal && validOk && validWithUndefined;
         })()
         """)
         #expect(harness.hasException == false)

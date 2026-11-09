@@ -331,11 +331,19 @@ struct HSSpotlightTests {
                 catch (e) { groupThrew = (e instanceof TypeError) && /hs\\.spotlight\\.setGroupingAttributes.*attrs/.test(e.message); }
                 try { q.setValueListAttributes([false]); }
                 catch (e) { valueListThrew = (e instanceof TypeError) && /hs\\.spotlight\\.setValueListAttributes.*attrs/.test(e.message); }
-                var chained = q.setScopes([hs.spotlight.scope.applications])
+                var chained = q.setScopes(hs.spotlight.scope.applications)
                                .setSortDescriptors([{ attribute: 'kMDItemFSName', ascending: true }])
                                .setGroupingAttributes([hs.spotlight.attribute.contentType])
                                .setValueListAttributes([hs.spotlight.attribute.kind]);
-                return scopesThrew && sortThrew && groupThrew && valueListThrew && (chained === q);
+                var reads = 0;
+                var a = [];
+                Object.defineProperty(a, 0, {
+                    get() {
+                        return { attribute: ++reads === 1 ? 'kMDItemFSName' : 'kMDItemFSSize' };
+                    }
+                });
+                q.setSortDescriptors(a);
+                return scopesThrew && sortThrew && groupThrew && valueListThrew && (chained === q) && (reads === 1);
             })()
             """)
             #expect(!harness.hasException)
