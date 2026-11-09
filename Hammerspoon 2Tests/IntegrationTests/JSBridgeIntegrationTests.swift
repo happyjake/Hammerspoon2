@@ -137,6 +137,7 @@ struct JSBridgeIntegrationTests {
             /regex/,
             new Map(),
             new Set(),
+            probe,
             'str',
             123,
             false,
@@ -163,12 +164,25 @@ struct JSBridgeIntegrationTests {
         harness.expectTrue("allTypeErrors === true")
     }
 
-    @Test("toDoubleDictionary validates plain objects with numeric values and rejects booleans")
+    @Test("toDoubleDictionary validates plain objects with numeric values, omits undefined values, and normalizes booleans")
     func testToDoubleDictionary() {
         let harness = makeHarness()
 
-        harness.expectEqual("probe.doubleDictionary({ x: 10.5, y: -2 }).x", 10.5)
+        harness.eval("""
+        var valid = probe.doubleDictionary({
+            x: 10.5,
+            y: -2,
+            altitude: undefined,
+            flagTrue: true,
+            flagFalse: false
+        });
+        """)
         #expect(!harness.hasException)
+        harness.expectEqual("valid.x", 10.5)
+        harness.expectEqual("valid.y", -2)
+        harness.expectTrue("!('altitude' in valid)")
+        harness.expectEqual("valid.flagTrue", 1)
+        harness.expectEqual("valid.flagFalse", 0)
 
         harness.eval("""
         var bad = [
@@ -179,9 +193,10 @@ struct JSBridgeIntegrationTests {
             '10',
             10,
             { x: '10', y: 20 },
-            { x: true, y: 20 },
             { x: null, y: 20 },
-            { x: undefined, y: 20 }
+            { x: {}, y: 20 },
+            { x: [], y: 20 },
+            { x: function() {}, y: 20 }
         ];
         var allTypeErrors = bad.every(function(v) {
             try {
@@ -399,30 +414,144 @@ struct JSBridgeIntegrationTests {
         harness.expectEqual("arrSnap.join(',')", "1,1,1,1")
     }
 
-    @Test("no JSExport protocol method declares a Swift collection parameter")
+    @Test("toObjectDictionaryArray reads array index getters once and preserves the validated element snapshot")
+    func testToObjectDictionaryArrayReadsIndexGettersOnce() {
+        let harness = makeHarness()
+
+        _ = harness.evalValue("""
+        let reads = 0;
+        const a = [];
+        Object.defineProperty(a, 0, {
+            get() {
+                return { attribute: ++reads === 1 ? 'kMDItemFSName' : 'kMDItemFSSize' };
+            }
+        });
+        const out = probe.objectDictionaryArray(a);
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectEqual("reads", 1)
+        harness.expectEqual("out.length", 1)
+        harness.expectEqual("out[0].attribute", "kMDItemFSName")
+    }
+
+    @Test("dictionary helpers accept plain objects with custom Symbol.toStringTag without invoking tag getters")
+    func testDictionaryHelpersAcceptCustomToStringTag() {
+        let harness = makeHarness()
+
+        harness.eval("""
+        let tagReads = 0;
+        function withThrowingTag(obj) {
+            Object.defineProperty(obj, Symbol.toStringTag, {
+                get() {
+                    tagReads++;
+                    return 'CustomTag';
+                }
+            });
+            return obj;
+        }
+
+        const strTagged = probe.stringDictionary({
+            FOO: 'bar',
+            [Symbol.toStringTag]: 'Env'
+        });
+        const strGetterTagged = probe.stringDictionary(withThrowingTag({ FOO: 'baz' }));
+
+        const numTagged = probe.doubleDictionary({
+            x: 1,
+            y: 2,
+            [Symbol.toStringTag]: 'Point'
+        });
+        const numGetterTagged = probe.doubleDictionary(withThrowingTag({ x: 3, y: 4 }));
+
+        const objTagged = probe.objectDictionary({
+            title: 'ok',
+            [Symbol.toStringTag]: 'Options'
+        });
+        const objGetterTagged = probe.objectDictionary(withThrowingTag({ title: 'ok2' }));
+
+        const arrTagged = probe.objectDictionaryArray([
+            { attribute: 'kMDItemFSName', [Symbol.toStringTag]: 'Sort' },
+            withThrowingTag({ attribute: 'kMDItemFSSize' })
+        ]);
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectEqual("strTagged.FOO", "bar")
+        harness.expectEqual("strGetterTagged.FOO", "baz")
+        harness.expectEqual("numTagged.x", 1)
+        harness.expectEqual("numGetterTagged.y", 4)
+        harness.expectEqual("objTagged.title", "ok")
+        harness.expectEqual("objGetterTagged.title", "ok2")
+        harness.expectEqual("arrTagged[0].attribute", "kMDItemFSName")
+        harness.expectEqual("arrTagged[1].attribute", "kMDItemFSSize")
+        harness.expectEqual("tagReads", 0)
+    }
+
+    @Test("no JSExport protocol method or writable property declares a Swift collection input")
     func testNoJSExportMethodTakesCollectionParameter() throws {
-        // Verify the scanner detects collection parameters on a synthetic regression
-        // while allowing collection return types and JSValue parameters.
+        // Verify the scanner detects collection parameters, writable collection properties,
+        // collection typealiases (including optional aliases, callback signatures, and
+        // cross-file aliases), and both single-line and next-line-brace protocol layouts,
+        // while allowing collection return types, read-only collection properties, and JSValue.
+        let syntheticAliasesSource = """
+        typealias CrossFileStrings = [String]
+        typealias CrossFileEnv = [String: String]
+        """
         let syntheticSource = """
+        typealias Names = [String]
+        typealias OptPoints = [String: Double]?
+        typealias BadCallback = ([String]) -> Void
+
         @objc protocol SyntheticBadAPI: JSExport {
             @objc func allowed(_ value: JSValue) -> [String]
+            @objc var allowedReadOnly: [String] { get }
+            @objc var allowedWritableScalar: String? { get set }
+            @objc var badWritableProperty: [String: String] { get set }
+            @objc var badCrossFileWritableProperty: CrossFileEnv { get set }
             @objc func badArray(_ items: [String])
             @objc func badDict(
                 _ name: String,
                 _ opts: [String: Any]?
             ) -> Bool
             @objc func badGeneric(_ set: Array<String>)
+            @objc func badAlias(_ items: Names)
+            @objc func badOptionalAlias(_ items: OptPoints)
+            @objc func badOptionalAliasUse(_ items: Names?)
+            @objc func badCallbackAlias(_ cb: (Names) -> Void)
+            @objc func badCallbackTypealias(_ cb: BadCallback)
+            @objc func badCrossFileAlias(_ items: CrossFileStrings)
         }
+
+        @objc protocol NextLineBraceBadAPI: JSExport
+        {
+            @objc func badNextLine(_ items: [String])
+        }
+
+        @objc protocol SingleLineBadAPI: JSExport { @objc func badSingleLine(_ items: [String]) }
         """
         let syntheticResult = Self.scanJSExportProtocolsForCollectionParameters(
-            inSource: syntheticSource,
-            fileLabel: "Synthetic.swift"
+            inSources: [
+                (fileLabel: "SyntheticAliases.swift", source: syntheticAliasesSource),
+                (fileLabel: "Synthetic.swift", source: syntheticSource)
+            ]
         )
-        #expect(syntheticResult.protocolCount == 1)
-        #expect(syntheticResult.violations.count == 3)
+        #expect(syntheticResult.protocolCount == 3)
+        #expect(syntheticResult.violations.count == 13)
+        #expect(syntheticResult.violations.contains { $0.contains("badWritableProperty") })
+        #expect(syntheticResult.violations.contains { $0.contains("badCrossFileWritableProperty") })
         #expect(syntheticResult.violations.contains { $0.contains("badArray") })
         #expect(syntheticResult.violations.contains { $0.contains("badDict") })
         #expect(syntheticResult.violations.contains { $0.contains("badGeneric") })
+        #expect(syntheticResult.violations.contains { $0.contains("badAlias") })
+        #expect(syntheticResult.violations.contains { $0.contains("badOptionalAlias") })
+        #expect(syntheticResult.violations.contains { $0.contains("badOptionalAliasUse") })
+        #expect(syntheticResult.violations.contains { $0.contains("badCallbackAlias") })
+        #expect(syntheticResult.violations.contains { $0.contains("badCallbackTypealias") })
+        #expect(syntheticResult.violations.contains { $0.contains("badCrossFileAlias") })
+        #expect(syntheticResult.violations.contains { $0.contains("badNextLine") })
+        #expect(syntheticResult.violations.contains { $0.contains("badSingleLine") })
+        #expect(!syntheticResult.violations.contains { $0.contains("allowed") })
 
         let repoRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -438,27 +567,23 @@ struct JSBridgeIntegrationTests {
             )
         )
 
-        var swiftFileCount = 0
-        var totalProtocolsScanned = 0
-        var allViolations: [String] = []
+        var productionSources: [(fileLabel: String, source: String)] = []
 
         for case let fileURL as URL in enumerator where fileURL.pathExtension == "swift" {
-            swiftFileCount += 1
             let source = try String(contentsOf: fileURL, encoding: .utf8)
             let relativePath = fileURL.path.replacingOccurrences(of: repoRoot.path + "/", with: "")
-            let result = Self.scanJSExportProtocolsForCollectionParameters(
-                inSource: source,
-                fileLabel: relativePath
-            )
-            totalProtocolsScanned += result.protocolCount
-            allViolations.append(contentsOf: result.violations)
+            productionSources.append((fileLabel: relativePath, source: source))
         }
 
-        #expect(swiftFileCount > 50, "Expected to scan production Swift sources, found \(swiftFileCount)")
-        #expect(totalProtocolsScanned > 30, "Expected to scan JSExport protocols, found \(totalProtocolsScanned)")
+        let productionResult = Self.scanJSExportProtocolsForCollectionParameters(
+            inSources: productionSources
+        )
+
+        #expect(productionSources.count > 50, "Expected to scan production Swift sources, found \(productionSources.count)")
+        #expect(productionResult.protocolCount > 30, "Expected to scan JSExport protocols, found \(productionResult.protocolCount)")
         #expect(
-            allViolations.isEmpty,
-            "JSExport methods must take JSValue instead of bridged collections. Violations: \(allViolations.joined(separator: "; "))"
+            productionResult.violations.isEmpty,
+            "JSExport methods and writable properties must take JSValue instead of bridged collections. Violations: \(productionResult.violations.joined(separator: "; "))"
         )
     }
 
@@ -468,127 +593,234 @@ struct JSBridgeIntegrationTests {
     }
 
     private static func scanJSExportProtocolsForCollectionParameters(
-        inSource source: String,
-        fileLabel: String
+        inSources sources: [(fileLabel: String, source: String)]
     ) -> ProtocolScanResult {
-        let stripped = stripComments(from: source)
-        let lines = stripped.components(separatedBy: .newlines)
+        let strippedSources = sources.map { (fileLabel: $0.fileLabel, stripped: stripComments(from: $0.source)) }
+        let typealiases = collectTypealiases(from: strippedSources.map(\.stripped))
 
         var protocolCount = 0
         var violations: [String] = []
-        var inJSExportProtocol = false
-        var currentProtocolName = ""
-        var braceDepth = 0
-        var pendingFuncLines: [String]? = nil
 
-        for rawLine in lines {
-            let line = rawLine.trimmingCharacters(in: .whitespaces)
-            if !inJSExportProtocol {
-                if let protoMatch = matchJSExportProtocolHeader(in: line) {
-                    inJSExportProtocol = true
-                    currentProtocolName = protoMatch
-                    protocolCount += 1
-                    braceDepth = countCharacter("{", in: line) - countCharacter("}", in: line)
-                    if braceDepth <= 0 {
-                        inJSExportProtocol = false
-                    }
+        for entry in strippedSources {
+            let protocols = extractJSExportProtocols(from: entry.stripped)
+            protocolCount += protocols.count
+
+            for proto in protocols {
+                let protoViolations = scanProtocolBody(proto.body, typealiases: typealiases)
+                for violation in protoViolations {
+                    violations.append("\(entry.fileLabel) (\(proto.name)): \(violation)")
                 }
-                continue
-            }
-
-            if pendingFuncLines != nil {
-                pendingFuncLines?.append(line)
-            } else if line.contains("func ") {
-                pendingFuncLines = [line]
-            }
-
-            if let accumulated = pendingFuncLines {
-                let joined = accumulated.joined(separator: " ")
-                if hasBalancedParameterParentheses(in: joined) {
-                    if let violation = checkFunctionSignatureForCollectionParameter(joined) {
-                        violations.append("\(fileLabel) (\(currentProtocolName)): \(violation)")
-                    }
-                    pendingFuncLines = nil
-                }
-            }
-
-            braceDepth += countCharacter("{", in: line) - countCharacter("}", in: line)
-            if braceDepth <= 0 {
-                inJSExportProtocol = false
-                currentProtocolName = ""
-                pendingFuncLines = nil
             }
         }
 
         return ProtocolScanResult(protocolCount: protocolCount, violations: violations)
     }
 
-    private static func matchJSExportProtocolHeader(in line: String) -> String? {
-        guard line.contains("protocol "),
-              let protocolRange = line.range(of: "protocol "),
-              let colonRange = line.range(of: ":", range: protocolRange.upperBound..<line.endIndex)
-        else {
-            return nil
+    private static func collectTypealiases(from strippedSources: [String]) -> [String: String] {
+        var aliases: [String: String] = [:]
+        let pattern = #"\btypealias\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?:<[^>]+>)?\s*=\s*([^\n;\}]+)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            return aliases
         }
-        let name = line[protocolRange.upperBound..<colonRange.lowerBound]
-            .trimmingCharacters(in: .whitespaces)
-        let inheritance = line[colonRange.upperBound...]
-        guard inheritance.contains("JSExport")
-                || inheritance.contains("HSTypeAPI")
-                || inheritance.contains("HSModuleAPI")
-        else {
-            return nil
-        }
-        return name
-    }
 
-    private static func hasBalancedParameterParentheses(in text: String) -> Bool {
-        guard let funcRange = text.range(of: "func "),
-              let openParen = text[funcRange.upperBound...].firstIndex(of: "(")
-        else {
-            return true
-        }
-        var depth = 0
-        for ch in text[openParen...] {
-            if ch == "(" {
-                depth += 1
-            } else if ch == ")" {
-                depth -= 1
-                if depth == 0 {
-                    return true
+        for source in strippedSources {
+            let nsRange = NSRange(source.startIndex..<source.endIndex, in: source)
+            for match in regex.matches(in: source, range: nsRange) {
+                guard let nameRange = Range(match.range(at: 1), in: source),
+                      let targetRange = Range(match.range(at: 2), in: source)
+                else {
+                    continue
+                }
+                let name = String(source[nameRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+                let target = String(source[targetRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !name.isEmpty && !target.isEmpty {
+                    aliases[name] = target
                 }
             }
         }
-        return false
+
+        return aliases
     }
 
-    private static func checkFunctionSignatureForCollectionParameter(_ signature: String) -> String? {
-        guard let funcRange = signature.range(of: "func "),
-              let openParen = signature[funcRange.upperBound...].firstIndex(of: "(")
-        else {
-            return nil
+    private static func expandTypealiases(in text: String, typealiases: [String: String]) -> String {
+        guard !typealiases.isEmpty else { return text }
+        var current = text
+        for _ in 0..<16 {
+            var updated = current
+            for (alias, target) in typealiases {
+                let pattern = #"\b"# + NSRegularExpression.escapedPattern(for: alias) + #"\b"#
+                updated = updated.replacingOccurrences(
+                    of: pattern,
+                    with: "(\(target))",
+                    options: .regularExpression
+                )
+            }
+            if updated == current {
+                break
+            }
+            current = updated
         }
+        return current
+    }
+
+    private struct ExtractedProtocol {
+        var name: String
+        var body: String
+    }
+
+    private static func extractJSExportProtocols(from source: String) -> [ExtractedProtocol] {
+        var results: [ExtractedProtocol] = []
+        guard let protoRegex = try? NSRegularExpression(pattern: #"\bprotocol\s+([A-Za-z_][A-Za-z0-9_]*)"#) else {
+            return results
+        }
+
+        var searchStart = source.startIndex
+        while searchStart < source.endIndex {
+            let nsRange = NSRange(searchStart..<source.endIndex, in: source)
+            guard let match = protoRegex.firstMatch(in: source, range: nsRange),
+                  let fullRange = Range(match.range, in: source),
+                  let nameRange = Range(match.range(at: 1), in: source)
+            else {
+                break
+            }
+
+            let protoName = String(source[nameRange])
+            let afterName = fullRange.upperBound
+
+            guard let openBrace = source[afterName...].firstIndex(of: "{") else {
+                break
+            }
+
+            let headerClause = String(source[afterName..<openBrace])
+            guard let closeBrace = findMatchingBrace(in: source, openBrace: openBrace) else {
+                break
+            }
+
+            if let colonIdx = headerClause.firstIndex(of: ":") {
+                let inheritance = headerClause[headerClause.index(after: colonIdx)...]
+                if inheritance.contains("JSExport")
+                    || inheritance.contains("HSTypeAPI")
+                    || inheritance.contains("HSModuleAPI") {
+                    let body = String(source[source.index(after: openBrace)..<closeBrace])
+                    results.append(ExtractedProtocol(name: protoName, body: body))
+                }
+            }
+
+            searchStart = source.index(after: closeBrace)
+        }
+
+        return results
+    }
+
+    private static func findMatchingBrace(in text: String, openBrace: String.Index) -> String.Index? {
         var depth = 0
-        var closeParen: String.Index? = nil
-        for idx in signature[openParen...].indices {
-            let ch = signature[idx]
+        for idx in text[openBrace...].indices {
+            let ch = text[idx]
+            if ch == "{" {
+                depth += 1
+            } else if ch == "}" {
+                depth -= 1
+                if depth == 0 {
+                    return idx
+                }
+            }
+        }
+        return nil
+    }
+
+    private static func findMatchingParen(in text: String, openParen: String.Index) -> String.Index? {
+        var depth = 0
+        for idx in text[openParen...].indices {
+            let ch = text[idx]
             if ch == "(" {
                 depth += 1
             } else if ch == ")" {
                 depth -= 1
                 if depth == 0 {
-                    closeParen = idx
+                    return idx
+                }
+            }
+        }
+        return nil
+    }
+
+    private static func scanProtocolBody(_ body: String, typealiases: [String: String]) -> [String] {
+        var violations: [String] = []
+
+        // 1. Scan all func declarations in the protocol body.
+        if let funcRegex = try? NSRegularExpression(pattern: #"\bfunc\s+([A-Za-z_][A-Za-z0-9_]*)"#) {
+            var searchStart = body.startIndex
+            while searchStart < body.endIndex {
+                let nsRange = NSRange(searchStart..<body.endIndex, in: body)
+                guard let match = funcRegex.firstMatch(in: body, range: nsRange),
+                      let fullRange = Range(match.range, in: body)
+                else {
                     break
                 }
+
+                guard let openParen = body[fullRange.upperBound...].firstIndex(of: "("),
+                      let closeParen = findMatchingParen(in: body, openParen: openParen)
+                else {
+                    searchStart = fullRange.upperBound
+                    continue
+                }
+
+                let signature = String(body[fullRange.lowerBound...closeParen])
+                    .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+                let paramsSlice = String(body[body.index(after: openParen)..<closeParen])
+                let expandedParams = expandTypealiases(in: paramsSlice, typealiases: typealiases)
+                if containsForbiddenCollectionType(expandedParams) {
+                    violations.append(signature)
+                }
+
+                searchStart = body.index(after: closeParen)
             }
         }
-        guard let closeParen else { return nil }
-        let paramsSlice = String(signature[signature.index(after: openParen)..<closeParen])
-        let trimmedParams = paramsSlice.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmedParams.isEmpty {
-            return nil
+
+        // 2. Scan all writable var declarations in the protocol body.
+        if let varRegex = try? NSRegularExpression(pattern: #"\bvar\s+([A-Za-z_][A-Za-z0-9_]*)\s*:"#) {
+            var searchStart = body.startIndex
+            while searchStart < body.endIndex {
+                let nsRange = NSRange(searchStart..<body.endIndex, in: body)
+                guard let match = varRegex.firstMatch(in: body, range: nsRange),
+                      let fullRange = Range(match.range, in: body)
+                else {
+                    break
+                }
+
+                guard let openBrace = body[fullRange.upperBound...].firstIndex(of: "{"),
+                      let closeBrace = findMatchingBrace(in: body, openBrace: openBrace)
+                else {
+                    searchStart = fullRange.upperBound
+                    continue
+                }
+
+                let typeSlice = String(body[fullRange.upperBound..<openBrace])
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                let accessorsSlice = String(body[body.index(after: openBrace)..<closeBrace])
+                let isWritable = accessorsSlice.range(of: #"\bset\b"#, options: .regularExpression) != nil
+
+                if isWritable {
+                    let expandedType = expandTypealiases(in: typeSlice, typealiases: typealiases)
+                    if containsForbiddenCollectionType(expandedType) {
+                        let declaration = String(body[fullRange.lowerBound...closeBrace])
+                            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+                        violations.append(declaration)
+                    }
+                }
+
+                searchStart = body.index(after: closeBrace)
+            }
         }
 
+        return violations
+    }
+
+    private static func containsForbiddenCollectionType(_ typeExpression: String) -> Bool {
+        let trimmed = typeExpression.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return false
+        }
         let forbiddenPatterns = [
             #"\[[^\]]+\]"#,
             #"\bArray\s*<"#,
@@ -596,17 +828,11 @@ struct JSBridgeIntegrationTests {
             #"\bSet\s*<"#
         ]
         for pattern in forbiddenPatterns {
-            if paramsSlice.range(of: pattern, options: .regularExpression) != nil {
-                return signature
+            if trimmed.range(of: pattern, options: .regularExpression) != nil {
+                return true
             }
         }
-        return nil
-    }
-
-    private static func countCharacter(_ target: Character, in text: String) -> Int {
-        text.reduce(into: 0) { count, ch in
-            if ch == target { count += 1 }
-        }
+        return false
     }
 
     private static func stripComments(from source: String) -> String {
