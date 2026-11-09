@@ -137,14 +137,14 @@ import JavaScriptCore
 
     /// Create a richly configured notification without sending it yet.
     ///
-    /// - Parameter options: A JavaScript object — see module documentation for supported keys.
+    /// - Parameter options: {Object<string, any>} A JavaScript object — see module documentation for supported keys.
     /// - Returns: An `HSNotification` object. Call `.send()` on it to deliver the notification.
     /// - Example:
     /// ```js
     /// const n = hs.notify.create({ title: "Hello", body: "World" })
     /// n.send()
     /// ```
-    @objc func create(_ options: [String: Any]) -> HSNotification?
+    @objc func create(_ options: JSValue) -> HSNotification?
 
     // MARK: Management
 
@@ -250,7 +250,10 @@ import JavaScriptCore
         AKWarning("hs.notify: notifications are denied for Hammerspoon 2. Enable them in System Settings → Notifications → Hammerspoon 2 (subsequent show() calls will be silently skipped).")
     }
 
-    @objc func create(_ options: [String: Any]) -> HSNotification? {
+    @objc func create(_ options: JSValue) -> HSNotification? {
+        guard let options = options.toObjectDictionary(method: "hs.notify.create", parameter: "options") else {
+            return nil
+        }
         guard let title = options["title"] as? String, !title.isEmpty else {
             AKError("hs.notify.create(): 'title' is required and must be a non-empty string")
             return nil

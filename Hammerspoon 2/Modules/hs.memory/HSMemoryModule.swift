@@ -53,7 +53,7 @@ import JavaScriptCore
     /// // During an idle period; inspect stats again after this JS stack returns.
     /// console.log(JSON.stringify(hs.memory.relieve({gc: true, malloc: false, shrink: true})))
     /// ```
-    @objc func relieve(_ opts: [String: Any]?) -> [String: Any]
+    @objc func relieve(_ opts: JSValue?) -> [String: Any]
 }
 
 @_documentation(visibility: private)
@@ -79,10 +79,13 @@ import JavaScriptCore
         return HSMemorySnapshot(context) ?? [:]
     }
 
-    func relieve(_ opts: [String: Any]?) -> [String: Any] {
+    func relieve(_ opts: JSValue?) -> [String: Any] {
+        guard let bridgedOpts = opts.toOptionalObjectDictionary(method: "hs.memory.relieve", parameter: "opts") else {
+            return [:]
+        }
         guard let context = JSContext.current() else { return [:] }
-        return HSMemoryRelieve(context, opts?["gc"] as? Bool ?? true,
-                               opts?["malloc"] as? Bool ?? true,
-                               opts?["shrink"] as? Bool ?? false) ?? [:]
+        return HSMemoryRelieve(context, bridgedOpts?["gc"] as? Bool ?? true,
+                               bridgedOpts?["malloc"] as? Bool ?? true,
+                               bridgedOpts?["shrink"] as? Bool ?? false) ?? [:]
     }
 }

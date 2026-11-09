@@ -53,14 +53,14 @@ import CoreLocation
     ///
     /// Returns a Promise that resolves with matching placemarks or rejects with
     /// an error.
-    /// - Parameter locationTable: an object with at least `latitude` and `longitude`
+    /// - Parameter locationTable: {Object<string, number>} an object with at least `latitude` and `longitude`
     /// - Returns: {Promise<[[String:Any]]>} a Promise resolving to an array of placemarkTables
     /// - Example:
     /// ```js
     /// hs.location.geocoder.lookupLocation({ latitude: 37.3349, longitude: -122.0090 })
     ///     .then(p => console.log(p[0].name))
     /// ```
-    @objc func lookupLocation(_ locationTable: [String: Double]) -> JSPromise?
+    @objc func lookupLocation(_ locationTable: JSValue) -> JSPromise?
 }
 
 // MARK: - Geocoder implementation
@@ -106,8 +106,11 @@ import CoreLocation
         }
     }
 
-    @objc func lookupLocation(_ locationTable: [String: Double]) -> JSPromise? {
-        guard let loc = HSLocationModule.clLocation(from: locationTable) else {
+    @objc func lookupLocation(_ locationTable: JSValue) -> JSPromise? {
+        guard let bridgedLocationTable = locationTable.toDoubleDictionary(method: "hs.location.geocoder.lookupLocation", parameter: "locationTable") else {
+            return nil
+        }
+        guard let loc = HSLocationModule.clLocation(from: bridgedLocationTable) else {
             AKError("hs.location.geocoder.lookupLocation(): invalid locationTable — needs latitude and longitude")
             return nil
         }

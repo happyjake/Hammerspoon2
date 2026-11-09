@@ -69,8 +69,8 @@ import CoreLocation
     ///
     /// Does not require Location Services.
     /// - Parameters:
-    ///   - from: locationTable with at least `latitude` and `longitude`
-    ///   - to: locationTable with at least `latitude` and `longitude`
+    ///   - from: {Object<string, number>} locationTable with at least `latitude` and `longitude`
+    ///   - to: {Object<string, number>} locationTable with at least `latitude` and `longitude`
     /// - Returns: distance in metres, or `-1` if either table is invalid
     /// - Example:
     /// ```js
@@ -79,7 +79,7 @@ import CoreLocation
     ///     { latitude: 48.8566, longitude:  2.3522 }
     /// ) // → ~341,000 metres
     /// ```
-    @objc(distance::) func distance(_ from: [String: Double], _ to: [String: Double]) -> Double
+    @objc(distance::) func distance(_ from: JSValue, _ to: JSValue) -> Double
 
     /// Returns the time of sunrise for the given coordinates and date, or null if the sun does not rise on that date (polar night).
     /// - Parameters:
@@ -205,9 +205,13 @@ import CoreLocation
         return HSLocationModule.locationTable(from: loc)
     }
 
-    @objc(distance::) func distance(_ from: [String: Double], _ to: [String: Double]) -> Double {
-        guard let fromLoc = Self.clLocation(from: from),
-              let toLoc   = Self.clLocation(from: to) else { return -1 }
+    @objc(distance::) func distance(_ from: JSValue, _ to: JSValue) -> Double {
+        guard let bridgedFrom = from.toDoubleDictionary(method: "hs.location.distance", parameter: "from"),
+              let bridgedTo   = to.toDoubleDictionary(method: "hs.location.distance", parameter: "to") else {
+            return -1
+        }
+        guard let fromLoc = Self.clLocation(from: bridgedFrom),
+              let toLoc   = Self.clLocation(from: bridgedTo) else { return -1 }
         return fromLoc.distance(from: toLoc)
     }
 

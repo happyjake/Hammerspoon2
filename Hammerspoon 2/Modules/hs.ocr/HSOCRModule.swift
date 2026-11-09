@@ -63,7 +63,7 @@ import Vision
     ///   Overrides `languages` when set.
     ///
     /// - Parameter path: Absolute path to the image file.
-    /// - Parameter options: Optional configuration object (see description).
+    /// - Parameter options: {Object<string, any> | null} Optional configuration object (see description).
     /// - Returns: {Promise<HSOCRResult>} Resolves with the recognition result.
     ///
     /// - Example:
@@ -82,7 +82,7 @@ import Vision
     ///     .then(result => console.log('Found ' + result.observations.length + ' regions'))
     ///     .catch(err => console.log('Error: ' + err))
     /// ```
-    @objc func recognizeText(_ path: String, _ options: [String: Any]?) -> JSPromise?
+    @objc func recognizeText(_ path: String, _ options: JSValue?) -> JSPromise?
 
     /// Returns the BCP-47 language codes supported by the Vision text recognizer
     /// on this device.
@@ -156,9 +156,12 @@ private struct RawObservation: Sendable {
 
     // MARK: - HSOCRModuleAPI
 
-    @objc func recognizeText(_ path: String, _ options: [String: Any]?) -> JSPromise? {
+    @objc func recognizeText(_ path: String, _ options: JSValue?) -> JSPromise? {
+        guard let bridgedOptions = options.toOptionalObjectDictionary(method: "hs.ocr.recognizeText", parameter: "options") else {
+            return nil
+        }
         guard let context = JSContext.current() else { return nil }
-        let config = OCRConfig(from: options)
+        let config = OCRConfig(from: bridgedOptions)
         let fileURL = URL(fileURLWithPath: path)
 
         return wrapAsyncInJSPromise(in: context) { holder in

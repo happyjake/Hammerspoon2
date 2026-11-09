@@ -200,4 +200,24 @@ nonisolated final class HSMemoryIntegrationTests: XCTestCase {
         check(harness, "hs.memory.stats().js.objectCount < allocated - 10000")
         check(harness, "report.mallocReleased === 0 && report.reliefMs === 0")
     }
+
+    @MainActor
+    func testRelieveRejectsNonObjectOptionsAndKeepsContextUsable() {
+        let harness = makeHarness()
+        check(harness, """
+            (() => {
+                for (const bad of ['bad', 42, true, [1, 2]]) {
+                    let threw = false;
+                    try {
+                        hs.memory.relieve(bad);
+                    } catch (e) {
+                        threw = (e instanceof TypeError) && /hs\\.memory\\.relieve.*opts/.test(e.message);
+                    }
+                    if (!threw) return false;
+                }
+                const valid = hs.memory.relieve({gc: false, malloc: false});
+                return valid.footprintAfter > 0 && valid.gcMs === 0 && valid.reliefMs === 0;
+            })()
+            """)
+    }
 }

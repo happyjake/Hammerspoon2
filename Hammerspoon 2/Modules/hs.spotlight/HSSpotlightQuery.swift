@@ -88,7 +88,7 @@ import JavaScriptCore
     /// user's home directory.
     ///
     /// When not set, the query defaults to `hs.spotlight.scope.computer`.
-    /// - Parameter scopes: An array of scope-constant strings or absolute directory paths
+    /// - Parameter scopes: {string[]} An array of scope-constant strings or absolute directory paths
     /// - Returns: this query, for chaining
     /// - Example:
     /// ```js
@@ -101,7 +101,7 @@ import JavaScriptCore
     /// // Mix of predefined scope and a folder
     /// q.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive/Projects'])
     /// ```
-    @objc @discardableResult func setScopes(_ scopes: [String]) -> HSSpotlightQuery
+    @objc @discardableResult func setScopes(_ scopes: JSValue) -> HSSpotlightQuery
 
     /// Sets sort descriptors that control the order of results.
     ///
@@ -109,7 +109,7 @@ import JavaScriptCore
     /// - `attribute` (string): a `kMDItem*` key to sort on
     /// - `ascending` (boolean): `true` for ascending order (optional, defaults to `true`)
     ///
-    /// - Parameter descriptors: An array of sort descriptor objects
+    /// - Parameter descriptors: {Object<string, any>[]} An array of sort descriptor objects
     /// - Returns: this query, for chaining
     /// - Example:
     /// ```js
@@ -118,14 +118,14 @@ import JavaScriptCore
     ///     { attribute: hs.spotlight.attribute.fileSize, ascending: false }
     /// ])
     /// ```
-    @objc @discardableResult func setSortDescriptors(_ descriptors: [[String: Any]]) -> HSSpotlightQuery
+    @objc @discardableResult func setSortDescriptors(_ descriptors: JSValue) -> HSSpotlightQuery
 
     /// Sets the attributes by which results will be grouped.
     ///
     /// When grouping attributes are set, use `groups()` to retrieve results organised into
     /// `HSSpotlightGroup` objects. Specifying multiple attributes creates nested subgroups
     /// accessible via `group.subgroups()`.
-    /// - Parameter attrs: An array of attribute name strings
+    /// - Parameter attrs: {string[]} An array of attribute name strings
     /// - Returns: this query, for chaining
     /// - Example:
     /// ```js
@@ -141,13 +141,13 @@ import JavaScriptCore
     ///  })
     ///  .start()
     /// ```
-    @objc @discardableResult func setGroupingAttributes(_ attrs: [String]) -> HSSpotlightQuery
+    @objc @discardableResult func setGroupingAttributes(_ attrs: JSValue) -> HSSpotlightQuery
 
     /// Sets the attributes for which aggregate value-list summaries are computed.
     ///
     /// After the query finishes, `valueLists()` returns aggregate data for each specified
     /// attribute: distinct values and the number of results carrying each value.
-    /// - Parameter attrs: An array of attribute name strings
+    /// - Parameter attrs: {string[]} An array of attribute name strings
     /// - Returns: this query, for chaining
     /// - Example:
     /// ```js
@@ -164,7 +164,7 @@ import JavaScriptCore
     ///  })
     ///  .start()
     /// ```
-    @objc @discardableResult func setValueListAttributes(_ attrs: [String]) -> HSSpotlightQuery
+    @objc @discardableResult func setValueListAttributes(_ attrs: JSValue) -> HSSpotlightQuery
 
     /// Registers a callback that receives query lifecycle events.
     ///
@@ -348,8 +348,11 @@ import JavaScriptCore
         return self
     }
 
-    @objc @discardableResult func setScopes(_ scopes: [String]) -> HSSpotlightQuery {
-        query.searchScopes = scopes.map { scope -> Any in
+    @objc @discardableResult func setScopes(_ scopes: JSValue) -> HSSpotlightQuery {
+        guard let bridgedScopes = scopes.toStringArray(method: "hs.spotlight.setScopes", parameter: "scopes") else {
+            return self
+        }
+        query.searchScopes = bridgedScopes.map { scope -> Any in
             if scope.hasPrefix("/") || scope.hasPrefix("~") {
                 return URL(fileURLWithPath: (scope as NSString).expandingTildeInPath)
             }
@@ -358,8 +361,11 @@ import JavaScriptCore
         return self
     }
 
-    @objc @discardableResult func setSortDescriptors(_ descriptors: [[String: Any]]) -> HSSpotlightQuery {
-        query.sortDescriptors = descriptors.compactMap { item -> NSSortDescriptor? in
+    @objc @discardableResult func setSortDescriptors(_ descriptors: JSValue) -> HSSpotlightQuery {
+        guard let bridgedDescriptors = descriptors.toObjectDictionaryArray(method: "hs.spotlight.setSortDescriptors", parameter: "descriptors") else {
+            return self
+        }
+        query.sortDescriptors = bridgedDescriptors.compactMap { item -> NSSortDescriptor? in
             guard let attr = item["attribute"] as? String else { return nil }
             let ascending = item["ascending"] as? Bool ?? true
             return NSSortDescriptor(key: attr, ascending: ascending)
@@ -367,13 +373,19 @@ import JavaScriptCore
         return self
     }
 
-    @objc @discardableResult func setGroupingAttributes(_ attrs: [String]) -> HSSpotlightQuery {
-        query.groupingAttributes = attrs
+    @objc @discardableResult func setGroupingAttributes(_ attrs: JSValue) -> HSSpotlightQuery {
+        guard let bridgedAttrs = attrs.toStringArray(method: "hs.spotlight.setGroupingAttributes", parameter: "attrs") else {
+            return self
+        }
+        query.groupingAttributes = bridgedAttrs
         return self
     }
 
-    @objc @discardableResult func setValueListAttributes(_ attrs: [String]) -> HSSpotlightQuery {
-        query.valueListAttributes = attrs
+    @objc @discardableResult func setValueListAttributes(_ attrs: JSValue) -> HSSpotlightQuery {
+        guard let bridgedAttrs = attrs.toStringArray(method: "hs.spotlight.setValueListAttributes", parameter: "attrs") else {
+            return self
+        }
+        query.valueListAttributes = bridgedAttrs
         return self
     }
 

@@ -154,6 +154,25 @@ struct HSLocationTests {
             #expect(!harness.hasException)
         }
 
+        @Test("distance() throws TypeError when from or to has wrong collection type and keeps context usable")
+        func testDistanceCollectionValidation() {
+            let harness = makeHarness()
+            let result = harness.eval("""
+            (function() {
+                var fromThrew = false;
+                var toThrew = false;
+                try { hs.location.distance('bad', { latitude: 40.0, longitude: -74.0 }); }
+                catch (e) { fromThrew = (e instanceof TypeError) && /hs\\.location\\.distance.*from/.test(e.message); }
+                try { hs.location.distance({ latitude: 40.0, longitude: -74.0 }, { latitude: 'bad', longitude: -74.0 }); }
+                catch (e) { toThrew = (e instanceof TypeError) && /hs\\.location\\.distance.*to/.test(e.message); }
+                var validDist = hs.location.distance({ latitude: 40.0, longitude: -74.0 }, { latitude: 40.0, longitude: -74.0 });
+                return fromThrew && toThrew && validDist === 0;
+            })()
+            """)
+            #expect(!harness.hasException)
+            #expect(result as? Bool == true)
+        }
+
         @Test("sunrise() returns a date for London on 2024-01-01")
         func testSunriseLondon() {
             let harness = makeHarness()
@@ -297,6 +316,25 @@ struct HSLocationTests {
         """)
             harness.expectTrue("p !== null && typeof p.then === 'function'")
             #expect(!harness.hasException)
+        }
+
+        @Test("lookupLocation throws TypeError for wrong-typed locationTable and keeps context usable")
+        func testLookupLocationCollectionValidation() {
+            let harness = makeHarness()
+            let result = harness.eval("""
+            (function() {
+                var threwNonObj = false;
+                var threwBadProp = false;
+                try { hs.location.geocoder.lookupLocation('not-an-object'); }
+                catch (e) { threwNonObj = (e instanceof TypeError) && /hs\\.location\\.geocoder\\.lookupLocation.*locationTable/.test(e.message); }
+                try { hs.location.geocoder.lookupLocation({ latitude: 'bad', longitude: -122.0 }); }
+                catch (e) { threwBadProp = (e instanceof TypeError) && /hs\\.location\\.geocoder\\.lookupLocation.*locationTable/.test(e.message); }
+                var validEmpty = hs.location.geocoder.lookupLocation({});
+                return threwNonObj && threwBadProp && (validEmpty === null || validEmpty === undefined);
+            })()
+            """)
+            #expect(!harness.hasException)
+            #expect(result as? Bool == true)
         }
     }
 

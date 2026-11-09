@@ -57,8 +57,17 @@ struct HSNotifyTests {
         @Test("new() throws when passed a non-object")
         func testCreateWithNonObjectReturnsNull() {
             let harness = makeHarness()
-            harness.eval("hs.notify.create('oops')")
-            #expect(harness.hasException)
+            let result = harness.eval("""
+            (function() {
+                var threw = false;
+                try { hs.notify.create('oops'); }
+                catch (e) { threw = (e instanceof TypeError) && /hs\\.notify\\.create.*options/.test(e.message); }
+                var valid = hs.notify.create({ title: 'After error' });
+                return threw && valid !== null && typeof valid.identifier === 'string';
+            })()
+            """)
+            #expect(!harness.hasException)
+            #expect(result as? Bool == true)
         }
 
         @Test("new() returns an object when given a valid title")

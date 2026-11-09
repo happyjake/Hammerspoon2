@@ -313,6 +313,35 @@ struct HSSpotlightTests {
             #expect(harness.hasException)
         }
 
+        @Test("setScopes, setSortDescriptors, setGroupingAttributes, and setValueListAttributes throw TypeError on wrong-typed collection arguments and keep context usable")
+        func testCollectionSettersValidation() {
+            let harness = makeHarness()
+            let result = harness.eval("""
+            (function() {
+                var q = hs.spotlight.create();
+                var scopesThrew = false;
+                var sortThrew = false;
+                var groupThrew = false;
+                var valueListThrew = false;
+                try { q.setScopes([42]); }
+                catch (e) { scopesThrew = (e instanceof TypeError) && /hs\\.spotlight\\.setScopes.*scopes/.test(e.message); }
+                try { q.setSortDescriptors(['not-an-object']); }
+                catch (e) { sortThrew = (e instanceof TypeError) && /hs\\.spotlight\\.setSortDescriptors.*descriptors/.test(e.message); }
+                try { q.setGroupingAttributes('not-an-array'); }
+                catch (e) { groupThrew = (e instanceof TypeError) && /hs\\.spotlight\\.setGroupingAttributes.*attrs/.test(e.message); }
+                try { q.setValueListAttributes([false]); }
+                catch (e) { valueListThrew = (e instanceof TypeError) && /hs\\.spotlight\\.setValueListAttributes.*attrs/.test(e.message); }
+                var chained = q.setScopes([hs.spotlight.scope.applications])
+                               .setSortDescriptors([{ attribute: 'kMDItemFSName', ascending: true }])
+                               .setGroupingAttributes([hs.spotlight.attribute.contentType])
+                               .setValueListAttributes([hs.spotlight.attribute.kind]);
+                return scopesThrew && sortThrew && groupThrew && valueListThrew && (chained === q);
+            })()
+            """)
+            #expect(!harness.hasException)
+            #expect(result as? Bool == true)
+        }
+
         @Test("setSortDescriptors with empty array does not throw")
         func testSetSortDescriptorsEmptyArray() {
             let harness = makeHarness()

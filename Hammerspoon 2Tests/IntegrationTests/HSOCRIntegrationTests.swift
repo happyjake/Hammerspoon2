@@ -102,6 +102,27 @@ struct HSOCRTests {
             harness.expectTrue("Array.isArray(hs.ocr.supportedLanguages())")
             #expect(harness.hasException == false)
         }
+
+        @Test("recognizeText throws TypeError when options is not a plain object and keeps context usable")
+        func testRecognizeTextCollectionValidation() {
+            let harness = makeHarness()
+            let result = harness.eval("""
+            (function() {
+                for (var bad of ['not-an-object', 123, ['array']]) {
+                    var threw = false;
+                    try { hs.ocr.recognizeText('/nonexistent.png', bad); }
+                    catch (e) { threw = (e instanceof TypeError) && /hs\\.ocr\\.recognizeText.*options/.test(e.message); }
+                    if (!threw) return false;
+                }
+                var validPromise = hs.ocr.recognizeText('/nonexistent.png', { recognitionLevel: 'fast' });
+                // Attach catch handler so the missing-file rejection does not go unhandled
+                validPromise.catch(function() {});
+                return validPromise !== null && typeof validPromise.then === 'function';
+            })()
+            """)
+            #expect(harness.hasException == false)
+            #expect(result as? Bool == true)
+        }
     }
 
     // MARK: - supportedLanguages Tests
