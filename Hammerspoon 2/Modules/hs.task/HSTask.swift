@@ -112,7 +112,7 @@ import JavaScriptCoreExtras
     /// t.environment = { FOO: "bar" }
     /// t.start()
     /// ```
-    @objc var environment: [String: String] { get set }
+    @objc var environment: JSValue { get set }
 
     /// The working directory for the task
     /// - Note: Can only be modified before calling start()
@@ -194,14 +194,22 @@ import JavaScriptCoreExtras
     private var runningSelfRetain: HSTask?
 
     /// The environment variables for the task
-    @objc var environment: [String: String] {
-        get { _environment }
+    @objc var environment: JSValue {
+        get {
+            guard let context = JSContext.current() else {
+                return JSValue(undefinedIn: JSContext())
+            }
+            return JSValue(object: _environment, in: context)
+        }
         set {
+            guard let bridged = newValue.toStringDictionary(method: "hs.task.environment", parameter: "environment") else {
+                return
+            }
             guard !hasStarted else {
                 AKWarning("hs.task.environment: Cannot modify environment after task has started")
                 return
             }
-            _environment = newValue
+            _environment = bridged
         }
     }
 

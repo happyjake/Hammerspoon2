@@ -1374,4 +1374,63 @@ import JavaScriptCore
         harness.expectTrue("createRejected === true")
         #expect(module?.createdTaskCount == 0)
     }
+
+    @Test("task.environment setter throws TypeError on invalid values and accepts valid string dictionaries")
+    func testTaskEnvironmentSetterValidation() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTaskModule.self, as: "task")
+
+        _ = harness.evalValue("""
+        const t = hs.task.create('/bin/true', [], null, { FOO: 'initial' }, null);
+        const cyclic = {};
+        cyclic.SELF = cyclic;
+
+        const badEnvs = [
+            null,
+            undefined,
+            ['FOO=bar'],
+            function() {},
+            'FOO=bar',
+            123,
+            true,
+            { FOO: 1 },
+            { FOO: null },
+            { FOO: undefined },
+            { FOO: true },
+            { FOO: ['bar'] },
+            { FOO: { nested: 'bar' } },
+            Object.create({ FOO: 99 }),
+            cyclic
+        ];
+        const allTypeErrors = badEnvs.every(function(env) {
+            try {
+                t.environment = env;
+                return false;
+            } catch (e) {
+                return (e instanceof TypeError) &&
+                       e.message.includes('hs.task.environment') &&
+                       e.message.includes('environment');
+            }
+        });
+        const preservedAfterInvalid = t.environment.FOO;
+
+        let getterReads = 0;
+        const inherited = Object.create({ INHERITED: 'yes' });
+        Object.defineProperty(inherited, 'FOO', {
+            enumerable: true,
+            get() { return 'val' + (++getterReads); }
+        });
+        inherited[Symbol.toStringTag] = 'TaskEnv';
+        t.environment = inherited;
+        const updatedFoo = t.environment.FOO;
+        const updatedInherited = t.environment.INHERITED;
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectTrue("allTypeErrors === true")
+        harness.expectEqual("preservedAfterInvalid", "initial")
+        harness.expectEqual("getterReads", 1)
+        harness.expectEqual("updatedFoo", "val1")
+        harness.expectEqual("updatedInherited", "yes")
+    }
 }
