@@ -16,9 +16,9 @@ import JavaScriptCoreExtras
     /// Create a new task
     /// - Parameters:
     ///   - launchPath: The full path to the executable to run
-    ///   - arguments: An array of arguments to pass to the executable
+    ///   - arguments: {string[]} An array of arguments to pass to the executable
     ///   - completionCallback: {((exitCode: number, exitReason: string) => void) | null} Optional callback called when the task terminates with exit code and reason
-    ///   - environment: Optional dictionary of environment variables for the task
+    ///   - environment: {Record<string, string> | null} Optional dictionary of environment variables for the task
     ///   - streamingCallback: {((stream: string, data: string) => void) | null} Optional callback called when the task produces output; stream is "stdout" or "stderr"
     /// - Returns: A task object. Call start() to begin execution.
     /// - Example:
@@ -29,7 +29,7 @@ import JavaScriptCoreExtras
     /// task.start()
     /// ```
     @objc(create:::::)
-    func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction?, _ environment: [String: String]?, _ streamingCallback: JSFunction?) -> HSTask
+    func create(_ launchPath: String, _ arguments: JSValue, _ completionCallback: JSFunction?, _ environment: JSValue?, _ streamingCallback: JSFunction?) -> HSTask?
 
     /// SKIP_DOCS
     @objc var runAsync: JSFunction? { get set }
@@ -65,13 +65,13 @@ import JavaScriptCoreExtras
     /// exits. Intended for fast utilities (`ps`, `whoami`, `uname`) where
     /// awaiting a Promise would add UI flicker.
     /// - Parameter launchPath: Absolute path to the executable
-    /// - Parameter arguments: Argument array
+    /// - Parameter arguments: {string[]} Argument array
     /// - Returns: Combined stdout as a string, or null on failure
     /// - Example:
     /// ```js
     /// const out = hs.task.runSync('/bin/ps', ['-axo', 'pid,rss,comm'])
     /// ```
-    @objc func runSync(_ launchPath: String, _ arguments: [String]) -> String?
+    @objc func runSync(_ launchPath: String, _ arguments: JSValue) -> String?
 }
 
 // MARK: - Implementation
@@ -145,6 +145,10 @@ struct TaskTracker {
 
     // MARK: - Task Tracking (for testing)
 
+    var createdTaskCount: Int {
+        tasks.allObjects.count
+    }
+
     func registerActiveTask(_ task: HSTask) {
         taskTracker.register(task)
     }
@@ -172,10 +176,14 @@ struct TaskTracker {
 
     // MARK: - Task constructors
 
-    @objc func runSync(_ launchPath: String, _ arguments: [String]) -> String? {
+    @objc func runSync(_ launchPath: String, _ arguments: JSValue) -> String? {
+        guard let bridgedArguments = arguments.toStringArray(method: "hs.task.runSync", parameter: "arguments") else {
+            return nil
+        }
+
         let process = Process()
         process.launchPath = launchPath
-        process.arguments = arguments
+        process.arguments = bridgedArguments
         let pipe = Pipe()
         process.standardOutput = pipe
         // Send stderr to /dev/null — caller only wants stdout.
@@ -193,12 +201,17 @@ struct TaskTracker {
         }
     }
 
-    @objc func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction? = nil, _ environment: [String: String]? = nil, _ streamingCallback: JSFunction? = nil) -> HSTask {
+    @objc func create(_ launchPath: String, _ arguments: JSValue, _ completionCallback: JSFunction? = nil, _ environment: JSValue? = nil, _ streamingCallback: JSFunction? = nil) -> HSTask? {
+        guard let bridgedArguments = arguments.toStringArray(method: "hs.task.create", parameter: "arguments"),
+              let bridgedEnvironment = environment.toOptionalStringDictionary(method: "hs.task.create", parameter: "environment")
+        else {
+            return nil
+        }
 
         let task = HSTask(
             launchPath: launchPath,
-            arguments: arguments,
-            environment: environment,
+            arguments: bridgedArguments,
+            environment: bridgedEnvironment,
             terminationCallback: completionCallback,
             streamingCallback: streamingCallback,
             module: self

@@ -1154,4 +1154,129 @@ import JavaScriptCore
         let success = await harness.waitForAsync(timeout: 1.0) { timeoutFired }
         #expect(success, "Timeout should fire and terminate task")
     }
+
+    // MARK: - Bridge Type Validation Tests
+
+    @Test("hs.task.create() throws TypeError on non-array or non-string arguments")
+    func testCreateRejectsInvalidArguments() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTaskModule.self, as: "task")
+        let module = harness.context.objectForKeyedSubscript("hs")?.objectForKeyedSubscript("task")?.toObjectOf(HSTaskModule.self) as? HSTaskModule
+
+        harness.eval("""
+        var badInputs = [
+            function() {},
+            { a: 'b' },
+            'not-an-array',
+            42,
+            true,
+            null,
+            undefined,
+            ['valid', 123],
+            ['valid', null],
+            ['valid', undefined],
+            ['valid', {}],
+            ['valid', function() {}]
+        ];
+        var caughtAll = badInputs.every(function(input) {
+            try {
+                hs.task.create('/usr/bin/open', input, ['-b', 'com.example']);
+                return false;
+            } catch (e) {
+                return (e instanceof TypeError) &&
+                       e.message.includes('hs.task.create') &&
+                       e.message.includes('arguments');
+            }
+        });
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectTrue("caughtAll === true")
+        #expect(module?.createdTaskCount == 0)
+
+        harness.eval("var validAfterError = hs.task.create('/bin/echo', ['still-works']);")
+        #expect(!harness.hasException)
+        harness.expectTrue("typeof validAfterError === 'object' && typeof validAfterError.start === 'function'")
+        #expect(module?.createdTaskCount == 1)
+    }
+
+    @Test("hs.task.create() throws TypeError on non-object or non-string environment")
+    func testCreateRejectsInvalidEnvironment() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTaskModule.self, as: "task")
+        let module = harness.context.objectForKeyedSubscript("hs")?.objectForKeyedSubscript("task")?.toObjectOf(HSTaskModule.self) as? HSTaskModule
+
+        harness.eval("""
+        var badEnvs = [
+            ['FOO=bar'],
+            function() {},
+            'FOO=bar',
+            123,
+            true,
+            { FOO: 123 },
+            { FOO: null },
+            { FOO: undefined },
+            { FOO: true },
+            { FOO: ['bar'] },
+            { FOO: { nested: 'bar' } }
+        ];
+        var caughtAll = badEnvs.every(function(env) {
+            try {
+                hs.task.create('/bin/echo', ['hi'], null, env);
+                return false;
+            } catch (e) {
+                return (e instanceof TypeError) &&
+                       e.message.includes('hs.task.create') &&
+                       e.message.includes('environment');
+            }
+        });
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectTrue("caughtAll === true")
+        #expect(module?.createdTaskCount == 0)
+
+        harness.eval("""
+        var validWithNullEnv = hs.task.create('/bin/echo', ['hi'], null, null);
+        var validWithOmittedEnv = hs.task.create('/bin/echo', ['hi']);
+        """)
+        #expect(!harness.hasException)
+        harness.expectTrue("typeof validWithNullEnv === 'object' && typeof validWithOmittedEnv === 'object'")
+        #expect(module?.createdTaskCount == 2)
+    }
+
+    @Test("hs.task.runSync() throws TypeError on invalid arguments and stays usable")
+    func testRunSyncRejectsInvalidArguments() {
+        let harness = JSTestHarness()
+        harness.loadModule(HSTaskModule.self, as: "task")
+
+        harness.eval("""
+        var badInputs = [
+            function() {},
+            { a: 'b' },
+            'hello',
+            99,
+            false,
+            null,
+            undefined,
+            ['ok', 42],
+            [null]
+        ];
+        var caughtAll = badInputs.every(function(input) {
+            try {
+                hs.task.runSync('/bin/echo', input);
+                return false;
+            } catch (e) {
+                return (e instanceof TypeError) &&
+                       e.message.includes('hs.task.runSync') &&
+                       e.message.includes('arguments');
+            }
+        });
+        var syncOutput = hs.task.runSync('/bin/echo', ['recovered']);
+        """)
+
+        #expect(!harness.hasException)
+        harness.expectTrue("caughtAll === true")
+        harness.expectEqual("syncOutput.trim()", "recovered")
+    }
 }
