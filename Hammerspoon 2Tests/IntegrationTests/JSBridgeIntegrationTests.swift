@@ -398,4 +398,267 @@ struct JSBridgeIntegrationTests {
         harness.expectEqual("dictSnap.join(',')", "1,1,1,1")
         harness.expectEqual("arrSnap.join(',')", "1,1,1,1")
     }
+
+    @Test("no JSExport protocol method declares a Swift collection parameter")
+    func testNoJSExportMethodTakesCollectionParameter() throws {
+        // Verify the scanner detects collection parameters on a synthetic regression
+        // while allowing collection return types and JSValue parameters.
+        let syntheticSource = """
+        @objc protocol SyntheticBadAPI: JSExport {
+            @objc func allowed(_ value: JSValue) -> [String]
+            @objc func badArray(_ items: [String])
+            @objc func badDict(
+                _ name: String,
+                _ opts: [String: Any]?
+            ) -> Bool
+            @objc func badGeneric(_ set: Array<String>)
+        }
+        """
+        let syntheticResult = Self.scanJSExportProtocolsForCollectionParameters(
+            inSource: syntheticSource,
+            fileLabel: "Synthetic.swift"
+        )
+        #expect(syntheticResult.protocolCount == 1)
+        #expect(syntheticResult.violations.count == 3)
+        #expect(syntheticResult.violations.contains { $0.contains("badArray") })
+        #expect(syntheticResult.violations.contains { $0.contains("badDict") })
+        #expect(syntheticResult.violations.contains { $0.contains("badGeneric") })
+
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceRoot = repoRoot.appendingPathComponent("Hammerspoon 2")
+
+        let enumerator = try #require(
+            FileManager.default.enumerator(
+                at: sourceRoot,
+                includingPropertiesForKeys: [.isRegularFileKey],
+                options: [.skipsHiddenFiles]
+            )
+        )
+
+        var swiftFileCount = 0
+        var totalProtocolsScanned = 0
+        var allViolations: [String] = []
+
+        for case let fileURL as URL in enumerator where fileURL.pathExtension == "swift" {
+            swiftFileCount += 1
+            let source = try String(contentsOf: fileURL, encoding: .utf8)
+            let relativePath = fileURL.path.replacingOccurrences(of: repoRoot.path + "/", with: "")
+            let result = Self.scanJSExportProtocolsForCollectionParameters(
+                inSource: source,
+                fileLabel: relativePath
+            )
+            totalProtocolsScanned += result.protocolCount
+            allViolations.append(contentsOf: result.violations)
+        }
+
+        #expect(swiftFileCount > 50, "Expected to scan production Swift sources, found \(swiftFileCount)")
+        #expect(totalProtocolsScanned > 30, "Expected to scan JSExport protocols, found \(totalProtocolsScanned)")
+        #expect(
+            allViolations.isEmpty,
+            "JSExport methods must take JSValue instead of bridged collections. Violations: \(allViolations.joined(separator: "; "))"
+        )
+    }
+
+    private struct ProtocolScanResult {
+        var protocolCount: Int
+        var violations: [String]
+    }
+
+    private static func scanJSExportProtocolsForCollectionParameters(
+        inSource source: String,
+        fileLabel: String
+    ) -> ProtocolScanResult {
+        let stripped = stripComments(from: source)
+        let lines = stripped.components(separatedBy: .newlines)
+
+        var protocolCount = 0
+        var violations: [String] = []
+        var inJSExportProtocol = false
+        var currentProtocolName = ""
+        var braceDepth = 0
+        var pendingFuncLines: [String]? = nil
+
+        for rawLine in lines {
+            let line = rawLine.trimmingCharacters(in: .whitespaces)
+            if !inJSExportProtocol {
+                if let protoMatch = matchJSExportProtocolHeader(in: line) {
+                    inJSExportProtocol = true
+                    currentProtocolName = protoMatch
+                    protocolCount += 1
+                    braceDepth = countCharacter("{", in: line) - countCharacter("}", in: line)
+                    if braceDepth <= 0 {
+                        inJSExportProtocol = false
+                    }
+                }
+                continue
+            }
+
+            if pendingFuncLines != nil {
+                pendingFuncLines?.append(line)
+            } else if line.contains("func ") {
+                pendingFuncLines = [line]
+            }
+
+            if let accumulated = pendingFuncLines {
+                let joined = accumulated.joined(separator: " ")
+                if hasBalancedParameterParentheses(in: joined) {
+                    if let violation = checkFunctionSignatureForCollectionParameter(joined) {
+                        violations.append("\(fileLabel) (\(currentProtocolName)): \(violation)")
+                    }
+                    pendingFuncLines = nil
+                }
+            }
+
+            braceDepth += countCharacter("{", in: line) - countCharacter("}", in: line)
+            if braceDepth <= 0 {
+                inJSExportProtocol = false
+                currentProtocolName = ""
+                pendingFuncLines = nil
+            }
+        }
+
+        return ProtocolScanResult(protocolCount: protocolCount, violations: violations)
+    }
+
+    private static func matchJSExportProtocolHeader(in line: String) -> String? {
+        guard line.contains("protocol "),
+              let protocolRange = line.range(of: "protocol "),
+              let colonRange = line.range(of: ":", range: protocolRange.upperBound..<line.endIndex)
+        else {
+            return nil
+        }
+        let name = line[protocolRange.upperBound..<colonRange.lowerBound]
+            .trimmingCharacters(in: .whitespaces)
+        let inheritance = line[colonRange.upperBound...]
+        guard inheritance.contains("JSExport")
+                || inheritance.contains("HSTypeAPI")
+                || inheritance.contains("HSModuleAPI")
+        else {
+            return nil
+        }
+        return name
+    }
+
+    private static func hasBalancedParameterParentheses(in text: String) -> Bool {
+        guard let funcRange = text.range(of: "func "),
+              let openParen = text[funcRange.upperBound...].firstIndex(of: "(")
+        else {
+            return true
+        }
+        var depth = 0
+        for ch in text[openParen...] {
+            if ch == "(" {
+                depth += 1
+            } else if ch == ")" {
+                depth -= 1
+                if depth == 0 {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    private static func checkFunctionSignatureForCollectionParameter(_ signature: String) -> String? {
+        guard let funcRange = signature.range(of: "func "),
+              let openParen = signature[funcRange.upperBound...].firstIndex(of: "(")
+        else {
+            return nil
+        }
+        var depth = 0
+        var closeParen: String.Index? = nil
+        for idx in signature[openParen...].indices {
+            let ch = signature[idx]
+            if ch == "(" {
+                depth += 1
+            } else if ch == ")" {
+                depth -= 1
+                if depth == 0 {
+                    closeParen = idx
+                    break
+                }
+            }
+        }
+        guard let closeParen else { return nil }
+        let paramsSlice = String(signature[signature.index(after: openParen)..<closeParen])
+        let trimmedParams = paramsSlice.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedParams.isEmpty {
+            return nil
+        }
+
+        let forbiddenPatterns = [
+            #"\[[^\]]+\]"#,
+            #"\bArray\s*<"#,
+            #"\bDictionary\s*<"#,
+            #"\bSet\s*<"#
+        ]
+        for pattern in forbiddenPatterns {
+            if paramsSlice.range(of: pattern, options: .regularExpression) != nil {
+                return signature
+            }
+        }
+        return nil
+    }
+
+    private static func countCharacter(_ target: Character, in text: String) -> Int {
+        text.reduce(into: 0) { count, ch in
+            if ch == target { count += 1 }
+        }
+    }
+
+    private static func stripComments(from source: String) -> String {
+        var result = ""
+        result.reserveCapacity(source.count)
+        var i = source.startIndex
+        var inBlockComment = false
+        var inLineComment = false
+
+        while i < source.endIndex {
+            let ch = source[i]
+            let nextIdx = source.index(after: i)
+            let nextCh: Character? = nextIdx < source.endIndex ? source[nextIdx] : nil
+
+            if inLineComment {
+                if ch == "\n" {
+                    inLineComment = false
+                    result.append(ch)
+                }
+                i = nextIdx
+                continue
+            }
+
+            if inBlockComment {
+                if ch == "*" && nextCh == "/" {
+                    inBlockComment = false
+                    i = source.index(after: nextIdx)
+                } else {
+                    if ch == "\n" {
+                        result.append("\n")
+                    }
+                    i = nextIdx
+                }
+                continue
+            }
+
+            if ch == "/" && nextCh == "/" {
+                inLineComment = true
+                i = source.index(after: nextIdx)
+                continue
+            }
+
+            if ch == "/" && nextCh == "*" {
+                inBlockComment = true
+                i = source.index(after: nextIdx)
+                continue
+            }
+
+            result.append(ch)
+            i = nextIdx
+        }
+
+        return result
+    }
 }
