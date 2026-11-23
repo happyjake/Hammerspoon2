@@ -2258,6 +2258,11 @@ Requires Accessibility permission (active event taps; keyboard monitoring may al
 
     /**
      * Synthesise a key stroke: press the modifiers + key, hold, then release.
+Waits for any queued or in-flight `chordStroke` to finish before posting so
+keys are not typed while chord modifiers are still down. Overlapping a
+`chordStroke` with `keyStroke` blocks the main thread until the chord
+finishes, which can compress the chord's timing at Hammerspoon's own event
+taps; sequence inside `chordStroke`'s completion callback if timing matters.
 and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's
 `hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target
 app — the clipboard gets set but the paste never lands.
@@ -2272,14 +2277,19 @@ app — the clipboard gets set but the paste never lands.
 with device-dependent side bits), pressing and releasing the key, then releasing
 the modifiers in reverse order. Use this instead of `keyStroke` for input methods
 or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
-Posts synchronously on the calling thread, blocking for the key hold plus about
-5 ms per modifier transition (matching `keyStroke`'s blocking model). Callers
-running inside an event-tap callback should keep `delay` small.
+Events are validated synchronously and then built and posted in order on a shared
+background serial queue (with ~5 ms between modifier transitions and `delay`
+hold), so this method returns immediately without stalling Hammerspoon's main
+run-loop event taps. Synchronous posters (`keyStroke`, `typeText`, `leftClick`,
+`scrollWheel`) wait for the queue to drain before posting, which blocks the main
+thread and may compress an overlapped chord's delivery; sequence follow-up work
+with `callback` when chord timing must be preserved.
      * @param mods Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)
      * @param key Key name, e.g. `'9'`
      * @param delay Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.
+     * @param callback Optional completion callback invoked on the main thread after the final modifier release is posted. Dropped if the module or JS context shuts down before it runs.
      */
-    function chordStroke(mods: string[], key: string, delay?: number): void;
+    function chordStroke(mods: string[], key: string, delay?: number, callback?: () => void): void;
 
     /**
      * Synthesise a scroll-wheel event at the current mouse position.

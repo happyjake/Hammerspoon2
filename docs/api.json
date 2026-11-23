@@ -5219,21 +5219,21 @@
         },
         {
           "name": "keyStroke",
-          "signature": "func keyStroke(_ mods: [String], _ key: String, _ delay: JSValue)",
+          "signature": "func keyStroke(_ mods: JSValue, _ key: String, _ delay: JSValue)",
           "isStatic": false,
-          "rawDocumentation": "Synthesise a key stroke: press the modifiers + key, hold, then release.\n- Parameter mods: Array of modifier strings, e.g. ['cmd']\n- Parameter key: Key name, e.g. 'v'\n- Parameter delay: Optional number of microseconds the key is held between keyDown\n  and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n  `hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\n  app — the clipboard gets set but the paste never lands.\n- Example:\n```js\nhs.eventtap.keyStroke(['cmd'], 'v')          // 200 ms default hold\nhs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold\n```",
-          "description": "Synthesise a key stroke: press the modifiers + key, hold, then release.\nand keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n`hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\napp — the clipboard gets set but the paste never lands.",
+          "rawDocumentation": "Synthesise a key stroke: press the modifiers + key, hold, then release.\n\nWaits for any queued or in-flight `chordStroke` to finish before posting so\nkeys are not typed while chord modifiers are still down. Overlapping a\n`chordStroke` with `keyStroke` blocks the main thread until the chord\nfinishes, which can compress the chord's timing at Hammerspoon's own event\ntaps; sequence inside `chordStroke`'s completion callback if timing matters.\n- Parameter mods: {string[]} Array of modifier strings, e.g. ['cmd']\n- Parameter key: Key name, e.g. 'v'\n- Parameter delay: Optional number of microseconds the key is held between keyDown\n  and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n  `hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\n  app — the clipboard gets set but the paste never lands.\n- Example:\n```js\nhs.eventtap.keyStroke(['cmd'], 'v')          // 200 ms default hold\nhs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold\n```",
+          "description": "Synthesise a key stroke: press the modifiers + key, hold, then release.\nWaits for any queued or in-flight `chordStroke` to finish before posting so\nkeys are not typed while chord modifiers are still down. Overlapping a\n`chordStroke` with `keyStroke` blocks the main thread until the chord\nfinishes, which can compress the chord's timing at Hammerspoon's own event\ntaps; sequence inside `chordStroke`'s completion callback if timing matters.\nand keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n`hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\napp — the clipboard gets set but the paste never lands.",
           "params": [
             {
               "name": "mods",
-              "type": "Array<String>",
+              "type": "JSValue",
               "description": "Array of modifier strings, e.g. ['cmd']",
               "optional": false,
-              "tsType": null
+              "tsType": "string[]"
             },
             {
               "name": "key",
-              "type": "string",
+              "type": "String",
               "description": "Key name, e.g. 'v'",
               "optional": false,
               "tsType": null
@@ -5256,14 +5256,14 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 52
+          "lineNumber": 62
         },
         {
           "name": "chordStroke",
-          "signature": "func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue)",
+          "signature": "func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue, _ callback: JSValue)",
           "isStatic": false,
-          "rawDocumentation": "Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`\nwith device-dependent side bits), pressing and releasing the key, then releasing\nthe modifiers in reverse order. Use this instead of `keyStroke` for input methods\nor shortcut recorders that inspect `flagsChanged` or left/right modifier bits.\n\nPosts synchronously on the calling thread, blocking for the key hold plus about\n5 ms per modifier transition (matching `keyStroke`'s blocking model). Callers\nrunning inside an event-tap callback should keep `delay` small.\n- Parameter mods: {string[]} Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)\n- Parameter key: Key name, e.g. `'9'`\n- Parameter delay?: {number} Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.\n- Example:\n```js\nhs.eventtap.chordStroke(['alt', 'cmd'], '9')         // 200 ms default hold\nhs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)  // 10 ms hold\n```",
-          "description": "Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`\nwith device-dependent side bits), pressing and releasing the key, then releasing\nthe modifiers in reverse order. Use this instead of `keyStroke` for input methods\nor shortcut recorders that inspect `flagsChanged` or left/right modifier bits.\nPosts synchronously on the calling thread, blocking for the key hold plus about\n5 ms per modifier transition (matching `keyStroke`'s blocking model). Callers\nrunning inside an event-tap callback should keep `delay` small.",
+          "rawDocumentation": "Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`\nwith device-dependent side bits), pressing and releasing the key, then releasing\nthe modifiers in reverse order. Use this instead of `keyStroke` for input methods\nor shortcut recorders that inspect `flagsChanged` or left/right modifier bits.\n\nEvents are validated synchronously and then built and posted in order on a shared\nbackground serial queue (with ~5 ms between modifier transitions and `delay`\nhold), so this method returns immediately without stalling Hammerspoon's main\nrun-loop event taps. Synchronous posters (`keyStroke`, `typeText`, `leftClick`,\n`scrollWheel`) wait for the queue to drain before posting, which blocks the main\nthread and may compress an overlapped chord's delivery; sequence follow-up work\nwith `callback` when chord timing must be preserved.\n- Parameter mods: {string[]} Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)\n- Parameter key: Key name, e.g. `'9'`\n- Parameter delay?: {number} Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.\n- Parameter callback?: {() => void} Optional completion callback invoked on the main thread after the final modifier release is posted. Dropped if the module or JS context shuts down before it runs.\n- Example:\n```js\nhs.eventtap.chordStroke(['alt', 'cmd'], '9')                        // 200 ms default hold\nhs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)                 // 10 ms hold\nhs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000, () => {\n  hs.eventtap.keyStroke(['cmd'], 'v')\n})\n```",
+          "description": "Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`\nwith device-dependent side bits), pressing and releasing the key, then releasing\nthe modifiers in reverse order. Use this instead of `keyStroke` for input methods\nor shortcut recorders that inspect `flagsChanged` or left/right modifier bits.\nEvents are validated synchronously and then built and posted in order on a shared\nbackground serial queue (with ~5 ms between modifier transitions and `delay`\nhold), so this method returns immediately without stalling Hammerspoon's main\nrun-loop event taps. Synchronous posters (`keyStroke`, `typeText`, `leftClick`,\n`scrollWheel`) wait for the queue to drain before posting, which blocks the main\nthread and may compress an overlapped chord's delivery; sequence follow-up work\nwith `callback` when chord timing must be preserved.",
           "params": [
             {
               "name": "mods",
@@ -5274,7 +5274,7 @@
             },
             {
               "name": "key",
-              "type": "string",
+              "type": "String",
               "description": "Key name, e.g. `'9'`",
               "optional": false,
               "tsType": null
@@ -5285,6 +5285,13 @@
               "description": "Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.",
               "optional": true,
               "tsType": "number"
+            },
+            {
+              "name": "callback",
+              "type": "JSValue",
+              "description": "Optional completion callback invoked on the main thread after the final modifier release is posted. Dropped if the module or JS context shuts down before it runs.",
+              "optional": true,
+              "tsType": "() => void"
             }
           ],
           "returns": null,
@@ -5292,12 +5299,12 @@
           "examples": [
             {
               "lang": "js",
-              "code": "hs.eventtap.chordStroke(['alt', 'cmd'], '9')         // 200 ms default hold\nhs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)  // 10 ms hold"
+              "code": "hs.eventtap.chordStroke(['alt', 'cmd'], '9')                        // 200 ms default hold\nhs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)                 // 10 ms hold\nhs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000, () => {\n  hs.eventtap.keyStroke(['cmd'], 'v')\n})"
             }
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 71
+          "lineNumber": 88
         },
         {
           "name": "scrollWheel",

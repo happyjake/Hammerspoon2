@@ -3,10 +3,13 @@
 //  Hammerspoon 2
 //
 
+import AppKit
 import Foundation
 import JavaScriptCore
+import JavaScriptCoreExtras
 import CoreGraphics
 import IOKit.hidsystem
+import Synchronization
 
 // MARK: - Declare our JavaScript API
 
@@ -39,6 +42,12 @@ import IOKit.hidsystem
     @objc(make::) func makeTap(_ eventTypes: JSValue, _ callback: JSValue) -> HSEventTap?
 
     /// Synthesise a key stroke: press the modifiers + key, hold, then release.
+    ///
+    /// Waits for any queued or in-flight `chordStroke` to finish before posting so
+    /// keys are not typed while chord modifiers are still down. Overlapping a
+    /// `chordStroke` with `keyStroke` blocks the main thread until the chord
+    /// finishes, which can compress the chord's timing at Hammerspoon's own event
+    /// taps; sequence inside `chordStroke`'s completion callback if timing matters.
     /// - Parameter mods: {string[]} Array of modifier strings, e.g. ['cmd']
     /// - Parameter key: Key name, e.g. 'v'
     /// - Parameter delay: Optional number of microseconds the key is held between keyDown
@@ -57,18 +66,26 @@ import IOKit.hidsystem
     /// the modifiers in reverse order. Use this instead of `keyStroke` for input methods
     /// or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
     ///
-    /// Posts synchronously on the calling thread, blocking for the key hold plus about
-    /// 5 ms per modifier transition (matching `keyStroke`'s blocking model). Callers
-    /// running inside an event-tap callback should keep `delay` small.
+    /// Events are validated synchronously and then built and posted in order on a shared
+    /// background serial queue (with ~5 ms between modifier transitions and `delay`
+    /// hold), so this method returns immediately without stalling Hammerspoon's main
+    /// run-loop event taps. Synchronous posters (`keyStroke`, `typeText`, `leftClick`,
+    /// `scrollWheel`) wait for the queue to drain before posting, which blocks the main
+    /// thread and may compress an overlapped chord's delivery; sequence follow-up work
+    /// with `callback` when chord timing must be preserved.
     /// - Parameter mods: {string[]} Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)
     /// - Parameter key: Key name, e.g. `'9'`
     /// - Parameter delay?: {number} Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.
+    /// - Parameter callback?: {() => void} Optional completion callback invoked on the main thread after the final modifier release is posted. Dropped if the module or JS context shuts down before it runs.
     /// - Example:
     /// ```js
-    /// hs.eventtap.chordStroke(['alt', 'cmd'], '9')         // 200 ms default hold
-    /// hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)  // 10 ms hold
+    /// hs.eventtap.chordStroke(['alt', 'cmd'], '9')                        // 200 ms default hold
+    /// hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)                 // 10 ms hold
+    /// hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000, () => {
+    ///   hs.eventtap.keyStroke(['cmd'], 'v')
+    /// })
     /// ```
-    @objc(chordStroke:::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue)
+    @objc(chordStroke::::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue, _ callback: JSValue)
 
     /// Synthesise a scroll-wheel event at the current mouse position.
     /// The window server routes scroll events to the window under the cursor —
@@ -113,7 +130,32 @@ import IOKit.hidsystem
     var name = "hs.eventtap"
     let engineID: UUID
 
+    private struct ActiveChord: Sendable {
+        let moduleID: UUID
+        let token: ChordToken
+    }
+
+    nonisolated private static let postQueue = DispatchQueue(
+        label: "net.tenshu.Hammerspoon-2.eventtap.post",
+        qos: .userInteractive
+    )
+    nonisolated private static let activeChords = Mutex<[UUID: ActiveChord]>([:])
+    nonisolated private static let terminationGeneration = Mutex<UInt64>(0)
+
+    private static let installTerminationObserver: Void = {
+        _ = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: nil
+        ) { _ in
+            cancelAllChordsAndDrain()
+        }
+    }()
+
+    private let instanceID = UUID()
+    private var isShutDown = false
     private var createdTaps: [HSEventTap] = []
+    private var pendingCallbacks: [UUID: JSValue] = [:]
     var chordDispatcher = ChordDispatcher()
 
     // MARK: - Module lifecycle
@@ -121,17 +163,54 @@ import IOKit.hidsystem
     required init(engineID: UUID) {
         self.engineID = engineID
         super.init()
+        _ = Self.installTerminationObserver
         AKTrace("Init of \(name): \(engineID)")
     }
 
     func shutdown() {
+        guard !isShutDown else { return }
+        isShutDown = true
+
         for t in createdTaps { t.stop() }
         createdTaps.removeAll()
+
+        pendingCallbacks.removeAll()
+
+        let tokens = Self.activeChords.withLock { chords -> [ChordToken] in
+            chords.values.filter { $0.moduleID == instanceID }.map(\.token)
+        }
+        for token in tokens {
+            token.cancel()
+        }
+        Self.postQueue.sync {}
+
         AKTrace("Shutdown of \(name): \(engineID)")
     }
 
     isolated deinit {
+        pendingCallbacks.removeAll()
         AKTrace("Deinit of \(name): \(engineID)")
+    }
+
+    /// Cancels all queued or in-flight chords across the process and drains the
+    /// posting queue. Called during module shutdown and app termination.
+    nonisolated static func cancelAllChordsAndDrain() {
+        terminationGeneration.withLock { $0 &+= 1 }
+        let tokens = activeChords.withLock { Array($0.values.map(\.token)) }
+        for token in tokens {
+            token.cancel()
+        }
+        postQueue.sync {}
+    }
+
+    /// Waits for all queued chord work on the shared posting queue to finish.
+    nonisolated static func drainPostQueue() {
+        postQueue.sync {}
+    }
+
+    private static func waitForPostQueue(dispatcher: ChordDispatcher) {
+        dispatcher.onBarrier()
+        postQueue.sync {}
     }
 
     // MARK: - API
@@ -167,6 +246,9 @@ import IOKit.hidsystem
             }
         }
 
+        let dispatcher = chordDispatcher
+        Self.waitForPostQueue(dispatcher: dispatcher)
+
         let src = CGEventSource(stateID: .combinedSessionState)
         guard let down = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true),
               let up   = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false) else {
@@ -181,12 +263,14 @@ import IOKit.hidsystem
         // too-short hold is frequently dropped by the target app: the clipboard gets set
         // but the paste never lands. Clamped to [0, 5s].
         let hold = Self.parseHoldMicroseconds(delay)
-        down.post(tap: .cghidEventTap)
-        if hold > 0 { usleep(hold) }
-        up.post(tap: .cghidEventTap)
+        dispatcher.post(down, .cghidEventTap)
+        if hold > 0 { dispatcher.performSleep(hold) }
+        dispatcher.post(up, .cghidEventTap)
     }
 
-    @objc(chordStroke:::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue) {
+    @objc(chordStroke::::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue, _ callback: JSValue) {
+        guard !isShutDown else { return }
+
         guard let bridgedMods = mods.toStringArray(method: "hs.eventtap.chordStroke", parameter: "mods") else {
             return
         }
@@ -195,21 +279,55 @@ import IOKit.hidsystem
             return
         }
 
-        let sequence = Self.buildChordSequence(mods: bridgedMods, keyCode: keyCode)
-        let src = CGEventSource(stateID: .combinedSessionState)
-        guard let events = Self.buildChordCGEvents(sequence: sequence, source: src) else {
-            AKError("hs.eventtap.chordStroke: failed to create CGEvent")
-            return
+        let callbackID: UUID?
+        if callback.isFunction {
+            let id = UUID()
+            pendingCallbacks[id] = callback
+            callbackID = id
+        } else {
+            if !callback.isUndefined && !callback.isNull {
+                AKWarning("hs.eventtap.chordStroke: callback must be a function")
+            }
+            callbackID = nil
         }
 
+        let sequence = Self.buildChordSequence(mods: bridgedMods, keyCode: keyCode)
         let hold = Self.parseHoldMicroseconds(delay)
-        Self.dispatchChord(
-            events: events,
-            sequence: sequence,
-            holdMicroseconds: hold,
-            interEventDelayMicroseconds: Self.chordInterEventDelayMicroseconds,
-            dispatcher: chordDispatcher
-        )
+        let interEventDelay = Self.chordInterEventDelayMicroseconds
+        let dispatcher = chordDispatcher
+        let chordID = UUID()
+        let token = ChordToken()
+        let generation = Self.terminationGeneration.withLock { $0 }
+
+        Self.activeChords.withLock { chords in
+            chords[chordID] = ActiveChord(moduleID: instanceID, token: token)
+        }
+
+        Self.postQueue.async { [weak self] in
+            defer {
+                _ = Self.activeChords.withLock { $0.removeValue(forKey: chordID) }
+            }
+
+            let completedNormally = Self.dispatchChord(
+                sequence: sequence,
+                holdMicroseconds: hold,
+                interEventDelayMicroseconds: interEventDelay,
+                dispatcher: dispatcher,
+                token: token
+            )
+
+            guard let callbackID else { return }
+            let shouldInvoke = completedNormally && !token.isCancelled
+            DispatchQueue.main.async { [weak self] in
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    let cb = self.pendingCallbacks.removeValue(forKey: callbackID)
+                    let sameGeneration = Self.terminationGeneration.withLock { $0 == generation }
+                    guard shouldInvoke, !self.isShutDown, sameGeneration else { return }
+                    cb?.callSafely(withArguments: [], context: "hs.eventtap chordStroke")
+                }
+            }
+        }
     }
 
     @objc(scrollWheel:::) func scrollWheel(_ dx: Double, _ dy: Double, _ unit: JSValue) {
@@ -231,6 +349,9 @@ import IOKit.hidsystem
         let wheelVertical = wheelDelta(dy)
         let wheelHorizontal = wheelDelta(dx)
 
+        let dispatcher = chordDispatcher
+        Self.waitForPostQueue(dispatcher: dispatcher)
+
         let src = CGEventSource(stateID: .combinedSessionState)
         // wheel1 = vertical axis, wheel2 = horizontal (CGEvent convention).
         guard let ev = CGEvent(scrollWheelEvent2Source: src,
@@ -245,7 +366,7 @@ import IOKit.hidsystem
         // Programmatically-created events get a (0,0) location; set it to the
         // cursor so the window server routes the scroll to the window under it.
         ev.location = CGEvent(source: nil)?.location ?? .zero
-        ev.post(tap: .cghidEventTap)
+        dispatcher.post(ev, .cghidEventTap)
     }
 
     @objc(leftClick::) func leftClick(_ point: JSValue, _ delay: JSValue) {
@@ -257,6 +378,9 @@ import IOKit.hidsystem
             return
         }
         let location = CGPoint(x: x, y: y)
+
+        let dispatcher = chordDispatcher
+        Self.waitForPostQueue(dispatcher: dispatcher)
 
         let src = CGEventSource(stateID: .combinedSessionState)
         guard let down = CGEvent(mouseEventSource: src, mouseType: .leftMouseDown,
@@ -272,17 +396,14 @@ import IOKit.hidsystem
 
         // Microseconds between mouseDown and mouseUp, matching upstream Hammerspoon's
         // hs.eventtap.leftClick (default 200000). Clamped to [0, 5s].
-        var hold: useconds_t = 200000
-        if delay.isNumber {
-            let v = delay.toDouble()
-            if v.isFinite && v >= 0 { hold = useconds_t(min(v, 5_000_000)) }
-        }
-        down.post(tap: .cghidEventTap)
-        if hold > 0 { usleep(hold) }
-        up.post(tap: .cghidEventTap)
+        let hold = Self.parseHoldMicroseconds(delay)
+        dispatcher.post(down, .cghidEventTap)
+        if hold > 0 { dispatcher.performSleep(hold) }
+        dispatcher.post(up, .cghidEventTap)
     }
 
     @objc func typeText(_ text: String) {
+        Self.waitForPostQueue(dispatcher: chordDispatcher)
         AKWarning("hs.eventtap.typeText is not yet implemented in M1 — lands with M4.")
     }
 
@@ -344,34 +465,142 @@ import IOKit.hidsystem
         }
     }
 
-    struct ChordDispatcher {
-        var post: (CGEvent, CGEventTapLocation) -> Void = { event, tap in
-            event.post(tap: tap)
+    /// Thread-safe cancellation token for a single queued or in-flight chord.
+    nonisolated final class ChordToken: @unchecked Sendable {
+        private let condition = NSCondition()
+        private var cancelled = false
+
+        var isCancelled: Bool {
+            condition.lock()
+            defer { condition.unlock() }
+            return cancelled
         }
-        var sleep: (useconds_t) -> Void = { microseconds in
-            usleep(microseconds)
+
+        func cancel() {
+            condition.lock()
+            cancelled = true
+            condition.broadcast()
+            condition.unlock()
+        }
+
+        /// Sleeps up to `microseconds` unless cancelled first. Returns `true` if cancelled.
+        func wait(microseconds: useconds_t) -> Bool {
+            condition.lock()
+            defer { condition.unlock() }
+            if cancelled { return true }
+            guard microseconds > 0 else { return false }
+            let deadline = Date(timeIntervalSinceNow: Double(microseconds) / 1_000_000.0)
+            while !cancelled {
+                if !condition.wait(until: deadline) {
+                    break
+                }
+            }
+            return cancelled
+        }
+
+        /// Blocks until `cancel()` is called.
+        func waitUntilCancelled() {
+            condition.lock()
+            while !cancelled {
+                condition.wait()
+            }
+            condition.unlock()
         }
     }
 
-    private static func dispatchChord(
-        events: [CGEvent],
+    nonisolated struct ChordDispatcher: Sendable {
+        var post: @Sendable (CGEvent, CGEventTapLocation) -> Void = { event, tap in
+            event.post(tap: tap)
+        }
+        var sleep: (@Sendable (useconds_t) -> Void)? = nil
+        var wait: (@Sendable (useconds_t, ChordToken) -> Void)? = nil
+        var onBarrier: @Sendable () -> Void = {}
+
+        func performSleep(_ microseconds: useconds_t) {
+            if let sleep {
+                sleep(microseconds)
+            } else if let wait {
+                wait(microseconds, ChordToken())
+            } else {
+                usleep(microseconds)
+            }
+        }
+    }
+
+    nonisolated private static func logErrorAsync(_ message: String) {
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated {
+                AKError(message)
+            }
+        }
+    }
+
+    @discardableResult
+    nonisolated private static func dispatchChord(
         sequence: [SyntheticKeyEvent],
         holdMicroseconds: useconds_t,
         interEventDelayMicroseconds: useconds_t,
-        dispatcher: ChordDispatcher
-    ) {
-        for i in events.indices {
-            dispatcher.post(events[i], .cghidEventTap)
-            if i < events.count - 1 {
-                if sequence[i].type == .keyDown {
-                    if holdMicroseconds > 0 {
-                        dispatcher.sleep(holdMicroseconds)
+        dispatcher: ChordDispatcher,
+        token: ChordToken
+    ) -> Bool {
+        guard !sequence.isEmpty, !token.isCancelled else {
+            return false
+        }
+
+        let source = CGEventSource(stateID: .combinedSessionState)
+        var lastPostedIndex: Int? = nil
+
+        func postRemainingReleases() {
+            guard let lastPosted = lastPostedIndex else { return }
+            let pressCount = sequence.count / 2
+            let releaseStart: Int
+            if lastPosted < pressCount {
+                releaseStart = sequence.count - 1 - lastPosted
+            } else {
+                releaseStart = lastPosted + 1
+            }
+            guard releaseStart < sequence.count else { return }
+            for spec in sequence[releaseStart...] {
+                guard let event = buildChordCGEvent(spec: spec, source: source) else {
+                    logErrorAsync("hs.eventtap.chordStroke: failed to create CGEvent")
+                    continue
+                }
+                dispatcher.post(event, .cghidEventTap)
+            }
+        }
+
+        for i in sequence.indices {
+            if token.isCancelled {
+                postRemainingReleases()
+                return false
+            }
+            guard let event = buildChordCGEvent(spec: sequence[i], source: source) else {
+                logErrorAsync("hs.eventtap.chordStroke: failed to create CGEvent")
+                postRemainingReleases()
+                return false
+            }
+            dispatcher.post(event, .cghidEventTap)
+            lastPostedIndex = i
+
+            if i < sequence.count - 1 {
+                let gap = (sequence[i].type == .keyDown) ? holdMicroseconds : interEventDelayMicroseconds
+                if gap > 0 {
+                    if let wait = dispatcher.wait {
+                        wait(gap, token)
+                    } else if let sleep = dispatcher.sleep {
+                        sleep(gap)
+                    } else {
+                        _ = token.wait(microseconds: gap)
                     }
-                } else {
-                    dispatcher.sleep(interEventDelayMicroseconds)
+                    if token.isCancelled {
+                        postRemainingReleases()
+                        return false
+                    }
                 }
             }
         }
+
+        return true
     }
 
     struct SyntheticKeyEvent: Equatable, Sendable {
@@ -433,19 +662,26 @@ import IOKit.hidsystem
         return events
     }
 
+    nonisolated static func buildChordCGEvent(spec: SyntheticKeyEvent, source: CGEventSource?) -> CGEvent? {
+        let keyDown = (spec.type != .keyUp)
+        guard let event = CGEvent(keyboardEventSource: source, virtualKey: spec.keyCode, keyDown: keyDown) else {
+            return nil
+        }
+        if spec.type == .flagsChanged {
+            event.type = .flagsChanged
+        }
+        event.flags = spec.flags
+        return event
+    }
+
     static func buildChordCGEvents(sequence: [SyntheticKeyEvent], source: CGEventSource?) -> [CGEvent]? {
         var result: [CGEvent] = []
         result.reserveCapacity(sequence.count)
 
         for spec in sequence {
-            let keyDown = (spec.type != .keyUp)
-            guard let event = CGEvent(keyboardEventSource: source, virtualKey: spec.keyCode, keyDown: keyDown) else {
+            guard let event = buildChordCGEvent(spec: spec, source: source) else {
                 return nil
             }
-            if spec.type == .flagsChanged {
-                event.type = .flagsChanged
-            }
-            event.flags = spec.flags
             result.append(event)
         }
 

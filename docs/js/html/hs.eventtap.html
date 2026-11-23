@@ -135,6 +135,11 @@ media.start()</code></pre>
         <h3><a href="#keyStroke">hs.eventtap.keyStroke(mods, key, delay) -> None</a></h3>
 
         <div class="description">Synthesise a key stroke: press the modifiers + key, hold, then release.
+Waits for any queued or in-flight `chordStroke` to finish before posting so
+keys are not typed while chord modifiers are still down. Overlapping a
+`chordStroke` with `keyStroke` blocks the main thread until the chord
+finishes, which can compress the chord&#39;s timing at Hammerspoon&#39;s own event
+taps; sequence inside `chordStroke`&#39;s completion callback if timing matters.
 and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon&#39;s
 `hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target
 app — the clipboard gets set but the paste never lands.</div>
@@ -179,22 +184,26 @@ app — the clipboard gets set but the paste never lands.</div>
 hs.eventtap.keyStroke([&#39;cmd&#39;], &#39;v&#39;, 10000)   // 10 ms hold</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L52" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:52</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L62" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:62</a>
         </div>
     </div>
     <div class="method" id="chordStroke">
-        <h3><a href="#chordStroke">hs.eventtap.chordStroke(mods, key, delay) -> None</a></h3>
+        <h3><a href="#chordStroke">hs.eventtap.chordStroke(mods, key, delay, callback) -> None</a></h3>
 
         <div class="description">Synthesise a chord stroke by pressing each modifier&#39;s left key (`flagsChanged`
 with device-dependent side bits), pressing and releasing the key, then releasing
 the modifiers in reverse order. Use this instead of `keyStroke` for input methods
 or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
-Posts synchronously on the calling thread, blocking for the key hold plus about
-5 ms per modifier transition (matching `keyStroke`&#39;s blocking model). Callers
-running inside an event-tap callback should keep `delay` small.</div>
+Events are validated synchronously and then built and posted in order on a shared
+background serial queue (with ~5 ms between modifier transitions and `delay`
+hold), so this method returns immediately without stalling Hammerspoon&#39;s main
+run-loop event taps. Synchronous posters (`keyStroke`, `typeText`, `leftClick`,
+`scrollWheel`) wait for the queue to drain before posting, which blocks the main
+thread and may compress an overlapped chord&#39;s delivery; sequence follow-up work
+with `callback` when chord timing must be preserved.</div>
 
         <div class="card-section-label">Declaration</div>
-        <pre><code class="language-javascript">hs.eventtap.chordStroke(mods, key, delay) -> None</code></pre>
+        <pre><code class="language-javascript">hs.eventtap.chordStroke(mods, key, delay, callback) -> None</code></pre>
 
         <div class="card-section-label">Parameters</div>
         <table class="params-table">
@@ -221,6 +230,11 @@ running inside an event-tap callback should keep `delay` small.</div>
                     <td class="param-type">number (optional)</td>
                     <td class="param-desc">Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.</td>
                 </tr>
+                <tr>
+                    <td class="param-name">callback</td>
+                    <td class="param-type">() =&gt; void (optional)</td>
+                    <td class="param-desc">Optional completion callback invoked on the main thread after the final modifier release is posted. Dropped if the module or JS context shuts down before it runs.</td>
+                </tr>
             </tbody>
         </table>
 
@@ -229,11 +243,14 @@ running inside an event-tap callback should keep `delay` small.</div>
 
 
         <div class="card-section-label">Example</div>
-        <pre><code class="language-js">hs.eventtap.chordStroke([&#39;alt&#39;, &#39;cmd&#39;], &#39;9&#39;)         // 200 ms default hold
-hs.eventtap.chordStroke([&#39;alt&#39;, &#39;cmd&#39;], &#39;9&#39;, 10000)  // 10 ms hold</code></pre>
+        <pre><code class="language-js">hs.eventtap.chordStroke([&#39;alt&#39;, &#39;cmd&#39;], &#39;9&#39;)                        // 200 ms default hold
+hs.eventtap.chordStroke([&#39;alt&#39;, &#39;cmd&#39;], &#39;9&#39;, 10000)                 // 10 ms hold
+hs.eventtap.chordStroke([&#39;alt&#39;, &#39;cmd&#39;], &#39;9&#39;, 10000, () =&gt; {
+  hs.eventtap.keyStroke([&#39;cmd&#39;], &#39;v&#39;)
+})</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L71" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:71</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L88" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:88</a>
         </div>
     </div>
     <div class="method" id="scrollWheel">
