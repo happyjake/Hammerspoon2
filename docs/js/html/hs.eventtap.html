@@ -97,7 +97,7 @@ Requires Accessibility permission (active event taps; keyboard monitoring may al
             <tbody>
                 <tr>
                     <td class="param-name">eventTypes</td>
-                    <td class="param-type">string[]</td>
+                    <td class="param-type">JSValue</td>
                     <td class="param-desc">Array of event type strings: &#39;keyDown&#39;, &#39;keyUp&#39;, &#39;flagsChanged&#39;, &#39;mouseMoved&#39;, &#39;leftMouseDown&#39;, &#39;leftMouseUp&#39;, &#39;rightMouseDown&#39;, &#39;rightMouseUp&#39;, &#39;otherMouseDown&#39;, &#39;otherMouseUp&#39;, &#39;leftMouseDragged&#39;, &#39;rightMouseDragged&#39;, &#39;scrollWheel&#39;, &#39;systemDefined&#39;, &#39;gesture&#39;, &#39;magnify&#39;.</td>
                 </tr>
                 <tr>
@@ -128,7 +128,7 @@ const media = hs.eventtap.make([&#39;systemDefined&#39;], e =&gt; {
 media.start()</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L38" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:38</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L39" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:39</a>
         </div>
     </div>
     <div class="method" id="keyStroke">
@@ -154,7 +154,7 @@ app — the clipboard gets set but the paste never lands.</div>
             <tbody>
                 <tr>
                     <td class="param-name">mods</td>
-                    <td class="param-type">string[]</td>
+                    <td class="param-type">JSValue</td>
                     <td class="param-desc">Array of modifier strings, e.g. [&#39;cmd&#39;]</td>
                 </tr>
                 <tr>
@@ -179,7 +179,58 @@ app — the clipboard gets set but the paste never lands.</div>
 hs.eventtap.keyStroke([&#39;cmd&#39;], &#39;v&#39;, 10000)   // 10 ms hold</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L52" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:52</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L53" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:53</a>
+        </div>
+    </div>
+    <div class="method" id="chordStroke">
+        <h3><a href="#chordStroke">hs.eventtap.chordStroke(mods, key, delay) -> None</a></h3>
+
+        <div class="description">Synthesise a chord stroke by pressing each modifier&#39;s left key (`flagsChanged`
+with device-dependent side bits), pressing and releasing the key, then releasing
+the modifiers in reverse order. Use this instead of `keyStroke` for input methods
+or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.</div>
+
+        <div class="card-section-label">Declaration</div>
+        <pre><code class="language-javascript">hs.eventtap.chordStroke(mods, key, delay) -> None</code></pre>
+
+        <div class="card-section-label">Parameters</div>
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="param-name">mods</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">Array of modifier strings (`&#39;ctrl&#39;`, `&#39;shift&#39;`, `&#39;alt&#39;`/`&#39;opt&#39;`, `&#39;cmd&#39;`, `&#39;fn&#39;`)</td>
+                </tr>
+                <tr>
+                    <td class="param-name">key</td>
+                    <td class="param-type">string</td>
+                    <td class="param-desc">Key name, e.g. `&#39;9&#39;`</td>
+                </tr>
+                <tr>
+                    <td class="param-name">delay</td>
+                    <td class="param-type">JSValue</td>
+                    <td class="param-desc">Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-section-label">Returns</div>
+        <div class="return-desc" style="color: var(--text-muted);">None</div>
+
+
+        <div class="card-section-label">Example</div>
+        <pre><code class="language-js">hs.eventtap.chordStroke([&#39;alt&#39;, &#39;cmd&#39;], &#39;9&#39;)         // 200 ms default hold
+hs.eventtap.chordStroke([&#39;alt&#39;, &#39;cmd&#39;], &#39;9&#39;, 10000)  // 10 ms hold</code></pre>
+
+        <div class="source-link">
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L67" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:67</a>
         </div>
     </div>
     <div class="method" id="scrollWheel">
@@ -229,7 +280,7 @@ independent of keyboard focus — so this scrolls whatever the mouse is over.</d
 hs.eventtap.scrollWheel(0, 3, &#39;line&#39;)      // scroll up 3 lines</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L65" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:65</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L80" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:80</a>
         </div>
     </div>
     <div class="method" id="leftClick">
@@ -255,7 +306,7 @@ Defaults to 200000 (200 ms), matching upstream Hammerspoon&#39;s `hs.eventtap.le
             <tbody>
                 <tr>
                     <td class="param-name">point</td>
-                    <td class="param-type">{[key: string]: number}</td>
+                    <td class="param-type">JSValue</td>
                     <td class="param-desc">A point object `{x, y}` to click at</td>
                 </tr>
                 <tr>
@@ -275,7 +326,7 @@ Defaults to 200000 (200 ms), matching upstream Hammerspoon&#39;s `hs.eventtap.le
 hs.eventtap.leftClick({ x: 800, y: 450 }, 10000)  // 10 ms hold</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L78" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:78</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L93" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:93</a>
         </div>
     </div>
     <div class="method" id="typeText">
@@ -312,7 +363,7 @@ hs.eventtap.leftClick({ x: 800, y: 450 }, 10000)  // 10 ms hold</code></pre>
         <pre><code class="language-js">hs.eventtap.typeText(&#39;Hello!&#39;)</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L86" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:86</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L101" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:101</a>
         </div>
     </div>
         </main>
