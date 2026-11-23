@@ -1039,17 +1039,17 @@
             },
             {
               "name": "findMenuItemByPath",
-              "signature": "func findMenuItemByPath(_ path: JSValue) -> [String: Any]?",
+              "signature": "func findMenuItemByPath(_ path: [String]) -> [String: Any]?",
               "isStatic": false,
-              "rawDocumentation": "Find a menu item by following a hierarchical path of titles\n- Parameter path: {string[]} An array of menu titles forming a path from the top-level menu to the item, e.g. [\"Edit\", \"Select All\"]\n- Returns: An object with title and enabled keys, or null if not found\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst item = app.findMenuItemByPath([\"Edit\", \"Select All\"])\nconsole.log(item.enabled)\n```",
+              "rawDocumentation": "Find a menu item by following a hierarchical path of titles\n- Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. [\"Edit\", \"Select All\"]\n- Returns: An object with title and enabled keys, or null if not found\n- Example:\n```js\nconst app = hs.application.frontmost()\nconst item = app.findMenuItemByPath([\"Edit\", \"Select All\"])\nconsole.log(item.enabled)\n```",
               "description": "Find a menu item by following a hierarchical path of titles",
               "params": [
                 {
                   "name": "path",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"Edit\", \"Select All\"]",
                   "optional": false,
-                  "tsType": "string[]"
+                  "tsType": null
                 }
               ],
               "returns": {
@@ -1099,17 +1099,17 @@
             },
             {
               "name": "selectMenuItemByPath",
-              "signature": "func selectMenuItemByPath(_ path: JSValue) -> Bool",
+              "signature": "func selectMenuItemByPath(_ path: [String]) -> Bool",
               "isStatic": false,
-              "rawDocumentation": "Click a menu item found by following a hierarchical path of titles\n- Parameter path: {string[]} An array of menu titles forming a path from the top-level menu to the item, e.g. [\"File\", \"New Window\"]\n- Returns: true if the menu item was found and clicked, false otherwise\n- Example:\n```js\nconst safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItemByPath([\"File\", \"New Window\"])\n```",
+              "rawDocumentation": "Click a menu item found by following a hierarchical path of titles\n- Parameter path: An array of menu titles forming a path from the top-level menu to the item, e.g. [\"File\", \"New Window\"]\n- Returns: true if the menu item was found and clicked, false otherwise\n- Example:\n```js\nconst safari = hs.application.matchingName(\"Safari\")\nsafari.selectMenuItemByPath([\"File\", \"New Window\"])\n```",
               "description": "Click a menu item found by following a hierarchical path of titles",
               "params": [
                 {
                   "name": "path",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "An array of menu titles forming a path from the top-level menu to the item, e.g. [\"File\", \"New Window\"]",
                   "optional": false,
-                  "tsType": "string[]"
+                  "tsType": null
                 }
               ],
               "returns": {
@@ -3065,14 +3065,14 @@
             },
             {
               "name": "connect",
-              "signature": "func connect(_ config: JSValue) -> HSBLEPeripheral?",
+              "signature": "func connect(_ config: [String: Any]) -> HSBLEPeripheral",
               "isStatic": false,
               "rawDocumentation": "Attach to the bonded ESP32 relay peripheral and bring up the relay channel.\n\nConnection strategy (mirrors the proven helper): fast-attach via\n`retrievePeripherals` when a `peerUUID` is known, else\n`retrieveConnectedPeripherals`, else scan. Discovers the relay service,\nsubscribes the notify characteristic, and fires the peripheral's\n`onConnect` once subscribed. Auto-reconnects on drop unless `autoReconnect`\nis `false`.\n- Parameter config: `{ name?, peerUUID?, service?, notifyChar?, writeChar?, autoReconnect? }`.\n  `name` defaults to `\"VoiceKB\"`; the UUIDs default to the firmware relay\n  UUIDs; `autoReconnect` defaults to `true`. Pass `peerUUID` (from a prior\n  `peripheral.uuid`) for instant re-attach to the non-advertising bonded peer.\n- Returns: an `HSBLEPeripheral`.\n- Example:\n```js\nconst p = c.connect({ name: 'VoiceKB', peerUUID: saved, autoReconnect: true })\np.onNotify(line => relay.ingest(line))\n```",
               "description": "Attach to the bonded ESP32 relay peripheral and bring up the relay channel.\nConnection strategy (mirrors the proven helper): fast-attach via\n`retrievePeripherals` when a `peerUUID` is known, else\n`retrieveConnectedPeripherals`, else scan. Discovers the relay service,\nsubscribes the notify characteristic, and fires the peripheral's\n`onConnect` once subscribed. Auto-reconnects on drop unless `autoReconnect`\nis `false`.\n`name` defaults to `\"VoiceKB\"`; the UUIDs default to the firmware relay\nUUIDs; `autoReconnect` defaults to `true`. Pass `peerUUID` (from a prior\n`peripheral.uuid`) for instant re-attach to the non-advertising bonded peer.",
               "params": [
                 {
                   "name": "config",
-                  "type": "JSValue",
+                  "type": "Object<String, Any>",
                   "description": "`{ name?, peerUUID?, service?, notifyChar?, writeChar?, autoReconnect? }`.",
                   "optional": false,
                   "tsType": null
@@ -5165,17 +5165,17 @@
       "methods": [
         {
           "name": "makeTap",
-          "signature": "func makeTap(_ eventTypes: JSValue, _ callback: JSValue) -> HSEventTap?",
+          "signature": "func makeTap(_ eventTypes: [String], _ callback: JSValue) -> HSEventTap",
           "isStatic": false,
-          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n- Parameter eventTypes: {string[]} Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture', 'magnify'.\n  'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n  'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).\n  'magnify' delivers trackpad pinch-zoom gestures: `{type, modifiers, magnification, phase}` where `magnification` is the incremental scale delta for the frame (positive = zoom in) and `phase` is 'began' | 'changed' | 'ended' | 'cancelled'.\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n\n// Watch media keys (volume/brightness):\nconst media = hs.eventtap.make(['systemDefined'], e => {\n  if (e.subtype === 8 && e.down) console.log(e.key)\n  return false\n})\nmedia.start()\n```",
+          "rawDocumentation": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n- Parameter eventTypes: Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture', 'magnify'.\n  'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n  'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).\n  'magnify' delivers trackpad pinch-zoom gestures: `{type, modifiers, magnification, phase}` where `magnification` is the incremental scale delta for the frame (positive = zoom in) and `phase` is 'began' | 'changed' | 'ended' | 'cancelled'.\n- Parameter callback: Function called with an event object. Return true to consume (suppress) the event.\n- Returns: An HSEventTap instance\n- Example:\n```js\nconst tap = hs.eventtap.make(['keyDown'], e => {\n  console.log(e.keyCode, e.modifiers)\n  return false // don't consume\n})\ntap.start()\n\n// Watch media keys (volume/brightness):\nconst media = hs.eventtap.make(['systemDefined'], e => {\n  if (e.subtype === 8 && e.down) console.log(e.key)\n  return false\n})\nmedia.start()\n```",
           "description": "Create a new event tap for the specified event types.\nCall .start() on the returned object to begin receiving events.\nRequires Accessibility permission (active event taps; keyboard monitoring may also need Input Monitoring).\n'systemDefined' delivers media-key events (brightness, volume, play/pause…): `{type, subtype, modifiers}` plus — for subtype 8 (aux control buttons) — `key` (e.g. 'BRIGHTNESS_UP'), `nxKeyCode`, `down`, `isRepeat`.\n'gesture' delivers raw trackpad touch frames: `{type, modifiers, touchCount, touches: [{id, phase, x, y}]}` with x/y normalized to the pad (origin bottom-left).\n'magnify' delivers trackpad pinch-zoom gestures: `{type, modifiers, magnification, phase}` where `magnification` is the incremental scale delta for the frame (positive = zoom in) and `phase` is 'began' | 'changed' | 'ended' | 'cancelled'.",
           "params": [
             {
               "name": "eventTypes",
-              "type": "JSValue",
+              "type": "Array<String>",
               "description": "Array of event type strings: 'keyDown', 'keyUp', 'flagsChanged', 'mouseMoved', 'leftMouseDown', 'leftMouseUp', 'rightMouseDown', 'rightMouseUp', 'otherMouseDown', 'otherMouseUp', 'leftMouseDragged', 'rightMouseDragged', 'scrollWheel', 'systemDefined', 'gesture', 'magnify'.",
               "optional": false,
-              "tsType": "string[]"
+              "tsType": null
             },
             {
               "name": "callback",
@@ -5198,21 +5198,21 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 39
+          "lineNumber": 38
         },
         {
           "name": "keyStroke",
-          "signature": "func keyStroke(_ mods: JSValue, _ key: String, _ delay: JSValue)",
+          "signature": "func keyStroke(_ mods: [String], _ key: String, _ delay: JSValue)",
           "isStatic": false,
-          "rawDocumentation": "Synthesise a key stroke: press the modifiers + key, hold, then release.\n- Parameter mods: {string[]} Array of modifier strings, e.g. ['cmd']\n- Parameter key: Key name, e.g. 'v'\n- Parameter delay: Optional number of microseconds the key is held between keyDown\n  and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n  `hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\n  app — the clipboard gets set but the paste never lands.\n- Example:\n```js\nhs.eventtap.keyStroke(['cmd'], 'v')          // 200 ms default hold\nhs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold\n```",
+          "rawDocumentation": "Synthesise a key stroke: press the modifiers + key, hold, then release.\n- Parameter mods: Array of modifier strings, e.g. ['cmd']\n- Parameter key: Key name, e.g. 'v'\n- Parameter delay: Optional number of microseconds the key is held between keyDown\n  and keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n  `hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\n  app — the clipboard gets set but the paste never lands.\n- Example:\n```js\nhs.eventtap.keyStroke(['cmd'], 'v')          // 200 ms default hold\nhs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold\n```",
           "description": "Synthesise a key stroke: press the modifiers + key, hold, then release.\nand keyUp. Defaults to 200000 (200 ms), matching upstream Hammerspoon's\n`hs.eventtap.keyStroke`. A zero/too-short hold is frequently dropped by the target\napp — the clipboard gets set but the paste never lands.",
           "params": [
             {
               "name": "mods",
-              "type": "JSValue",
+              "type": "Array<String>",
               "description": "Array of modifier strings, e.g. ['cmd']",
               "optional": false,
-              "tsType": "string[]"
+              "tsType": null
             },
             {
               "name": "key",
@@ -5239,14 +5239,14 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 53
+          "lineNumber": 52
         },
         {
           "name": "chordStroke",
           "signature": "func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue)",
           "isStatic": false,
-          "rawDocumentation": "Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`\nwith device-dependent side bits), pressing and releasing the key, then releasing\nthe modifiers in reverse order. Use this instead of `keyStroke` for input methods\nor shortcut recorders that inspect `flagsChanged` or left/right modifier bits.\n- Parameter mods: {string[]} Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)\n- Parameter key: Key name, e.g. `'9'`\n- Parameter delay: Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.\n- Example:\n```js\nhs.eventtap.chordStroke(['alt', 'cmd'], '9')         // 200 ms default hold\nhs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)  // 10 ms hold\n```",
-          "description": "Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`\nwith device-dependent side bits), pressing and releasing the key, then releasing\nthe modifiers in reverse order. Use this instead of `keyStroke` for input methods\nor shortcut recorders that inspect `flagsChanged` or left/right modifier bits.",
+          "rawDocumentation": "Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`\nwith device-dependent side bits), pressing and releasing the key, then releasing\nthe modifiers in reverse order. Use this instead of `keyStroke` for input methods\nor shortcut recorders that inspect `flagsChanged` or left/right modifier bits.\n\nEvents are built and validated synchronously, then posted in order on a background\nserial queue, so this method returns immediately before the chord finishes.\n- Parameter mods: {string[]} Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)\n- Parameter key: Key name, e.g. `'9'`\n- Parameter delay?: {number} Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.\n- Example:\n```js\nhs.eventtap.chordStroke(['alt', 'cmd'], '9')         // 200 ms default hold\nhs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)  // 10 ms hold\n```",
+          "description": "Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`\nwith device-dependent side bits), pressing and releasing the key, then releasing\nthe modifiers in reverse order. Use this instead of `keyStroke` for input methods\nor shortcut recorders that inspect `flagsChanged` or left/right modifier bits.\nEvents are built and validated synchronously, then posted in order on a background\nserial queue, so this method returns immediately before the chord finishes.",
           "params": [
             {
               "name": "mods",
@@ -5266,8 +5266,8 @@
               "name": "delay",
               "type": "JSValue",
               "description": "Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.",
-              "optional": false,
-              "tsType": null
+              "optional": true,
+              "tsType": "number"
             }
           ],
           "returns": null,
@@ -5280,7 +5280,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 67
+          "lineNumber": 70
         },
         {
           "name": "scrollWheel",
@@ -5321,21 +5321,21 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 80
+          "lineNumber": 65
         },
         {
           "name": "leftClick",
-          "signature": "func leftClick(_ point: JSValue, _ delay: JSValue)",
+          "signature": "func leftClick(_ point: [String: Double], _ delay: JSValue)",
           "isStatic": false,
-          "rawDocumentation": "Synthesise a left mouse click (press + release) at a point in global\ntop-left screen coordinates (the same space as `hs.mouse.position()` and\nwindow frames). Does not move the visible cursor.\n- Parameter point: {Object<string, number>} A point object `{x, y}` to click at\n- Parameter delay: Optional number of microseconds between mouseDown and mouseUp.\n  Defaults to 200000 (200 ms), matching upstream Hammerspoon's `hs.eventtap.leftClick`.\n- Example:\n```js\nhs.eventtap.leftClick({ x: 800, y: 450 })         // 200 ms default hold\nhs.eventtap.leftClick({ x: 800, y: 450 }, 10000)  // 10 ms hold\n```",
+          "rawDocumentation": "Synthesise a left mouse click (press + release) at a point in global\ntop-left screen coordinates (the same space as `hs.mouse.position()` and\nwindow frames). Does not move the visible cursor.\n- Parameter point: A point object `{x, y}` to click at\n- Parameter delay: Optional number of microseconds between mouseDown and mouseUp.\n  Defaults to 200000 (200 ms), matching upstream Hammerspoon's `hs.eventtap.leftClick`.\n- Example:\n```js\nhs.eventtap.leftClick({ x: 800, y: 450 })         // 200 ms default hold\nhs.eventtap.leftClick({ x: 800, y: 450 }, 10000)  // 10 ms hold\n```",
           "description": "Synthesise a left mouse click (press + release) at a point in global\ntop-left screen coordinates (the same space as `hs.mouse.position()` and\nwindow frames). Does not move the visible cursor.\nDefaults to 200000 (200 ms), matching upstream Hammerspoon's `hs.eventtap.leftClick`.",
           "params": [
             {
               "name": "point",
-              "type": "JSValue",
+              "type": "Object<String, Double>",
               "description": "A point object `{x, y}` to click at",
               "optional": false,
-              "tsType": "Object<string, number>"
+              "tsType": null
             },
             {
               "name": "delay",
@@ -5355,7 +5355,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 93
+          "lineNumber": 78
         },
         {
           "name": "typeText",
@@ -5382,7 +5382,7 @@
           ],
           "source": "swift",
           "filePath": "Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift",
-          "lineNumber": 101
+          "lineNumber": 86
         }
       ],
       "properties": [],
@@ -6888,17 +6888,17 @@
       "methods": [
         {
           "name": "bind",
-          "signature": "func bind(_ mods: JSValue, _ key: String, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?",
+          "signature": "func bind(_ mods: [String], _ key: String, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?",
           "isStatic": false,
-          "rawDocumentation": "Bind a hotkey\n- Parameters:\n  - mods: {string[]} An array of modifier key strings (e.g., [\"cmd\", \"shift\"])\n  - key: The key name or character (e.g., \"a\", \"space\", \"return\")\n  - callbackPressed: {(() => void) | null} A JavaScript function to call when the hotkey is pressed, or null for no callback\n  - callbackReleased: {(() => void) | null} A JavaScript function to call when the hotkey is released, or null for no callback\n- Returns: A hotkey object, or nil if binding failed\n- Example:\n```js\nhs.hotkey.bind([\"cmd\",\"shift\"], \"h\", () => {\n    console.log(\"Hello!\")\n})\n```",
+          "rawDocumentation": "Bind a hotkey\n- Parameters:\n  - mods: An array of modifier key strings (e.g., [\"cmd\", \"shift\"])\n  - key: The key name or character (e.g., \"a\", \"space\", \"return\")\n  - callbackPressed: {(() => void) | null} A JavaScript function to call when the hotkey is pressed, or null for no callback\n  - callbackReleased: {(() => void) | null} A JavaScript function to call when the hotkey is released, or null for no callback\n- Returns: A hotkey object, or nil if binding failed\n- Example:\n```js\nhs.hotkey.bind([\"cmd\",\"shift\"], \"h\", () => {\n    console.log(\"Hello!\")\n})\n```",
           "description": "Bind a hotkey",
           "params": [
             {
               "name": "mods",
-              "type": "JSValue",
+              "type": "Array<String>",
               "description": "An array of modifier key strings (e.g., [\"cmd\", \"shift\"])",
               "optional": false,
-              "tsType": "string[]"
+              "tsType": null
             },
             {
               "name": "key",
@@ -6939,17 +6939,17 @@
         },
         {
           "name": "bindSpec",
-          "signature": "func bindSpec(_ mods: JSValue, _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?",
+          "signature": "func bindSpec(_ mods: [String], _ key: String, _ message: String?, _ callbackPressed: JSFunction, _ callbackReleased: JSFunction) -> HSHotkey?",
           "isStatic": false,
-          "rawDocumentation": "Bind a hotkey with a message description\n- Parameters:\n  - mods: {string[]} An array of modifier key strings\n  - key: The key name or character\n  - message: A description of what this hotkey does (currently unused, for future features)\n  - callbackPressed: {(() => void) | null} A JavaScript function to call when the hotkey is pressed, or null for no callback\n  - callbackReleased: {(() => void) | null} A JavaScript function to call when the hotkey is released, or null for no callback\n- Returns: A hotkey object, or nil if binding failed\n- Example:\n```js\nhs.hotkey.bindSpec([\"cmd\"], \"space\", \"Spotlight-like\", () => {\n    console.log(\"pressed\")\n}, null)\n```",
+          "rawDocumentation": "Bind a hotkey with a message description\n- Parameters:\n  - mods: An array of modifier key strings\n  - key: The key name or character\n  - message: A description of what this hotkey does (currently unused, for future features)\n  - callbackPressed: {(() => void) | null} A JavaScript function to call when the hotkey is pressed, or null for no callback\n  - callbackReleased: {(() => void) | null} A JavaScript function to call when the hotkey is released, or null for no callback\n- Returns: A hotkey object, or nil if binding failed\n- Example:\n```js\nhs.hotkey.bindSpec([\"cmd\"], \"space\", \"Spotlight-like\", () => {\n    console.log(\"pressed\")\n}, null)\n```",
           "description": "Bind a hotkey with a message description",
           "params": [
             {
               "name": "mods",
-              "type": "JSValue",
+              "type": "Array<String>",
               "description": "An array of modifier key strings",
               "optional": false,
-              "tsType": "string[]"
+              "tsType": null
             },
             {
               "name": "key",
@@ -8494,17 +8494,17 @@
         },
         {
           "name": "lookupLocation",
-          "signature": "func lookupLocation(_ locationTable: JSValue) -> JSPromise?",
+          "signature": "func lookupLocation(_ locationTable: [String: Double]) -> JSPromise?",
           "isStatic": false,
-          "rawDocumentation": "Reverse-geocodes a locationTable into an array of placemarkTables.\n\nReturns a Promise that resolves with matching placemarks or rejects with\nan error.\n- Parameter locationTable: {Object<string, number>} an object with at least `latitude` and `longitude`\n- Returns: {Promise<[[String:Any]]>} a Promise resolving to an array of placemarkTables\n- Example:\n```js\nhs.location.geocoder.lookupLocation({ latitude: 37.3349, longitude: -122.0090 })\n    .then(p => console.log(p[0].name))\n```",
+          "rawDocumentation": "Reverse-geocodes a locationTable into an array of placemarkTables.\n\nReturns a Promise that resolves with matching placemarks or rejects with\nan error.\n- Parameter locationTable: an object with at least `latitude` and `longitude`\n- Returns: {Promise<[[String:Any]]>} a Promise resolving to an array of placemarkTables\n- Example:\n```js\nhs.location.geocoder.lookupLocation({ latitude: 37.3349, longitude: -122.0090 })\n    .then(p => console.log(p[0].name))\n```",
           "description": "Reverse-geocodes a locationTable into an array of placemarkTables.\nReturns a Promise that resolves with matching placemarks or rejects with\nan error.",
           "params": [
             {
               "name": "locationTable",
-              "type": "JSValue",
+              "type": "Object<String, Double>",
               "description": "an object with at least `latitude` and `longitude`",
               "optional": false,
-              "tsType": "Object<string, number>"
+              "tsType": null
             }
           ],
           "returns": {
@@ -8591,24 +8591,24 @@
         },
         {
           "name": "distance",
-          "signature": "func distance(_ from: JSValue, _ to: JSValue) -> Double",
+          "signature": "func distance(_ from: [String: Double], _ to: [String: Double]) -> Double",
           "isStatic": false,
-          "rawDocumentation": "Calculates the straight-line distance in metres between two locationTables.\n\nDoes not require Location Services.\n- Parameters:\n  - from: {Object<string, number>} locationTable with at least `latitude` and `longitude`\n  - to: {Object<string, number>} locationTable with at least `latitude` and `longitude`\n- Returns: distance in metres, or `-1` if either table is invalid\n- Example:\n```js\nconst d = hs.location.distance(\n    { latitude: 51.5074, longitude: -0.1278 },\n    { latitude: 48.8566, longitude:  2.3522 }\n) // → ~341,000 metres\n```",
+          "rawDocumentation": "Calculates the straight-line distance in metres between two locationTables.\n\nDoes not require Location Services.\n- Parameters:\n  - from: locationTable with at least `latitude` and `longitude`\n  - to: locationTable with at least `latitude` and `longitude`\n- Returns: distance in metres, or `-1` if either table is invalid\n- Example:\n```js\nconst d = hs.location.distance(\n    { latitude: 51.5074, longitude: -0.1278 },\n    { latitude: 48.8566, longitude:  2.3522 }\n) // → ~341,000 metres\n```",
           "description": "Calculates the straight-line distance in metres between two locationTables.\nDoes not require Location Services.",
           "params": [
             {
               "name": "from",
-              "type": "JSValue",
+              "type": "Object<String, Double>",
               "description": "locationTable with at least `latitude` and `longitude`",
               "optional": false,
-              "tsType": "Object<string, number>"
+              "tsType": null
             },
             {
               "name": "to",
-              "type": "JSValue",
+              "type": "Object<String, Double>",
               "description": "locationTable with at least `latitude` and `longitude`",
               "optional": false,
-              "tsType": "Object<string, number>"
+              "tsType": null
             }
           ],
           "returns": {
@@ -8937,14 +8937,14 @@
         },
         {
           "name": "relieve",
-          "signature": "func relieve(_ opts: JSValue?) -> [String: Any]",
+          "signature": "func relieve(_ opts: [String: Any]?) -> [String: Any]",
           "isStatic": false,
           "rawDocumentation": "Runs synchronous full JavaScript GC, then requests maximal malloc relief.\n\nGC and malloc relief default to true. GC runs on the calling JS thread. If its\nprivate symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping\nmalloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in\nmilliseconds; footprints and released memory are bytes. Footprints are\nmeasured immediately before, after GC, and after all requests, even when\na treatment is skipped. JSC releases pages asynchronously, so footprints\nneed not decrease. This call does not wait for those pages to be returned.\n\nSet `shrink: true` to also request JavaScriptCore's private\n`shrinkFootprintWhenIdle` SPI on the calling context's VM and JS thread.\nShrink defaults to false. Only request it at idle: it drops cached JIT code\nand bytecode, performs a full GC, and asks the WebKit allocator to release\nfree pages. The next hot path must re-tier its JIT code. Shrink performs its\nown GC even when `gc: false`; that flag controls only the separate initial GC.\nJSC defers shrinking until the current JS stack unwinds, so `shrinkMs`\nmeasures only the request call, not deferred work. Sample `stats()` later\nto observe reclamation. If the SPI is missing, shrink is a no-op with\n`shrinkAvailable: false` and `shrinkMs: 0`.\n- Parameter opts?: {{gc?: boolean, malloc?: boolean, shrink?: boolean} | null} Optional treatment flags; omitted, undefined, or null uses GC and malloc relief, without shrinking.\n- Returns: A plain object with `footprintBefore`, `footprintAfterGC`, `footprintAfter`, `mallocReleased`, `gcMs`, and `reliefMs`. Only `shrink: true` adds `shrinkAvailable` (whether the VM supports the SPI) and `shrinkMs`. Throws if a footprint cannot be read.\n- Example:\n```js\nconsole.log(JSON.stringify(hs.memory.relieve({gc: false})))\n// During an idle period; inspect stats again after this JS stack returns.\nconsole.log(JSON.stringify(hs.memory.relieve({gc: true, malloc: false, shrink: true})))\n```",
           "description": "Runs synchronous full JavaScript GC, then requests maximal malloc relief.\nGC and malloc relief default to true. GC runs on the calling JS thread. If its\nprivate symbol is unavailable, GC is skipped and `gcMs` is zero. Skipping\nmalloc relief leaves `mallocReleased` and `reliefMs` zero. Timings are in\nmilliseconds; footprints and released memory are bytes. Footprints are\nmeasured immediately before, after GC, and after all requests, even when\na treatment is skipped. JSC releases pages asynchronously, so footprints\nneed not decrease. This call does not wait for those pages to be returned.\nSet `shrink: true` to also request JavaScriptCore's private\n`shrinkFootprintWhenIdle` SPI on the calling context's VM and JS thread.\nShrink defaults to false. Only request it at idle: it drops cached JIT code\nand bytecode, performs a full GC, and asks the WebKit allocator to release\nfree pages. The next hot path must re-tier its JIT code. Shrink performs its\nown GC even when `gc: false`; that flag controls only the separate initial GC.\nJSC defers shrinking until the current JS stack unwinds, so `shrinkMs`\nmeasures only the request call, not deferred work. Sample `stats()` later\nto observe reclamation. If the SPI is missing, shrink is a no-op with\n`shrinkAvailable: false` and `shrinkMs: 0`.",
           "params": [
             {
               "name": "opts",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "Optional treatment flags; omitted, undefined, or null uses GC and malloc relief, without shrinking.",
               "optional": true,
               "tsType": "{gc?: boolean, malloc?: boolean, shrink?: boolean} | null"
@@ -9288,17 +9288,17 @@
         },
         {
           "name": "setPosition",
-          "signature": "func setPosition(_ point: JSValue) -> Bool",
+          "signature": "func setPosition(_ point: [String: Double]) -> Bool",
           "isStatic": false,
-          "rawDocumentation": "Move (warp) the cursor to a global screen position (top-left origin).\n\nCoordinates use the same convention as `hs.screen`: `(0,0)` is the top-left of\nthe primary display.\n- Parameter point: {Object<string, number>} An object `{ x, y }`.\n- Returns: true.\n- Example:\n```js\nhs.mouse.setPosition({ x: 200, y: 200 })\n```",
+          "rawDocumentation": "Move (warp) the cursor to a global screen position (top-left origin).\n\nCoordinates use the same convention as `hs.screen`: `(0,0)` is the top-left of\nthe primary display.\n- Parameter point: An object `{ x, y }`.\n- Returns: true.\n- Example:\n```js\nhs.mouse.setPosition({ x: 200, y: 200 })\n```",
           "description": "Move (warp) the cursor to a global screen position (top-left origin).\nCoordinates use the same convention as `hs.screen`: `(0,0)` is the top-left of\nthe primary display.",
           "params": [
             {
               "name": "point",
-              "type": "JSValue",
+              "type": "Object<String, Double>",
               "description": "An object `{ x, y }`.",
               "optional": false,
-              "tsType": "Object<string, number>"
+              "tsType": null
             }
           ],
           "returns": {
@@ -9401,14 +9401,14 @@
       "methods": [
         {
           "name": "session",
-          "signature": "func session(_ config: JSValue) -> HSMPCSession?",
+          "signature": "func session(_ config: [String: Any]) -> HSMPCSession",
           "isStatic": false,
           "rawDocumentation": "Create a Multipeer session.\n- Parameter config: `{ serviceType?, displayName?, context?, encryption?, allowPeers? }`.\n  `serviceType` defaults to `\"voicekb-cs\"` (≤15 chars, `[a-z0-9-]`);\n  `displayName` defaults to this host's name; `context` (the shared invite\n  secret both peers must match) defaults to `\"voicekb-mpc-v1\"`;\n  `encryption` is `\"required\"` (default), `\"optional\"`, or `\"none\"`.\n  `allowPeers` (optional `[String]`) restricts pairing to peers whose displayName\n  begins with one of these prefixes — others sharing the service+context are ignored.\n- Returns: an `HSMPCSession` (call `start()` to begin advertising + browsing).\n- Example:\n```js\nconst s = hs.multipeer.session({ displayName: 'MacA-' + hs.appinfo.pid })\ns.onPeer((peer, state) => console.log(peer, state)).start()\n```",
           "description": "Create a Multipeer session.\n`serviceType` defaults to `\"voicekb-cs\"` (≤15 chars, `[a-z0-9-]`);\n`displayName` defaults to this host's name; `context` (the shared invite\nsecret both peers must match) defaults to `\"voicekb-mpc-v1\"`;\n`encryption` is `\"required\"` (default), `\"optional\"`, or `\"none\"`.\n`allowPeers` (optional `[String]`) restricts pairing to peers whose displayName\nbegins with one of these prefixes — others sharing the service+context are ignored.",
           "params": [
             {
               "name": "config",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "`{ serviceType?, displayName?, context?, encryption?, allowPeers? }`.",
               "optional": false,
               "tsType": null
@@ -9663,17 +9663,17 @@
         },
         {
           "name": "create",
-          "signature": "func create(_ options: JSValue) -> HSNotification?",
+          "signature": "func create(_ options: [String: Any]) -> HSNotification?",
           "isStatic": false,
-          "rawDocumentation": "Create a richly configured notification without sending it yet.\n\n- Parameter options: {Object<string, any>} A JavaScript object — see module documentation for supported keys.\n- Returns: An `HSNotification` object. Call `.send()` on it to deliver the notification.\n- Example:\n```js\nconst n = hs.notify.create({ title: \"Hello\", body: \"World\" })\nn.send()\n```",
+          "rawDocumentation": "Create a richly configured notification without sending it yet.\n\n- Parameter options: A JavaScript object — see module documentation for supported keys.\n- Returns: An `HSNotification` object. Call `.send()` on it to deliver the notification.\n- Example:\n```js\nconst n = hs.notify.create({ title: \"Hello\", body: \"World\" })\nn.send()\n```",
           "description": "Create a richly configured notification without sending it yet.",
           "params": [
             {
               "name": "options",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "A JavaScript object — see module documentation for supported keys.",
               "optional": false,
-              "tsType": "Object<string, any>"
+              "tsType": null
             }
           ],
           "returns": {
@@ -9809,9 +9809,9 @@
       "methods": [
         {
           "name": "recognizeText",
-          "signature": "func recognizeText(_ path: String, _ options: JSValue?) -> JSPromise?",
+          "signature": "func recognizeText(_ path: String, _ options: [String: Any]?) -> JSPromise?",
           "isStatic": false,
-          "rawDocumentation": "Recognize text in the image at the given file path.\n\nReturns a Promise that resolves with an `HSOCRResult` containing all\nrecognized text and per-region observations. The image must exist on\ndisk; URLs and data buffers are not supported.\n\nRecognition is performed on a background thread; the main thread is\nnot blocked during the operation.\n\nThe optional `options` object may contain:\n- `recognitionLevel` (`\"accurate\"` | `\"fast\"`, default `\"accurate\"`):\n  `\"accurate\"` uses a larger neural network for better results;\n  `\"fast\"` trades accuracy for speed.\n- `minimumConfidence` (number 0–1, default `0`):\n  Observations whose `confidence` is below this threshold are excluded\n  from `result.observations` (and therefore from `result.text`).\n- `languages` (array of BCP-47 strings, e.g. `[\"en-US\", \"fr-FR\"]`):\n  Hints Vision toward specific languages. Use `supportedLanguages()` to\n  enumerate the available codes for the current device.\n- `automaticallyDetectsLanguage` (boolean, default `false`):\n  When `true`, Vision selects recognition languages automatically.\n  Overrides `languages` when set.\n\n- Parameter path: Absolute path to the image file.\n- Parameter options: {Object<string, any> | null} Optional configuration object (see description).\n- Returns: {Promise<HSOCRResult>} Resolves with the recognition result.\n\n- Example:\n```js\n// Async/await style\nasync function getTextFromImage(imagePath) {\n    const result = await hs.ocr.recognizeText(imagePath)\n    return result.text\n}\n```\n\n- Example:\n```js\n// Promise chain style, with options\nhs.ocr.recognizeText('/tmp/image.png', { minimumConfidence: 0.75 })\n    .then(result => console.log('Found ' + result.observations.length + ' regions'))\n    .catch(err => console.log('Error: ' + err))\n```",
+          "rawDocumentation": "Recognize text in the image at the given file path.\n\nReturns a Promise that resolves with an `HSOCRResult` containing all\nrecognized text and per-region observations. The image must exist on\ndisk; URLs and data buffers are not supported.\n\nRecognition is performed on a background thread; the main thread is\nnot blocked during the operation.\n\nThe optional `options` object may contain:\n- `recognitionLevel` (`\"accurate\"` | `\"fast\"`, default `\"accurate\"`):\n  `\"accurate\"` uses a larger neural network for better results;\n  `\"fast\"` trades accuracy for speed.\n- `minimumConfidence` (number 0–1, default `0`):\n  Observations whose `confidence` is below this threshold are excluded\n  from `result.observations` (and therefore from `result.text`).\n- `languages` (array of BCP-47 strings, e.g. `[\"en-US\", \"fr-FR\"]`):\n  Hints Vision toward specific languages. Use `supportedLanguages()` to\n  enumerate the available codes for the current device.\n- `automaticallyDetectsLanguage` (boolean, default `false`):\n  When `true`, Vision selects recognition languages automatically.\n  Overrides `languages` when set.\n\n- Parameter path: Absolute path to the image file.\n- Parameter options: Optional configuration object (see description).\n- Returns: {Promise<HSOCRResult>} Resolves with the recognition result.\n\n- Example:\n```js\n// Async/await style\nasync function getTextFromImage(imagePath) {\n    const result = await hs.ocr.recognizeText(imagePath)\n    return result.text\n}\n```\n\n- Example:\n```js\n// Promise chain style, with options\nhs.ocr.recognizeText('/tmp/image.png', { minimumConfidence: 0.75 })\n    .then(result => console.log('Found ' + result.observations.length + ' regions'))\n    .catch(err => console.log('Error: ' + err))\n```",
           "description": "Recognize text in the image at the given file path.\nReturns a Promise that resolves with an `HSOCRResult` containing all\nrecognized text and per-region observations. The image must exist on\ndisk; URLs and data buffers are not supported.\nRecognition is performed on a background thread; the main thread is\nnot blocked during the operation.\n`\"accurate\"` uses a larger neural network for better results;\n`\"fast\"` trades accuracy for speed.\nObservations whose `confidence` is below this threshold are excluded\nfrom `result.observations` (and therefore from `result.text`).\nHints Vision toward specific languages. Use `supportedLanguages()` to\nenumerate the available codes for the current device.\nWhen `true`, Vision selects recognition languages automatically.\nOverrides `languages` when set.",
           "params": [
             {
@@ -9823,10 +9823,10 @@
             },
             {
               "name": "options",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "Optional configuration object (see description).",
               "optional": false,
-              "tsType": "Object<string, any> | null"
+              "tsType": null
             }
           ],
           "returns": {
@@ -10670,17 +10670,17 @@
         },
         {
           "name": "writeObjects",
-          "signature": "func writeObjects(_ representations: JSValue) -> Bool",
+          "signature": "func writeObjects(_ representations: [String: Any]) -> Bool",
           "isStatic": false,
-          "rawDocumentation": "Write multiple type representations to the pasteboard atomically, replacing all current contents.\nKeys must be UTI type strings; values must be strings. This is how you provide both a plain-text\nfallback and a richer representation (such as HTML) in a single clipboard operation.\n\n- Parameter representations: {Object<string, string>} A JavaScript object whose keys are UTI strings and values are strings\n- Returns: true if the write succeeded\n- Example:\n```js\nhs.pasteboard.writeObjects({\n    \"public.utf8-plain-text\": \"Hello\",\n    \"public.html\":            \"<b>Hello</b>\"\n})\n```",
+          "rawDocumentation": "Write multiple type representations to the pasteboard atomically, replacing all current contents.\nKeys must be UTI type strings; values must be strings. This is how you provide both a plain-text\nfallback and a richer representation (such as HTML) in a single clipboard operation.\n\n- Parameter representations: A JavaScript object whose keys are UTI strings and values are strings\n- Returns: true if the write succeeded\n- Example:\n```js\nhs.pasteboard.writeObjects({\n    \"public.utf8-plain-text\": \"Hello\",\n    \"public.html\":            \"<b>Hello</b>\"\n})\n```",
           "description": "Write multiple type representations to the pasteboard atomically, replacing all current contents.\nKeys must be UTI type strings; values must be strings. This is how you provide both a plain-text\nfallback and a richer representation (such as HTML) in a single clipboard operation.",
           "params": [
             {
               "name": "representations",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "A JavaScript object whose keys are UTI strings and values are strings",
               "optional": false,
-              "tsType": "Object<string, string>"
+              "tsType": null
             }
           ],
           "returns": {
@@ -13280,17 +13280,17 @@
             },
             {
               "name": "setScopes",
-              "signature": "func setScopes(_ scopes: JSValue) -> HSSpotlightQuery",
+              "signature": "func setScopes(_ scopes: [String]) -> HSSpotlightQuery",
               "isStatic": false,
-              "rawDocumentation": "Sets the search scopes that restrict where Spotlight looks.\n\nPass an array of predefined scope strings from `hs.spotlight.scope`, absolute\ndirectory paths, or a mix of both. Paths beginning with `~` are expanded to the\nuser's home directory.\n\nWhen not set, the query defaults to `hs.spotlight.scope.computer`.\n- Parameter scopes: {string[]} An array of scope-constant strings or absolute directory paths\n- Returns: this query, for chaining\n- Example:\n```js\n// Home directory only\nq.setScopes([hs.spotlight.scope.home])\n\n// Specific folder\nq.setScopes(['/Users/alice/Documents'])\n\n// Mix of predefined scope and a folder\nq.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive/Projects'])\n```",
+              "rawDocumentation": "Sets the search scopes that restrict where Spotlight looks.\n\nPass an array of predefined scope strings from `hs.spotlight.scope`, absolute\ndirectory paths, or a mix of both. Paths beginning with `~` are expanded to the\nuser's home directory.\n\nWhen not set, the query defaults to `hs.spotlight.scope.computer`.\n- Parameter scopes: An array of scope-constant strings or absolute directory paths\n- Returns: this query, for chaining\n- Example:\n```js\n// Home directory only\nq.setScopes([hs.spotlight.scope.home])\n\n// Specific folder\nq.setScopes(['/Users/alice/Documents'])\n\n// Mix of predefined scope and a folder\nq.setScopes([hs.spotlight.scope.home, '/Volumes/ExternalDrive/Projects'])\n```",
               "description": "Sets the search scopes that restrict where Spotlight looks.\nPass an array of predefined scope strings from `hs.spotlight.scope`, absolute\ndirectory paths, or a mix of both. Paths beginning with `~` are expanded to the\nuser's home directory.\nWhen not set, the query defaults to `hs.spotlight.scope.computer`.",
               "params": [
                 {
                   "name": "scopes",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "An array of scope-constant strings or absolute directory paths",
                   "optional": false,
-                  "tsType": "string[]"
+                  "tsType": null
                 }
               ],
               "returns": {
@@ -13310,17 +13310,17 @@
             },
             {
               "name": "setSortDescriptors",
-              "signature": "func setSortDescriptors(_ descriptors: JSValue) -> HSSpotlightQuery",
+              "signature": "func setSortDescriptors(_ descriptors: [[String: Any]]) -> HSSpotlightQuery",
               "isStatic": false,
-              "rawDocumentation": "Sets sort descriptors that control the order of results.\n\nPass an array of objects, each with:\n- `attribute` (string): a `kMDItem*` key to sort on\n- `ascending` (boolean): `true` for ascending order (optional, defaults to `true`)\n\n- Parameter descriptors: {Object<string, any>[]} An array of sort descriptor objects\n- Returns: this query, for chaining\n- Example:\n```js\nq.setSortDescriptors([\n    { attribute: hs.spotlight.attribute.fsName, ascending: true },\n    { attribute: hs.spotlight.attribute.fileSize, ascending: false }\n])\n```",
+              "rawDocumentation": "Sets sort descriptors that control the order of results.\n\nPass an array of objects, each with:\n- `attribute` (string): a `kMDItem*` key to sort on\n- `ascending` (boolean): `true` for ascending order (optional, defaults to `true`)\n\n- Parameter descriptors: An array of sort descriptor objects\n- Returns: this query, for chaining\n- Example:\n```js\nq.setSortDescriptors([\n    { attribute: hs.spotlight.attribute.fsName, ascending: true },\n    { attribute: hs.spotlight.attribute.fileSize, ascending: false }\n])\n```",
               "description": "Sets sort descriptors that control the order of results.",
               "params": [
                 {
                   "name": "descriptors",
-                  "type": "JSValue",
+                  "type": "[[String: Any]]",
                   "description": "An array of sort descriptor objects",
                   "optional": false,
-                  "tsType": "Object<string, any>[]"
+                  "tsType": null
                 }
               ],
               "returns": {
@@ -13340,17 +13340,17 @@
             },
             {
               "name": "setGroupingAttributes",
-              "signature": "func setGroupingAttributes(_ attrs: JSValue) -> HSSpotlightQuery",
+              "signature": "func setGroupingAttributes(_ attrs: [String]) -> HSSpotlightQuery",
               "isStatic": false,
-              "rawDocumentation": "Sets the attributes by which results will be grouped.\n\nWhen grouping attributes are set, use `groups()` to retrieve results organised into\n`HSSpotlightGroup` objects. Specifying multiple attributes creates nested subgroups\naccessible via `group.subgroups()`.\n- Parameter attrs: {string[]} An array of attribute name strings\n- Returns: this query, for chaining\n- Example:\n```js\n// Group image results by content type\nq.setQuery(\"kMDItemContentTypeTree == 'public.image'\")\n .setGroupingAttributes([hs.spotlight.attribute.contentType])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.groups().forEach(g =>\n             console.log(g.value() + ': ' + g.count + ' images')\n         )\n     }\n })\n .start()\n```",
+              "rawDocumentation": "Sets the attributes by which results will be grouped.\n\nWhen grouping attributes are set, use `groups()` to retrieve results organised into\n`HSSpotlightGroup` objects. Specifying multiple attributes creates nested subgroups\naccessible via `group.subgroups()`.\n- Parameter attrs: An array of attribute name strings\n- Returns: this query, for chaining\n- Example:\n```js\n// Group image results by content type\nq.setQuery(\"kMDItemContentTypeTree == 'public.image'\")\n .setGroupingAttributes([hs.spotlight.attribute.contentType])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.groups().forEach(g =>\n             console.log(g.value() + ': ' + g.count + ' images')\n         )\n     }\n })\n .start()\n```",
               "description": "Sets the attributes by which results will be grouped.\nWhen grouping attributes are set, use `groups()` to retrieve results organised into\n`HSSpotlightGroup` objects. Specifying multiple attributes creates nested subgroups\naccessible via `group.subgroups()`.",
               "params": [
                 {
                   "name": "attrs",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "An array of attribute name strings",
                   "optional": false,
-                  "tsType": "string[]"
+                  "tsType": null
                 }
               ],
               "returns": {
@@ -13370,17 +13370,17 @@
             },
             {
               "name": "setValueListAttributes",
-              "signature": "func setValueListAttributes(_ attrs: JSValue) -> HSSpotlightQuery",
+              "signature": "func setValueListAttributes(_ attrs: [String]) -> HSSpotlightQuery",
               "isStatic": false,
-              "rawDocumentation": "Sets the attributes for which aggregate value-list summaries are computed.\n\nAfter the query finishes, `valueLists()` returns aggregate data for each specified\nattribute: distinct values and the number of results carrying each value.\n- Parameter attrs: {string[]} An array of attribute name strings\n- Returns: this query, for chaining\n- Example:\n```js\nq.setValueListAttributes([hs.spotlight.attribute.kind])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.valueLists().forEach(vl => {\n             console.log('=== ' + vl.attribute + ' ===')\n             vl.values.forEach(v =>\n                 console.log('  ' + v.value + ': ' + v.count + ' items')\n             )\n         })\n     }\n })\n .start()\n```",
+              "rawDocumentation": "Sets the attributes for which aggregate value-list summaries are computed.\n\nAfter the query finishes, `valueLists()` returns aggregate data for each specified\nattribute: distinct values and the number of results carrying each value.\n- Parameter attrs: An array of attribute name strings\n- Returns: this query, for chaining\n- Example:\n```js\nq.setValueListAttributes([hs.spotlight.attribute.kind])\n .setCallback((event) => {\n     if (event === 'didFinish') {\n         q.valueLists().forEach(vl => {\n             console.log('=== ' + vl.attribute + ' ===')\n             vl.values.forEach(v =>\n                 console.log('  ' + v.value + ': ' + v.count + ' items')\n             )\n         })\n     }\n })\n .start()\n```",
               "description": "Sets the attributes for which aggregate value-list summaries are computed.\nAfter the query finishes, `valueLists()` returns aggregate data for each specified\nattribute: distinct values and the number of results carrying each value.",
               "params": [
                 {
                   "name": "attrs",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "An array of attribute name strings",
                   "optional": false,
-                  "tsType": "string[]"
+                  "tsType": null
                 }
               ],
               "returns": {
@@ -14033,9 +14033,9 @@
       "methods": [
         {
           "name": "create",
-          "signature": "func create(_ launchPath: String, _ arguments: JSValue, _ completionCallback: JSFunction?, _ environment: JSValue?, _ streamingCallback: JSFunction?) -> HSTask?",
+          "signature": "func create(_ launchPath: String, _ arguments: [String], _ completionCallback: JSFunction?, _ environment: [String: String]?, _ streamingCallback: JSFunction?) -> HSTask",
           "isStatic": false,
-          "rawDocumentation": "Create a new task\n- Parameters:\n  - launchPath: The full path to the executable to run\n  - arguments: {string[]} An array of arguments to pass to the executable\n  - completionCallback: {((exitCode: number, exitReason: string) => void) | null} Optional callback called when the task terminates with exit code and reason\n  - environment: {Record<string, string> | null} Optional dictionary of environment variables for the task\n  - streamingCallback: {((stream: string, data: string) => void) | null} Optional callback called when the task produces output; stream is \"stdout\" or \"stderr\"\n- Returns: A task object. Call start() to begin execution.\n- Example:\n```js\nconst task = hs.task.create(\"/usr/bin/env\", [\"printenv\", \"PATH\"], (code, reason) => {\n    console.log(\"exited\", code)\n})\ntask.start()\n```",
+          "rawDocumentation": "Create a new task\n- Parameters:\n  - launchPath: The full path to the executable to run\n  - arguments: An array of arguments to pass to the executable\n  - completionCallback: {((exitCode: number, exitReason: string) => void) | null} Optional callback called when the task terminates with exit code and reason\n  - environment: Optional dictionary of environment variables for the task\n  - streamingCallback: {((stream: string, data: string) => void) | null} Optional callback called when the task produces output; stream is \"stdout\" or \"stderr\"\n- Returns: A task object. Call start() to begin execution.\n- Example:\n```js\nconst task = hs.task.create(\"/usr/bin/env\", [\"printenv\", \"PATH\"], (code, reason) => {\n    console.log(\"exited\", code)\n})\ntask.start()\n```",
           "description": "Create a new task",
           "params": [
             {
@@ -14047,10 +14047,10 @@
             },
             {
               "name": "arguments",
-              "type": "JSValue",
+              "type": "Array<String>",
               "description": "An array of arguments to pass to the executable",
               "optional": false,
-              "tsType": "string[]"
+              "tsType": null
             },
             {
               "name": "completionCallback",
@@ -14061,10 +14061,10 @@
             },
             {
               "name": "environment",
-              "type": "JSValue",
+              "type": "Object<String, String>",
               "description": "Optional dictionary of environment variables for the task",
               "optional": false,
-              "tsType": "Record<string, string> | null"
+              "tsType": null
             },
             {
               "name": "streamingCallback",
@@ -14091,9 +14091,9 @@
         },
         {
           "name": "runSync",
-          "signature": "func runSync(_ launchPath: String, _ arguments: JSValue) -> String?",
+          "signature": "func runSync(_ launchPath: String, _ arguments: [String]) -> String?",
           "isStatic": false,
-          "rawDocumentation": "Run a short-lived command synchronously and return its stdout as a\nstring. Use sparingly — this blocks the JS thread until the process\nexits. Intended for fast utilities (`ps`, `whoami`, `uname`) where\nawaiting a Promise would add UI flicker.\n- Parameter launchPath: Absolute path to the executable\n- Parameter arguments: {string[]} Argument array\n- Returns: Combined stdout as a string, or null on failure\n- Example:\n```js\nconst out = hs.task.runSync('/bin/ps', ['-axo', 'pid,rss,comm'])\n```",
+          "rawDocumentation": "Run a short-lived command synchronously and return its stdout as a\nstring. Use sparingly — this blocks the JS thread until the process\nexits. Intended for fast utilities (`ps`, `whoami`, `uname`) where\nawaiting a Promise would add UI flicker.\n- Parameter launchPath: Absolute path to the executable\n- Parameter arguments: Argument array\n- Returns: Combined stdout as a string, or null on failure\n- Example:\n```js\nconst out = hs.task.runSync('/bin/ps', ['-axo', 'pid,rss,comm'])\n```",
           "description": "Run a short-lived command synchronously and return its stdout as a\nstring. Use sparingly — this blocks the JS thread until the process\nexits. Intended for fast utilities (`ps`, `whoami`, `uname`) where\nawaiting a Promise would add UI flicker.",
           "params": [
             {
@@ -14105,10 +14105,10 @@
             },
             {
               "name": "arguments",
-              "type": "JSValue",
+              "type": "Array<String>",
               "description": "Argument array",
               "optional": false,
-              "tsType": "string[]"
+              "tsType": null
             }
           ],
           "returns": {
@@ -14488,7 +14488,7 @@
             },
             {
               "name": "environment",
-              "signature": "var environment: JSValue { get set }",
+              "signature": "var environment: [String: String] { get set }",
               "rawDocumentation": "The environment variables for the task\n- Note: Can only be modified before calling start()\n- Example:\n```js\nconst t = hs.task.new(\"/usr/bin/env\", [])\nt.environment = { FOO: \"bar\" }\nt.start()\n```",
               "description": "The environment variables for the task",
               "tsType": null,
@@ -15532,14 +15532,14 @@
       "methods": [
         {
           "name": "window",
-          "signature": "func window(_ dict: JSValue?) -> HSUIWindow?",
+          "signature": "func window(_ dict: [String: Any]) -> HSUIWindow",
           "isStatic": false,
           "rawDocumentation": "Create a custom UI window\n\nCreates a borderless window that can contain custom UI elements built using a declarative,\nSwiftUI-like syntax with shapes, text, and layout containers.\n\n- Parameter dict: Dictionary with keys: `x`, `y`, `w`, `h` (all numbers)\n- Returns: An `HSUIWindow` object for chaining\n- Example:\n```js\nhs.ui.window({x: 100, y: 100, w: 400, h: 300})\n    .rectangle()\n        .fill(\"#FF0000\")\n        .frame({w: \"100%\", h: \"100%\"})\n    .show()\n```",
           "description": "Create a custom UI window\nCreates a borderless window that can contain custom UI elements built using a declarative,\nSwiftUI-like syntax with shapes, text, and layout containers.",
           "params": [
             {
               "name": "dict",
-              "type": "JSValue",
+              "type": "Object<String, Any>",
               "description": "Dictionary with keys: `x`, `y`, `w`, `h` (all numbers)",
               "optional": false,
               "tsType": null
@@ -16536,14 +16536,14 @@
             },
             {
               "name": "frame",
-              "signature": "func frame(_ dict: JSValue) -> HSUIWindow",
+              "signature": "func frame(_ dict: [String: Any]) -> HSUIWindow",
               "isStatic": false,
               "rawDocumentation": "Set the frame (size) of an element\n- Parameter dict: Dictionary with `w` and/or `h` (can be numbers or percentage strings like \"50%\")\n- Returns: Self for chaining",
               "description": "Set the frame (size) of an element",
               "params": [
                 {
                   "name": "dict",
-                  "type": "JSValue",
+                  "type": "Object<String, Any>",
                   "description": "Dictionary with `w` and/or `h` (can be numbers or percentage strings like \"50%\")",
                   "optional": false,
                   "tsType": null
@@ -17101,14 +17101,14 @@
             },
             {
               "name": "position",
-              "signature": "func position(_ dict: JSValue) -> HSUIAlert",
+              "signature": "func position(_ dict: [String: Any]) -> HSUIAlert",
               "isStatic": false,
               "rawDocumentation": "Set a custom position for the alert\n- Parameter dict: Dictionary with `x` and `y` coordinates\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.alert(\"Hello\").position({x: 100, y: 100}).show()\n```",
               "description": "Set a custom position for the alert",
               "params": [
                 {
                   "name": "dict",
-                  "type": "JSValue",
+                  "type": "Object<String, Any>",
                   "description": "Dictionary with `x` and `y` coordinates",
                   "optional": false,
                   "tsType": null
@@ -17211,14 +17211,14 @@
             },
             {
               "name": "buttons",
-              "signature": "func buttons(_ labels: JSValue) -> HSUIDialog",
+              "signature": "func buttons(_ labels: [String]) -> HSUIDialog",
               "isStatic": false,
               "rawDocumentation": "Set custom button labels\n- Parameter labels: Array of button labels (default: [\"OK\"])\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.dialog(\"Save?\").buttons([\"Save\", \"Discard\", \"Cancel\"]).show()\n```",
               "description": "Set custom button labels",
               "params": [
                 {
                   "name": "labels",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "Array of button labels (default: [\"OK\"])",
                   "optional": false,
                   "tsType": null
@@ -17501,14 +17501,14 @@
             },
             {
               "name": "allowedFileTypes",
-              "signature": "func allowedFileTypes(_ types: JSValue) -> HSUIFilePicker",
+              "signature": "func allowedFileTypes(_ types: [String]) -> HSUIFilePicker",
               "isStatic": false,
               "rawDocumentation": "Restrict to specific file types\n- Parameter types: Array of file extensions (e.g., [\"txt\", \"md\"])\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.filePicker().allowedFileTypes([\"txt\", \"md\"]).show()\n```",
               "description": "Restrict to specific file types",
               "params": [
                 {
                   "name": "types",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "Array of file extensions (e.g., [\"txt\", \"md\"])",
                   "optional": false,
                   "tsType": null
@@ -17679,14 +17679,14 @@
             },
             {
               "name": "buttons",
-              "signature": "func buttons(_ labels: JSValue) -> HSUITextPrompt",
+              "signature": "func buttons(_ labels: [String]) -> HSUITextPrompt",
               "isStatic": false,
               "rawDocumentation": "Set custom button labels\n- Parameter labels: Array of button labels (default: [\"OK\", \"Cancel\"])\n- Returns: Self for chaining\n- Example:\n```js\nhs.ui.textPrompt(\"Confirm?\").buttons([\"Yes\", \"No\"]).show()\n```",
               "description": "Set custom button labels",
               "params": [
                 {
                   "name": "labels",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "Array of button labels (default: [\"OK\", \"Cancel\"])",
                   "optional": false,
                   "tsType": null
@@ -19473,14 +19473,14 @@
             },
             {
               "name": "_simulateFileDrop",
-              "signature": "func _simulateFileDrop(_ paths: JSValue)",
+              "signature": "func _simulateFileDrop(_ paths: [String])",
               "isStatic": false,
               "rawDocumentation": "Test hook: invoke the registered `onFileDrop` callback directly with\n`paths`, bypassing the AppKit drag session (which a unit test can't\nstage). No-op if the webview isn't shown or no handler is registered.\n- Parameter paths: absolute file paths to deliver to the handler",
               "description": "Test hook: invoke the registered `onFileDrop` callback directly with\n`paths`, bypassing the AppKit drag session (which a unit test can't\nstage). No-op if the webview isn't shown or no handler is registered.",
               "params": [
                 {
                   "name": "paths",
-                  "type": "JSValue",
+                  "type": "Array<String>",
                   "description": "absolute file paths to deliver to the handler",
                   "optional": false,
                   "tsType": null
@@ -21552,5 +21552,5 @@
       "types": []
     }
   ],
-  "generatedAt": "2026-11-23T04:11:26.228Z"
+  "generatedAt": "2026-10-28T09:28:27.257Z"
 }

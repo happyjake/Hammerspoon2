@@ -1423,7 +1423,7 @@ UUIDs; `autoReconnect` defaults to `true`. Pass `peerUUID` (from a prior
      * @param config `{ name?, peerUUID?, service?, notifyChar?, writeChar?, autoReconnect? }`.
      * @returns an `HSBLEPeripheral`.
      */
-    connect(config: any): HSBLEPeripheral | null;
+    connect(config: Record<string, any>): HSBLEPeripheral;
 
 }
 
@@ -2248,7 +2248,7 @@ Requires Accessibility permission (active event taps; keyboard monitoring may al
      * @param callback Function called with an event object. Return true to consume (suppress) the event.
      * @returns An HSEventTap instance
      */
-    function makeTap(eventTypes: string[], callback: any): HSEventTap | null;
+    function makeTap(eventTypes: string[], callback: any): HSEventTap;
 
     /**
      * Synthesise a key stroke: press the modifiers + key, hold, then release.
@@ -2266,11 +2266,13 @@ app — the clipboard gets set but the paste never lands.
 with device-dependent side bits), pressing and releasing the key, then releasing
 the modifiers in reverse order. Use this instead of `keyStroke` for input methods
 or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
+Events are built and validated synchronously, then posted in order on a background
+serial queue, so this method returns immediately before the chord finishes.
      * @param mods Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)
      * @param key Key name, e.g. `'9'`
      * @param delay Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.
      */
-    function chordStroke(mods: string[], key: string, delay: any): void;
+    function chordStroke(mods: string[], key: string, delay?: number): void;
 
     /**
      * Synthesise a scroll-wheel event at the current mouse position.
@@ -2290,7 +2292,7 @@ Defaults to 200000 (200 ms), matching upstream Hammerspoon's `hs.eventtap.leftCl
      * @param point A point object `{x, y}` to click at
      * @param delay Optional number of microseconds between mouseDown and mouseUp.
      */
-    function leftClick(point: Object<string, number>, delay: any): void;
+    function leftClick(point: Record<string, number>, delay: any): void;
 
     /**
      * Type a string by synthesising key events (M1 stub — lands in M4).
@@ -3308,7 +3310,7 @@ an error.
      * @param locationTable an object with at least `latitude` and `longitude`
      * @returns a Promise resolving to an array of placemarkTables
      */
-    function lookupLocation(locationTable: Object<string, number>): Promise<Record<string, any>[]>;
+    function lookupLocation(locationTable: Record<string, number>): Promise<Record<string, any>[]>;
 
     /**
      * Returns true if Location Services are enabled system-wide.
@@ -3337,7 +3339,7 @@ Does not require Location Services.
      * @param to locationTable with at least `latitude` and `longitude`
      * @returns distance in metres, or `-1` if either table is invalid
      */
-    function distance(from: Object<string, number>, to: Object<string, number>): number;
+    function distance(from: Record<string, number>, to: Record<string, number>): number;
 
     /**
      * Returns the time of sunrise for the given coordinates and date, or null if the sun does not rise on that date (polar night).
@@ -3576,7 +3578,7 @@ the primary display.
      * @param point An object `{ x, y }`.
      * @returns true.
      */
-    function setPosition(point: Object<string, number>): boolean;
+    function setPosition(point: Record<string, number>): boolean;
 
     /**
      * Hide the system mouse cursor.
@@ -3623,7 +3625,7 @@ begins with one of these prefixes — others sharing the service+context are ign
      * @param config `{ serviceType?, displayName?, context?, encryption?, allowPeers? }`.
      * @returns an `HSMPCSession` (call `start()` to begin advertising + browsing).
      */
-    function session(config: any): HSMPCSession | null;
+    function session(config: Record<string, any>): HSMPCSession;
 
 }
 
@@ -3783,7 +3785,7 @@ declare namespace hs.notify {
      * @param options A JavaScript object — see module documentation for supported keys.
      * @returns An `HSNotification` object. Call `.send()` on it to deliver the notification.
      */
-    function create(options: Object<string, any>): HSNotification | null;
+    function create(options: Record<string, any>): HSNotification | null;
 
     /**
      * Remove all delivered Hammerspoon notifications from Notification Center.
@@ -3850,7 +3852,7 @@ Overrides `languages` when set.
      * @param options Optional configuration object (see description).
      * @returns Resolves with the recognition result.
      */
-    function recognizeText(path: string, options: Object<string, any> | null): Promise<HSOCRResult>;
+    function recognizeText(path: string, options: Record<string, any> | null): Promise<HSOCRResult>;
 
     /**
      * Returns the BCP-47 language codes supported by the Vision text recognizer
@@ -4251,7 +4253,7 @@ fallback and a richer representation (such as HTML) in a single clipboard operat
      * @param representations A JavaScript object whose keys are UTI strings and values are strings
      * @returns true if the write succeeded
      */
-    function writeObjects(representations: Object<string, string>): boolean;
+    function writeObjects(representations: Record<string, any>): boolean;
 
     /**
      * Get all UTI type strings currently on the pasteboard, across all items
@@ -5216,7 +5218,7 @@ When not set, the query defaults to `hs.spotlight.scope.computer`.
      * @param descriptors An array of sort descriptor objects
      * @returns this query, for chaining
      */
-    setSortDescriptors(descriptors: Object<string, any>[]): HSSpotlightQuery;
+    setSortDescriptors(descriptors: Record<string, any>[]): HSSpotlightQuery;
 
     /**
      * Sets the attributes by which results will be grouped.
@@ -5477,7 +5479,7 @@ declare namespace hs.task {
      * @param streamingCallback Optional callback called when the task produces output; stream is "stdout" or "stderr"
      * @returns A task object. Call start() to begin execution.
      */
-    function create(launchPath: string, arguments: string[], completionCallback: ((exitCode: number, exitReason: string) => void) | null, environment: Record<string, string> | null, streamingCallback: ((stream: string, data: string) => void) | null): HSTask | null;
+    function create(launchPath: string, arguments: string[], completionCallback: ((exitCode: number, exitReason: string) => void) | null, environment: Record<string, string> | null, streamingCallback: ((stream: string, data: string) => void) | null): HSTask;
 
     /**
      * Run a short-lived command synchronously and return its stdout as a
@@ -5600,7 +5602,7 @@ declare class HSTask {
      * The environment variables for the task
      * @remarks Can only be modified before calling start()
      */
-    environment: any;
+    environment: Record<string, string>;
 
     /**
      * The working directory for the task
@@ -6133,7 +6135,7 @@ SwiftUI-like syntax with shapes, text, and layout containers.
      * @param dict Dictionary with keys: `x`, `y`, `w`, `h` (all numbers)
      * @returns An `HSUIWindow` object for chaining
      */
-    function window(dict: any | null): HSUIWindow | null;
+    function window(dict: Record<string, any>): HSUIWindow;
 
     /**
      * Create a temporary on-screen alert
@@ -6488,7 +6490,7 @@ Keep a reference to the element to call navigation methods after the window is s
      * @param dict Dictionary with `w` and/or `h` (can be numbers or percentage strings like "50%")
      * @returns Self for chaining
      */
-    frame(dict: any): HSUIWindow;
+    frame(dict: Record<string, any>): HSUIWindow;
 
     /**
      * Set the opacity of an element
@@ -6657,7 +6659,7 @@ declare class HSUIAlert {
      * @param dict Dictionary with `x` and `y` coordinates
      * @returns Self for chaining
      */
-    position(dict: any): HSUIAlert;
+    position(dict: Record<string, any>): HSUIAlert;
 
     /**
      * Show the alert
@@ -6705,7 +6707,7 @@ declare class HSUIDialog {
      * @param labels Array of button labels (default: ["OK"])
      * @returns Self for chaining
      */
-    buttons(labels: any): HSUIDialog;
+    buttons(labels: string[]): HSUIDialog;
 
     /**
      * Set the dialog style
@@ -6810,7 +6812,7 @@ declare class HSUIFilePicker {
      * @param types Array of file extensions (e.g., ["txt", "md"])
      * @returns Self for chaining
      */
-    allowedFileTypes(types: any): HSUIFilePicker;
+    allowedFileTypes(types: string[]): HSUIFilePicker;
 
     /**
      * Set whether to resolve symbolic links
@@ -6872,7 +6874,7 @@ declare class HSUITextPrompt {
      * @param labels Array of button labels (default: ["OK", "Cancel"])
      * @returns Self for chaining
      */
-    buttons(labels: any): HSUITextPrompt;
+    buttons(labels: string[]): HSUITextPrompt;
 
     /**
      * Set the callback for button presses
@@ -7561,7 +7563,7 @@ absolute file paths, or null to unregister
 stage). No-op if the webview isn't shown or no handler is registered.
      * @param paths absolute file paths to deliver to the handler
      */
-    _simulateFileDrop(paths: any): void;
+    _simulateFileDrop(paths: string[]): void;
 
     /**
      * Enable Safari "Inspect Element" right-click for this webview. Off by default.
