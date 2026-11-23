@@ -56,9 +56,12 @@ import IOKit.hidsystem
     /// with device-dependent side bits), pressing and releasing the key, then releasing
     /// the modifiers in reverse order. Use this instead of `keyStroke` for input methods
     /// or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
+    ///
+    /// Events are built and validated synchronously, then posted in order on a background
+    /// serial queue, so this method returns immediately before the chord finishes.
     /// - Parameter mods: {string[]} Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)
     /// - Parameter key: Key name, e.g. `'9'`
-    /// - Parameter delay: Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.
+    /// - Parameter delay?: {number} Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.
     /// - Example:
     /// ```js
     /// hs.eventtap.chordStroke(['alt', 'cmd'], '9')         // 200 ms default hold
@@ -110,6 +113,8 @@ import IOKit.hidsystem
     let engineID: UUID
 
     private var createdTaps: [HSEventTap] = []
+    private let chordQueue = DispatchQueue(label: "net.tenshu.Hammerspoon-2.eventtap.chord", qos: .userInteractive)
+    var chordDispatcher = ChordDispatcher()
 
     // MARK: - Module lifecycle
 
@@ -198,15 +203,18 @@ import IOKit.hidsystem
         }
 
         let hold = Self.parseHoldMicroseconds(delay)
-        for i in events.indices {
-            events[i].post(tap: .cghidEventTap)
-            if i < events.count - 1 {
-                if sequence[i].type == .keyDown {
-                    if hold > 0 { usleep(hold) }
-                } else {
-                    usleep(Self.chordInterEventDelayMicroseconds)
-                }
-            }
+        let interEventDelay = Self.chordInterEventDelayMicroseconds
+        let sendableEvents = SendableCGEvents(events: events)
+        let dispatcher = chordDispatcher
+
+        chordQueue.async {
+            Self.dispatchChord(
+                events: sendableEvents.events,
+                sequence: sequence,
+                holdMicroseconds: hold,
+                interEventDelayMicroseconds: interEventDelay,
+                dispatcher: dispatcher
+            )
         }
     }
 
@@ -338,6 +346,40 @@ import IOKit.hidsystem
             case "cmd", "command":       return .cmd
             case "fn":                   return .fn
             default:                     return nil
+            }
+        }
+    }
+
+    nonisolated struct ChordDispatcher: Sendable {
+        var post: @Sendable (CGEvent, CGEventTapLocation) -> Void = { event, tap in
+            event.post(tap: tap)
+        }
+        var sleep: @Sendable (useconds_t) -> Void = { microseconds in
+            usleep(microseconds)
+        }
+    }
+
+    private struct SendableCGEvents: @unchecked Sendable {
+        let events: [CGEvent]
+    }
+
+    nonisolated private static func dispatchChord(
+        events: [CGEvent],
+        sequence: [SyntheticKeyEvent],
+        holdMicroseconds: useconds_t,
+        interEventDelayMicroseconds: useconds_t,
+        dispatcher: ChordDispatcher
+    ) {
+        for i in events.indices {
+            dispatcher.post(events[i], .cghidEventTap)
+            if i < events.count - 1 {
+                if sequence[i].type == .keyDown {
+                    if holdMicroseconds > 0 {
+                        dispatcher.sleep(holdMicroseconds)
+                    }
+                } else {
+                    dispatcher.sleep(interEventDelayMicroseconds)
+                }
             }
         }
     }
