@@ -69,7 +69,23 @@ final class HammerspoonLog: Sendable {
 
     var entries: [HammerspoonLogEntry] = []
 
+    @ObservationIgnored
+    private var observers: [UUID: (HammerspoonLogType, String) -> Void] = [:]
+
+    func addObserver(_ observer: @escaping (HammerspoonLogType, String) -> Void) -> UUID {
+        let id = UUID()
+        observers[id] = observer
+        return id
+    }
+
+    func removeObserver(_ id: UUID) {
+        observers.removeValue(forKey: id)
+    }
+
     func log(_ level: HammerspoonLogType, _ msg: String) {
+        for observer in observers.values {
+            observer(level, msg)
+        }
         entries.append(HammerspoonLogEntry(logType: level, msg: msg))
 
         if entries.count > SettingsManager.shared.consoleHistoryLength {

@@ -1689,7 +1689,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 357
+              "lineNumber": 349
             },
             {
               "name": "currentInputDataSource",
@@ -1711,7 +1711,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 366
+              "lineNumber": 358
             },
             {
               "name": "outputDataSources",
@@ -1733,7 +1733,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 375
+              "lineNumber": 367
             },
             {
               "name": "inputDataSources",
@@ -1755,7 +1755,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 384
+              "lineNumber": 376
             },
             {
               "name": "setCurrentOutputDataSource",
@@ -1785,7 +1785,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 395
+              "lineNumber": 387
             },
             {
               "name": "setCurrentInputDataSource",
@@ -1815,7 +1815,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 406
+              "lineNumber": 398
             },
             {
               "name": "setDefaultOutputDevice",
@@ -1837,7 +1837,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 417
+              "lineNumber": 409
             },
             {
               "name": "setDefaultInputDevice",
@@ -1859,7 +1859,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 426
+              "lineNumber": 418
             },
             {
               "name": "setDefaultEffectDevice",
@@ -1881,7 +1881,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 435
+              "lineNumber": 427
             },
             {
               "name": "addWatcher",
@@ -1908,7 +1908,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 456
+              "lineNumber": 448
             },
             {
               "name": "removeWatcher",
@@ -1935,7 +1935,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 466
+              "lineNumber": 458
             }
           ],
           "properties": [
@@ -2025,23 +2025,6 @@
               "lineNumber": 244
             },
             {
-              "name": "isRunningSomewhere",
-              "signature": "var isRunningSomewhere: Bool { get }",
-              "rawDocumentation": "Whether any process is currently running audio IO on this device (such as recording from a microphone).\n- Example:\n```js\nconst mic = hs.audiodevice.defaultInputDevice()\nconsole.log(mic && mic.isRunningSomewhere)\n```",
-              "description": "Whether any process is currently running audio IO on this device (such as recording from a microphone).",
-              "tsType": null,
-              "notes": [],
-              "examples": [
-                {
-                  "lang": "js",
-                  "code": "const mic = hs.audiodevice.defaultInputDevice()\nconsole.log(mic && mic.isRunningSomewhere)"
-                }
-              ],
-              "source": "swift",
-              "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 252
-            },
-            {
               "name": "transportType",
               "signature": "var transportType: String { get }",
               "rawDocumentation": "The transport mechanism: `\"built-in\"`, `\"usb\"`, `\"bluetooth\"`, `\"bluetooth-le\"`,\n`\"hdmi\"`, `\"display-port\"`, `\"firewire\"`, `\"airplay\"`, `\"avb\"`,\n`\"thunderbolt\"`, `\"virtual\"`, `\"aggregate\"`, `\"pci\"`, or `\"unknown\"`.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.transportType)\n```",
@@ -2056,7 +2039,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 262
+              "lineNumber": 254
             },
             {
               "name": "outputChannels",
@@ -2073,7 +2056,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 272
+              "lineNumber": 264
             },
             {
               "name": "inputChannels",
@@ -2090,7 +2073,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 280
+              "lineNumber": 272
             },
             {
               "name": "volume",
@@ -2107,7 +2090,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 291
+              "lineNumber": 283
             },
             {
               "name": "muted",
@@ -2124,7 +2107,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 299
+              "lineNumber": 291
             },
             {
               "name": "balance",
@@ -2141,7 +2124,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 308
+              "lineNumber": 300
             },
             {
               "name": "inputVolume",
@@ -2158,7 +2141,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 319
+              "lineNumber": 311
             },
             {
               "name": "inputMuted",
@@ -2175,7 +2158,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 327
+              "lineNumber": 319
             },
             {
               "name": "sampleRate",
@@ -2192,7 +2175,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 337
+              "lineNumber": 329
             },
             {
               "name": "availableSampleRates",
@@ -2209,7 +2192,24 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 346
+              "lineNumber": 338
+            },
+            {
+              "name": "isRunningSomewhere",
+              "signature": "var isRunningSomewhere: Bool { get }",
+              "rawDocumentation": "Whether any process is currently running audio IO on this device (such as recording from a microphone).\nReturns `false` if the property cannot be read, so `false` alone does not prove the device is idle.\n- Example:\n```js\nconst mic = hs.audiodevice.defaultInputDevice()\nconsole.log(mic && mic.isRunningSomewhere)\n```",
+              "description": "Whether any process is currently running audio IO on this device (such as recording from a microphone).\nReturns `false` if the property cannot be read, so `false` alone does not prove the device is idle.",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const mic = hs.audiodevice.defaultInputDevice()\nconsole.log(mic && mic.isRunningSomewhere)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
+              "lineNumber": 467
             }
           ]
         }

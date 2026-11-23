@@ -243,14 +243,6 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// ```
     @objc var isInput: Bool { get }
 
-    /// Whether any process is currently running audio IO on this device (such as recording from a microphone).
-    /// - Example:
-    /// ```js
-    /// const mic = hs.audiodevice.defaultInputDevice()
-    /// console.log(mic && mic.isRunningSomewhere)
-    /// ```
-    @objc var isRunningSomewhere: Bool { get }
-
     /// The transport mechanism: `"built-in"`, `"usb"`, `"bluetooth"`, `"bluetooth-le"`,
     /// `"hdmi"`, `"display-port"`, `"firewire"`, `"airplay"`, `"avb"`,
     /// `"thunderbolt"`, `"virtual"`, `"aggregate"`, `"pci"`, or `"unknown"`.
@@ -465,6 +457,15 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// ```
     @objc func removeWatcher(_ listener: JSFunction)
 
+    /// Whether any process is currently running audio IO on this device (such as recording from a microphone).
+    /// Returns `false` if the property cannot be read, so `false` alone does not prove the device is idle.
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.defaultInputDevice()
+    /// console.log(mic && mic.isRunningSomewhere)
+    /// ```
+    @objc var isRunningSomewhere: Bool { get }
+
     // NOTE: These are not documented because they are private API for our JavaScript code
     /// SKIP_DOCS
     @objc(_addWatcher:) func _addWatcher(_ callback: JSFunction)
@@ -518,8 +519,6 @@ private func caDataSourceName(_ objectID: AudioObjectID,
 
     // MARK: - Capabilities
 
-    private var didLogRunningSomewhereFailure = false
-
     @objc var isOutput: Bool { outputChannels > 0 }
     @objc var isInput: Bool { inputChannels > 0 }
 
@@ -529,8 +528,7 @@ private func caDataSourceName(_ objectID: AudioObjectID,
         var value: UInt32 = 0
         let status = unsafe AudioObjectGetPropertyData(objectID, &a, 0, nil, &size, &value)
         guard status == noErr else {
-            if !didLogRunningSomewhereFailure {
-                didLogRunningSomewhereFailure = true
+            if HSAudioDeviceManager.shared.shouldLogRunningSomewhereFailure(for: objectID) {
                 AKTrace("HSAudioDevice id=\(objectID): failed to read isRunningSomewhere (OSStatus \(status))")
             }
             return false

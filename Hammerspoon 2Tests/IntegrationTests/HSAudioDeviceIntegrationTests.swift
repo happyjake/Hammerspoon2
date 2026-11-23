@@ -23,8 +23,125 @@ private nonisolated func hasNoAudioDevices() -> Bool {
     return count == 0
 }
 
+private nonisolated func readNativeIsRunningSomewhere(_ objectID: AudioObjectID) -> Bool? {
+    var addr = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
+    var size = UInt32(MemoryLayout<UInt32>.size)
+    var running: UInt32 = 0
+    let status = unsafe AudioObjectGetPropertyData(objectID, &addr, 0, nil, &size, &running)
+    guard status == noErr else { return nil }
+    return running != 0
+}
+
+private nonisolated func nativeHasInputChannels(_ objectID: AudioObjectID) -> Bool {
+    var addr = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyStreamConfiguration,
+        mScope: kAudioDevicePropertyScopeInput,
+        mElement: kAudioObjectPropertyElementMain
+    )
+    var size: UInt32 = 0
+    guard unsafe AudioObjectGetPropertyDataSize(objectID, &addr, 0, nil, &size) == noErr, size > 0 else {
+        return false
+    }
+    let data = UnsafeMutableRawPointer.allocate(
+        byteCount: Int(size),
+        alignment: MemoryLayout<AudioBufferList>.alignment
+    )
+    defer { unsafe data.deallocate() }
+    guard unsafe AudioObjectGetPropertyData(objectID, &addr, 0, nil, &size, data) == noErr else {
+        return false
+    }
+    let ablPtr = unsafe data.assumingMemoryBound(to: AudioBufferList.self)
+    let numBuffers = Int(unsafe ablPtr.pointee.mNumberBuffers)
+    let channels = unsafe withUnsafePointer(to: &ablPtr.pointee.mBuffers) { firstBuffer in
+        unsafe UnsafeBufferPointer(start: firstBuffer, count: numBuffers).reduce(0) {
+            unsafe $0 + Int($1.mNumberChannels)
+        }
+    }
+    return channels > 0
+}
+
+private nonisolated func idleInputDeviceIDs() -> [AudioObjectID] {
+    let sysObjID = AudioObjectID(kAudioObjectSystemObject)
+    var addr = AudioObjectPropertyAddress(
+        mSelector: kAudioHardwarePropertyDevices,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
+    var size: UInt32 = 0
+    guard unsafe AudioObjectGetPropertyDataSize(sysObjID, &addr, 0, nil, &size) == noErr, size > 0 else {
+        return []
+    }
+    let count = Int(size) / MemoryLayout<AudioObjectID>.size
+    var deviceIDs = [AudioObjectID](repeating: 0, count: count)
+    guard unsafe AudioObjectGetPropertyData(sysObjID, &addr, 0, nil, &size, &deviceIDs) == noErr else {
+        return []
+    }
+    return deviceIDs.filter { nativeHasInputChannels($0) && readNativeIsRunningSomewhere($0) == false }
+}
+
+private nonisolated func hasIdleInputDevice() -> Bool {
+    !idleInputDeviceIDs().isEmpty
+}
+
 @Suite("hs.audiodevice tests")
 struct HSAudioDeviceTests {
+    /// Deterministic behaviour tests that require no audio hardware.
+    @Suite("hs.audiodevice deterministic tests", .serialized)
+    struct HSAudioDeviceDeterministicTests {
+        private func makeHarness() -> JSTestHarness {
+            let harness = JSTestHarness()
+            harness.loadModule(HSAudioDeviceModule.self, as: "audiodevice")
+            return harness
+        }
+
+        @Test("isRunningSomewhere returns false and logs once per device ID when property cannot be read")
+        @MainActor
+        func testIsRunningSomewhereFailureReturnsFalseAndLogsOnce() async throws {
+            await JSTestHarness.drainMainActorQueue()
+
+            let invalidID = AudioObjectID(kAudioObjectUnknown)
+            HSAudioDeviceManager.shared.clearRunningSomewhereFailureLog(for: invalidID)
+            defer { HSAudioDeviceManager.shared.clearRunningSomewhereFailureLog(for: invalidID) }
+
+            // Observe log emissions directly so this assertion stays independent of
+            // consoleHistoryLength settings and never clears the shared log buffer.
+            var capturedLogs: [(HammerspoonLogType, String)] = []
+            let observerID = HammerspoonLog.shared.addObserver { level, msg in
+                capturedLogs.append((level, msg))
+            }
+            defer { HammerspoonLog.shared.removeObserver(observerID) }
+
+            let harness = makeHarness()
+            autoreleasepool {
+                let firstWrapper = HSAudioDeviceManager.shared.device(for: invalidID)
+                harness.context.setObject(firstWrapper, forKeyedSubscript: "_invalidAudioDevice" as NSString)
+                harness.expectTrue("""
+                (function() {
+                    var first = _invalidAudioDevice.isRunningSomewhere;
+                    var second = _invalidAudioDevice.isRunningSomewhere;
+                    _invalidAudioDevice = null;
+                    return first === false && second === false;
+                })()
+                """)
+            }
+            HSTestSynchronousGC(harness.context.jsGlobalContextRef)
+
+            // Read from a second wrapper for the same device ID to verify deduplication is keyed by device ID.
+            let secondWrapper = HSAudioDevice(objectID: invalidID)
+            harness.context.setObject(secondWrapper, forKeyedSubscript: "_secondInvalidAudioDevice" as NSString)
+            harness.expectTrue("_secondInvalidAudioDevice.isRunningSomewhere === false")
+
+            await JSTestHarness.drainMainActorQueue()
+            let matchingLogs = capturedLogs.filter { level, msg in
+                level == .Trace && msg.contains("id=\(invalidID)") && msg.contains("isRunningSomewhere")
+            }
+            #expect(matchingLogs.count == 1)
+        }
+    }
     /// Integration tests for the hs.audiodevice module.
     ///
     /// These tests are designed to run on both development machines (which have audio
@@ -212,63 +329,37 @@ struct HSAudioDeviceTests {
         """)
         }
 
-        @Test("unused input device reports isRunningSomewhere as false")
+        @Test("unused input device reports isRunningSomewhere as false",
+              .disabled(if: !hasIdleInputDevice(), "No idle input audio device observable"))
         @MainActor
-        func testUnusedInputDeviceIsRunningSomewhereFalse() {
-            let module = HSAudioDeviceModule(engineID: UUID())
-            let idleDevice = module.allInputDevices().first { device in
-                var addr = AudioObjectPropertyAddress(
-                    mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
-                    mScope: kAudioObjectPropertyScopeGlobal,
-                    mElement: kAudioObjectPropertyElementMain
-                )
-                var size = UInt32(MemoryLayout<UInt32>.size)
-                var running: UInt32 = 0
-                let status = unsafe AudioObjectGetPropertyData(
-                    AudioObjectID(device.id),
-                    &addr,
-                    0,
-                    nil,
-                    &size,
-                    &running
-                )
-                return status == noErr && running == 0
-            }
-            guard let idleDevice else { return }
-
+        func testUnusedInputDeviceIsRunningSomewhereFalse() throws {
             let harness = makeHarness()
-            harness.context.setObject(idleDevice.uid, forKeyedSubscript: "_idleDeviceUID" as NSString)
-            harness.expectTrue("""
-            (function() {
-                var dev = hs.audiodevice.findDeviceByUID(_idleDeviceUID);
-                return dev !== null && dev.isRunningSomewhere === false;
-            })()
-        """)
-        }
 
-        @Test("isRunningSomewhere returns false and logs once at debug level when property cannot be read")
-        @MainActor
-        func testIsRunningSomewhereFailureReturnsFalseAndLogsOnce() async throws {
-            await JSTestHarness.drainMainActorQueue()
-            HammerspoonLog.shared.clearLog()
+            for _ in 0..<3 {
+                for deviceID in idleInputDeviceIDs() {
+                    let device = HSAudioDeviceManager.shared.device(for: deviceID)
+                    let uid = device.uid
+                    guard !uid.isEmpty else { continue }
 
-            let harness = makeHarness()
-            let invalidDevice = HSAudioDevice(objectID: AudioObjectID(kAudioObjectUnknown))
-            harness.context.setObject(invalidDevice, forKeyedSubscript: "_invalidAudioDevice" as NSString)
+                    harness.context.setObject(uid, forKeyedSubscript: "_idleDeviceUID" as NSString)
+                    harness.eval("var _idleDev = hs.audiodevice.findDeviceByUID(_idleDeviceUID);")
+                    #expect(!harness.hasException)
 
-            harness.expectTrue("""
-            (function() {
-                var first = _invalidAudioDevice.isRunningSomewhere;
-                var second = _invalidAudioDevice.isRunningSomewhere;
-                return first === false && second === false;
-            })()
-        """)
+                    // Bracket the JS read with native reads on the same device ID so
+                    // another process starting IO or a hot-unplug mid-read triggers a retry/skip.
+                    guard readNativeIsRunningSomewhere(deviceID) == false else { continue }
+                    let jsResult = harness.evalValue("_idleDev !== null ? _idleDev.isRunningSomewhere : null")
+                    #expect(!harness.hasException)
+                    guard readNativeIsRunningSomewhere(deviceID) == false else { continue }
 
-            await JSTestHarness.drainMainActorQueue()
-            let matchingLogs = HammerspoonLog.shared.entries.filter {
-                $0.logType == .Trace && $0.msg.contains("isRunningSomewhere")
+                    guard let jsResult, !jsResult.isNull, !jsResult.isUndefined else { continue }
+                    #expect(jsResult.isBoolean)
+                    #expect(jsResult.toBool() == false)
+                    return
+                }
             }
-            #expect(matchingLogs.count == 1)
+
+            try Test.cancel("No input audio device remained idle across the read")
         }
 
         // MARK: - Channels

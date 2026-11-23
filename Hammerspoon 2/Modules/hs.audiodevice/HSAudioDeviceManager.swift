@@ -14,8 +14,19 @@ import CoreAudio
 class HSAudioDeviceManager {
     static let shared = HSAudioDeviceManager()
     private var cache: [AudioObjectID: WeakRef<HSAudioDevice>] = [:]
+    private var loggedRunningSomewhereFailureIDs: Set<AudioObjectID> = []
 
     private init() {}
+
+    /// Record a `isRunningSomewhere` read failure for `objectID`, returning `true` only on the first failure for that ID.
+    func shouldLogRunningSomewhereFailure(for objectID: AudioObjectID) -> Bool {
+        loggedRunningSomewhereFailureIDs.insert(objectID).inserted
+    }
+
+    /// Clear recorded `isRunningSomewhere` read failure state for `objectID` (used by tests).
+    func clearRunningSomewhereFailureLog(for objectID: AudioObjectID) {
+        loggedRunningSomewhereFailureIDs.remove(objectID)
+    }
 
     /// Return the existing ``HSAudioDevice`` for the given `AudioObjectID`, or
     /// create and cache a new one.

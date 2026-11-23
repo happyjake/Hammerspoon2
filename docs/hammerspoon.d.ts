@@ -1091,11 +1091,6 @@ declare class HSAudioDevice {
     readonly isInput: boolean;
 
     /**
-     * Whether any process is currently running audio IO on this device (such as recording from a microphone).
-     */
-    readonly isRunningSomewhere: boolean;
-
-    /**
      * The transport mechanism: `"built-in"`, `"usb"`, `"bluetooth"`, `"bluetooth-le"`,
 `"hdmi"`, `"display-port"`, `"firewire"`, `"airplay"`, `"avb"`,
 `"thunderbolt"`, `"virtual"`, `"aggregate"`, `"pci"`, or `"unknown"`.
@@ -1150,6 +1145,12 @@ the device has no controllable input volume.
 For devices that support a range, both the minimum and maximum are included.
      */
     readonly availableSampleRates: number[];
+
+    /**
+     * Whether any process is currently running audio IO on this device (such as recording from a microphone).
+Returns `false` if the property cannot be read, so `false` alone does not prove the device is idle.
+     */
+    readonly isRunningSomewhere: boolean;
 
 }
 
