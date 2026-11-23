@@ -6,6 +6,7 @@
 import Foundation
 import JavaScriptCore
 import CoreGraphics
+import IOKit.hidsystem
 
 // MARK: - Declare our JavaScript API
 
@@ -50,6 +51,20 @@ import CoreGraphics
     /// hs.eventtap.keyStroke(['cmd'], 'v', 10000)   // 10 ms hold
     /// ```
     @objc(keyStroke:::) func keyStroke(_ mods: JSValue, _ key: String, _ delay: JSValue)
+
+    /// Synthesise a chord stroke by pressing each modifier's left key (`flagsChanged`
+    /// with device-dependent side bits), pressing and releasing the key, then releasing
+    /// the modifiers in reverse order. Use this instead of `keyStroke` for input methods
+    /// or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
+    /// - Parameter mods: {string[]} Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)
+    /// - Parameter key: Key name, e.g. `'9'`
+    /// - Parameter delay: Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.
+    /// - Example:
+    /// ```js
+    /// hs.eventtap.chordStroke(['alt', 'cmd'], '9')         // 200 ms default hold
+    /// hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)  // 10 ms hold
+    /// ```
+    @objc(chordStroke:::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue)
 
     /// Synthesise a scroll-wheel event at the current mouse position.
     /// The window server routes scroll events to the window under the cursor —
@@ -160,14 +175,39 @@ import CoreGraphics
         // matching upstream Hammerspoon's hs.eventtap.keyStroke (default 200000). A zero/
         // too-short hold is frequently dropped by the target app: the clipboard gets set
         // but the paste never lands. Clamped to [0, 5s].
-        var hold: useconds_t = 200000
-        if delay.isNumber {
-            let v = delay.toDouble()
-            if v.isFinite && v >= 0 { hold = useconds_t(min(v, 5_000_000)) }
-        }
+        let hold = Self.parseHoldMicroseconds(delay)
         down.post(tap: .cghidEventTap)
         if hold > 0 { usleep(hold) }
         up.post(tap: .cghidEventTap)
+    }
+
+    @objc(chordStroke:::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue) {
+        guard let bridgedMods = mods.toStringArray(method: "hs.eventtap.chordStroke", parameter: "mods") else {
+            return
+        }
+        guard let keyCode = Self.keyCode(for: key) else {
+            AKError("hs.eventtap.chordStroke: unknown key '\(key)'")
+            return
+        }
+
+        let sequence = Self.buildChordSequence(mods: bridgedMods, keyCode: keyCode)
+        let src = CGEventSource(stateID: .combinedSessionState)
+        guard let events = Self.buildChordCGEvents(sequence: sequence, source: src) else {
+            AKError("hs.eventtap.chordStroke: failed to create CGEvent")
+            return
+        }
+
+        let hold = Self.parseHoldMicroseconds(delay)
+        for i in events.indices {
+            events[i].post(tap: .cghidEventTap)
+            if i < events.count - 1 {
+                if sequence[i].type == .keyDown {
+                    if hold > 0 { usleep(hold) }
+                } else {
+                    usleep(Self.chordInterEventDelayMicroseconds)
+                }
+            }
+        }
     }
 
     @objc(scrollWheel:::) func scrollWheel(_ dx: Double, _ dy: Double, _ unit: JSValue) {
@@ -265,7 +305,122 @@ import CoreGraphics
         "f7": 98, "f8": 100, "f9": 101, "f10": 109, "f11": 103, "f12": 111,
     ]
 
-    private static func keyCode(for name: String) -> CGKeyCode? {
+    // MARK: - Chord sequence & key-code helpers
+
+    private enum ChordModifier: CaseIterable {
+        case ctrl, shift, alt, cmd, fn
+
+        var keyCode: CGKeyCode {
+            switch self {
+            case .ctrl:  return 59 // kVK_Control
+            case .shift: return 56 // kVK_Shift
+            case .alt:   return 58 // kVK_Option
+            case .cmd:   return 55 // kVK_Command
+            case .fn:    return 63 // kVK_Function
+            }
+        }
+
+        var flags: CGEventFlags {
+            switch self {
+            case .ctrl:  return CGEventFlags(rawValue: CGEventFlags.maskControl.rawValue | UInt64(NX_DEVICELCTLKEYMASK))
+            case .shift: return CGEventFlags(rawValue: CGEventFlags.maskShift.rawValue | UInt64(NX_DEVICELSHIFTKEYMASK))
+            case .alt:   return CGEventFlags(rawValue: CGEventFlags.maskAlternate.rawValue | UInt64(NX_DEVICELALTKEYMASK))
+            case .cmd:   return CGEventFlags(rawValue: CGEventFlags.maskCommand.rawValue | UInt64(NX_DEVICELCMDKEYMASK))
+            case .fn:    return .maskSecondaryFn
+            }
+        }
+
+        static func parse(_ name: String) -> ChordModifier? {
+            switch name.lowercased() {
+            case "ctrl", "control":      return .ctrl
+            case "shift":                return .shift
+            case "alt", "opt", "option": return .alt
+            case "cmd", "command":       return .cmd
+            case "fn":                   return .fn
+            default:                     return nil
+            }
+        }
+    }
+
+    struct SyntheticKeyEvent: Equatable, Sendable {
+        let type: CGEventType
+        let keyCode: CGKeyCode
+        let flags: CGEventFlags
+    }
+
+    /// Inter-event spacing between modifier flagsChanged events and the key stroke
+    /// so downstream event taps and input methods observe each event in order.
+    private static let chordInterEventDelayMicroseconds: useconds_t = 5_000
+
+    static func parseHoldMicroseconds(_ delay: JSValue) -> useconds_t {
+        var hold: useconds_t = 200_000
+        if delay.isNumber {
+            let v = delay.toDouble()
+            if v.isFinite && v >= 0 {
+                hold = useconds_t(min(v, 5_000_000))
+            }
+        }
+        return hold
+    }
+
+    static func buildChordSequence(mods: [String], keyCode: CGKeyCode) -> [SyntheticKeyEvent] {
+        var requested: Set<ChordModifier> = []
+        for m in mods {
+            if let parsed = ChordModifier.parse(m) {
+                requested.insert(parsed)
+            } else {
+                AKWarning("hs.eventtap.chordStroke: unknown modifier '\(m)'")
+            }
+        }
+
+        let activeModifiers = ChordModifier.allCases.filter { requested.contains($0) }
+        guard !activeModifiers.isEmpty else {
+            return [
+                SyntheticKeyEvent(type: .keyDown, keyCode: keyCode, flags: []),
+                SyntheticKeyEvent(type: .keyUp, keyCode: keyCode, flags: []),
+            ]
+        }
+
+        var events: [SyntheticKeyEvent] = []
+        events.reserveCapacity(activeModifiers.count * 2 + 2)
+
+        var flags: CGEventFlags = .maskNonCoalesced
+        for mod in activeModifiers {
+            flags.insert(mod.flags)
+            events.append(SyntheticKeyEvent(type: .flagsChanged, keyCode: mod.keyCode, flags: flags))
+        }
+
+        events.append(SyntheticKeyEvent(type: .keyDown, keyCode: keyCode, flags: flags))
+        events.append(SyntheticKeyEvent(type: .keyUp, keyCode: keyCode, flags: flags))
+
+        for mod in activeModifiers.reversed() {
+            flags.remove(mod.flags)
+            events.append(SyntheticKeyEvent(type: .flagsChanged, keyCode: mod.keyCode, flags: flags))
+        }
+
+        return events
+    }
+
+    static func buildChordCGEvents(sequence: [SyntheticKeyEvent], source: CGEventSource?) -> [CGEvent]? {
+        var result: [CGEvent] = []
+        result.reserveCapacity(sequence.count)
+
+        for spec in sequence {
+            let keyDown = (spec.type != .keyUp)
+            guard let event = CGEvent(keyboardEventSource: source, virtualKey: spec.keyCode, keyDown: keyDown) else {
+                return nil
+            }
+            if spec.type == .flagsChanged {
+                event.type = .flagsChanged
+            }
+            event.flags = spec.flags
+            result.append(event)
+        }
+
+        return result
+    }
+
+    static func keyCode(for name: String) -> CGKeyCode? {
         return virtualKeyCodes[name.lowercased()]
     }
 }
