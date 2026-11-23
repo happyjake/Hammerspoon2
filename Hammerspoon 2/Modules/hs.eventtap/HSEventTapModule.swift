@@ -57,8 +57,9 @@ import IOKit.hidsystem
     /// the modifiers in reverse order. Use this instead of `keyStroke` for input methods
     /// or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
     ///
-    /// Events are built and validated synchronously, then posted in order on a background
-    /// serial queue, so this method returns immediately before the chord finishes.
+    /// Posts synchronously on the calling thread, blocking for the key hold plus about
+    /// 5 ms per modifier transition (matching `keyStroke`'s blocking model). Callers
+    /// running inside an event-tap callback should keep `delay` small.
     /// - Parameter mods: {string[]} Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)
     /// - Parameter key: Key name, e.g. `'9'`
     /// - Parameter delay?: {number} Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.
@@ -113,7 +114,6 @@ import IOKit.hidsystem
     let engineID: UUID
 
     private var createdTaps: [HSEventTap] = []
-    private let chordQueue = DispatchQueue(label: "net.tenshu.Hammerspoon-2.eventtap.chord", qos: .userInteractive)
     var chordDispatcher = ChordDispatcher()
 
     // MARK: - Module lifecycle
@@ -203,19 +203,13 @@ import IOKit.hidsystem
         }
 
         let hold = Self.parseHoldMicroseconds(delay)
-        let interEventDelay = Self.chordInterEventDelayMicroseconds
-        let sendableEvents = SendableCGEvents(events: events)
-        let dispatcher = chordDispatcher
-
-        chordQueue.async {
-            Self.dispatchChord(
-                events: sendableEvents.events,
-                sequence: sequence,
-                holdMicroseconds: hold,
-                interEventDelayMicroseconds: interEventDelay,
-                dispatcher: dispatcher
-            )
-        }
+        Self.dispatchChord(
+            events: events,
+            sequence: sequence,
+            holdMicroseconds: hold,
+            interEventDelayMicroseconds: Self.chordInterEventDelayMicroseconds,
+            dispatcher: chordDispatcher
+        )
     }
 
     @objc(scrollWheel:::) func scrollWheel(_ dx: Double, _ dy: Double, _ unit: JSValue) {
@@ -350,20 +344,16 @@ import IOKit.hidsystem
         }
     }
 
-    nonisolated struct ChordDispatcher: Sendable {
-        var post: @Sendable (CGEvent, CGEventTapLocation) -> Void = { event, tap in
+    struct ChordDispatcher {
+        var post: (CGEvent, CGEventTapLocation) -> Void = { event, tap in
             event.post(tap: tap)
         }
-        var sleep: @Sendable (useconds_t) -> Void = { microseconds in
+        var sleep: (useconds_t) -> Void = { microseconds in
             usleep(microseconds)
         }
     }
 
-    private struct SendableCGEvents: @unchecked Sendable {
-        let events: [CGEvent]
-    }
-
-    nonisolated private static func dispatchChord(
+    private static func dispatchChord(
         events: [CGEvent],
         sequence: [SyntheticKeyEvent],
         holdMicroseconds: useconds_t,

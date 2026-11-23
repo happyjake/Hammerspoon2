@@ -2266,8 +2266,9 @@ app — the clipboard gets set but the paste never lands.
 with device-dependent side bits), pressing and releasing the key, then releasing
 the modifiers in reverse order. Use this instead of `keyStroke` for input methods
 or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
-Events are built and validated synchronously, then posted in order on a background
-serial queue, so this method returns immediately before the chord finishes.
+Posts synchronously on the calling thread, blocking for the key hold plus about
+5 ms per modifier transition (matching `keyStroke`'s blocking model). Callers
+running inside an event-tap callback should keep `delay` small.
      * @param mods Array of modifier strings (`'ctrl'`, `'shift'`, `'alt'`/`'opt'`, `'cmd'`, `'fn'`)
      * @param key Key name, e.g. `'9'`
      * @param delay Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.

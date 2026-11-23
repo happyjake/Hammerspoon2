@@ -189,8 +189,9 @@ hs.eventtap.keyStroke([&#39;cmd&#39;], &#39;v&#39;, 10000)   // 10 ms hold</code
 with device-dependent side bits), pressing and releasing the key, then releasing
 the modifiers in reverse order. Use this instead of `keyStroke` for input methods
 or shortcut recorders that inspect `flagsChanged` or left/right modifier bits.
-Events are built and validated synchronously, then posted in order on a background
-serial queue, so this method returns immediately before the chord finishes.</div>
+Posts synchronously on the calling thread, blocking for the key hold plus about
+5 ms per modifier transition (matching `keyStroke`&#39;s blocking model). Callers
+running inside an event-tap callback should keep `delay` small.</div>
 
         <div class="card-section-label">Declaration</div>
         <pre><code class="language-javascript">hs.eventtap.chordStroke(mods, key, delay) -> None</code></pre>
@@ -232,7 +233,7 @@ serial queue, so this method returns immediately before the chord finishes.</div
 hs.eventtap.chordStroke([&#39;alt&#39;, &#39;cmd&#39;], &#39;9&#39;, 10000)  // 10 ms hold</code></pre>
 
         <div class="source-link">
-            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L70" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:70</a>
+            <a href="https://github.com/cmsj/Hammerspoon2/blob/main/Hammerspoon%202/Modules/hs.eventtap/HSEventTapModule.swift#L71" target="_blank" rel="noopener noreferrer">Hammerspoon 2/Modules/hs.eventtap/HSEventTapModule.swift:71</a>
         </div>
     </div>
     <div class="method" id="scrollWheel">
