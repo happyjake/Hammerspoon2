@@ -201,9 +201,10 @@ struct HSEventTapIntegrationTests {
         }
 
         func makeDispatcher(
+            onPost: (@Sendable (CGEvent, CGEventTapLocation) -> Void)? = nil,
             onSleep: (@Sendable (useconds_t) -> Void)? = nil,
             onWait: (@Sendable (useconds_t, HSEventTapModule.ChordToken) -> Void)? = nil,
-            onBarrier: @escaping @Sendable () -> Void = {}
+            makeEvent: (@Sendable (HSEventTapModule.SyntheticKeyEvent, CGEventSource?) -> CGEvent?)? = nil
         ) -> HSEventTapModule.ChordDispatcher {
             let waitClosure: (@Sendable (useconds_t, HSEventTapModule.ChordToken) -> Void)?
             if let onWait {
@@ -224,13 +225,14 @@ struct HSEventTapIntegrationTests {
                         flags: event.flags
                     )
                     self?.append(action, isMainThread: Thread.isMainThread)
+                    onPost?(event, tap)
                 },
                 sleep: { [weak self] microseconds in
                     self?.append(.sleep(microseconds))
                     onSleep?(microseconds)
                 },
                 wait: waitClosure,
-                onBarrier: onBarrier
+                makeEvent: makeEvent ?? HSEventTapModule.buildChordCGEvent
             )
         }
 
@@ -240,9 +242,10 @@ struct HSEventTapIntegrationTests {
     }
 
     private func makeChordHarness(
+        onPost: (@Sendable (CGEvent, CGEventTapLocation) -> Void)? = nil,
         onSleep: (@Sendable (useconds_t) -> Void)? = nil,
         onWait: (@Sendable (useconds_t, HSEventTapModule.ChordToken) -> Void)? = nil,
-        onBarrier: @escaping @Sendable () -> Void = {}
+        makeEvent: (@Sendable (HSEventTapModule.SyntheticKeyEvent, CGEventSource?) -> CGEvent?)? = nil
     ) throws -> (harness: JSTestHarness, module: HSEventTapModule, recorder: ChordRecorder) {
         let h = JSTestHarness()
         h.loadModule(HSEventTapModule.self, as: "eventtap")
@@ -253,9 +256,10 @@ struct HSEventTapIntegrationTests {
         )
         let recorder = ChordRecorder()
         module.chordDispatcher = recorder.makeDispatcher(
+            onPost: onPost,
             onSleep: onSleep,
             onWait: onWait,
-            onBarrier: onBarrier
+            makeEvent: makeEvent
         )
         return (h, module, recorder)
     }
@@ -437,11 +441,11 @@ struct HSEventTapIntegrationTests {
 
     @Test("keyStroke waits for an in-flight chord before posting and preserves keyStroke behaviour")
     func testKeyStrokeWaitsForInFlightChord() throws {
-        let enteredFirstSleep = DispatchSemaphore(value: 0)
-        let barrierEntered = DispatchSemaphore(value: 0)
-        let allowContinue = DispatchSemaphore(value: 0)
+        let chordPaused = DispatchSemaphore(value: 0)
+        let keyStrokePosted = DispatchSemaphore(value: 0)
+        let allowChordResume = DispatchSemaphore(value: 0)
         let firstSleepOnly = Mutex(true)
-        let actionsBeforeUnblock = Mutex<[RecordedChordAction]>([])
+        let postedBeforeResume = Mutex(false)
 
         let recorder = ChordRecorder()
         let h = JSTestHarness()
@@ -452,6 +456,11 @@ struct HSEventTapIntegrationTests {
                 .toObject() as? HSEventTapModule
         )
         module.chordDispatcher = recorder.makeDispatcher(
+            onPost: { event, _ in
+                if CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode)) == 9 { // 'v'
+                    keyStrokePosted.signal()
+                }
+            },
             onSleep: { _ in
                 let isFirst = firstSleepOnly.withLock { flag -> Bool in
                     let was = flag
@@ -459,43 +468,34 @@ struct HSEventTapIntegrationTests {
                     return was
                 }
                 if isFirst {
-                    enteredFirstSleep.signal()
-                    allowContinue.wait()
+                    chordPaused.signal()
+                    _ = allowChordResume.wait(timeout: .now() + .seconds(2))
                 }
-            },
-            onBarrier: {
-                barrierEntered.signal()
             }
         )
-        defer { allowContinue.signal() }
+        defer { allowChordResume.signal() }
 
         _ = h.eval("hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)")
         #expect(h.hasException == false)
-        enteredFirstSleep.wait()
+        #expect(chordPaused.wait(timeout: .now() + .seconds(2)) == .success)
 
-        // Wait on a background thread for keyStroke to reach the barrier, snapshot actions
-        // before releasing the in-flight chord, then let the chord finish.
+        // If keyStroke fails to wait on postQueue, keyStrokePosted fires immediately instead of timing out.
         let coordinatorDone = DispatchSemaphore(value: 0)
         DispatchQueue.global(qos: .userInitiated).async {
-            barrierEntered.wait()
-            actionsBeforeUnblock.withLock { $0 = recorder.actions }
-            allowContinue.signal()
+            let postedEarly = (keyStrokePosted.wait(timeout: .now() + .milliseconds(50)) == .success)
+            postedBeforeResume.withLock { $0 = postedEarly }
+            allowChordResume.signal()
             coordinatorDone.signal()
         }
 
         _ = h.eval("hs.eventtap.keyStroke(['cmd'], 'v', 10000)")
         #expect(h.hasException == false)
-        coordinatorDone.wait()
+        #expect(coordinatorDone.wait(timeout: .now() + .seconds(2)) == .success)
+        #expect(postedBeforeResume.withLock { $0 } == false)
 
         let altBits = CGEventFlags(rawValue: CGEventFlags.maskAlternate.rawValue | UInt64(NX_DEVICELALTKEYMASK))
         let cmdBits = CGEventFlags(rawValue: CGEventFlags.maskCommand.rawValue | UInt64(NX_DEVICELCMDKEYMASK))
         let nonCoalesced = CGEventFlags.maskNonCoalesced
-
-        // Before unblocking, only the first chord event and sleep were recorded (keyStroke had not posted).
-        #expect(actionsBeforeUnblock.withLock { $0 } == [
-            .post(tap: .cghidEventTap, type: .flagsChanged, keyCode: 58, flags: [nonCoalesced, altBits]),
-            .sleep(5_000),
-        ])
 
         let expected: [RecordedChordAction] = [
             .post(tap: .cghidEventTap, type: .flagsChanged, keyCode: 58, flags: [nonCoalesced, altBits]),
@@ -649,6 +649,202 @@ struct HSEventTapIntegrationTests {
         #expect(cbCount.withLock { $0 } == 0)
         // First chord released 9, cmd, alt; second queued chord never started (9 actions total).
         #expect(recorder.actions.count == 9)
+    }
+
+    @Test("shutdown and app termination cancel large backlogs atomically before waking in-flight chord")
+    func testShutdownAndTerminationCancelBacklogAtomically() throws {
+        // Module shutdown with a 5,000-chord backlog behind one held chord
+        do {
+            let enteredHold = DispatchSemaphore(value: 0)
+            let (h, module, recorder) = try makeChordHarness(onWait: { microseconds, token in
+                if microseconds == 10_000 {
+                    enteredHold.signal()
+                    token.waitUntilCancelled()
+                }
+            })
+
+            _ = h.eval("""
+                hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000);
+                for (let i = 0; i < 5000; i++) {
+                    hs.eventtap.chordStroke(['shift'], 'a', 0);
+                }
+            """)
+            #expect(h.hasException == false)
+            #expect(enteredHold.wait(timeout: .now() + .seconds(2)) == .success)
+
+            module.shutdown()
+            #expect(recorder.actions.count == 9)
+        }
+
+        // App termination with a 5,000-chord backlog behind one held chord
+        do {
+            let enteredHold = DispatchSemaphore(value: 0)
+            let (h, _, recorder) = try makeChordHarness(onWait: { microseconds, token in
+                if microseconds == 10_000 {
+                    enteredHold.signal()
+                    token.waitUntilCancelled()
+                }
+            })
+
+            _ = h.eval("""
+                hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000);
+                for (let i = 0; i < 5000; i++) {
+                    hs.eventtap.chordStroke(['shift'], 'a', 0);
+                }
+            """)
+            #expect(h.hasException == false)
+            #expect(enteredHold.wait(timeout: .now() + .seconds(2)) == .success)
+
+            NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
+            #expect(recorder.actions.count == 9)
+        }
+    }
+
+    @Test("chordStroke reserves each release before posting press and uses reserved releases on failure or cancel")
+    func testChordStrokeReservesReleasesBeforePress() throws {
+        let altBits = CGEventFlags(rawValue: CGEventFlags.maskAlternate.rawValue | UInt64(NX_DEVICELALTKEYMASK))
+        let cmdBits = CGEventFlags(rawValue: CGEventFlags.maskCommand.rawValue | UInt64(NX_DEVICELCMDKEYMASK))
+        let nonCoalesced = CGEventFlags.maskNonCoalesced
+
+        // Case A: cmd release cannot be built -> cmd press must not be posted; reserved alt release lifts alt.
+        do {
+            let (h, _, recorder) = try makeChordHarness(makeEvent: { spec, source in
+                if spec.type == .flagsChanged && spec.keyCode == 55 && !spec.flags.contains(.maskCommand) {
+                    return nil
+                }
+                return HSEventTapModule.buildChordCGEvent(spec: spec, source: source)
+            })
+
+            _ = h.eval("hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)")
+            HSEventTapModule.drainPostQueue()
+
+            let expected: [RecordedChordAction] = [
+                .post(tap: .cghidEventTap, type: .flagsChanged, keyCode: 58, flags: [nonCoalesced, altBits]),
+                .sleep(5_000),
+                .post(tap: .cghidEventTap, type: .flagsChanged, keyCode: 58, flags: [nonCoalesced]),
+            ]
+            #expect(recorder.actions == expected)
+        }
+
+        // Case B: event creation begins failing mid-hold -> cancellation still posts reserved releases for 9, cmd, alt.
+        do {
+            let failAllNewEvents = Mutex(false)
+            let enteredHold = DispatchSemaphore(value: 0)
+            let (h, module, recorder) = try makeChordHarness(
+                onWait: { microseconds, token in
+                    if microseconds == 10_000 {
+                        failAllNewEvents.withLock { $0 = true }
+                        enteredHold.signal()
+                        token.waitUntilCancelled()
+                    }
+                },
+                makeEvent: { spec, source in
+                    if failAllNewEvents.withLock({ $0 }) {
+                        return nil
+                    }
+                    return HSEventTapModule.buildChordCGEvent(spec: spec, source: source)
+                }
+            )
+
+            _ = h.eval("hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)")
+            #expect(enteredHold.wait(timeout: .now() + .seconds(2)) == .success)
+            module.shutdown()
+
+            let expected: [RecordedChordAction] = [
+                .post(tap: .cghidEventTap, type: .flagsChanged, keyCode: 58, flags: [nonCoalesced, altBits]),
+                .sleep(5_000),
+                .post(tap: .cghidEventTap, type: .flagsChanged, keyCode: 55, flags: [nonCoalesced, altBits, cmdBits]),
+                .sleep(5_000),
+                .post(tap: .cghidEventTap, type: .keyDown, keyCode: 25, flags: [nonCoalesced, altBits, cmdBits]),
+                .sleep(10_000),
+                .post(tap: .cghidEventTap, type: .keyUp, keyCode: 25, flags: [nonCoalesced, altBits, cmdBits]),
+                .post(tap: .cghidEventTap, type: .flagsChanged, keyCode: 55, flags: [nonCoalesced, altBits]),
+                .post(tap: .cghidEventTap, type: .flagsChanged, keyCode: 58, flags: [nonCoalesced]),
+            ]
+            #expect(recorder.actions == expected)
+        }
+    }
+
+    @Test("engine reset drops callbacks even when globalThis.hs was cleared before reload")
+    func testEngineResetDropsCallbacksWithClearedGlobalHs() async throws {
+        try JSEngine.shared.resetContext()
+        defer { try? JSEngine.shared.resetContext() }
+
+        let hsValue = try #require(JSEngine.shared["hs"] as? JSValue)
+        let module = try #require(hsValue.objectForKeyedSubscript("eventtap")?.toObject() as? HSEventTapModule)
+        let recorder = ChordRecorder()
+        module.chordDispatcher = recorder.dispatcher
+
+        let cbCount = Mutex(0)
+        let inc: @convention(block) () -> Void = { cbCount.withLock { $0 += 1 } }
+        JSEngine.shared["__engineResetCB"] = inc
+
+        // Save hs, queue chord + callback, overwrite globalThis.hs = null before resetContext().
+        _ = JSEngine.shared.eval("""
+            globalThis.__savedHS = hs;
+            globalThis.hs = null;
+            __savedHS.eventtap.chordStroke(['alt', 'cmd'], '9', 0, () => __engineResetCB());
+        """)
+        HSEventTapModule.drainPostQueue()
+        #expect(recorder.actions.count == 10)
+
+        try JSEngine.shared.resetContext()
+        await drainMainQueue()
+        #expect(cbCount.withLock { $0 } == 0)
+    }
+
+    @Test("chordStroke rechecks liveness after reading JS arguments if getter triggers shutdown")
+    func testChordStrokeRechecksLivenessAfterArgumentConversion() async throws {
+        let (h, module, recorder) = try makeChordHarness()
+        let cbCount = Mutex(0)
+        let triggerShutdown: @convention(block) () -> Void = {
+            MainActor.assumeIsolated {
+                module.shutdown()
+            }
+        }
+        let inc: @convention(block) () -> Void = { cbCount.withLock { $0 += 1 } }
+        h.context.setObject(triggerShutdown, forKeyedSubscript: "__triggerShutdown" as NSString)
+        h.context.setObject(inc, forKeyedSubscript: "__cb" as NSString)
+
+        _ = h.eval("""
+            const mods = [];
+            Object.defineProperty(mods, 0, {
+                enumerable: true,
+                get() {
+                    __triggerShutdown();
+                    return 'alt';
+                }
+            });
+            mods.length = 1;
+            hs.eventtap.chordStroke(mods, '9', 0, () => __cb());
+        """)
+        #expect(h.hasException == false)
+
+        HSEventTapModule.drainPostQueue()
+        await drainMainQueue()
+        #expect(recorder.actions.isEmpty)
+        #expect(cbCount.withLock { $0 } == 0)
+    }
+
+    @Test("chordStroke callback accepts null-prototype callable and ignores non-callable Function.prototype object")
+    func testChordStrokeCallbackCallability() async throws {
+        let (h, _, recorder) = try makeChordHarness()
+        let cbCount = Mutex(0)
+        let inc: @convention(block) () -> Void = { cbCount.withLock { $0 += 1 } }
+        h.context.setObject(inc, forKeyedSubscript: "__cb" as NSString)
+
+        _ = h.eval("""
+            const nullProtoFn = Object.setPrototypeOf(() => __cb(), null);
+            const fakeFn = Object.create(Function.prototype);
+            hs.eventtap.chordStroke(['alt'], '9', 0, nullProtoFn);
+            hs.eventtap.chordStroke(['alt'], '9', 0, fakeFn);
+        """)
+        #expect(h.hasException == false)
+
+        HSEventTapModule.drainPostQueue()
+        await drainMainQueue()
+        #expect(recorder.actions.count == 12) // 2 chords * (4 posts + 2 inter-event sleeps)
+        #expect(cbCount.withLock { $0 } == 1)
     }
 
     @Test("chordStroke sequence for alt+cmd+9 presses and releases left modifier keys in fixed order")

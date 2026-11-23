@@ -211,9 +211,17 @@ import JavaScriptCoreExtras
 // MARK: - JSContextInstallable
 
 struct ModuleRootInstaller: JSContextInstallable {
-    let engineID: UUID
+    let moduleRoot: ModuleRoot
+
+    init(engineID: UUID) {
+        self.moduleRoot = ModuleRoot(engineID: engineID)
+    }
+
+    init(moduleRoot: ModuleRoot) {
+        self.moduleRoot = moduleRoot
+    }
 
     func install(in context: JSContext) throws {
-        context.setObject(ModuleRoot(engineID: engineID), forKeyedSubscript: "hs" as NSString)
+        context.setObject(moduleRoot, forKeyedSubscript: "hs" as NSString)
     }
 }

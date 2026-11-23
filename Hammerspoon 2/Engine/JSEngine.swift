@@ -28,6 +28,7 @@ class JSEngine {
     private(set) var id = UUID()
     private var vm: JSVirtualMachine?
     private var context: JSContext?
+    private var activeModuleRoot: ModuleRoot?
 
     // MARK: - JSContext Managing
     private func createContext() throws(HammerspoonError) {
@@ -63,15 +64,18 @@ class JSEngine {
         }
 
         // This is our startup sequence - install all components in order
+        let moduleRoot = ModuleRoot(engineID: id)
+        activeModuleRoot = moduleRoot
         do {
             try context.install([
                 ConsoleModuleInstaller(),      // console namespace
                 RequireInstaller(),            // require() function
                 TypeBridgesInstaller(),        // HSPoint, HSSize, HSRect, HSFont, HSAlert
                 .bundled(path: "engine.js", in: .main),  // EventEmitter class
-                ModuleRootInstaller(engineID: id),  // hs namespace
+                ModuleRootInstaller(moduleRoot: moduleRoot),  // hs namespace
             ])
         } catch {
+            activeModuleRoot = nil
             throw HammerspoonError(.vmCreation, msg: "Failed to install context components: \(error.localizedDescription)")
         }
     }
@@ -80,6 +84,12 @@ class JSEngine {
         AKTrace("Destroying JavaScript context: \(id)")
 
         SettingsManager.shared.removeAllDelegates()
+        HSEventTapModule.invalidateEngine(id)
+
+        if let moduleRoot = activeModuleRoot {
+            moduleRoot.shutdown()
+            activeModuleRoot = nil
+        }
 
         if let hs = self["hs"] as? JSValue, let moduleRoot = hs.toObjectOf(ModuleRoot.self) as? ModuleRoot {
             moduleRoot.shutdown()

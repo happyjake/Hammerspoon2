@@ -130,17 +130,31 @@ import Synchronization
     var name = "hs.eventtap"
     let engineID: UUID
 
+    nonisolated final class ModuleCancelScope: Sendable {
+        private let cancelled = Mutex(false)
+
+        var isCancelled: Bool { cancelled.withLock { $0 } }
+        func cancel() { cancelled.withLock { $0 = true } }
+    }
+
     private struct ActiveChord: Sendable {
         let moduleID: UUID
+        let engineID: UUID
+        let scope: ModuleCancelScope
         let token: ChordToken
+    }
+
+    private struct ChordRegistry: Sendable {
+        var terminationGeneration: UInt64 = 0
+        var retiredEngines: Set<UUID> = []
+        var activeChords: [UUID: ActiveChord] = [:]
     }
 
     nonisolated private static let postQueue = DispatchQueue(
         label: "net.tenshu.Hammerspoon-2.eventtap.post",
         qos: .userInteractive
     )
-    nonisolated private static let activeChords = Mutex<[UUID: ActiveChord]>([:])
-    nonisolated private static let terminationGeneration = Mutex<UInt64>(0)
+    nonisolated private static let chordRegistry = Mutex(ChordRegistry())
 
     private static let installTerminationObserver: Void = {
         _ = NotificationCenter.default.addObserver(
@@ -153,10 +167,15 @@ import Synchronization
     }()
 
     private let instanceID = UUID()
+    private let cancelScope = ModuleCancelScope()
     private var isShutDown = false
     private var createdTaps: [HSEventTap] = []
     private var pendingCallbacks: [UUID: JSValue] = [:]
     var chordDispatcher = ChordDispatcher()
+
+    private var isAlive: Bool {
+        !isShutDown && !cancelScope.isCancelled && !Self.isEngineRetired(engineID)
+    }
 
     // MARK: - Module lifecycle
 
@@ -176,13 +195,10 @@ import Synchronization
 
         pendingCallbacks.removeAll()
 
-        let tokens = Self.activeChords.withLock { chords -> [ChordToken] in
-            chords.values.filter { $0.moduleID == instanceID }.map(\.token)
-        }
-        for token in tokens {
-            token.cancel()
-        }
-        Self.postQueue.sync {}
+        Self.cancelAndDrain(
+            where: { $0.moduleID == instanceID },
+            mutateRegistry: { _ in cancelScope.cancel() }
+        )
 
         AKTrace("Shutdown of \(name): \(engineID)")
     }
@@ -192,15 +208,53 @@ import Synchronization
         AKTrace("Deinit of \(name): \(engineID)")
     }
 
+    /// Retires an engine ID, cancels any active/queued chords from that engine,
+    /// and drains the posting queue. Called during engine teardown even if `globalThis.hs` was replaced.
+    nonisolated static func invalidateEngine(_ engineID: UUID) {
+        cancelAndDrain(
+            where: { $0.engineID == engineID },
+            mutateRegistry: { reg in
+                reg.retiredEngines.insert(engineID)
+            }
+        )
+    }
+
     /// Cancels all queued or in-flight chords across the process and drains the
-    /// posting queue. Called during module shutdown and app termination.
+    /// posting queue. Called during app termination.
     nonisolated static func cancelAllChordsAndDrain() {
-        terminationGeneration.withLock { $0 &+= 1 }
-        let tokens = activeChords.withLock { Array($0.values.map(\.token)) }
+        cancelAndDrain(
+            where: { _ in true },
+            mutateRegistry: { reg in
+                reg.terminationGeneration &+= 1
+            }
+        )
+    }
+
+    nonisolated private static func cancelAndDrain(
+        where predicate: (ActiveChord) -> Bool,
+        mutateRegistry: (inout ChordRegistry) -> Void
+    ) {
+        // Mark the shared scope/generation and every matching token cancelled under
+        // one lock BEFORE broadcasting, so an in-flight worker cannot finish and start
+        // a queued chord before that queued chord's token is marked cancelled.
+        let tokens = chordRegistry.withLock { reg -> [ChordToken] in
+            mutateRegistry(&reg)
+            var matched: [ChordToken] = []
+            for entry in reg.activeChords.values where predicate(entry) {
+                entry.scope.cancel()
+                entry.token.markCancelled()
+                matched.append(entry.token)
+            }
+            return matched
+        }
         for token in tokens {
-            token.cancel()
+            token.broadcast()
         }
         postQueue.sync {}
+    }
+
+    nonisolated private static func isEngineRetired(_ engineID: UUID) -> Bool {
+        chordRegistry.withLock { $0.retiredEngines.contains(engineID) }
     }
 
     /// Waits for all queued chord work on the shared posting queue to finish.
@@ -208,9 +262,22 @@ import Synchronization
         postQueue.sync {}
     }
 
-    private static func waitForPostQueue(dispatcher: ChordDispatcher) {
-        dispatcher.onBarrier()
+    private static func waitForPostQueue() {
         postQueue.sync {}
+    }
+
+    private static func isCallable(_ value: JSValue) -> Bool {
+        guard value.isObject,
+              !value.isNull,
+              !value.isUndefined,
+              let ctx = value.context else {
+            return false
+        }
+        let ctxRef = ctx.jsGlobalContextRef
+        guard let objRef = unsafe JSValueToObject(ctxRef, value.jsValueRef, nil) else {
+            return false
+        }
+        return unsafe JSObjectIsFunction(ctxRef, objRef)
     }
 
     // MARK: - API
@@ -247,7 +314,7 @@ import Synchronization
         }
 
         let dispatcher = chordDispatcher
-        Self.waitForPostQueue(dispatcher: dispatcher)
+        Self.waitForPostQueue()
 
         let src = CGEventSource(stateID: .combinedSessionState)
         guard let down = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true),
@@ -269,7 +336,7 @@ import Synchronization
     }
 
     @objc(chordStroke::::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue, _ callback: JSValue) {
-        guard !isShutDown else { return }
+        guard isAlive else { return }
 
         guard let bridgedMods = mods.toStringArray(method: "hs.eventtap.chordStroke", parameter: "mods") else {
             return
@@ -278,9 +345,14 @@ import Synchronization
             AKError("hs.eventtap.chordStroke: unknown key '\(key)'")
             return
         }
+        let hold = Self.parseHoldMicroseconds(delay)
+
+        // Re-check liveness after potentially reentrant JS reads (e.g. array getters
+        // or valueOf hooks triggering hs.reload() / shutdown()).
+        guard isAlive else { return }
 
         let callbackID: UUID?
-        if callback.isFunction {
+        if Self.isCallable(callback) {
             let id = UUID()
             pendingCallbacks[id] = callback
             callbackID = id
@@ -292,20 +364,33 @@ import Synchronization
         }
 
         let sequence = Self.buildChordSequence(mods: bridgedMods, keyCode: keyCode)
-        let hold = Self.parseHoldMicroseconds(delay)
         let interEventDelay = Self.chordInterEventDelayMicroseconds
         let dispatcher = chordDispatcher
         let chordID = UUID()
         let token = ChordToken()
-        let generation = Self.terminationGeneration.withLock { $0 }
+        let scope = cancelScope
+        let engID = engineID
 
-        Self.activeChords.withLock { chords in
-            chords[chordID] = ActiveChord(moduleID: instanceID, token: token)
+        let generation = Self.chordRegistry.withLock { reg -> UInt64 in
+            reg.activeChords[chordID] = ActiveChord(
+                moduleID: instanceID,
+                engineID: engID,
+                scope: scope,
+                token: token
+            )
+            return reg.terminationGeneration
         }
 
         Self.postQueue.async { [weak self] in
             defer {
-                _ = Self.activeChords.withLock { $0.removeValue(forKey: chordID) }
+                _ = Self.chordRegistry.withLock { $0.activeChords.removeValue(forKey: chordID) }
+            }
+
+            let isCancelledByScope: @Sendable () -> Bool = {
+                if scope.isCancelled { return true }
+                return Self.chordRegistry.withLock { reg in
+                    reg.terminationGeneration != generation || reg.retiredEngines.contains(engID)
+                }
             }
 
             let completedNormally = Self.dispatchChord(
@@ -313,17 +398,17 @@ import Synchronization
                 holdMicroseconds: hold,
                 interEventDelayMicroseconds: interEventDelay,
                 dispatcher: dispatcher,
-                token: token
+                token: token,
+                isScopeCancelled: isCancelledByScope
             )
 
             guard let callbackID else { return }
-            let shouldInvoke = completedNormally && !token.isCancelled
+            let shouldInvoke = completedNormally && !token.isCancelled && !isCancelledByScope()
             DispatchQueue.main.async { [weak self] in
                 MainActor.assumeIsolated {
                     guard let self else { return }
                     let cb = self.pendingCallbacks.removeValue(forKey: callbackID)
-                    let sameGeneration = Self.terminationGeneration.withLock { $0 == generation }
-                    guard shouldInvoke, !self.isShutDown, sameGeneration else { return }
+                    guard shouldInvoke, self.isAlive else { return }
                     cb?.callSafely(withArguments: [], context: "hs.eventtap chordStroke")
                 }
             }
@@ -350,7 +435,7 @@ import Synchronization
         let wheelHorizontal = wheelDelta(dx)
 
         let dispatcher = chordDispatcher
-        Self.waitForPostQueue(dispatcher: dispatcher)
+        Self.waitForPostQueue()
 
         let src = CGEventSource(stateID: .combinedSessionState)
         // wheel1 = vertical axis, wheel2 = horizontal (CGEvent convention).
@@ -380,7 +465,7 @@ import Synchronization
         let location = CGPoint(x: x, y: y)
 
         let dispatcher = chordDispatcher
-        Self.waitForPostQueue(dispatcher: dispatcher)
+        Self.waitForPostQueue()
 
         let src = CGEventSource(stateID: .combinedSessionState)
         guard let down = CGEvent(mouseEventSource: src, mouseType: .leftMouseDown,
@@ -403,7 +488,7 @@ import Synchronization
     }
 
     @objc func typeText(_ text: String) {
-        Self.waitForPostQueue(dispatcher: chordDispatcher)
+        Self.waitForPostQueue()
         AKWarning("hs.eventtap.typeText is not yet implemented in M1 — lands with M4.")
     }
 
@@ -476,6 +561,18 @@ import Synchronization
             return cancelled
         }
 
+        func markCancelled() {
+            condition.lock()
+            cancelled = true
+            condition.unlock()
+        }
+
+        func broadcast() {
+            condition.lock()
+            condition.broadcast()
+            condition.unlock()
+        }
+
         func cancel() {
             condition.lock()
             cancelled = true
@@ -514,7 +611,7 @@ import Synchronization
         }
         var sleep: (@Sendable (useconds_t) -> Void)? = nil
         var wait: (@Sendable (useconds_t, ChordToken) -> Void)? = nil
-        var onBarrier: @Sendable () -> Void = {}
+        var makeEvent: @Sendable (SyntheticKeyEvent, CGEventSource?) -> CGEvent? = HSEventTapModule.buildChordCGEvent
 
         func performSleep(_ microseconds: useconds_t) {
             if let sleep {
@@ -541,61 +638,91 @@ import Synchronization
         holdMicroseconds: useconds_t,
         interEventDelayMicroseconds: useconds_t,
         dispatcher: ChordDispatcher,
-        token: ChordToken
+        token: ChordToken,
+        isScopeCancelled: @Sendable () -> Bool
     ) -> Bool {
-        guard !sequence.isEmpty, !token.isCancelled else {
+        func isCancelled() -> Bool {
+            token.isCancelled || isScopeCancelled()
+        }
+
+        guard !sequence.isEmpty, sequence.count.isMultiple(of: 2), !isCancelled() else {
             return false
         }
 
         let source = CGEventSource(stateID: .combinedSessionState)
-        var lastPostedIndex: Int? = nil
+        let pressCount = sequence.count / 2
+        var reservedReleases: [CGEvent] = []
+        reservedReleases.reserveCapacity(pressCount)
 
-        func postRemainingReleases() {
-            guard let lastPosted = lastPostedIndex else { return }
-            let pressCount = sequence.count / 2
-            let releaseStart: Int
-            if lastPosted < pressCount {
-                releaseStart = sequence.count - 1 - lastPosted
-            } else {
-                releaseStart = lastPosted + 1
-            }
-            guard releaseStart < sequence.count else { return }
-            for spec in sequence[releaseStart...] {
-                guard let event = buildChordCGEvent(spec: spec, source: source) else {
-                    logErrorAsync("hs.eventtap.chordStroke: failed to create CGEvent")
-                    continue
-                }
-                dispatcher.post(event, .cghidEventTap)
+        func postReservedReleases() {
+            while let fallback = reservedReleases.popLast() {
+                fallback.timestamp = clock_gettime_nsec_np(CLOCK_UPTIME_RAW)
+                dispatcher.post(fallback, .cghidEventTap)
             }
         }
 
-        for i in sequence.indices {
-            if token.isCancelled {
-                postRemainingReleases()
+        func sleepGap(_ gap: useconds_t) {
+            guard gap > 0 else { return }
+            if let wait = dispatcher.wait {
+                wait(gap, token)
+            } else if let sleep = dispatcher.sleep {
+                sleep(gap)
+            } else {
+                _ = token.wait(microseconds: gap)
+            }
+        }
+
+        // Press phase: pre-build and reserve each press's matching release before posting.
+        for i in 0..<pressCount {
+            if isCancelled() {
+                postReservedReleases()
                 return false
             }
-            guard let event = buildChordCGEvent(spec: sequence[i], source: source) else {
+            let releaseSpec = sequence[sequence.count - 1 - i]
+            guard let reservedRelease = dispatcher.makeEvent(releaseSpec, source) else {
+                logErrorAsync("hs.eventtap.chordStroke: failed to reserve release CGEvent")
+                postReservedReleases()
+                return false
+            }
+            guard let pressEvent = dispatcher.makeEvent(sequence[i], source) else {
                 logErrorAsync("hs.eventtap.chordStroke: failed to create CGEvent")
-                postRemainingReleases()
+                postReservedReleases()
                 return false
             }
-            dispatcher.post(event, .cghidEventTap)
-            lastPostedIndex = i
+            reservedReleases.append(reservedRelease)
+            dispatcher.post(pressEvent, .cghidEventTap)
+
+            let gap = (sequence[i].type == .keyDown) ? holdMicroseconds : interEventDelayMicroseconds
+            sleepGap(gap)
+            if isCancelled() {
+                postReservedReleases()
+                return false
+            }
+        }
+
+        // Release phase: prefer a fresh release CGEvent for accurate timestamps, falling back
+        // to the pre-reserved event if creation fails.
+        for i in pressCount..<sequence.count {
+            if isCancelled() {
+                postReservedReleases()
+                return false
+            }
+            let fallback = reservedReleases.removeLast()
+            let releaseEvent: CGEvent
+            if let fresh = dispatcher.makeEvent(sequence[i], source) {
+                releaseEvent = fresh
+            } else {
+                logErrorAsync("hs.eventtap.chordStroke: failed to create release CGEvent; using reserved fallback")
+                fallback.timestamp = clock_gettime_nsec_np(CLOCK_UPTIME_RAW)
+                releaseEvent = fallback
+            }
+            dispatcher.post(releaseEvent, .cghidEventTap)
 
             if i < sequence.count - 1 {
-                let gap = (sequence[i].type == .keyDown) ? holdMicroseconds : interEventDelayMicroseconds
-                if gap > 0 {
-                    if let wait = dispatcher.wait {
-                        wait(gap, token)
-                    } else if let sleep = dispatcher.sleep {
-                        sleep(gap)
-                    } else {
-                        _ = token.wait(microseconds: gap)
-                    }
-                    if token.isCancelled {
-                        postRemainingReleases()
-                        return false
-                    }
+                sleepGap(interEventDelayMicroseconds)
+                if isCancelled() {
+                    postReservedReleases()
+                    return false
                 }
             }
         }
@@ -603,7 +730,7 @@ import Synchronization
         return true
     }
 
-    struct SyntheticKeyEvent: Equatable, Sendable {
+    nonisolated struct SyntheticKeyEvent: Equatable, Sendable {
         let type: CGEventType
         let keyCode: CGKeyCode
         let flags: CGEventFlags
