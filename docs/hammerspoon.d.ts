@@ -1091,6 +1091,11 @@ declare class HSAudioDevice {
     readonly isInput: boolean;
 
     /**
+     * Whether any process is currently running audio IO on this device (such as recording from a microphone).
+     */
+    readonly isRunningSomewhere: boolean;
+
+    /**
      * The transport mechanism: `"built-in"`, `"usb"`, `"bluetooth"`, `"bluetooth-le"`,
 `"hdmi"`, `"display-port"`, `"firewire"`, `"airplay"`, `"avb"`,
 `"thunderbolt"`, `"virtual"`, `"aggregate"`, `"pci"`, or `"unknown"`.

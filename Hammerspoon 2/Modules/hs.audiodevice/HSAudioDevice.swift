@@ -243,6 +243,14 @@ private func caDataSourceName(_ objectID: AudioObjectID,
     /// ```
     @objc var isInput: Bool { get }
 
+    /// Whether any process is currently running audio IO on this device (such as recording from a microphone).
+    /// - Example:
+    /// ```js
+    /// const mic = hs.audiodevice.defaultInputDevice()
+    /// console.log(mic && mic.isRunningSomewhere)
+    /// ```
+    @objc var isRunningSomewhere: Bool { get }
+
     /// The transport mechanism: `"built-in"`, `"usb"`, `"bluetooth"`, `"bluetooth-le"`,
     /// `"hdmi"`, `"display-port"`, `"firewire"`, `"airplay"`, `"avb"`,
     /// `"thunderbolt"`, `"virtual"`, `"aggregate"`, `"pci"`, or `"unknown"`.
@@ -510,8 +518,25 @@ private func caDataSourceName(_ objectID: AudioObjectID,
 
     // MARK: - Capabilities
 
+    private var didLogRunningSomewhereFailure = false
+
     @objc var isOutput: Bool { outputChannels > 0 }
     @objc var isInput: Bool { inputChannels > 0 }
+
+    @objc var isRunningSomewhere: Bool {
+        var a = caAddr(kAudioDevicePropertyDeviceIsRunningSomewhere)
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        var value: UInt32 = 0
+        let status = unsafe AudioObjectGetPropertyData(objectID, &a, 0, nil, &size, &value)
+        guard status == noErr else {
+            if !didLogRunningSomewhereFailure {
+                didLogRunningSomewhereFailure = true
+                AKTrace("HSAudioDevice id=\(objectID): failed to read isRunningSomewhere (OSStatus \(status))")
+            }
+            return false
+        }
+        return value != 0
+    }
 
     @objc var transportType: String {
         guard let raw = caGetUInt32(objectID, kAudioDevicePropertyTransportType) else { return "unknown" }

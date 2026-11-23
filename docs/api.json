@@ -1689,7 +1689,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 349
+              "lineNumber": 357
             },
             {
               "name": "currentInputDataSource",
@@ -1711,7 +1711,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 358
+              "lineNumber": 366
             },
             {
               "name": "outputDataSources",
@@ -1733,7 +1733,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 367
+              "lineNumber": 375
             },
             {
               "name": "inputDataSources",
@@ -1755,7 +1755,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 376
+              "lineNumber": 384
             },
             {
               "name": "setCurrentOutputDataSource",
@@ -1785,7 +1785,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 387
+              "lineNumber": 395
             },
             {
               "name": "setCurrentInputDataSource",
@@ -1815,7 +1815,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 398
+              "lineNumber": 406
             },
             {
               "name": "setDefaultOutputDevice",
@@ -1837,7 +1837,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 409
+              "lineNumber": 417
             },
             {
               "name": "setDefaultInputDevice",
@@ -1859,7 +1859,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 418
+              "lineNumber": 426
             },
             {
               "name": "setDefaultEffectDevice",
@@ -1881,7 +1881,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 427
+              "lineNumber": 435
             },
             {
               "name": "addWatcher",
@@ -1908,7 +1908,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 448
+              "lineNumber": 456
             },
             {
               "name": "removeWatcher",
@@ -1935,7 +1935,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 458
+              "lineNumber": 466
             }
           ],
           "properties": [
@@ -2025,6 +2025,23 @@
               "lineNumber": 244
             },
             {
+              "name": "isRunningSomewhere",
+              "signature": "var isRunningSomewhere: Bool { get }",
+              "rawDocumentation": "Whether any process is currently running audio IO on this device (such as recording from a microphone).\n- Example:\n```js\nconst mic = hs.audiodevice.defaultInputDevice()\nconsole.log(mic && mic.isRunningSomewhere)\n```",
+              "description": "Whether any process is currently running audio IO on this device (such as recording from a microphone).",
+              "tsType": null,
+              "notes": [],
+              "examples": [
+                {
+                  "lang": "js",
+                  "code": "const mic = hs.audiodevice.defaultInputDevice()\nconsole.log(mic && mic.isRunningSomewhere)"
+                }
+              ],
+              "source": "swift",
+              "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
+              "lineNumber": 252
+            },
+            {
               "name": "transportType",
               "signature": "var transportType: String { get }",
               "rawDocumentation": "The transport mechanism: `\"built-in\"`, `\"usb\"`, `\"bluetooth\"`, `\"bluetooth-le\"`,\n`\"hdmi\"`, `\"display-port\"`, `\"firewire\"`, `\"airplay\"`, `\"avb\"`,\n`\"thunderbolt\"`, `\"virtual\"`, `\"aggregate\"`, `\"pci\"`, or `\"unknown\"`.\n- Example:\n```js\nconst dev = hs.audiodevice.defaultOutputDevice()\nconsole.log(dev.transportType)\n```",
@@ -2039,7 +2056,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 254
+              "lineNumber": 262
             },
             {
               "name": "outputChannels",
@@ -2056,7 +2073,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 264
+              "lineNumber": 272
             },
             {
               "name": "inputChannels",
@@ -2073,7 +2090,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 272
+              "lineNumber": 280
             },
             {
               "name": "volume",
@@ -2090,7 +2107,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 283
+              "lineNumber": 291
             },
             {
               "name": "muted",
@@ -2107,7 +2124,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 291
+              "lineNumber": 299
             },
             {
               "name": "balance",
@@ -2124,7 +2141,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 300
+              "lineNumber": 308
             },
             {
               "name": "inputVolume",
@@ -2141,7 +2158,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 311
+              "lineNumber": 319
             },
             {
               "name": "inputMuted",
@@ -2158,7 +2175,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 319
+              "lineNumber": 327
             },
             {
               "name": "sampleRate",
@@ -2175,7 +2192,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 329
+              "lineNumber": 337
             },
             {
               "name": "availableSampleRates",
@@ -2192,7 +2209,7 @@
               ],
               "source": "swift",
               "filePath": "Hammerspoon 2/Modules/hs.audiodevice/HSAudioDevice.swift",
-              "lineNumber": 338
+              "lineNumber": 346
             }
           ]
         }

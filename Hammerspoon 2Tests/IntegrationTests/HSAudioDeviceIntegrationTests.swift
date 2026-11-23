@@ -202,6 +202,75 @@ struct HSAudioDeviceTests {
         """)
         }
 
+        @Test("allInputDevices() devices expose boolean isRunningSomewhere")
+        func testAllInputDevicesExposeIsRunningSomewhere() {
+            let harness = makeHarness()
+            harness.expectTrue("""
+            hs.audiodevice.allInputDevices().every(function(d) {
+                return 'isRunningSomewhere' in d && typeof d.isRunningSomewhere === 'boolean';
+            })
+        """)
+        }
+
+        @Test("unused input device reports isRunningSomewhere as false")
+        @MainActor
+        func testUnusedInputDeviceIsRunningSomewhereFalse() {
+            let module = HSAudioDeviceModule(engineID: UUID())
+            let idleDevice = module.allInputDevices().first { device in
+                var addr = AudioObjectPropertyAddress(
+                    mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
+                    mScope: kAudioObjectPropertyScopeGlobal,
+                    mElement: kAudioObjectPropertyElementMain
+                )
+                var size = UInt32(MemoryLayout<UInt32>.size)
+                var running: UInt32 = 0
+                let status = unsafe AudioObjectGetPropertyData(
+                    AudioObjectID(device.id),
+                    &addr,
+                    0,
+                    nil,
+                    &size,
+                    &running
+                )
+                return status == noErr && running == 0
+            }
+            guard let idleDevice else { return }
+
+            let harness = makeHarness()
+            harness.context.setObject(idleDevice.uid, forKeyedSubscript: "_idleDeviceUID" as NSString)
+            harness.expectTrue("""
+            (function() {
+                var dev = hs.audiodevice.findDeviceByUID(_idleDeviceUID);
+                return dev !== null && dev.isRunningSomewhere === false;
+            })()
+        """)
+        }
+
+        @Test("isRunningSomewhere returns false and logs once at debug level when property cannot be read")
+        @MainActor
+        func testIsRunningSomewhereFailureReturnsFalseAndLogsOnce() async throws {
+            await JSTestHarness.drainMainActorQueue()
+            HammerspoonLog.shared.clearLog()
+
+            let harness = makeHarness()
+            let invalidDevice = HSAudioDevice(objectID: AudioObjectID(kAudioObjectUnknown))
+            harness.context.setObject(invalidDevice, forKeyedSubscript: "_invalidAudioDevice" as NSString)
+
+            harness.expectTrue("""
+            (function() {
+                var first = _invalidAudioDevice.isRunningSomewhere;
+                var second = _invalidAudioDevice.isRunningSomewhere;
+                return first === false && second === false;
+            })()
+        """)
+
+            await JSTestHarness.drainMainActorQueue()
+            let matchingLogs = HammerspoonLog.shared.entries.filter {
+                $0.logType == .Trace && $0.msg.contains("isRunningSomewhere")
+            }
+            #expect(matchingLogs.count == 1)
+        }
+
         // MARK: - Channels
 
         @Test("outputChannels is a non-negative integer")
