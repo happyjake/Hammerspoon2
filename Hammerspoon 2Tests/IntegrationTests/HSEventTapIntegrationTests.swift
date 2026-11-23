@@ -442,20 +442,13 @@ struct HSEventTapIntegrationTests {
     @Test("keyStroke waits for an in-flight chord before posting and preserves keyStroke behaviour")
     func testKeyStrokeWaitsForInFlightChord() throws {
         let chordPaused = DispatchSemaphore(value: 0)
+        let keyStrokeEntered = DispatchSemaphore(value: 0)
         let keyStrokePosted = DispatchSemaphore(value: 0)
         let allowChordResume = DispatchSemaphore(value: 0)
         let firstSleepOnly = Mutex(true)
         let postedBeforeResume = Mutex(false)
 
-        let recorder = ChordRecorder()
-        let h = JSTestHarness()
-        h.loadModule(HSEventTapModule.self, as: "eventtap")
-        let module = try #require(
-            h.context.objectForKeyedSubscript("hs")?
-                .objectForKeyedSubscript("eventtap")?
-                .toObject() as? HSEventTapModule
-        )
-        module.chordDispatcher = recorder.makeDispatcher(
+        let (h, module, recorder) = try makeChordHarness(
             onPost: { event, _ in
                 if CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode)) == 9 { // 'v'
                     keyStrokePosted.signal()
@@ -475,23 +468,49 @@ struct HSEventTapIntegrationTests {
         )
         defer { allowChordResume.signal() }
 
+        // Warm up the JS keyStroke path before pausing the chord so cold eval setup does not skew timing.
+        _ = h.eval("hs.eventtap.keyStroke(['cmd'], 'not_a_real_key', 0)")
+        #expect(h.hasException == false)
+
+        let notifyEntered: @convention(block) () -> Void = {
+            keyStrokeEntered.signal()
+        }
+        h.context.setObject(notifyEntered, forKeyedSubscript: "__keyStrokeEntered" as NSString)
+        _ = h.eval("""
+            globalThis.__keyStrokeMods = [];
+            Object.defineProperty(globalThis.__keyStrokeMods, 0, {
+                enumerable: true,
+                get() {
+                    __keyStrokeEntered();
+                    return 'cmd';
+                }
+            });
+            globalThis.__keyStrokeMods.length = 1;
+        """)
+        #expect(h.hasException == false)
+
         _ = h.eval("hs.eventtap.chordStroke(['alt', 'cmd'], '9', 10000)")
         #expect(h.hasException == false)
         #expect(chordPaused.wait(timeout: .now() + .seconds(2)) == .success)
 
-        // If keyStroke fails to wait on postQueue, keyStrokePosted fires immediately instead of timing out.
+        // Start the wait window only after keyStroke has entered Swift and read mods[0] right before
+        // the postQueue barrier, so a missing barrier fails immediately even on a cold run.
         let coordinatorDone = DispatchSemaphore(value: 0)
         DispatchQueue.global(qos: .userInitiated).async {
-            let postedEarly = (keyStrokePosted.wait(timeout: .now() + .milliseconds(50)) == .success)
+            let entered = (keyStrokeEntered.wait(timeout: .now() + .seconds(2)) == .success)
+            let postedEarly = entered
+                ? (keyStrokePosted.wait(timeout: .now() + .milliseconds(200)) == .success)
+                : false
             postedBeforeResume.withLock { $0 = postedEarly }
             allowChordResume.signal()
             coordinatorDone.signal()
         }
 
-        _ = h.eval("hs.eventtap.keyStroke(['cmd'], 'v', 10000)")
+        _ = h.eval("hs.eventtap.keyStroke(globalThis.__keyStrokeMods, 'v', 10000)")
         #expect(h.hasException == false)
         #expect(coordinatorDone.wait(timeout: .now() + .seconds(2)) == .success)
         #expect(postedBeforeResume.withLock { $0 } == false)
+        _ = module
 
         let altBits = CGEventFlags(rawValue: CGEventFlags.maskAlternate.rawValue | UInt64(NX_DEVICELALTKEYMASK))
         let cmdBits = CGEventFlags(rawValue: CGEventFlags.maskCommand.rawValue | UInt64(NX_DEVICELCMDKEYMASK))
@@ -649,6 +668,23 @@ struct HSEventTapIntegrationTests {
         #expect(cbCount.withLock { $0 } == 0)
         // First chord released 9, cmd, alt; second queued chord never started (9 actions total).
         #expect(recorder.actions.count == 9)
+
+        // Post-completion termination before main delivery: drain postQueue, post termination,
+        // then drain main — the already-queued main callback must still be dropped.
+        do {
+            let (h2, _, recorder2) = try makeChordHarness()
+            let cbCount2 = Mutex(0)
+            let inc2: @convention(block) () -> Void = { cbCount2.withLock { $0 += 1 } }
+            h2.context.setObject(inc2, forKeyedSubscript: "__cb2" as NSString)
+
+            _ = h2.eval("hs.eventtap.chordStroke(['alt', 'cmd'], '9', 0, () => __cb2())")
+            HSEventTapModule.drainPostQueue()
+            #expect(recorder2.actions.count == 10)
+
+            NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
+            await drainMainQueue()
+            #expect(cbCount2.withLock { $0 } == 0)
+        }
     }
 
     @Test("shutdown and app termination cancel large backlogs atomically before waking in-flight chord")

@@ -159,7 +159,7 @@ app — the clipboard gets set but the paste never lands.</div>
             <tbody>
                 <tr>
                     <td class="param-name">mods</td>
-                    <td class="param-type">string[]</td>
+                    <td class="param-type">JSValue</td>
                     <td class="param-desc">Array of modifier strings, e.g. [&#39;cmd&#39;]</td>
                 </tr>
                 <tr>
@@ -217,7 +217,7 @@ with `callback` when chord timing must be preserved.</div>
             <tbody>
                 <tr>
                     <td class="param-name">mods</td>
-                    <td class="param-type">string[]</td>
+                    <td class="param-type">JSValue</td>
                     <td class="param-desc">Array of modifier strings (`&#39;ctrl&#39;`, `&#39;shift&#39;`, `&#39;alt&#39;`/`&#39;opt&#39;`, `&#39;cmd&#39;`, `&#39;fn&#39;`)</td>
                 </tr>
                 <tr>
@@ -227,12 +227,12 @@ with `callback` when chord timing must be preserved.</div>
                 </tr>
                 <tr>
                     <td class="param-name">delay</td>
-                    <td class="param-type">number (optional)</td>
+                    <td class="param-type">JSValue</td>
                     <td class="param-desc">Optional number of microseconds the key is held between `keyDown` and `keyUp`. Defaults to 200000 (200 ms), matching `keyStroke`.</td>
                 </tr>
                 <tr>
                     <td class="param-name">callback</td>
-                    <td class="param-type">() =&gt; void (optional)</td>
+                    <td class="param-type">function</td>
                     <td class="param-desc">Optional completion callback invoked on the main thread after the final modifier release is posted. Dropped if the module or JS context shuts down before it runs.</td>
                 </tr>
             </tbody>

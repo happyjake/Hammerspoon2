@@ -55,8 +55,7 @@ env.addFilter('formatReturnType', function(returns) {
 });
 
 env.addFilter('resolveParamType', function(param) {
-    const base = param.tsType || formatType(param.type);
-    return param.optional ? `${base} (optional)` : base;
+    return formatType(param.type);
 });
 
 env.addFilter('extractPropertyType', function(signature) {

@@ -85,7 +85,7 @@ import Synchronization
     ///   hs.eventtap.keyStroke(['cmd'], 'v')
     /// })
     /// ```
-    @objc(chordStroke::::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue, _ callback: JSValue)
+    @objc(chordStroke::::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue, _ callback: JSFunction)
 
     /// Synthesise a scroll-wheel event at the current mouse position.
     /// The window server routes scroll events to the window under the cursor —
@@ -335,7 +335,7 @@ import Synchronization
         dispatcher.post(up, .cghidEventTap)
     }
 
-    @objc(chordStroke::::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue, _ callback: JSValue) {
+    @objc(chordStroke::::) func chordStroke(_ mods: JSValue, _ key: String, _ delay: JSValue, _ callback: JSFunction) {
         guard isAlive else { return }
 
         guard let bridgedMods = mods.toStringArray(method: "hs.eventtap.chordStroke", parameter: "mods") else {
@@ -408,7 +408,7 @@ import Synchronization
                 MainActor.assumeIsolated {
                     guard let self else { return }
                     let cb = self.pendingCallbacks.removeValue(forKey: callbackID)
-                    guard shouldInvoke, self.isAlive else { return }
+                    guard shouldInvoke, self.isAlive, !isCancelledByScope() else { return }
                     cb?.callSafely(withArguments: [], context: "hs.eventtap chordStroke")
                 }
             }
